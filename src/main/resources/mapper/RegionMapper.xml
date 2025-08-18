@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wherehot.spring.mapper.RegionMapper">
+
+    <!-- Result Map 정의 -->
+    <resultMap id="regionResultMap" type="com.wherehot.spring.entity.Region">
+        <id property="id" column="id"/>
+        <result property="sido" column="sido"/>
+        <result property="sigungu" column="sigungu"/>
+        <result property="dong" column="dong"/>
+        <result property="lat" column="lat"/>
+        <result property="lng" column="lng"/>
+    </resultMap>
+
+    <!-- 공통 SQL 조각들 -->
+    <sql id="regionColumns">
+        id, sido, sigungu, dong, lat, lng
+    </sql>
+
+    <!-- 모든 지역 조회 -->
+    <select id="findAll" resultMap="regionResultMap">
+        SELECT <include refid="regionColumns"/>
+        FROM place_info 
+        WHERE 1=1 
+        ORDER BY sido, sigungu, dong
+    </select>
+
+    <!-- ID로 지역 조회 -->
+    <select id="findById" parameterType="int" resultMap="regionResultMap">
+        SELECT <include refid="regionColumns"/>
+        FROM place_info 
+        WHERE id = #{id}
+    </select>
+
+    <!-- 동 이름으로 지역 조회 -->
+    <select id="findByDong" parameterType="string" resultMap="regionResultMap">
+        SELECT <include refid="regionColumns"/>
+        FROM place_info 
+        WHERE dong = #{dong}
+        LIMIT 1
+    </select>
+
+    <!-- 시군구 중심좌표 조회 -->
+    <select id="getAllSigunguCenters" resultType="map">
+        SELECT DISTINCT 
+            sido,
+            sigungu,
+            AVG(lat) as lat,
+            AVG(lng) as lng
+        FROM place_info 
+        WHERE 1=1 
+        GROUP BY sido, sigungu
+        ORDER BY sido, sigungu
+    </select>
+
+    <!-- 시군구별 카테고리별 개수 조회 -->
+    <select id="getSigunguCategoryCounts" resultType="map">
+        SELECT 
+            r.sigungu,
+            AVG(r.lat) as lat,
+            AVG(r.lng) as lng,
+            COALESCE(SUM(CASE WHEN h.category_id = 1 THEN 1 ELSE 0 END), 0) as clubCount,
+            COALESCE(SUM(CASE WHEN h.category_id = 2 THEN 1 ELSE 0 END), 0) as huntingCount,
+            COALESCE(SUM(CASE WHEN h.category_id = 3 THEN 1 ELSE 0 END), 0) as loungeCount,
+            COALESCE(SUM(CASE WHEN h.category_id = 4 THEN 1 ELSE 0 END), 0) as pochaCount
+        FROM place_info r
+        LEFT JOIN hotplace_info h ON r.id = h.region_id
+        WHERE 1=1
+        GROUP BY r.sigungu
+        ORDER BY r.sigungu
+    </select>
+
+    <!-- 지역(동/구) 중심좌표 조회 -->
+    <select id="getAllRegionCenters" resultType="map">
+        SELECT 
+            id,
+            sido,
+            sigungu,
+            dong,
+            lat,
+            lng
+        FROM place_info 
+        WHERE 1=1 
+        ORDER BY sido, sigungu, dong
+    </select>
+
+    <!-- 지역별 카테고리별 개수 조회 -->
+    <select id="getRegionCategoryCounts" resultType="map">
+        SELECT 
+            r.id as region_id,
+            r.dong,
+            COALESCE(SUM(CASE WHEN h.category_id = 1 THEN 1 ELSE 0 END), 0) as clubCount,
+            COALESCE(SUM(CASE WHEN h.category_id = 2 THEN 1 ELSE 0 END), 0) as huntingCount,
+            COALESCE(SUM(CASE WHEN h.category_id = 3 THEN 1 ELSE 0 END), 0) as loungeCount,
+            COALESCE(SUM(CASE WHEN h.category_id = 4 THEN 1 ELSE 0 END), 0) as pochaCount
+        FROM place_info r
+        LEFT JOIN hotplace_info h ON r.id = h.region_id
+        WHERE 1=1
+        GROUP BY r.id, r.dong
+        ORDER BY r.dong
+    </select>
+
+    <!-- 모든 지역명 조회 -->
+    <select id="getAllRegionNames" resultType="string">
+        SELECT DISTINCT dong 
+        FROM place_info 
+        WHERE 1=1 AND dong IS NOT NULL
+        ORDER BY dong
+    </select>
+
+    <!-- 지역별 평균 평점 조회 -->
+    <select id="getRegionAverageRatings" resultType="map">
+        SELECT 
+            r.dong as dong,
+            0.0 as averageRating
+        FROM place_info r
+        LEFT JOIN hotplace_info h ON r.id = h.region_id
+        WHERE r.dong IS NOT NULL
+        GROUP BY r.dong
+        ORDER BY r.dong
+    </select>
+
+    <!-- 동/구별 ID 매핑 조회 -->
+    <select id="getDongToRegionIdMapping" resultType="map">
+        SELECT 
+            dong as dong,
+            id as id
+        FROM place_info 
+        WHERE 1=1 AND dong IS NOT NULL
+        ORDER BY dong
+    </select>
+
+    <!-- 특정 지역의 핫플레이스 통계 -->
+    <select id="getRegionStatistics" parameterType="string" resultType="map">
+        SELECT 
+            r.dong,
+            r.lat,
+            r.lng,
+            COUNT(h.id) as totalHotplaces,
+            0.0 as averageRating,
+            COALESCE(SUM(CASE WHEN h.category_id = 1 THEN 1 ELSE 0 END), 0) as clubCount,
+            COALESCE(SUM(CASE WHEN h.category_id = 2 THEN 1 ELSE 0 END), 0) as huntingCount,
+            COALESCE(SUM(CASE WHEN h.category_id = 3 THEN 1 ELSE 0 END), 0) as loungeCount,
+            COALESCE(SUM(CASE WHEN h.category_id = 4 THEN 1 ELSE 0 END), 0) as pochaCount
+        FROM place_info r
+        LEFT JOIN hotplace_info h ON r.id = h.region_id
+        WHERE r.dong = #{dong}
+        GROUP BY r.id, r.dong, r.lat, r.lng
+    </select>
+
+    <!-- 지역 검색 -->
+    <select id="searchRegions" parameterType="string" resultMap="regionResultMap">
+        SELECT <include refid="regionColumns"/>
+        FROM place_info 
+        WHERE 1=1 
+        AND (
+            dong LIKE CONCAT('%', #{keyword}, '%') 
+            OR sigungu LIKE CONCAT('%', #{keyword}, '%')
+            OR sido LIKE CONCAT('%', #{keyword}, '%')
+        )
+        ORDER BY dong
+    </select>
+
+</mapper>
+

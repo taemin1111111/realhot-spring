@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wherehot.spring.mapper.WishListMapper">
+
+    <!-- WishList ResultMap - Model1 구조에 맞게 수정 -->
+    <resultMap id="WishListResultMap" type="com.wherehot.spring.entity.WishList">
+        <id property="id" column="id"/>
+        <result property="userId" column="userid"/>
+        <result property="hotplaceId" column="place_id"/>
+        <result property="createdAt" column="wish_date"/>
+        <!-- 핫플레이스 정보 -->
+        <result property="hotplaceName" column="hotplace_name"/>
+        <result property="hotplaceAddress" column="hotplace_address"/>
+        <result property="hotplaceRegion" column="hotplace_region"/>
+        <result property="hotplaceSigungu" column="hotplace_sigungu"/>
+        <result property="hotplaceCategoryId" column="hotplace_category_id"/>
+        <result property="hotplaceImageUrl" column="hotplace_image_url"/>
+        <result property="hotplaceAverageRating" column="hotplace_average_rating"/>
+        <result property="hotplaceReviewCount" column="hotplace_review_count"/>
+        <!-- 사용자 정보 -->
+        <result property="userNickname" column="user_nickname"/>
+    </resultMap>
+
+    <!-- 기본 SELECT 절 -->
+    <sql id="selectWishListColumns">
+        SELECT w.*,
+               h.name as hotplace_name,
+               h.address as hotplace_address,
+               h.region as hotplace_region,
+               h.sigungu as hotplace_sigungu,
+               h.category_id as hotplace_category_id,
+               h.image_url as hotplace_image_url,
+               h.average_rating as hotplace_average_rating,
+               h.review_count as hotplace_review_count,
+               m.nickname as user_nickname
+        FROM wishlist w
+        LEFT JOIN hotplace_info h ON w.place_id = h.id
+        LEFT JOIN member m ON w.userid = m.userid
+    </sql>
+
+    <!-- 사용자별 위시리스트 조회 -->
+    <select id="findByUserId" resultMap="WishListResultMap">
+        <include refid="selectWishListColumns"/>
+        WHERE w.userid = #{userId}
+        ORDER BY w.wish_date DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 핫플레이스별 위시리스트 조회 -->
+    <select id="findByHotplaceId" resultMap="WishListResultMap">
+        <include refid="selectWishListColumns"/>
+        WHERE w.place_id = #{hotplaceId}
+        ORDER BY w.wish_date DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 사용자와 핫플레이스로 위시리스트 조회 -->
+    <select id="findByUserIdAndHotplaceId" resultMap="WishListResultMap">
+        <include refid="selectWishListColumns"/>
+        WHERE w.userid = #{userId}
+        AND w.place_id = #{hotplaceId}
+    </select>
+
+    <!-- 위시리스트 등록 -->
+    <insert id="insertWishList" parameterType="com.wherehot.spring.entity.WishList" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO wishlist (
+            userid,
+            place_id,
+            wish_date
+        ) VALUES (
+            #{userId},
+            #{hotplaceId},
+            #{createdAt}
+        )
+    </insert>
+
+    <!-- 위시리스트 삭제 -->
+    <delete id="deleteWishList" parameterType="int">
+        DELETE FROM wishlist WHERE id = #{id}
+    </delete>
+
+    <!-- 사용자와 핫플레이스로 위시리스트 삭제 -->
+    <delete id="deleteByUserIdAndHotplaceId">
+        DELETE FROM wishlist
+        WHERE userid = #{userId}
+        AND place_id = #{hotplaceId}
+    </delete>
+
+    <!-- 사용자별 위시리스트 수 조회 -->
+    <select id="countByUserId" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM wishlist
+        WHERE userid = #{userId}
+    </select>
+
+    <!-- 핫플레이스별 위시리스트 수 조회 -->
+    <select id="countByHotplaceId" parameterType="int" resultType="int">
+        SELECT COUNT(*)
+        FROM wishlist
+        WHERE place_id = #{hotplaceId}
+    </select>
+
+    <!-- 위시리스트 존재 여부 확인 -->
+    <select id="existsByUserIdAndHotplaceId" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM wishlist
+        WHERE userid = #{userId}
+        AND place_id = #{hotplaceId}
+    </select>
+
+    <!-- 인기 핫플레이스 ID 조회 (위시리스트 많은 순) -->
+    <select id="findPopularHotplaceIds" parameterType="int" resultType="int">
+        SELECT w.place_id
+        FROM wishlist w
+        GROUP BY w.place_id
+        ORDER BY COUNT(*) DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 인기 핫플레이스 상세 정보 조회 -->
+    <select id="findPopularHotplacesWithDetails" parameterType="int" resultType="map">
+        SELECT 
+            h.id as place_id,
+            h.name as hotplace_name,
+            h.address as hotplace_address,
+            h.region,
+            h.sigungu,
+            h.category_id,
+            h.image_url,
+            h.average_rating,
+            h.review_count,
+            COUNT(w.id) as wish_count
+        FROM wishlist w
+        JOIN hotplace_info h ON w.place_id = h.id
+        GROUP BY h.id, h.name, h.address, h.region, h.sigungu, h.category_id, h.image_url, h.average_rating, h.review_count
+        ORDER BY wish_count DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 최근 위시리스트 조회 -->
+    <select id="findRecentWishLists" parameterType="int" resultMap="WishListResultMap">
+        <include refid="selectWishListColumns"/>
+        ORDER BY w.wish_date DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 지역별 위시리스트 통계 -->
+    <select id="getWishListStatisticsByRegion" resultType="map">
+        SELECT 
+            h.region,
+            COUNT(*) as wish_count,
+            COUNT(DISTINCT w.userid) as unique_users,
+            COUNT(DISTINCT h.id) as unique_hotplaces
+        FROM wishlist w
+        JOIN hotplace_info h ON w.place_id = h.id
+        WHERE h.region IS NOT NULL
+        GROUP BY h.region
+        ORDER BY wish_count DESC
+    </select>
+
+    <!-- 카테고리별 위시리스트 통계 -->
+    <select id="getWishListStatisticsByCategory" resultType="map">
+        SELECT 
+            c.name as category_name,
+            COUNT(*) as wish_count,
+            COUNT(DISTINCT w.userid) as unique_users,
+            COUNT(DISTINCT h.id) as unique_hotplaces
+        FROM wishlist w
+        JOIN hotplace_info h ON w.place_id = h.id
+        JOIN category c ON h.category_id = c.id
+        WHERE c.name IS NOT NULL
+        GROUP BY c.id, c.name
+        ORDER BY wish_count DESC
+    </select>
+
+    <!-- 월별 위시리스트 통계 -->
+    <select id="getMonthlyWishListStatistics" resultType="map">
+        SELECT 
+            DATE_FORMAT(wish_date, '%Y-%m') as month,
+            COUNT(*) as wish_count,
+            COUNT(DISTINCT userid) as unique_users,
+            COUNT(DISTINCT place_id) as unique_hotplaces
+        FROM wishlist
+        WHERE wish_date >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+        GROUP BY DATE_FORMAT(wish_date, '%Y-%m')
+        ORDER BY month DESC
+    </select>
+
+    <!-- 사용자별 선호 지역 분석 -->
+    <select id="getUserPreferredRegions" parameterType="string" resultType="map">
+        SELECT 
+            h.region,
+            COUNT(*) as wish_count,
+            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM wish_list WHERE userid = #{userId}), 2) as percentage
+        FROM wishlist w
+        JOIN hotplace_info h ON w.place_id = h.id
+        WHERE w.userid = #{userId}
+        AND h.region IS NOT NULL
+        GROUP BY h.region
+        ORDER BY wish_count DESC
+    </select>
+
+    <!-- 사용자별 선호 카테고리 분석 -->
+    <select id="getUserPreferredCategories" parameterType="string" resultType="map">
+        SELECT 
+            c.name as category_name,
+            COUNT(*) as wish_count,
+            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM wish_list WHERE userid = #{userId}), 2) as percentage
+        FROM wishlist w
+        JOIN hotplace_info h ON w.place_id = h.id
+        JOIN category c ON h.category_id = c.id
+        WHERE w.userid = #{userId}
+        AND c.name IS NOT NULL
+        GROUP BY c.id, c.name
+        ORDER BY wish_count DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wherehot.spring.mapper.PostMapper">
+
+    <!-- Result Map 정의 - Model1 hottalk_post 테이블에 맞게 수정 -->
+    <resultMap id="postResultMap" type="com.wherehot.spring.entity.Post">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="authorId" column="userid"/>
+        <result property="authorNickname" column="nickname"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="viewCount" column="views"/>
+        <result property="likeCount" column="likes"/>
+        <result property="createdAt" column="created_at"/>
+        <!-- Model1에는 없는 컬럼들 - 기본값 사용 -->
+        <result property="commentCount" column="0"/>
+        <result property="status" column="'정상'"/>
+        <result property="updatedAt" column="created_at"/>
+        <result property="imageUrl" column="photo1"/>
+        <result property="isNotice" column="false"/>
+        <result property="isPinned" column="false"/>
+    </resultMap>
+
+    <!-- 공통 컬럼 - Model1 hottalk_post 테이블 기준 -->
+    <sql id="postColumns">
+        id, title, content, userid, nickname, category_id, 
+        views, likes, created_at, 
+        0 as comment_count, '정상' as status, created_at as updated_at, 
+        photo1 as image_url, false as is_notice, false as is_pinned
+    </sql>
+
+    <!-- 모든 게시글 조회 (페이징) -->
+    <select id="findAll" resultMap="postResultMap">
+        SELECT <include refid="postColumns"/>
+        FROM hottalk_post 
+        WHERE 1=1
+        
+        ORDER BY created_at DESC 
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- ID로 게시글 조회 -->
+    <select id="findById" parameterType="int" resultMap="postResultMap">
+        SELECT <include refid="postColumns"/>
+        FROM hottalk_post 
+        WHERE id = #{id} AND status != '삭제'
+    </select>
+
+    <!-- 카테고리별 게시글 조회 -->
+    <select id="findByCategoryId" resultMap="postResultMap">
+        SELECT <include refid="postColumns"/>
+        FROM hottalk_post 
+        WHERE category_id = #{categoryId} AND status != '삭제'
+        ORDER BY created_at DESC 
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 작성자별 게시글 조회 -->
+    <select id="findByAuthorId" resultMap="postResultMap">
+        SELECT <include refid="postColumns"/>
+        FROM hottalk_post 
+        WHERE author_id = #{authorId} AND status != '삭제'
+        ORDER BY created_at DESC 
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 키워드로 게시글 검색 -->
+    <select id="searchPosts" resultMap="postResultMap">
+        SELECT <include refid="postColumns"/>
+        FROM hottalk_post 
+        WHERE 1=1
+        <choose>
+            <when test="searchType == 'title'">
+                AND title LIKE CONCAT('%', #{keyword}, '%')
+            </when>
+            <when test="searchType == 'content'">
+                AND content LIKE CONCAT('%', #{keyword}, '%')
+            </when>
+            <when test="searchType == 'author'">
+                AND author_nickname LIKE CONCAT('%', #{keyword}, '%')
+            </when>
+            <otherwise>
+                AND (title LIKE CONCAT('%', #{keyword}, '%') 
+                     OR content LIKE CONCAT('%', #{keyword}, '%')
+                     OR author_nickname LIKE CONCAT('%', #{keyword}, '%'))
+            </otherwise>
+        </choose>
+        ORDER BY created_at DESC 
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 인기 게시글 조회 -->
+    <select id="findPopularPosts" resultMap="postResultMap">
+        SELECT <include refid="postColumns"/>
+        FROM hottalk_post 
+        WHERE 1=1
+        ORDER BY likes DESC, views DESC, created_at DESC 
+        LIMIT #{limit}
+    </select>
+
+    <!-- 최신 게시글 조회 -->
+    <select id="findRecentPosts" resultMap="postResultMap">
+        SELECT <include refid="postColumns"/>
+        FROM hottalk_post 
+        WHERE 1=1
+        ORDER BY created_at DESC 
+        LIMIT #{limit}
+    </select>
+
+    <!-- 공지사항 조회 -->
+    <select id="findNotices" resultMap="postResultMap">
+        SELECT <include refid="postColumns"/>
+        FROM hottalk_post 
+        WHERE is_notice = true AND status != '삭제'
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 고정 게시글 조회 -->
+    <select id="findPinnedPosts" resultMap="postResultMap">
+        SELECT <include refid="postColumns"/>
+        FROM hottalk_post 
+        WHERE is_pinned = true AND status != '삭제'
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 게시글 등록 -->
+    <insert id="insertPost" parameterType="com.wherehot.spring.entity.Post" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO hottalk_post (
+            title, content, author_id, author_nickname, category_id, 
+            view_count, like_count, comment_count, status, created_at, updated_at, 
+            image_url, is_notice, is_pinned
+        ) VALUES (
+            #{title}, #{content}, #{authorId}, #{authorNickname}, #{categoryId}, 
+            #{viewCount}, #{likeCount}, #{commentCount}, #{status}, #{createdAt}, #{updatedAt}, 
+            #{imageUrl}, #{isNotice}, #{isPinned}
+        )
+    </insert>
+
+    <!-- 게시글 수정 -->
+    <update id="updatePost" parameterType="com.wherehot.spring.entity.Post">
+        UPDATE hottalk_post 
+        SET 
+            title = #{title},
+            content = #{content},
+            category_id = #{categoryId},
+            image_url = #{imageUrl},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 게시글 삭제 -->
+    <update id="deletePost">
+        UPDATE hottalk_post 
+        SET status = '삭제', updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 조회수 증가 -->
+    <update id="updateViewCount">
+        UPDATE hottalk_post 
+        SET view_count = view_count + 1, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 좋아요 수 업데이트 -->
+    <update id="updateLikeCount">
+        UPDATE hottalk_post 
+        SET like_count = #{likeCount}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 댓글 수 업데이트 -->
+    <update id="updateCommentCount">
+        UPDATE hottalk_post 
+        SET comment_count = #{commentCount}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 게시글 상태 변경 -->
+    <update id="updateStatus">
+        UPDATE hottalk_post 
+        SET status = #{status}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 공지사항 설정/해제 -->
+    <update id="updateNoticeStatus">
+        UPDATE hottalk_post 
+        SET is_notice = #{isNotice}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 고정 설정/해제 -->
+    <update id="updatePinnedStatus">
+        UPDATE hottalk_post 
+        SET is_pinned = #{isPinned}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 전체 게시글 수 -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) 
+        FROM hottalk_post 
+        WHERE 1=1
+    </select>
+
+    <!-- 카테고리별 게시글 수 -->
+    <select id="countByCategoryId" resultType="int">
+        SELECT COUNT(*) 
+        FROM hottalk_post 
+        WHERE category_id = #{categoryId} AND status != '삭제'
+    </select>
+
+    <!-- 검색 결과 수 -->
+    <select id="countSearchResults" resultType="int">
+        SELECT COUNT(*) 
+        FROM hottalk_post 
+        WHERE 1=1
+        <choose>
+            <when test="searchType == 'title'">
+                AND title LIKE CONCAT('%', #{keyword}, '%')
+            </when>
+            <when test="searchType == 'content'">
+                AND content LIKE CONCAT('%', #{keyword}, '%')
+            </when>
+            <when test="searchType == 'author'">
+                AND author_nickname LIKE CONCAT('%', #{keyword}, '%')
+            </when>
+            <otherwise>
+                AND (title LIKE CONCAT('%', #{keyword}, '%') 
+                     OR content LIKE CONCAT('%', #{keyword}, '%')
+                     OR author_nickname LIKE CONCAT('%', #{keyword}, '%'))
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 작성자별 게시글 수 -->
+    <select id="countByAuthorId" resultType="int">
+        SELECT COUNT(*) 
+        FROM hottalk_post 
+        WHERE author_id = #{authorId} AND status != '삭제'
+    </select>
+
+    <!-- 카테고리별 통계 -->
+    <select id="getCategoryStatistics" resultType="map">
+        SELECT 
+            category_id as categoryId,
+            COUNT(*) as postCount,
+            SUM(view_count) as totalViews,
+            SUM(like_count) as totalLikes,
+            SUM(comment_count) as totalComments
+        FROM hottalk_post 
+        WHERE 1=1
+        GROUP BY category_id 
+        ORDER BY postCount DESC
+    </select>
+
+    <!-- 월별 게시글 통계 -->
+    <select id="getMonthlyStatistics" resultType="map">
+        SELECT 
+            DATE_FORMAT(created_at, '%Y-%m') as month,
+            COUNT(*) as postCount,
+            SUM(view_count) as totalViews,
+            SUM(like_count) as totalLikes
+        FROM hottalk_post 
+        WHERE 1=1
+        GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+        ORDER BY month DESC
+        LIMIT 12
+    </select>
+
+</mapper>

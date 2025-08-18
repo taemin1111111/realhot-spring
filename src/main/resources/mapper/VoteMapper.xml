@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wherehot.spring.mapper.VoteMapper">
+
+    <!-- VoteNowHot ResultMap (Model1 DB 구조에 맞게) -->
+    <resultMap id="VoteNowHotResultMap" type="com.wherehot.spring.entity.VoteNowHot">
+        <id property="id" column="id"/>
+        <result property="placeId" column="place_id"/>
+        <result property="voterId" column="voter_id"/>
+        <result property="congestion" column="congestion"/>
+        <result property="genderRatio" column="gender_ratio"/>
+        <result property="waitTime" column="wait_time"/>
+        <result property="votedAt" column="voted_at"/>
+    </resultMap>
+
+    <!-- VoteToday ResultMap -->
+    <resultMap id="VoteTodayResultMap" type="com.wherehot.spring.entity.VoteToday">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="hotplaceId" column="hotplace_id"/>
+        <result property="voteDate" column="vote_date"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- VoteTodayLog ResultMap -->
+    <resultMap id="VoteTodayLogResultMap" type="com.wherehot.spring.entity.VoteTodayLog">
+        <id property="id" column="id"/>
+        <result property="hotplaceId" column="hotplace_id"/>
+        <result property="voteCount" column="vote_count"/>
+        <result property="ranking" column="ranking"/>
+        <result property="logDate" column="log_date"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <!-- 핫플레이스 정보 -->
+        <result property="hotplaceName" column="hotplace_name"/>
+        <result property="hotplaceAddress" column="hotplace_address"/>
+        <result property="hotplaceRegion" column="hotplace_region"/>
+    </resultMap>
+
+    <!-- VoteNowHot 관련 쿼리 -->
+
+    <!-- 현재 핫 투표 등록 (Model1 호환) -->
+    <insert id="insertVoteNowHot" parameterType="com.wherehot.spring.entity.VoteNowHot">
+        INSERT INTO vote_nowhot (
+            place_id,
+            voter_id,
+            congestion,
+            gender_ratio,
+            wait_time,
+            voted_at
+        ) VALUES (
+            #{placeId},
+            #{voterId},
+            #{congestion},
+            #{genderRatio},
+            #{waitTime},
+            #{votedAt}
+        )
+    </insert>
+
+    <!-- 사용자와 핫플레이스로 현재 핫 투표 조회 (Model1 구조) -->
+    <select id="findVoteNowHotByUserAndHotplace" resultMap="VoteNowHotResultMap">
+        SELECT * FROM vote_nowhot
+        WHERE voter_id = #{userId}
+        AND place_id = #{hotplaceId}
+    </select>
+
+    <!-- 핫플레이스별 현재 핫 투표 조회 (Model1 구조) -->
+    <select id="findVoteNowHotByHotplace" parameterType="int" resultMap="VoteNowHotResultMap">
+        SELECT * FROM vote_nowhot
+        WHERE place_id = #{hotplaceId}
+        ORDER BY voted_at DESC
+    </select>
+
+    <!-- 현재 핫 투표 수정 (Model1 구조) -->
+    <update id="updateVoteNowHot" parameterType="com.wherehot.spring.entity.VoteNowHot">
+        UPDATE vote_nowhot
+        SET 
+            congestion = #{congestion},
+            gender_ratio = #{genderRatio},
+            wait_time = #{waitTime},
+            voted_at = #{votedAt}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 현재 핫 투표 삭제 (Model1 구조) -->
+    <delete id="deleteVoteNowHot" parameterType="int">
+        DELETE FROM vote_nowhot WHERE id = #{id}
+    </delete>
+
+    <!-- 핫플레이스별 평균 점수 조회 (Model1에서는 투표 수로 대체) -->
+    <select id="getAverageScoreByHotplace" parameterType="int" resultType="double">
+        SELECT COUNT(*) * 1.0
+        FROM vote_nowhot
+        WHERE place_id = #{hotplaceId}
+    </select>
+
+    <!-- 핫플레이스별 현재 핫 투표 수 조회 (Model1 구조) -->
+    <select id="countVoteNowHotByHotplace" parameterType="int" resultType="int">
+        SELECT COUNT(*)
+        FROM vote_nowhot
+        WHERE place_id = #{hotplaceId}
+    </select>
+
+    <!-- 지역별 인기 핫플레이스 조회 (Model1 구조) -->
+    <select id="findPopularHotplacesByRegion" resultType="map">
+        SELECT 
+            h.id as hotplace_id,
+            h.name as hotplace_name,
+            h.region,
+            h.sigungu,
+            COUNT(v.id) as vote_count
+        FROM vote_nowhot v
+        JOIN hotplace_info h ON v.place_id = h.id
+        WHERE h.region = #{region}
+        GROUP BY h.id, h.name, h.region, h.sigungu
+        ORDER BY vote_count DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- VoteToday 관련 쿼리 -->
+
+    <!-- 오늘의 투표 등록 -->
+    <insert id="insertVoteToday" parameterType="com.wherehot.spring.entity.VoteToday" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO vote_today (
+            user_id,
+            hotplace_id,
+            vote_date,
+            created_at,
+            updated_at
+        ) VALUES (
+            #{userId},
+            #{hotplaceId},
+            #{voteDate},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <!-- 사용자와 날짜로 오늘의 투표 조회 -->
+    <select id="findVoteTodayByUserAndDate" resultMap="VoteTodayResultMap">
+        SELECT * FROM vote_today
+        WHERE user_id = #{userId}
+        AND vote_date = #{voteDate}
+    </select>
+
+    <!-- 날짜별 오늘의 투표 조회 -->
+    <select id="findVoteTodayByDate" parameterType="java.time.LocalDate" resultMap="VoteTodayResultMap">
+        SELECT * FROM vote_today
+        WHERE vote_date = #{voteDate}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 핫플레이스와 날짜별 오늘의 투표 조회 -->
+    <select id="findVoteTodayByHotplaceAndDate" resultMap="VoteTodayResultMap">
+        SELECT * FROM vote_today
+        WHERE hotplace_id = #{hotplaceId}
+        AND vote_date = #{voteDate}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 오늘의 투표 수정 -->
+    <update id="updateVoteToday" parameterType="com.wherehot.spring.entity.VoteToday">
+        UPDATE vote_today
+        SET 
+            hotplace_id = #{hotplaceId},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 오늘의 투표 삭제 -->
+    <delete id="deleteVoteToday" parameterType="int">
+        DELETE FROM vote_today WHERE id = #{id}
+    </delete>
+
+    <!-- 핫플레이스와 날짜별 오늘의 투표 수 조회 -->
+    <select id="countVoteTodayByHotplaceAndDate" resultType="int">
+        SELECT COUNT(*)
+        FROM vote_today
+        WHERE hotplace_id = #{hotplaceId}
+        AND vote_date = #{voteDate}
+    </select>
+
+    <!-- 날짜별 오늘의 투표 수 조회 -->
+    <select id="countVoteTodayByDate" parameterType="java.time.LocalDate" resultType="int">
+        SELECT COUNT(*)
+        FROM vote_today
+        WHERE vote_date = #{voteDate}
+    </select>
+
+    <!-- 오늘의 인기 핫플레이스 조회 -->
+    <select id="findTodayPopularHotplaces" resultType="map">
+        SELECT 
+            h.id as hotplace_id,
+            h.name as hotplace_name,
+            h.region,
+            h.sigungu,
+            COUNT(v.id) as vote_count
+        FROM vote_today v
+        JOIN hotplace_info h ON v.hotplace_id = h.id
+        WHERE v.vote_date = #{voteDate}
+        GROUP BY h.id, h.name, h.region, h.sigungu
+        ORDER BY vote_count DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- VoteTodayLog 관련 쿼리 -->
+
+    <!-- 투표 로그 등록 -->
+    <insert id="insertVoteTodayLog" parameterType="com.wherehot.spring.entity.VoteTodayLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO vote_today_log (
+            hotplace_id,
+            vote_count,
+            ranking,
+            log_date,
+            created_at,
+            updated_at
+        ) VALUES (
+            #{hotplaceId},
+            #{voteCount},
+            #{ranking},
+            #{logDate},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <!-- 날짜별 투표 로그 조회 -->
+    <select id="findVoteTodayLogByDate" parameterType="java.time.LocalDate" resultMap="VoteTodayLogResultMap">
+        SELECT 
+            l.*,
+            h.name as hotplace_name,
+            h.address as hotplace_address,
+            h.region as hotplace_region
+        FROM vote_today_log l
+        LEFT JOIN hotplace_info h ON l.hotplace_id = h.id
+        WHERE l.log_date = #{logDate}
+        ORDER BY l.ranking ASC
+    </select>
+
+    <!-- 핫플레이스별 투표 로그 조회 -->
+    <select id="findVoteTodayLogByHotplace" resultMap="VoteTodayLogResultMap">
+        SELECT 
+            l.*,
+            h.name as hotplace_name,
+            h.address as hotplace_address,
+            h.region as hotplace_region
+        FROM vote_today_log l
+        LEFT JOIN hotplace_info h ON l.hotplace_id = h.id
+        WHERE l.hotplace_id = #{hotplaceId}
+        ORDER BY l.log_date DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 기간별 투표 로그 조회 -->
+    <select id="findVoteTodayLogByDateRange" resultMap="VoteTodayLogResultMap">
+        SELECT 
+            l.*,
+            h.name as hotplace_name,
+            h.address as hotplace_address,
+            h.region as hotplace_region
+        FROM vote_today_log l
+        LEFT JOIN hotplace_info h ON l.hotplace_id = h.id
+        WHERE l.log_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY l.log_date DESC, l.ranking ASC
+    </select>
+
+    <!-- 투표 로그 수정 -->
+    <update id="updateVoteTodayLog" parameterType="com.wherehot.spring.entity.VoteTodayLog">
+        UPDATE vote_today_log
+        SET 
+            vote_count = #{voteCount},
+            ranking = #{ranking},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 투표 로그 삭제 -->
+    <delete id="deleteVoteTodayLog" parameterType="int">
+        DELETE FROM vote_today_log WHERE id = #{id}
+    </delete>
+
+    <!-- 오늘의 랭킹 조회 -->
+    <select id="findTodayRanking" resultMap="VoteTodayLogResultMap">
+        SELECT 
+            l.*,
+            h.name as hotplace_name,
+            h.address as hotplace_address,
+            h.region as hotplace_region
+        FROM vote_today_log l
+        LEFT JOIN hotplace_info h ON l.hotplace_id = h.id
+        WHERE l.log_date = #{logDate}
+        ORDER BY l.ranking ASC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 월별 인기 핫플레이스 조회 -->
+    <select id="findMonthlyPopularHotplaces" resultType="map">
+        SELECT 
+            h.id as hotplace_id,
+            h.name as hotplace_name,
+            h.region,
+            h.sigungu,
+            SUM(l.vote_count) as total_votes,
+            AVG(l.ranking) as avg_ranking
+        FROM vote_today_log l
+        JOIN hotplace_info h ON l.hotplace_id = h.id
+        WHERE YEAR(l.log_date) = #{year}
+        AND MONTH(l.log_date) = #{month}
+        GROUP BY h.id, h.name, h.region, h.sigungu
+        ORDER BY total_votes DESC, avg_ranking ASC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 지역별 투표 통계 -->
+    <select id="findVoteStatisticsByRegion" resultType="map">
+        SELECT 
+            h.region,
+            COUNT(DISTINCT l.hotplace_id) as hotplace_count,
+            SUM(l.vote_count) as total_votes,
+            AVG(l.vote_count) as avg_votes_per_hotplace,
+            MAX(l.log_date) as latest_vote_date
+        FROM vote_today_log l
+        JOIN hotplace_info h ON l.hotplace_id = h.id
+        WHERE l.log_date BETWEEN #{startDate} AND #{endDate}
+        AND h.region IS NOT NULL
+        GROUP BY h.region
+        ORDER BY total_votes DESC
+    </select>
+
+    <!-- 카테고리별 투표 통계 -->
+    <select id="findVoteStatisticsByCategory" resultType="map">
+        SELECT 
+            c.name as category_name,
+            COUNT(DISTINCT l.hotplace_id) as hotplace_count,
+            SUM(l.vote_count) as total_votes,
+            AVG(l.vote_count) as avg_votes_per_hotplace
+        FROM vote_today_log l
+        JOIN hotplace_info h ON l.hotplace_id = h.id
+        JOIN category c ON h.category_id = c.id
+        WHERE l.log_date BETWEEN #{startDate} AND #{endDate}
+        AND c.name IS NOT NULL
+        GROUP BY c.id, c.name
+        ORDER BY total_votes DESC
+    </select>
+
+    <!-- ========== 투표 제출 및 현황 조회 ========== -->
+
+    <!-- 사용자가 오늘 해당 장소에 이미 투표했는지 확인 (JWT 토큰 기반) -->
+    <select id="isAlreadyVotedToday" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM vote_nowhot_log
+        WHERE voter_id = #{identifier}
+        AND place_id = #{placeId}
+        AND DATE(voted_at) = CURDATE()
+    </select>
+
+    <!-- 사용자가 오늘 투표한 장소 개수 조회 (JWT 토큰 기반) -->
+    <select id="getTodayVotePlaceCount" resultType="int">
+        SELECT COUNT(DISTINCT place_id)
+        FROM vote_nowhot_log
+        WHERE voter_id = #{identifier}
+        AND DATE(voted_at) = CURDATE()
+    </select>
+
+    <!-- 투표 데이터 삽입 (기존 버전 - 하위 호환성) -->
+    <insert id="insertVote">
+        INSERT INTO vote_nowhot_log (
+            place_id,
+            voter_id,
+            congestion,
+            gender_ratio,
+            wait_time,
+            voted_at
+        ) VALUES (
+            #{placeId},
+            #{userId},
+            #{congestion},
+            #{genderRatio},
+            #{waitTime},
+            NOW()
+        )
+    </insert>
+
+    <!-- 투표 데이터 삽입 (Model1 호환) -->
+    <insert id="insertVoteWithIp">
+        INSERT INTO vote_nowhot_log (
+            place_id,
+            voter_id,
+            congestion,
+            gender_ratio,
+            wait_time,
+            voted_at
+        ) VALUES (
+            #{placeId},
+            #{identifier},
+            #{congestion},
+            #{genderRatio},
+            #{waitTime},
+            NOW()
+        )
+    </insert>
+    
+    <!-- vote_nowhot_log에만 삽입 (간단한 버전) -->
+    <insert id="insertVoteNowHotLog" parameterType="com.wherehot.spring.entity.VoteNowHot">
+        INSERT INTO vote_nowhot_log (
+            place_id,
+            voter_id,
+            congestion,
+            gender_ratio,
+            wait_time,
+            voted_at
+        ) VALUES (
+            #{placeId},
+            #{voterId},
+            #{congestion},
+            #{genderRatio},
+            #{waitTime},
+            #{votedAt}
+        )
+    </insert>
+
+    <!-- 특정 장소의 투표 트렌드 조회 (가장 많이 투표된 옵션들) -->
+    <select id="getVoteTrends" resultType="map">
+        SELECT 
+            (SELECT congestion FROM vote_nowhot_log WHERE place_id = #{placeId} 
+             GROUP BY congestion ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as congestion,
+            (SELECT gender_ratio FROM vote_nowhot_log WHERE place_id = #{placeId} 
+             GROUP BY gender_ratio ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as genderRatio,
+            (SELECT wait_time FROM vote_nowhot_log WHERE place_id = #{placeId} 
+             GROUP BY wait_time ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as waitTime
+    </select>
+
+    <!-- ========== 찜하기 관련 ========== -->
+    
+    <!-- 찜하기 여부 확인 -->
+    <select id="isWished" resultType="boolean">
+        SELECT COUNT(*) > 0 
+        FROM wishlist 
+        WHERE userid = #{userid} AND hotplace_id = #{hotplaceId}
+    </select>
+    
+    <!-- 찜하기 추가 -->
+    <insert id="insertWishlist">
+        INSERT INTO wishlist (userid, hotplace_id, created_at) 
+        VALUES (#{userid}, #{hotplaceId}, NOW())
+    </insert>
+    
+    <!-- 찜하기 삭제 -->
+    <delete id="deleteWishlist">
+        DELETE FROM wishlist 
+        WHERE userid = #{userid} AND hotplace_id = #{hotplaceId}
+    </delete>
+    
+    <!-- 핫플레이스 찜 개수 조회 -->
+    <select id="getWishCount" resultType="int">
+        SELECT COUNT(*) 
+        FROM wishlist 
+        WHERE hotplace_id = #{hotplaceId}
+    </select>
+
+</mapper>

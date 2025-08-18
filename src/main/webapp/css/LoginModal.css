@@ -1,0 +1,73 @@
+/* loginmodal.css */
+
+/* 로그인 모달 전용 크기 강제 설정 */
+#loginModal .modal-dialog {
+    max-width: 900px !important;
+    width: 900px !important;
+}
+
+#loginModal .modal-content {
+    max-width: 900px !important;
+    width: 900px !important;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    border: none;
+    background-color: #ffffff;
+}
+
+/* 내부 패딩 */
+#loginModal .modal-content .p-4 {
+    padding: 30px !important;
+}
+
+/* 타이틀 */
+#loginModal .modal-content h4 {
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333333;
+}
+
+/* 인풋 박스 */
+#loginModal .modal-content input[type="text"],
+#loginModal .modal-content input[type="password"] {
+    height: 50px;
+    font-size: 16px;
+    border-radius: 5px;
+}
+
+/* 로그인 버튼 - 핑크색 */
+#loginModal .modal-content button[type="submit"] {
+    height: 50px;
+    font-size: 18px;
+    font-weight: bold;
+    background-color: #ff69b4;  /* 핑크 */
+    border: none;
+    color: #fff;
+}
+
+/* 소셜 로그인 버튼 */
+#loginModal .modal-content .btn-outline-success {
+    border-color: #03c75a;
+    color: #03c75a;
+}
+
+/* 소셜 버튼 간격 */
+#loginModal .modal-content .d-flex > button {
+    width: 45%;
+}
+
+/* 아이디찾기 등 링크 검정색 */
+#loginModal .modal-content .form-check-label,
+#loginModal .modal-content .form-check-label a,
+#loginModal .modal-content .form-check span a {
+    color: #000000 !important;
+    text-decoration: none;
+    font-weight: normal;
+    font-size: 14px;
+}
+
+/* 마우스 올렸을 때 밑줄 + 검정 유지 */
+#loginModal .modal-content .form-check span a:hover {
+    color: #000000 !important;
+    text-decoration: underline;
+}

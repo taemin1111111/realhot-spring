@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wherehot.spring.mapper.HotplaceMapper">
+
+    <!-- Result Map 정의 -->
+    <resultMap id="hotplaceResultMap" type="com.wherehot.spring.entity.Hotplace">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="address" column="address"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="regionId" column="region_id"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 공통 SQL 조각들 -->
+    <sql id="hotplaceColumns">
+        id, name, address, category_id, lat as latitude, lng as longitude, region_id, created_at
+    </sql>
+
+    <!-- 모든 핫플레이스 조회 -->
+    <select id="findAll" resultMap="hotplaceResultMap">
+        SELECT <include refid="hotplaceColumns"/>
+        FROM hotplace_info 
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- ID로 핫플레이스 조회 -->
+    <select id="findById" parameterType="int" resultMap="hotplaceResultMap">
+        SELECT <include refid="hotplaceColumns"/>
+        FROM hotplace_info 
+        WHERE id = #{id}
+    </select>
+
+    <!-- 카테고리별 핫플레이스 조회 -->
+    <select id="findByCategoryId" parameterType="int" resultMap="hotplaceResultMap">
+        SELECT <include refid="hotplaceColumns"/>
+        FROM hotplace_info 
+        WHERE category_id = #{categoryId} 
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 지역별 핫플레이스 조회 -->
+    <select id="findByRegion" parameterType="string" resultMap="hotplaceResultMap">
+        SELECT <include refid="hotplaceColumns"/>
+        FROM hotplace_info 
+        WHERE 1=1 
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 시군구별 핫플레이스 조회 -->
+    <select id="findBySigungu" parameterType="string" resultMap="hotplaceResultMap">
+        SELECT <include refid="hotplaceColumns"/>
+        FROM hotplace_info 
+        WHERE 1=1 
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 인기 핫플레이스 조회 (평점 순) -->
+    <select id="findPopularHotplaces" parameterType="int" resultMap="hotplaceResultMap">
+        SELECT <include refid="hotplaceColumns"/>
+        FROM hotplace_info 
+        ORDER BY created_at DESC 
+        LIMIT #{limit}
+    </select>
+
+    <!-- 최신 핫플레이스 조회 -->
+    <select id="findRecentHotplaces" parameterType="int" resultMap="hotplaceResultMap">
+        SELECT <include refid="hotplaceColumns"/>
+        FROM hotplace_info 
+        ORDER BY created_at DESC 
+        LIMIT #{limit}
+    </select>
+
+    <!-- 키워드로 핫플레이스 검색 -->
+    <select id="searchByKeyword" resultMap="hotplaceResultMap">
+        SELECT <include refid="hotplaceColumns"/>
+        FROM hotplace_info 
+        WHERE (
+            name LIKE CONCAT('%', #{keyword}, '%') 
+            OR address LIKE CONCAT('%', #{keyword}, '%')
+        )
+        ORDER BY created_at DESC 
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 좌표 범위로 핫플레이스 검색 -->
+    <select id="findByCoordinateRange" resultMap="hotplaceResultMap">
+        SELECT <include refid="hotplaceColumns"/>
+        FROM hotplace_info 
+        WHERE lat BETWEEN #{minLat} AND #{maxLat}
+        AND lng BETWEEN #{minLng} AND #{maxLng}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 핫플레이스 등록 -->
+    <insert id="insertHotplace" parameterType="com.wherehot.spring.entity.Hotplace" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO hotplace_info (
+            name, address, category_id, lat, lng, region_id, created_at
+        ) VALUES (
+            #{name}, #{address}, #{categoryId}, #{lat}, #{lng}, #{regionId}, NOW()
+        )
+    </insert>
+
+    <!-- 핫플레이스 수정 -->
+    <update id="updateHotplace" parameterType="com.wherehot.spring.entity.Hotplace">
+        UPDATE hotplace_info 
+        SET 
+            name = #{name},
+            address = #{address},
+            category_id = #{categoryId},
+            lat = #{lat},
+            lng = #{lng},
+            region_id = #{regionId}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 핫플레이스 삭제 (실제 삭제) -->
+    <delete id="deleteHotplace">
+        DELETE FROM hotplace_info 
+        WHERE id = #{id}
+    </delete>
+
+
+
+    <!-- 전체 핫플레이스 수 -->
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) 
+        FROM hotplace_info
+    </select>
+
+    <!-- 카테고리별 핫플레이스 수 -->
+    <select id="countByCategory" parameterType="int" resultType="int">
+        SELECT COUNT(*) 
+        FROM hotplace_info 
+        WHERE category_id = #{categoryId}
+    </select>
+
+    <!-- 모든 핫플레이스 이름 조회 -->
+    <select id="findAllHotplaceNames" resultType="string">
+        SELECT DISTINCT name 
+        FROM hotplace_info 
+        ORDER BY name
+    </select>
+
+</mapper>

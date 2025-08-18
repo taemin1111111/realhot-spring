@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wherehot.spring.mapper.CategoryMapper">
+
+    <!-- Result Map 정의 -->
+    <resultMap id="categoryResultMap" type="com.wherehot.spring.entity.Category">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+    </resultMap>
+
+    <!-- 공통 SQL 조각들 -->
+    <sql id="categoryColumns">
+        id, name
+    </sql>
+
+    <!-- 모든 카테고리 조회 -->
+    <select id="findAll" resultMap="categoryResultMap">
+        SELECT <include refid="categoryColumns"/>
+        FROM place_category 
+        ORDER BY id
+    </select>
+
+    <!-- 활성 카테고리만 조회 -->
+    <select id="findActiveCategories" resultMap="categoryResultMap">
+        SELECT <include refid="categoryColumns"/>
+        FROM place_category 
+        WHERE 1=1 
+        ORDER BY id
+    </select>
+
+    <!-- ID로 카테고리 조회 -->
+    <select id="findById" parameterType="int" resultMap="categoryResultMap">
+        SELECT <include refid="categoryColumns"/>
+        FROM place_category 
+        WHERE id = #{id}
+    </select>
+
+    <!-- 이름으로 카테고리 조회 -->
+    <select id="findByName" parameterType="string" resultMap="categoryResultMap">
+        SELECT <include refid="categoryColumns"/>
+        FROM place_category 
+        WHERE name = #{name}
+    </select>
+
+    <!-- 카테고리 등록 -->
+    <insert id="insertCategory" parameterType="com.wherehot.spring.entity.Category" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO category (name, description, sort_order, active)
+        VALUES (#{name}, #{description}, #{sortOrder}, #{active})
+    </insert>
+
+    <!-- 카테고리 수정 -->
+    <update id="updateCategory" parameterType="com.wherehot.spring.entity.Category">
+        UPDATE category 
+        SET 
+            name = #{name},
+            description = #{description},
+            sort_order = #{sortOrder},
+            active = #{active}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 카테고리 삭제 (비활성화) -->
+    <update id="deleteCategory">
+        UPDATE category 
+        SET active = false 
+        WHERE id = #{id}
+    </update>
+
+    <!-- 정렬 순서 업데이트 -->
+    <update id="updateSortOrder">
+        UPDATE category 
+        SET sort_order = #{sortOrder} 
+        WHERE id = #{id}
+    </update>
+
+    <!-- 카테고리 활성/비활성 토글 -->
+    <update id="toggleActive">
+        UPDATE category 
+        SET active = #{active} 
+        WHERE id = #{id}
+    </update>
+
+</mapper>

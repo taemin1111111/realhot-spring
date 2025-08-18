@@ -1,0 +1,162 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%
+    String root = request.getContextPath();
+    String mainPage = (String) request.getAttribute("mainPage");
+    if (mainPage == null) {
+        mainPage = "main.jsp";
+    }
+%>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>어디핫?</title>
+<link rel="icon" type="image/x-icon" href="<%=root%>/favicon.ico">
+
+<!-- 구글 폰트: Noto Sans KR -->
+<link
+	href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap"
+	rel="stylesheet">
+
+<!-- Bootstrap 5.3.3 -->
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+	rel="stylesheet">
+<script
+	src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+<!-- 외부 스타일시트 연결 -->
+<link rel="stylesheet" href="<%=root%>/css/all.css">
+<!-- gpaform,main,title,footer -->
+<link rel="stylesheet" href="<%=root%>/css/review.css">
+<!-- 후기작성 -->
+<link rel="stylesheet" href="<%=root%>/css/LoginModal.css">
+<!-- 후기작성 -->
+<link rel="stylesheet" href="<%=root%>/css/join.css">
+<!-- 커뮤니티 -->
+<link rel="stylesheet" href="<%=root%>/css/community.css">
+<!-- 마이페이지 -->
+<link rel="stylesheet" href="<%=root%>/css/mypage.css">
+<!-- MD 페이지 -->
+<link rel="stylesheet" href="<%=root%>/css/md.css">
+<!-- 공지사항 -->
+<link rel="stylesheet" href="<%=root%>/css/notice.css">
+<!-- 관리자 페이지 -->
+<link rel="stylesheet" href="<%=root%>/css/admin.css">
+<!-- TAEMIN 게시판 관리 -->
+<link rel="stylesheet" href="<%=root%>/css/taemin.css">
+<!-- 지도 검색 -->
+<link rel="stylesheet" href="<%=root%>/css/mapserach.css">
+<!-- 네이버 가입 -->
+<link rel="stylesheet" href="<%=root%>/css/naverJoin.css">
+
+<style>
+.main-welcome {
+	text-align: center;
+	padding: 40px 20px;
+}
+
+.main-welcome h1 {
+	font-size: 3rem;
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 20px;
+}
+
+.main-welcome .lead {
+	font-size: 1.2rem;
+	color: #666;
+	margin-bottom: 30px;
+}
+
+.main-welcome .card {
+	transition: transform 0.2s, box-shadow 0.2s;
+	border: none;
+	box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+	margin-bottom: 20px;
+}
+
+.main-welcome .card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+.error-fallback {
+	padding: 60px 20px;
+	text-align: center;
+}
+
+.error-fallback h2 {
+	font-size: 4rem;
+	margin-bottom: 20px;
+}
+
+.error-fallback h3 {
+	color: #666;
+	margin-bottom: 15px;
+}
+
+.centered-content {
+	min-height: calc(100vh - 200px);
+	padding: 20px 0;
+}
+</style>
+
+</head>
+<body>
+
+	<!-- 상단 타이틀 영역 -->
+	<jsp:include page="main/title.jsp" />
+
+	<!-- 중앙 콘텐츠 영역 -->
+	<div class="centered-content">
+		<%
+		try {
+			if (mainPage != null && !mainPage.equals("main.jsp")) {
+				// 메뉴에서 온 JSP 처리
+				try {
+		%>
+					<jsp:include page="<%= mainPage %>" />
+		<%
+				} catch (Exception e) {
+					// 파일이 없으면 main.jsp로 fallback
+		%>
+					<jsp:include page="main/main.jsp" />
+					<div class="alert alert-warning mt-3">
+						<i class="bi bi-exclamation-triangle"></i>
+						요청하신 페이지를 찾을 수 없어 메인 페이지를 표시합니다.
+					</div>
+		<%
+				}
+			} else {
+				// 기본 메인 페이지 표시
+		%>
+				<jsp:include page="main/main.jsp" />
+		<%
+			}
+		} catch (Exception e) {
+			// 최종 fallback - 에러 메시지만 표시 (main.jsp include 하지 않음)
+		%>
+			<div class="error-fallback text-center">
+				<h2><i class="bi bi-exclamation-triangle text-warning"></i></h2>
+				<h3>서비스 일시 중단</h3>
+				<p class="text-muted">시스템 점검 중입니다. 잠시 후 다시 시도해주세요.</p>
+				<button class="btn btn-primary" onclick="location.reload()">
+					<i class="bi bi-arrow-clockwise"></i> 새로고침
+				</button>
+			</div>
+		<%
+		}
+		%>
+	</div>
+
+	<!-- 하단 푸터 영역 -->
+	<jsp:include page="main/footer.jsp" />
+
+</body>
+</html>

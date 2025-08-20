@@ -12,7 +12,7 @@ public class VoteNowHot {
     private String voterId;
     private String congestion;
     private String genderRatio;
-    private int waitTime;
+    private String waitTime;
     private LocalDateTime votedAt;
     
     // 기본 생성자
@@ -48,10 +48,10 @@ public class VoteNowHot {
     public void setGenderRatio(String genderRatio) {
         this.genderRatio = genderRatio;
     }
-    public int getWaitTime() {
+    public String getWaitTime() {
         return waitTime;
     }
-    public void setWaitTime(int waitTime) {
+    public void setWaitTime(String waitTime) {
         this.waitTime = waitTime;
     }
     public LocalDateTime getVotedAt() {

@@ -263,7 +263,7 @@ public class ReviewServiceImpl implements ReviewService {
             if (category > 0) {
                 return reviewMapper.findByRegionAndCategory(region, category);
             } else {
-                return reviewMapper.findByRegion(region);
+                return reviewMapper.findByRegionSimple(region);
             }
         } catch (Exception e) {
             logger.error("Error finding reviews by region: region={}, category={}", region, category, e);
@@ -414,5 +414,26 @@ public class ReviewServiceImpl implements ReviewService {
         }
     }
     
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> findRegionsWithReviews() {
+        try {
+            return reviewMapper.findRegionsWithReviews();
+        } catch (Exception e) {
+            logger.error("Error finding regions with reviews", e);
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> findPopularRegions() {
+        try {
+            return reviewMapper.findPopularRegions();
+        } catch (Exception e) {
+            logger.error("Error finding popular regions", e);
+            return new ArrayList<>();
+        }
+    }
 
 }

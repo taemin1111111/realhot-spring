@@ -90,6 +90,16 @@ public interface ReviewService {
      * 모든 지역명 조회 (Model1 호환)
      */
     List<String> getAllRegionNames();
+
+    /**
+     * 인기 지역 조회
+     */
+    List<String> findPopularRegions();
+
+    /**
+     * 리뷰가 등록된 지역 목록 조회
+     */
+    List<String> findRegionsWithReviews();
     
     /**
      * 지역별 리뷰 조회 (Model1 호환)

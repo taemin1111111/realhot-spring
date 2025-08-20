@@ -114,11 +114,21 @@ public interface ReviewMapper {
      * 모든 지역명 조회 (Model1 호환)
      */
     List<String> findAllRegionNames();
+
+    /**
+     * 인기 지역 조회
+     */
+    List<String> findPopularRegions();
+
+    /**
+     * 리뷰가 등록된 지역 목록 조회
+     */
+    List<String> findRegionsWithReviews();
     
     /**
      * 지역별 리뷰 조회 (Model1 호환)
      */
-    List<Review> findByRegion(@Param("region") String region);
+    List<Review> findByRegionSimple(@Param("region") String region);
     
     /**
      * 지역 및 카테고리별 리뷰 조회 (Model1 호환)

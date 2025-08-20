@@ -25,12 +25,59 @@ let regionMap = {}; // 지역 계층 구조
 document.addEventListener('DOMContentLoaded', function() {
     loadRegionStructure();
     loadRegionNames();
+    loadRegionsWithReviews(); // 리뷰 등록 지역 로드 함수 호출
 });
 
 // REST API를 통한 지역 구조 데이터 로드
 function loadRegionStructure() {
     // 지역 계층 구조 API가 없으므로 간단한 구조로 대체
     renderRegionInterface();
+}
+
+// REST API를 통한 리뷰 등록 지역 로드
+function loadRegionsWithReviews() {
+    const url = root + '/api/reviews/regions/with-reviews';
+    
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('리뷰 등록 지역을 불러올 수 없습니다.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            renderPopularRegions(data); // 기존 렌더링 함수 재활용
+        })
+        .catch(error => {
+            console.error('리뷰 등록 지역 로드 실패:', error);
+            const quickRegionsContainer = document.querySelector('.quick-regions .row');
+            if (quickRegionsContainer) {
+                quickRegionsContainer.innerHTML = '<div class="col-12"><p class="text-white-50">리뷰 등록 지역을 불러오는 데 실패했습니다.</p></div>';
+            }
+        });
+}
+
+// REST API를 통한 인기 지역 로드
+function loadPopularRegions() {
+    const url = root + '/api/reviews/regions/popular';
+    
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('인기 지역을 불러올 수 없습니다.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            renderPopularRegions(data);
+        })
+        .catch(error => {
+            console.error('인기 지역 로드 실패:', error);
+            const quickRegionsContainer = document.querySelector('.quick-regions .row');
+            if (quickRegionsContainer) {
+                quickRegionsContainer.innerHTML = '<div class="col-12"><p class="text-white-50">인기 지역을 불러오는 데 실패했습니다.</p></div>';
+            }
+        });
 }
 
 // REST API를 통한 지역명 목록 로드
@@ -77,32 +124,10 @@ function renderRegionInterface() {
             
         <!-- 주요 지역 빠른 선택 -->
         <div class="quick-regions mb-4">
-            <h5 style="color: white; margin-bottom: 15px;">🔥 인기 지역</h5>
+            <h5 style="color: white; margin-bottom: 15px;">🔥 리뷰 등록 지역</h5>
             <div class="row">
-                <div class="col-md-3 mb-2">
-                    <button class="btn btn-outline-light w-100" onclick="loadRegionData('강남구', true)">강남구</button>
-                </div>
-                <div class="col-md-3 mb-2">
-                    <button class="btn btn-outline-light w-100" onclick="loadRegionData('홍대', false)">홍대</button>
-                </div>
-                <div class="col-md-3 mb-2">
-                    <button class="btn btn-outline-light w-100" onclick="loadRegionData('명동', false)">명동</button>
-                </div>
-                <div class="col-md-3 mb-2">
-                    <button class="btn btn-outline-light w-100" onclick="loadRegionData('이태원', false)">이태원</button>
-                </div>
-                <div class="col-md-3 mb-2">
-                    <button class="btn btn-outline-light w-100" onclick="loadRegionData('신사동', false)">신사동</button>
-                </div>
-                <div class="col-md-3 mb-2">
-                    <button class="btn btn-outline-light w-100" onclick="loadRegionData('연남동', false)">연남동</button>
-                </div>
-                <div class="col-md-3 mb-2">
-                    <button class="btn btn-outline-light w-100" onclick="loadRegionData('성수동', false)">성수동</button>
-                </div>
-                <div class="col-md-3 mb-2">
-                    <button class="btn btn-outline-light w-100" onclick="loadRegionData('건대', false)">건대</button>
-                </div>
+                <!-- 인기 지역 버튼이 동적으로 여기에 삽입됩니다. -->
+                <div class="col-12"><p class="text-white-50">지역 목록 로딩 중...</p></div>
             </div>
         </div>
 
@@ -113,6 +138,22 @@ function renderRegionInterface() {
     
     // 이벤트 리스너 등록
     setupEventListeners();
+}
+
+// 인기 지역 버튼 렌더링
+function renderPopularRegions(regions) {
+    const container = document.querySelector('.quick-regions .row');
+    if (!container) return;
+
+    if (regions && regions.length > 0) {
+        container.innerHTML = regions.map(region => `
+            <div class="col-md-3 col-6 mb-2">
+                <button class="btn btn-outline-light w-100" onclick="loadRegionData('${region}', false)">${region}</button>
+            </div>
+        `).join('');
+    } else {
+        container.innerHTML = '<div class="col-12"><p class="text-white-50">인기 지역 정보가 없습니다.</p></div>';
+    }
 }
 
 // 이벤트 리스너 설정
@@ -239,7 +280,7 @@ function renderRegionData(data, region) {
                     </div>
                     <div class="review-actions">
                         <button class="btn btn-sm btn-outline-light" onclick="recommendReview(${review.num || review.id})">
-                            👍 추천 <span id="good-count-${review.num || review.id}">${review.good || review.recommendCount || 0}</span>
+                            👍 추천 <span id="good-count-${review.num || review.id}">${!empty review.good && review.good != 0 ? review.good : (!empty review.recommendCount ? review.recommendCount : 0)}</span>
                         </button>
                     </div>
                 </div>`;

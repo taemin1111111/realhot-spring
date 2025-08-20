@@ -441,7 +441,7 @@ public class VoteServiceImpl implements VoteService {
             vote.setPlaceId(hotplaceId);
             vote.setCongestion(congestion);
             vote.setGenderRatio(genderRatio);
-            vote.setWaitTime(Integer.parseInt(waitTime));
+            vote.setWaitTime(waitTime);
             vote.setVotedAt(LocalDateTime.now());
             
             // 4. vote_nowhot 테이블에 저장
@@ -491,7 +491,7 @@ public class VoteServiceImpl implements VoteService {
             for (VoteNowHot vote : votes) {
                 congestionStats.merge(vote.getCongestion(), 1, Integer::sum);
                 genderStats.merge(vote.getGenderRatio(), 1, Integer::sum);
-                waitStats.merge(String.valueOf(vote.getWaitTime()), 1, Integer::sum);
+                waitStats.merge(vote.getWaitTime(), 1, Integer::sum);
             }
             
             stats.put("totalVotes", votes.size());

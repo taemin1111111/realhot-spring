@@ -16,6 +16,7 @@ import java.util.Optional;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 /**
  * 리뷰 REST API 컨트롤러
@@ -319,9 +320,36 @@ public class ReviewController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    /**
+     * 리뷰가 등록된 지역 목록 조회 API
+     */
+    @GetMapping("/regions/with-reviews")
+    public ResponseEntity<List<String>> getRegionsWithReviews() {
+        try {
+            List<String> regions = reviewService.findRegionsWithReviews();
+            return ResponseEntity.ok(regions);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<>());
+        }
+    }
+
+    /**
+     * 인기 지역 목록 조회 API
+     */
+    @GetMapping("/regions/popular")
+    public ResponseEntity<List<String>> getPopularRegions() {
+        try {
+            List<String> popularRegions = reviewService.findPopularRegions();
+            return ResponseEntity.ok(popularRegions);
+        } catch (Exception e) {
+            // 예외 발생 시 로깅
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<>());
+        }
+    }
     
     /**
-     * 지역별 리뷰 데이터 조회 (/review/getRegionData.jsp 대체)
+     * 지역별 데이터 조회 API (리뷰 목록, 평균 평점, 리뷰 수)
      */
     @GetMapping("/regions/data")
     public ResponseEntity<Map<String, Object>> getRegionData(

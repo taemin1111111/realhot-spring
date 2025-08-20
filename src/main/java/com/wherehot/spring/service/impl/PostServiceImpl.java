@@ -51,6 +51,18 @@ public class PostServiceImpl implements PostService {
     
     @Override
     @Transactional(readOnly = true)
+    public Post findById(int id) {
+        try {
+            Optional<Post> post = postMapper.findById(id);
+            return post.orElse(null);
+        } catch (Exception e) {
+            logger.error("Error finding post by id: {}", id, e);
+            return null;
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
     public List<Post> findPostsByCategory(int categoryId, int page, int size) {
         try {
             int offset = (page - 1) * size;
@@ -133,7 +145,6 @@ public class PostServiceImpl implements PostService {
     public Post savePost(Post post) {
         try {
             post.setCreatedAt(LocalDateTime.now());
-            post.setUpdatedAt(LocalDateTime.now());
             
             int result = postMapper.insertPost(post);
             if (result > 0) {
@@ -156,8 +167,6 @@ public class PostServiceImpl implements PostService {
             if (existingPost.isEmpty()) {
                 throw new IllegalArgumentException("존재하지 않는 게시글입니다: " + post.getId());
             }
-            
-            post.setUpdatedAt(LocalDateTime.now());
             
             int result = postMapper.updatePost(post);
             if (result > 0) {
@@ -201,6 +210,26 @@ public class PostServiceImpl implements PostService {
             return result > 0;
         } catch (Exception e) {
             logger.error("Error incrementing view count: {}", id, e);
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean incrementReportCount(int id) {
+        try {
+            logger.debug("신고수 증가 시작: postId={}", id);
+            int result = postMapper.updateReportCount(id);
+            boolean success = result > 0;
+            
+            if (success) {
+                logger.info("신고수 증가 성공: postId={}", id);
+            } else {
+                logger.warn("신고수 증가 실패: postId={}", id);
+            }
+            
+            return success;
+        } catch (Exception e) {
+            logger.error("신고수 증가 중 오류 발생: postId={}", id, e);
             return false;
         }
     }
@@ -323,6 +352,36 @@ public class PostServiceImpl implements PostService {
         } catch (Exception e) {
             logger.error("Error getting monthly statistics", e);
             throw new RuntimeException("월별 통계 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<Post> findPopularPostsByCategory(int categoryId, int start, int perPage) {
+        try {
+            return postMapper.findPopularPostsByCategory(categoryId, start, perPage);
+        } catch (Exception e) {
+            logger.error("Error finding popular posts by category: {}", categoryId, e);
+            throw new RuntimeException("카테고리별 인기 게시글 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    @Override
+    @Transactional
+    public Post findPostByIdAndIncrementViews(int id) {
+        try {
+            Optional<Post> postOptional = postMapper.findById(id);
+            if (postOptional.isPresent()) {
+                // 조회수 증가
+                postMapper.incrementViewCount(id);
+                // 조회수가 증가된 게시글 반환
+                Optional<Post> updatedPost = postMapper.findById(id);
+                return updatedPost.orElse(null);
+            }
+            return null;
+        } catch (Exception e) {
+            logger.error("Error finding post by id and incrementing views: {}", id, e);
+            throw new RuntimeException("게시글 조회 및 조회수 증가 중 오류가 발생했습니다.", e);
         }
     }
 }

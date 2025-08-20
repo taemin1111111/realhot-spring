@@ -113,7 +113,9 @@ public class WishListController {
                 return ResponseEntity.status(409).build(); // Conflict
             }
             
-            WishList wishList = new WishList(userId, hotplaceId);
+            WishList wishList = new WishList();
+            wishList.setUserid(userId);
+            wishList.setPlace_id(hotplaceId);
             WishList savedWishList = wishListService.saveWishList(wishList);
             
             return ResponseEntity.ok(savedWishList);

@@ -170,7 +170,7 @@ public class PostController {
                                           @AuthenticationPrincipal UserDetails userDetails) {
         try {
             if (userDetails != null) {
-                post.setAuthorId(userDetails.getUsername());
+                post.setUserid(userDetails.getUsername());
             }
             
             Post savedPost = postService.savePost(post);
@@ -197,7 +197,7 @@ public class PostController {
             }
             
             // 작성자 권한 확인
-            if (userDetails == null || !existingPost.get().getAuthorId().equals(userDetails.getUsername())) {
+            if (userDetails == null || !existingPost.get().getUserid().equals(userDetails.getUsername())) {
                 return ResponseEntity.status(403).build(); // Forbidden
             }
             
@@ -225,7 +225,7 @@ public class PostController {
             }
             
             // 작성자 권한 확인 (또는 관리자)
-            if (userDetails == null || (!existingPost.get().getAuthorId().equals(userDetails.getUsername()) 
+            if (userDetails == null || (!existingPost.get().getUserid().equals(userDetails.getUsername()) 
                 && !userDetails.getAuthorities().stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN")))) {
                 return ResponseEntity.status(403).build(); // Forbidden
             }
@@ -248,7 +248,7 @@ public class PostController {
                 return ResponseEntity.notFound().build();
             }
             
-            int newLikeCount = post.get().getLikeCount() + 1;
+            int newLikeCount = post.get().getLikes() + 1;
             boolean updated = postService.updateLikeCount(id, newLikeCount);
             
             Map<String, Object> result = new HashMap<>();

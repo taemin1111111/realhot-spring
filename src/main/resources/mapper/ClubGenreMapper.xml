@@ -4,22 +4,18 @@
 
     <!-- Result Map 정의 - Model1 구조에 맞게 구현 -->
     <resultMap id="clubGenreResultMap" type="com.wherehot.spring.entity.ClubGenre">
-        <id property="id" column="genre_id"/>
-        <result property="genreName" column="genre_name"/>
-        <result property="description" column="description"/>
-        <result property="active" column="active"/>
-        <result property="sortOrder" column="sort_order"/>
-        <result property="icon" column="icon"/>
+        <id property="genre_id" column="genre_id"/>
+        <result property="genre_name" column="genre_name"/>
     </resultMap>
 
     <!-- 공통 SQL 조각들 - Model1 구조 -->
     <sql id="genreColumns">
-        genre_id, genre_name, '' as description, true as active, 0 as sort_order, '' as icon
+        genre_id, genre_name
     </sql>
 
     <!-- 특정 장소의 장르 목록 조회 - hotplace_genre_map 테이블 사용 -->
     <select id="findGenresByPlaceId" parameterType="int" resultMap="clubGenreResultMap">
-        SELECT cg.genre_id, cg.genre_name, '' as description, true as active, 0 as sort_order, '' as icon
+        SELECT cg.genre_id, cg.genre_name
         FROM club_genre cg
         INNER JOIN hotplace_genre_map hgm ON cg.genre_id = hgm.genre_id
         WHERE hgm.place_id = #{placeId}
@@ -28,7 +24,7 @@
 
     <!-- 모든 기본 장르 목록 조회 -->
     <select id="findAllGenres" resultMap="clubGenreResultMap">
-        SELECT genre_id, genre_name, '' as description, true as active, 0 as sort_order, '' as icon
+        SELECT genre_id, genre_name
         FROM club_genre 
         ORDER BY genre_name
     </select>
@@ -85,14 +81,14 @@
 
     <!-- 장르 ID로 장르 조회 -->
     <select id="findGenreById" parameterType="int" resultMap="clubGenreResultMap">
-        SELECT genre_id, genre_name, '' as description, true as active, 0 as sort_order, '' as icon
+        SELECT genre_id, genre_name
         FROM club_genre 
         WHERE genre_id = #{genreId}
     </select>
 
     <!-- 장르명으로 장르 조회 -->
     <select id="findGenreByName" parameterType="string" resultMap="clubGenreResultMap">
-        SELECT genre_id, genre_name, '' as description, true as active, 0 as sort_order, '' as icon
+        SELECT genre_id, genre_name
         FROM club_genre 
         WHERE genre_name = #{genreName}
         LIMIT 1

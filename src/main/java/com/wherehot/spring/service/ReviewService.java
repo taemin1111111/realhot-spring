@@ -77,6 +77,26 @@ public interface ReviewService {
     boolean deleteReview(int id);
     
     /**
+     * 중복 추천 체크 (Model1 호환)
+     */
+    boolean hasAlreadyRecommended(int reviewId, String userid);
+    
+    /**
+     * 리뷰 추천 추가 (Model1 호환)
+     */
+    boolean addRecommendation(int reviewId, String userid);
+    
+    /**
+     * 모든 지역명 조회 (Model1 호환)
+     */
+    List<String> getAllRegionNames();
+    
+    /**
+     * 지역별 리뷰 조회 (Model1 호환)
+     */
+    List<Review> findReviewsByRegion(String region, int category);
+    
+    /**
      * 좋아요 수 업데이트
      */
     boolean updateLikeCount(int id, int likeCount);
@@ -146,8 +166,4 @@ public interface ReviewService {
      */
     List<Map<String, Object>> getMonthlyStatistics();
     
-    /**
-     * 모든 지역명 조회
-     */
-    List<String> getAllRegionNames();
 }

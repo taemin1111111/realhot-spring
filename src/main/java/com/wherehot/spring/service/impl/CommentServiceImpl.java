@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -94,22 +95,18 @@ public class CommentServiceImpl implements CommentService {
     public Comment saveComment(Comment comment) {
         try {
             comment.setCreatedAt(LocalDateTime.now());
-            comment.setUpdatedAt(LocalDateTime.now());
-            if (comment.getStatus() == null) {
-                comment.setStatus("ACTIVE");
-            }
             
             int result = commentMapper.insertComment(comment);
             if (result > 0) {
-                logger.info("Comment saved successfully: postId={}, authorId={}", 
-                    comment.getPostId(), comment.getAuthorId());
+                            logger.info("Comment saved successfully: postId={}, nickname={}", 
+                comment.getPost_id(), comment.getNickname());
                 return comment;
             } else {
                 throw new RuntimeException("댓글 저장에 실패했습니다.");
             }
         } catch (Exception e) {
-            logger.error("Error saving comment: postId={}, authorId={}", 
-                comment.getPostId(), comment.getAuthorId(), e);
+            logger.error("Error saving comment: postId={}, nickname={}", 
+                comment.getPost_id(), comment.getNickname(), e);
             throw new RuntimeException("댓글 저장 중 오류가 발생했습니다.", e);
         }
     }
@@ -122,7 +119,7 @@ public class CommentServiceImpl implements CommentService {
                 throw new IllegalArgumentException("존재하지 않는 댓글입니다: " + comment.getId());
             }
             
-            comment.setUpdatedAt(LocalDateTime.now());
+            // Comment Entity에는 updatedAt 필드가 없음
             
             int result = commentMapper.updateComment(comment);
             if (result > 0) {

@@ -4,19 +4,12 @@
 <mapper namespace="com.wherehot.spring.mapper.ContentImageMapper">
 
     <!-- 결과 매핑 -->
-    <resultMap id="ContentImageResultMap" type="com.wherehot.spring.entity.ContentImages">
+    <resultMap id="ContentImageResultMap" type="com.wherehot.spring.entity.ContentImage">
         <id property="id" column="id"/>
-        <result property="contentId" column="hotplace_id"/>
-        <result property="contentType" column="content_type"/>
+        <result property="hotplaceId" column="hotplace_id"/>
         <result property="imagePath" column="image_path"/>
-        <result property="originalFilename" column="original_filename"/>
-        <result property="storedFilename" column="stored_filename"/>
-        <result property="fileSize" column="file_size"/>
-        <result property="mimeType" column="mime_type"/>
-        <result property="isMain" column="is_main"/>
-        <result property="sortOrder" column="image_order"/>
+        <result property="imageOrder" column="image_order"/>
         <result property="createdAt" column="created_at"/>
-        <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
     <!-- 특정 핫플레이스의 모든 이미지 조회 (순서대로) -->
@@ -37,17 +30,17 @@
     </select>
 
     <!-- 이미지 정보 저장 -->
-    <insert id="insertImage" parameterType="com.wherehot.spring.entity.ContentImages" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insertImage" parameterType="com.wherehot.spring.entity.ContentImage" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO content_images (hotplace_id, image_path, image_order, created_at)
-        VALUES (#{contentId}, #{imagePath}, #{sortOrder}, NOW())
+        VALUES (#{hotplaceId}, #{imagePath}, #{imageOrder}, NOW())
     </insert>
 
     <!-- 이미지 정보 수정 -->
-    <update id="updateImage" parameterType="com.wherehot.spring.entity.ContentImages">
+    <update id="updateImage" parameterType="com.wherehot.spring.entity.ContentImage">
         UPDATE content_images 
         SET 
             image_path = #{imagePath},
-            image_order = #{sortOrder}
+            image_order = #{imageOrder}
         WHERE id = #{id}
     </update>
 

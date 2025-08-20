@@ -9,8 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -146,18 +147,17 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public Review saveReview(Review review) {
         try {
-            review.setCreatedAt(LocalDateTime.now());
-            review.setUpdatedAt(LocalDateTime.now());
+            review.setWriteday(LocalDateTime.now());
             
             int result = reviewMapper.insertReview(review);
             if (result > 0) {
-                logger.info("Review saved successfully: {}", review.getTitle());
+                logger.info("Review saved successfully: ID={}", review.getNum());
                 return review;
             } else {
                 throw new RuntimeException("리뷰 저장에 실패했습니다.");
             }
         } catch (Exception e) {
-            logger.error("Error saving review: {}", review.getTitle(), e);
+            logger.error("Error saving review: ID={}", review.getNum(), e);
             throw new RuntimeException("리뷰 저장 중 오류가 발생했습니다.", e);
         }
     }
@@ -165,22 +165,22 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public Review updateReview(Review review) {
         try {
-            Optional<Review> existingReview = reviewMapper.findById(review.getId());
+            Optional<Review> existingReview = reviewMapper.findById(review.getNum());
             if (existingReview.isEmpty()) {
-                throw new IllegalArgumentException("존재하지 않는 리뷰입니다: " + review.getId());
+                throw new IllegalArgumentException("존재하지 않는 리뷰입니다: " + review.getNum());
             }
             
-            review.setUpdatedAt(LocalDateTime.now());
+            // Review Entity에는 updatedAt 필드가 없음 (writeday만 있음)
             
             int result = reviewMapper.updateReview(review);
             if (result > 0) {
-                logger.info("Review updated successfully: {}", review.getId());
+                logger.info("Review updated successfully: {}", review.getNum());
                 return review;
             } else {
                 throw new RuntimeException("리뷰 수정에 실패했습니다.");
             }
         } catch (Exception e) {
-            logger.error("Error updating review: {}", review.getId(), e);
+            logger.error("Error updating review: {}", review.getNum(), e);
             throw new RuntimeException("리뷰 수정 중 오류가 발생했습니다.", e);
         }
     }
@@ -214,6 +214,60 @@ public class ReviewServiceImpl implements ReviewService {
         } catch (Exception e) {
             logger.error("Error updating review like count: id={}, likeCount={}", id, likeCount, e);
             return false;
+        }
+    }
+    
+    @Override
+    public boolean hasAlreadyRecommended(int reviewId, String userid) {
+        try {
+            int count = reviewMapper.checkRecommendationExists(reviewId, userid);
+            return count > 0;
+        } catch (Exception e) {
+            logger.error("Error checking recommendation exists: reviewId={}, userid={}", reviewId, userid, e);
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean addRecommendation(int reviewId, String userid) {
+        try {
+            // 1. 추천 이력 추가
+            int recommendResult = reviewMapper.insertRecommendation(reviewId, userid);
+            
+            if (recommendResult > 0) {
+                // 2. 리뷰의 추천 수 증가
+                int incrementResult = reviewMapper.incrementRecommendCount(reviewId);
+                return incrementResult > 0;
+            }
+            
+            return false;
+        } catch (Exception e) {
+            logger.error("Error adding recommendation: reviewId={}, userid={}", reviewId, userid, e);
+            return false;
+        }
+    }
+    
+    @Override
+    public List<String> getAllRegionNames() {
+        try {
+            return reviewMapper.findAllRegionNames();
+        } catch (Exception e) {
+            logger.error("Error getting all region names", e);
+            return new ArrayList<>();
+        }
+    }
+    
+    @Override
+    public List<Review> findReviewsByRegion(String region, int category) {
+        try {
+            if (category > 0) {
+                return reviewMapper.findByRegionAndCategory(region, category);
+            } else {
+                return reviewMapper.findByRegion(region);
+            }
+        } catch (Exception e) {
+            logger.error("Error finding reviews by region: region={}, category={}", region, category, e);
+            return new ArrayList<>();
         }
     }
     
@@ -360,20 +414,5 @@ public class ReviewServiceImpl implements ReviewService {
         }
     }
     
-    @Override
-    @Transactional(readOnly = true)
-    public List<String> getAllRegionNames() {
-        try {
-            // 임시로 하드코딩된 지역명 반환 (실제로는 DB에서 조회)
-            return Arrays.asList(
-                "서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", 
-                "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원도",
-                "충청북도", "충청남도", "전라북도", "전라남도", "경상북도", 
-                "경상남도", "제주특별자치도"
-            );
-        } catch (Exception e) {
-            logger.error("Error getting all region names", e);
-            throw new RuntimeException("지역명 목록 조회 중 오류가 발생했습니다.", e);
-        }
-    }
+
 }

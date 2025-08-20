@@ -10,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -33,12 +34,24 @@ public class MemberServiceImpl implements MemberService {
     
     @Override
     @Transactional(readOnly = true)
-    public Optional<Member> findByUserid(String userid) {
+    public Optional<Member> findByUseridOptional(String userid) {
         try {
             return memberMapper.findByUserid(userid);
         } catch (Exception e) {
             logger.error("Error finding member by userid: {}", userid, e);
             return Optional.empty();
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Member findByUserid(String userid) {
+        try {
+            Optional<Member> member = memberMapper.findByUserid(userid);
+            return member.orElse(null);
+        } catch (Exception e) {
+            logger.error("Error finding member by userid: {}", userid, e);
+            return null;
         }
     }
     
@@ -127,7 +140,7 @@ public class MemberServiceImpl implements MemberService {
             
             // 새 비밀번호 암호화 및 업데이트
             String encodedNewPassword = passwordEncoder.encode(newPassword);
-            int result = memberMapper.updatePassword(userid, encodedNewPassword, LocalDateTime.now());
+            int result = memberMapper.updatePassword(userid, encodedNewPassword, new Timestamp(System.currentTimeMillis()));
             
             if (result > 0) {
                 logger.info("Password updated successfully for user: {}", userid);
@@ -145,7 +158,7 @@ public class MemberServiceImpl implements MemberService {
     public boolean resetPassword(String userid, String newPassword) {
         try {
             String encodedPassword = passwordEncoder.encode(newPassword);
-            int result = memberMapper.updatePassword(userid, encodedPassword, LocalDateTime.now());
+            int result = memberMapper.updatePassword(userid, encodedPassword, new Timestamp(System.currentTimeMillis()));
             
             if (result > 0) {
                 logger.info("Password reset successfully for user: {}", userid);
@@ -162,7 +175,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public boolean updateMemberStatus(String userid, String status) {
         try {
-            int result = memberMapper.updateStatus(userid, status, LocalDateTime.now());
+            int result = memberMapper.updateStatus(userid, status, new Timestamp(System.currentTimeMillis()));
             
             if (result > 0) {
                 logger.info("Member status updated: {} -> {}", userid, status);
@@ -179,7 +192,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public boolean deleteMember(String userid) {
         try {
-            int result = memberMapper.deleteMember(userid, LocalDateTime.now());
+            int result = memberMapper.deleteMember(userid, new Timestamp(System.currentTimeMillis()));
             
             if (result > 0) {
                 logger.info("Member deleted (withdrew): {}", userid);
@@ -196,13 +209,8 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public void updateLoginInfo(String userid) {
         try {
-            Optional<Member> memberOpt = memberMapper.findByUserid(userid);
-            if (memberOpt.isPresent()) {
-                Member member = memberOpt.get();
-                member.updateLoginInfo();
-                memberMapper.updateLoginInfo(member);
-                logger.debug("Login info updated for user: {}", userid);
-            }
+            // updateLoginInfo 메서드는 Member Entity에서 제거되었으므로 비활성화
+            logger.debug("Login info update is disabled - related fields not in current entity structure for user: {}", userid);
         } catch (Exception e) {
             logger.error("Error updating login info for user: {}", userid, e);
             // 로그인 정보 업데이트 실패는 치명적이지 않으므로 예외를 던지지 않음
@@ -382,6 +390,50 @@ public class MemberServiceImpl implements MemberService {
         } catch (Exception e) {
             logger.error("Error getting member statistics", e);
             throw new RuntimeException("회원 통계 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getMemberStatsByMonth() {
+        try {
+            return memberMapper.getMemberStatsByMonth();
+        } catch (Exception e) {
+            logger.error("Error getting member stats by month", e);
+            throw new RuntimeException("월별 회원 통계 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getMemberStatsByProvider() {
+        try {
+            return memberMapper.getMemberStatsByProvider();
+        } catch (Exception e) {
+            logger.error("Error getting member stats by provider", e);
+            throw new RuntimeException("제공자별 회원 통계 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getMemberStatsByGender() {
+        try {
+            return memberMapper.getMemberStatsByGender();
+        } catch (Exception e) {
+            logger.error("Error getting member stats by gender", e);
+            throw new RuntimeException("성별 회원 통계 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getMemberStatsByAge() {
+        try {
+            return memberMapper.getMemberStatsByAge();
+        } catch (Exception e) {
+            logger.error("Error getting member stats by age", e);
+            throw new RuntimeException("연령대별 회원 통계 조회 중 오류가 발생했습니다.", e);
         }
     }
 }

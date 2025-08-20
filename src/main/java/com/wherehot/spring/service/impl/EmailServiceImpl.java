@@ -1,16 +1,17 @@
 package com.wherehot.spring.service.impl;
 
+import com.wherehot.spring.entity.EmailVerification;
+import com.wherehot.spring.mapper.EmailVerificationMapper;
 import com.wherehot.spring.service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 이메일 서비스 구현체
@@ -24,7 +25,7 @@ public class EmailServiceImpl implements EmailService {
     private JavaMailSender mailSender;
     
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private EmailVerificationMapper emailVerificationMapper;
     
     @Override
     public boolean sendVerificationCode(String email) {
@@ -35,10 +36,13 @@ public class EmailServiceImpl implements EmailService {
             String verificationCode = String.format("%06d", new Random().nextInt(1000000));
             logger.info("Generated verification code for {}: {}", email, verificationCode);
             
-            // Redis에 인증번호 저장 (10분 유효)
-            String key = "email_verification:" + email;
-            redisTemplate.opsForValue().set(key, verificationCode, 10, TimeUnit.MINUTES);
-            logger.info("Verification code saved to Redis for: {}", email);
+            // 기존 인증 정보 삭제 (새 인증 요청 시)
+            emailVerificationMapper.deleteByEmail(email);
+            
+            // DB에 인증번호 저장 (10분 유효)
+            EmailVerification emailVerification = new EmailVerification(email, verificationCode, "system");
+            emailVerificationMapper.insertEmailVerification(emailVerification);
+            logger.info("Verification code saved to database for: {}", email);
             
             // 이메일 발송
             SimpleMailMessage message = new SimpleMailMessage();
@@ -62,17 +66,23 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public boolean verifyCode(String email, String code) {
         try {
-            String key = "email_verification:" + email;
-            String storedCode = redisTemplate.opsForValue().get(key);
+            // DB에서 인증번호 조회
+            Optional<EmailVerification> verificationOpt = emailVerificationMapper.findByEmailAndCode(email, code);
             
-            if (storedCode != null && storedCode.equals(code)) {
-                // 인증 성공 시 인증 완료 표시 (24시간 유지)
-                redisTemplate.opsForValue().set("email_verified:" + email, "true", 24, TimeUnit.HOURS);
-                // 인증번호 삭제
-                redisTemplate.delete(key);
+            if (verificationOpt.isPresent()) {
+                EmailVerification verification = verificationOpt.get();
                 
-                logger.info("Email verification successful for: {}", email);
-                return true;
+                // 만료 시간 확인
+                if (!verification.isExpired()) {
+                    // 인증 완료 처리
+                    emailVerificationMapper.markAsVerified(verification.getId());
+                    logger.info("Email verification successful for: {}", email);
+                    return true;
+                } else {
+                    logger.warn("Verification code expired for: {}", email);
+                }
+            } else {
+                logger.warn("Invalid verification code for: {}", email);
             }
             
             return false;
@@ -86,8 +96,8 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public boolean isEmailVerified(String email) {
         try {
-            String key = "email_verified:" + email;
-            return redisTemplate.hasKey(key);
+            // 24시간 내 인증 완료 여부 확인
+            return emailVerificationMapper.isEmailVerifiedRecently(email);
         } catch (Exception e) {
             logger.error("Failed to check email verification status for: {}", email, e);
             return false;
@@ -100,14 +110,10 @@ public class EmailServiceImpl implements EmailService {
             // 임시 비밀번호 생성
             String tempPassword = generateTempPassword();
             
-            // Redis에 임시 비밀번호 저장 (30분 유효)
-            String key = "temp_password:" + email;
-            redisTemplate.opsForValue().set(key, tempPassword, 30, TimeUnit.MINUTES);
-            
             // 이메일 발송
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(email);
-            message.setSubject("[WhereHot] 임시 비밀번호");
+            message.setSubject("[어디핫?] 임시 비밀번호");
             message.setText("임시 비밀번호: " + tempPassword + "\n\n로그인 후 반드시 비밀번호를 변경해주세요.");
             
             mailSender.send(message);

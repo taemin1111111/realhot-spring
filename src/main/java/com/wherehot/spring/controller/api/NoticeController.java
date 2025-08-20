@@ -3,15 +3,23 @@ package com.wherehot.spring.controller.api;
 import com.wherehot.spring.entity.Notice;
 import com.wherehot.spring.service.NoticeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 공지사항 REST API 컨트롤러
@@ -22,6 +30,9 @@ public class NoticeController {
     
     @Autowired
     private NoticeService noticeService;
+    
+    @Value("${file.upload.notice-path:${user.home}/uploads/notices}")
+    private String noticeUploadPath;
     
     /**
      * 모든 공지사항 조회 (페이징)
@@ -141,21 +152,77 @@ public class NoticeController {
     }
     
     /**
-     * 공지사항 등록
+     * 공지사항 등록 (파일 업로드 포함)
      */
-    @PostMapping
-    public ResponseEntity<Notice> createNotice(@RequestBody Notice notice,
-                                              @AuthenticationPrincipal UserDetails userDetails) {
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<Map<String, Object>> createNotice(
+            @RequestParam("title") String title,
+            @RequestParam("content") String content,
+            @RequestParam(value = "pinned", defaultValue = "false") boolean pinned,
+            @RequestParam(value = "photo", required = false) MultipartFile photo,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
         try {
-            if (userDetails != null) {
-                notice.setAuthorId(userDetails.getUsername());
+            // 관리자 권한 확인
+            if (userDetails == null || !userDetails.getAuthorities().stream()
+                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
+                response.put("success", false);
+                response.put("message", "관리자만 공지사항을 등록할 수 있습니다.");
+                return ResponseEntity.status(403).body(response);
+            }
+            
+            Notice notice = new Notice();
+            notice.setTitle(title);
+            notice.setContent(content);
+            notice.setPinned(pinned);
+            notice.setWriter(userDetails.getUsername());
+            
+            // 파일 업로드 처리
+            if (photo != null && !photo.isEmpty()) {
+                String fileName = saveUploadedFile(photo, "notices");
+                notice.setPhoto(fileName);
             }
             
             Notice savedNotice = noticeService.saveNotice(notice);
-            return ResponseEntity.ok(savedNotice);
+            
+            response.put("success", true);
+            response.put("message", "공지사항이 성공적으로 등록되었습니다.");
+            response.put("notice", savedNotice);
+            
+            return ResponseEntity.ok(response);
+            
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            response.put("success", false);
+            response.put("message", "공지사항 등록 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
         }
+    }
+    
+    /**
+     * 파일 업로드 처리 메서드
+     */
+    private String saveUploadedFile(MultipartFile file, String subDir) throws IOException {
+        // 업로드 디렉토리 생성
+        Path uploadDir = Paths.get(noticeUploadPath, subDir);
+        if (!Files.exists(uploadDir)) {
+            Files.createDirectories(uploadDir);
+        }
+        
+        // 파일명 생성 (중복 방지)
+        String originalFileName = file.getOriginalFilename();
+        String fileExtension = "";
+        if (originalFileName != null && originalFileName.contains(".")) {
+            fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+        }
+        String fileName = UUID.randomUUID().toString() + "_" + System.currentTimeMillis() + fileExtension;
+        
+        // 파일 저장
+        Path filePath = uploadDir.resolve(fileName);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        
+        return fileName;
     }
     
     /**
@@ -173,12 +240,12 @@ public class NoticeController {
             }
             
             // 작성자 권한 확인 (또는 관리자)
-            if (userDetails == null || (!existingNotice.get().getAuthorId().equals(userDetails.getUsername()) 
+            if (userDetails == null || (!existingNotice.get().getWriter().equals(userDetails.getUsername()) 
                 && !userDetails.getAuthorities().stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN")))) {
                 return ResponseEntity.status(403).build(); // Forbidden
             }
             
-            notice.setId(id);
+            notice.setNoticeId(id);
             Notice updatedNotice = noticeService.updateNotice(notice);
             return ResponseEntity.ok(updatedNotice);
         } catch (Exception e) {
@@ -200,7 +267,7 @@ public class NoticeController {
             }
             
             // 작성자 권한 확인 (또는 관리자)
-            if (userDetails == null || (!existingNotice.get().getAuthorId().equals(userDetails.getUsername()) 
+            if (userDetails == null || (!existingNotice.get().getWriter().equals(userDetails.getUsername()) 
                 && !userDetails.getAuthorities().stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN")))) {
                 return ResponseEntity.status(403).build(); // Forbidden
             }

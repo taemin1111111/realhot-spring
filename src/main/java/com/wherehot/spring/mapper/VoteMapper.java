@@ -230,6 +230,5 @@ public interface VoteMapper {
      * 핫플레이스 찜 개수 조회
      */
     int getWishCount(@Param("hotplaceId") int hotplaceId);
-    
 
 }

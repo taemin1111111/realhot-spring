@@ -48,13 +48,11 @@ public interface VoteService {
     List<Map<String, Object>> getVoteStatisticsByCategory(LocalDate startDate, LocalDate endDate);
     
     // 투표 제출 및 현황 조회
-    boolean submitVote(String userId, int placeId, String congestion, String genderRatio, String waitTime);
-    boolean submitVote(String userId, int placeId, String congestion, String genderRatio, String waitTime, String ipAddress);
-    Map<String, Object> getVoteTrends(int placeId);
     
     // VoteController에서 필요한 메서드들
     boolean addNowHotVote(int hotplaceId, String voterId, String congestion, String genderRatio, String waitTime);
     Map<String, Object> getNowHotVoteStats(int hotplaceId);
+    Map<String, Object> getVoteTrends(int placeId);
     boolean isWished(int hotplaceId, String userid);
     boolean toggleWish(int hotplaceId, String userid);
     int getWishCount(int hotplaceId);

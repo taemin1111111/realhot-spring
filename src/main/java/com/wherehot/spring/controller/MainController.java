@@ -4,8 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.wherehot.spring.entity.Hotplace;
@@ -13,17 +12,16 @@ import com.wherehot.spring.entity.Category;
 import com.wherehot.spring.entity.Post;
 import com.wherehot.spring.service.HotplaceService;
 import com.wherehot.spring.service.CategoryService;
-import com.wherehot.spring.service.VoteService;
-import com.wherehot.spring.service.WishListService;
+// import com.wherehot.spring.service.VoteService; // TODO: VoteService 구현 후 활성화
+// import com.wherehot.spring.service.WishListService; // TODO: WishListService 구현 후 활성화
 import com.wherehot.spring.service.RegionService;
-import com.wherehot.spring.service.ClubGenreService;
+
 import com.wherehot.spring.service.PostService;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import com.wherehot.spring.entity.Member;
+
 
 import java.util.List;
 import java.util.Map;
@@ -43,18 +41,18 @@ public class MainController {
     @Autowired
     private CategoryService categoryService;
     
-    @Autowired
-    private VoteService voteService;
+    // TODO: VoteService 구현 후 활성화
+    // @Autowired
+    // private VoteService voteService;
     
-    @Autowired
-    private WishListService wishListService;
+    // TODO: WishListService 구현 후 활성화
+    // @Autowired
+    // private WishListService wishListService;
     
     @Autowired
     private RegionService regionService;
     
-    @Autowired
-    private ClubGenreService clubGenreService;
-    
+
     @Autowired
     private PostService postService;
 
@@ -66,6 +64,10 @@ public class MainController {
         if (main != null && !main.isEmpty()) {
             mainPage = main;  // 메뉴에서 온 경우: review/gpaform.jsp, community/cumain.jsp 등
         }
+        
+        // 디버깅 로그 추가
+        logger.info("MainController - main parameter: {}, mainPage: {}", main, mainPage);
+        
         model.addAttribute("mainPage", mainPage);
         
         // main.jsp가 선택된 경우 필요한 데이터를 전달
@@ -113,22 +115,9 @@ public class MainController {
             // 1. 핫플레이스 목록 조회 (장르 정보 포함) - 오류 발생 시 빈 리스트
             try {
                 hotplaceList = hotplaceService.findAllHotplaces();
-                // 각 핫플레이스에 장르 정보 추가
-                for (Hotplace hotplace : hotplaceList) {
-                    if (hotplace.getCategoryId() == 1) { // 클럽인 경우
-                        try {
-                            String genres = clubGenreService.getGenreNamesAsString(hotplace.getId());
-                            hotplace.setGenres(genres);
-                            logger.info("장르 정보 로드 성공 - Place ID: {}, Name: {}, Genres: '{}'", hotplace.getId(), hotplace.getName(), genres);
-                        } catch (Exception e) {
-                            logger.warn("장르 정보 로드 실패 for hotplace {}: {}", hotplace.getId(), e.getMessage());
-                            hotplace.setGenres(""); // 빈 문자열로 설정
-                        }
-                    } else {
-                        // 클럽이 아닌 경우 빈 문자열 설정
-                        hotplace.setGenres("");
-                    }
-                }
+                // 각 핫플레이스에 장르 정보는 별도로 조회하도록 변경
+                // Model1 DTO 구조에 맞춰 Hotplace Entity는 기본 필드만 유지
+                logger.info("핫플레이스 목록 로드 완료 - 총 {} 개", hotplaceList.size());
             } catch (Exception e) {
                 logger.error("핫플레이스 목록 조회 실패: {}", e.getMessage());
                 hotplaceList = new ArrayList<>(); // 빈 리스트로 대체

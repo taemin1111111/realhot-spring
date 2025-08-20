@@ -1,5 +1,4 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="Member.MemberDAO, Member.MemberDTO, java.util.*" %>
 <%
     String root = request.getContextPath();
     String loginId = (String)session.getAttribute("loginid");
@@ -10,435 +9,401 @@
         response.sendRedirect(root + "/index.jsp");
         return;
     }
-    
-    // 페이징 파라미터 처리
-    int currentPage = 1;
-    int pageSize = 20; // 페이지당 20명
-    
-    try {
-        String pageParam = request.getParameter("page");
-        if (pageParam != null && !pageParam.trim().isEmpty()) {
-            currentPage = Integer.parseInt(pageParam);
-        }
-    } catch (NumberFormatException e) {
-        currentPage = 1;
-    }
-    
-    MemberDAO memberDAO = new MemberDAO();
-    List<MemberDTO> allMembers = memberDAO.getAllMembers();
-    
-    // 전체 페이지 수 계산
-    int totalMembers = allMembers.size();
-    int totalPages = (int) Math.ceil((double) totalMembers / pageSize);
-    
-    // 현재 페이지 유효성 검사
-    if (currentPage < 1) currentPage = 1;
-    if (currentPage > totalPages) currentPage = totalPages;
-    
-    // 현재 페이지에 해당하는 회원 목록 추출
-    int startIndex = (currentPage - 1) * pageSize;
-    int endIndex = Math.min(startIndex + pageSize, totalMembers);
-    
-    List<MemberDTO> memberList = new ArrayList<>();
-    if (startIndex < totalMembers) {
-        memberList = allMembers.subList(startIndex, endIndex);
-    }
 %>
-
-<div class="admin-container">
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원 관리 - WhereHot Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .admin-container { margin-top: 30px; }
+        .member-table th { background-color: #f8f9fa; }
+        .status-badge { font-size: 0.8em; }
+        .provider-badge { font-size: 0.7em; }
+        .loading { text-align: center; padding: 50px; }
+    </style>
+</head>
+<body>
+    <div class="container admin-container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="page-title"><i class="bi bi-people-fill me-2"></i>회원 관리</h2>
-        <a href="<%=root%>/index.jsp?main=main/main.jsp" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-2"></i>메인으로
+            <a href="<%=root%>/WEB-INF/views/adminpage/admin.jsp" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> 관리자 메인
         </a>
     </div>
 
-        <!-- 통계 카드 -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card text-center stat-card" data-filter="all" style="cursor: pointer;">
-                    <div class="card-body">
-                        <h3 class="text-primary"><%=totalMembers%></h3>
-                        <p class="card-text">전체 회원</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center stat-card" data-filter="naver" style="cursor: pointer;">
-                    <div class="card-body">
-                        <h3 class="text-info"><%=allMembers.stream().filter(m -> "naver".equals(m.getProvider())).count()%></h3>
-                        <p class="card-text">네이버 가입</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center stat-card" data-filter="general" style="cursor: pointer;">
-                    <div class="card-body">
-                        <h3 class="text-secondary"><%=allMembers.stream().filter(m -> !"admin".equals(m.getProvider()) && !"naver".equals(m.getProvider())).count()%></h3>
-                        <p class="card-text">일반 가입</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center stat-card" data-filter="admin" style="cursor: pointer;">
-                    <div class="card-body">
-                        <h3 class="text-warning"><%=allMembers.stream().filter(m -> "admin".equals(m.getProvider())).count()%></h3>
-                        <p class="card-text">관리자</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card text-center stat-card" data-filter="status-C" style="cursor: pointer;">
-                    <div class="card-body">
-                        <h3 class="text-danger"><%=allMembers.stream().filter(m -> "C".equals(m.getStatus())).count()%></h3>
-                        <p class="card-text">정지 회원</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center stat-card" data-filter="status-B" style="cursor: pointer;">
-                    <div class="card-body">
-                        <h3 class="text-warning"><%=allMembers.stream().filter(m -> "B".equals(m.getStatus())).count()%></h3>
-                        <p class="card-text">경고 회원</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center stat-card" data-filter="status-A" style="cursor: pointer;">
-                    <div class="card-body">
-                        <h3 class="text-success"><%=allMembers.stream().filter(m -> "A".equals(m.getStatus())).count()%></h3>
-                        <p class="card-text">활성 회원</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 검색 -->
+        <!-- 검색 및 필터 -->
         <div class="card mb-4">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-md-10">
-                        <input type="text" class="form-control" id="searchInput" placeholder="아이디, 이름, 닉네임, 이메일로 검색...">
+                    <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">검색어</label>
+                        <input type="text" id="searchKeyword" class="form-control" placeholder="이름, 닉네임, 이메일, ID">
                     </div>
                     <div class="col-md-2">
-                        <button class="btn btn-primary" onclick="searchMembers()">
-                            <i class="bi bi-search me-2"></i>검색
+                        <label class="form-label">제공자</label>
+                        <select id="searchProvider" class="form-select">
+                            <option value="">전체</option>
+                            <option value="site">사이트</option>
+                            <option value="naver">네이버</option>
+                            <option value="admin">관리자</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">상태</label>
+                        <select id="searchStatus" class="form-select">
+                            <option value="">전체</option>
+                            <option value="A">활성</option>
+                            <option value="B">경고</option>
+                            <option value="C">정지</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">페이지 크기</label>
+                        <select id="pageSize" class="form-select">
+                            <option value="10">10개</option>
+                            <option value="20" selected>20개</option>
+                            <option value="50">50개</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary d-block w-100" onclick="loadMembers()">
+                            <i class="bi bi-search"></i> 검색
                         </button>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+        <!-- 통계 정보 -->
+        <div class="row mb-4" id="statsContainer">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5>전체 회원</h5>
+                        <h2 id="totalMembers">-</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5>활성 회원</h5>
+                        <h2 id="activeMembers">-</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h5>경고 회원</h5>
+                        <h2 id="warningMembers">-</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <h5>정지 회원</h5>
+                        <h2 id="suspendedMembers">-</h2>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- 회원 목록 -->
-        <div class="card member-table">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">회원 목록</h5>
+                <span id="memberCount" class="badge bg-secondary">총 0명</span>
+            </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>아이디</th>
-                                <th>닉네임</th>
-                                <th>이름</th>
-                                <th>이메일</th>
-                                <th>가입경로</th>
-                                <th>상태</th>
-                                <th>가입일</th>
-                                <th>작업</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% for(MemberDTO member : memberList) { %>
-                                <tr class="member-row">
-                                    <td><%=member.getUserid()%></td>
-                                    <td><%=member.getNickname()%></td>
-                                    <td><%=member.getName()%></td>
-                                    <td><%=member.getEmail()%></td>
-                                    <td>
-                                        <span class="<%=member.getProvider().equals("admin") ? "provider-admin" : (member.getProvider().equals("naver") ? "provider-naver" : "")%>">
-                                            <%=member.getProvider().equals("admin") ? "관리자" : (member.getProvider().equals("naver") ? "네이버" : "일반")%>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="<%=member.getStatus().equals("A") ? "status-active" : (member.getStatus().equals("B") ? "status-warning" : (member.getStatus().equals("C") ? "status-banned" : ""))%>">
-                                            <%=member.getStatus().equals("A") ? "활성" : (member.getStatus().equals("B") ? "경고" : (member.getStatus().equals("C") ? "정지" : "비활성"))%>
-                                        </span>
-                                    </td>
-                                    <td><%=member.getRegdate() != null ? member.getRegdate() : "-"%></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editMemberStatus('<%=member.getUserid()%>', '<%=member.getNickname()%>', '<%=member.getStatus()%>')">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <% if(!member.getUserid().equals("admin")) { %>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMember('<%=member.getUserid()%>', '<%=member.getNickname()%>')">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        <% } %>
-                                    </td>
-                                </tr>
-                            <% } %>
-                        </tbody>
-                    </table>
+                <div id="memberListContainer">
+                    <div class="loading">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">로딩중...</span>
+                    </div>
+                        <p class="mt-2">회원 목록을 불러오는 중...</p>
+                    </div>
                 </div>
-                
-                                 <!-- 페이징 네비게이션 -->
-                 <% if (totalPages > 1) { %>
-                     <div class="d-flex justify-content-center mt-4">
-                         <nav aria-label="회원 목록 페이지 네비게이션">
-                             <ul class="pagination pagination-sm mb-0">
-                                 <% for (int i = 1; i <= totalPages; i++) { %>
-                                     <li class="page-item <%= (i == currentPage) ? "active" : "" %>">
-                                         <a class="page-link" href="?main=adminpage/member.jsp&page=<%=i%>"><%=i%></a>
-                                     </li>
-                                 <% } %>
-                             </ul>
-                         </nav>
-                     </div>
-                 <% } %>
             </div>
         </div>
+
+        <!-- 페이지네이션 -->
+        <nav id="paginationContainer" class="mt-4" style="display: none;">
+            <ul class="pagination justify-content-center" id="pagination">
+                             </ul>
+                         </nav>
     </div>
 
     <script>
-        // 현재 활성 필터
-        let currentFilter = 'all';
-        
-        // 통계 카드 클릭 이벤트
-        document.addEventListener('DOMContentLoaded', function() {
-            const statCards = document.querySelectorAll('.stat-card');
-            statCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    const filter = this.getAttribute('data-filter');
-                    filterMembers(filter);
-                    
-                    // 활성 카드 스타일 변경
-                    statCards.forEach(c => c.classList.remove('active-filter'));
-                    this.classList.add('active-filter');
-                });
+        let currentPage = 0;
+        let currentSize = 20;
+        let totalPages = 0;
+
+        // 페이지 로드시 초기화
+        $(document).ready(function() {
+            loadMemberStats();
+            loadMembers();
+            
+            // Enter 키 검색
+            $('#searchKeyword').on('keypress', function(e) {
+                if (e.which === 13) {
+                    loadMembers();
+                }
             });
         });
         
-        // 회원 필터링 함수
-        function filterMembers(filter) {
-            currentFilter = filter;
-            const rows = document.querySelectorAll('.member-row');
-            let visibleCount = 0;
-            
-            rows.forEach(row => {
-                let shouldShow = false;
-                
-                switch(filter) {
-                    case 'all':
-                        shouldShow = true;
-                        break;
-                    case 'naver':
-                        shouldShow = row.querySelector('td:nth-child(5)').textContent.includes('네이버');
-                        break;
-                    case 'general':
-                        const provider = row.querySelector('td:nth-child(5)').textContent;
-                        shouldShow = !provider.includes('네이버') && !provider.includes('관리자');
-                        break;
-                    case 'admin':
-                        shouldShow = row.querySelector('td:nth-child(5)').textContent.includes('관리자');
-                        break;
-                    case 'status-A':
-                        shouldShow = row.querySelector('td:nth-child(6)').textContent.includes('활성');
-                        break;
-                    case 'status-B':
-                        shouldShow = row.querySelector('td:nth-child(6)').textContent.includes('경고');
-                        break;
-                    case 'status-C':
-                        shouldShow = row.querySelector('td:nth-child(6)').textContent.includes('정지');
-                        break;
+        // 회원 통계 로드
+        function loadMemberStats() {
+            $.ajax({
+                url: '<%=root%>/api/admin/members/stats',
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        $('#totalMembers').text(response.totalMembers || 0);
+                        $('#activeMembers').text(response.activeMembers || 0);
+                        // TODO: 경고/정지 회원 수 API 구현 필요
+                        $('#warningMembers').text('N/A');
+                        $('#suspendedMembers').text('N/A');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('통계 로드 오류:', error);
                 }
-                
-                row.style.display = shouldShow ? '' : 'none';
-                if (shouldShow) visibleCount++;
+            });
+        }
+
+        // 회원 목록 로드
+        function loadMembers(page = 0) {
+            const keyword = $('#searchKeyword').val();
+            const provider = $('#searchProvider').val();
+            const status = $('#searchStatus').val();
+            const size = parseInt($('#pageSize').val());
+            
+            currentPage = page;
+            currentSize = size;
+
+            const params = new URLSearchParams({
+                page: page,
+                size: size
             });
             
-            // 검색창 초기화
-            document.getElementById('searchInput').value = '';
-            
-            // 필터 정보 표시
-            updateFilterInfo(filter, visibleCount);
-        }
-        
-        // 필터 정보 업데이트
-        function updateFilterInfo(filter, count) {
-            let filterText = '';
-            switch(filter) {
-                case 'all': filterText = '전체 회원'; break;
-                case 'naver': filterText = '네이버 가입'; break;
-                case 'general': filterText = '일반 가입'; break;
-                case 'admin': filterText = '관리자'; break;
-                case 'status-A': filterText = '활성 회원'; break;
-                case 'status-B': filterText = '경고 회원'; break;
-                case 'status-C': filterText = '정지 회원'; break;
-            }
-            
-            // 필터 정보를 표시할 요소가 있다면 업데이트
-            const filterInfo = document.getElementById('filterInfo');
-            if (filterInfo) {
-                filterInfo.textContent = `${filterText} (${count}명)`;
-            }
-        }
-        
-        // 검색 기능 (기존 필터와 함께 작동)
-        function searchMembers() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const rows = document.querySelectorAll('.member-row');
-            let visibleCount = 0;
-            
-            rows.forEach(row => {
-                // 먼저 현재 필터 조건 확인
-                let passesFilter = true;
-                if (currentFilter !== 'all') {
-                    switch(currentFilter) {
-                        case 'naver':
-                            passesFilter = row.querySelector('td:nth-child(5)').textContent.includes('네이버');
-                            break;
-                        case 'general':
-                            const provider = row.querySelector('td:nth-child(5)').textContent;
-                            passesFilter = !provider.includes('네이버') && !provider.includes('관리자');
-                            break;
-                        case 'admin':
-                            passesFilter = row.querySelector('td:nth-child(5)').textContent.includes('관리자');
-                            break;
-                        case 'status-A':
-                            passesFilter = row.querySelector('td:nth-child(6)').textContent.includes('활성');
-                            break;
-                        case 'status-B':
-                            passesFilter = row.querySelector('td:nth-child(6)').textContent.includes('경고');
-                            break;
-                        case 'status-C':
-                            passesFilter = row.querySelector('td:nth-child(6)').textContent.includes('정지');
-                            break;
+            if (keyword) params.append('keyword', keyword);
+            if (provider) params.append('provider', provider);
+            if (status) params.append('status', status);
+
+            $.ajax({
+                url: '<%=root%>/api/admin/members?' + params.toString(),
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        displayMembers(response.members, response.totalCount);
+                        updatePagination(response.currentPage, response.totalPages, response.totalCount);
+                    } else {
+                        $('#memberListContainer').html('<div class="alert alert-warning">회원 목록을 불러올 수 없습니다: ' + response.message + '</div>');
                     }
+                },
+                error: function(xhr, status, error) {
+                    console.error('회원 목록 로드 오류:', error);
+                    $('#memberListContainer').html('<div class="alert alert-danger">회원 목록 로드 중 오류가 발생했습니다.</div>');
                 }
+            });
+        }
+
+        // 회원 목록 표시
+        function displayMembers(members, totalCount) {
+            $('#memberCount').text('총 ' + totalCount + '명');
+            
+            if (!members || members.length === 0) {
+                $('#memberListContainer').html('<div class="alert alert-info">조건에 맞는 회원이 없습니다.</div>');
+                return;
+            }
+
+            let html = '<div class="table-responsive">';
+            html += '<table class="table table-hover member-table">';
+            html += '<thead>';
+            html += '<tr>';
+            html += '<th>ID</th>';
+            html += '<th>이름</th>';
+            html += '<th>닉네임</th>';
+            html += '<th>이메일</th>';
+            html += '<th>제공자</th>';
+            html += '<th>상태</th>';
+            html += '<th>가입일</th>';
+            html += '<th>관리</th>';
+            html += '</tr>';
+            html += '</thead>';
+            html += '<tbody>';
+
+            members.forEach(function(member) {
+                html += '<tr>';
+                html += '<td><strong>' + member.userid + '</strong></td>';
+                html += '<td>' + (member.name || '-') + '</td>';
+                html += '<td>' + (member.nickname || '-') + '</td>';
+                html += '<td>' + (member.email || '-') + '</td>';
+                html += '<td><span class="badge provider-badge bg-' + getProviderColor(member.provider) + '">' + member.provider + '</span></td>';
+                html += '<td><span class="badge status-badge bg-' + getStatusColor(member.status) + '">' + getStatusText(member.status) + '</span></td>';
+                html += '<td>' + formatDate(member.regdate) + '</td>';
+                html += '<td>';
                 
-                // 필터 조건을 통과한 경우에만 검색어 확인
-                if (passesFilter) {
-                    const text = row.textContent.toLowerCase();
-                    const matchesSearch = text.includes(searchTerm);
-                    row.style.display = matchesSearch ? '' : 'none';
-                    if (matchesSearch) visibleCount++;
+                if (member.userid !== 'admin') {
+                    html += '<div class="btn-group btn-group-sm" role="group">';
+                    html += '<select class="form-select form-select-sm" onchange="changeMemberStatus(\'' + member.userid + '\', this.value)" style="width: auto;">';
+                    html += '<option value="">상태변경</option>';
+                    html += '<option value="A"' + (member.status === 'A' ? ' selected' : '') + '>활성</option>';
+                    html += '<option value="B"' + (member.status === 'B' ? ' selected' : '') + '>경고</option>';
+                    html += '<option value="C"' + (member.status === 'C' ? ' selected' : '') + '>정지</option>';
+                    html += '</select>';
+                    html += '<button class="btn btn-outline-danger btn-sm" onclick="deleteMember(\'' + member.userid + '\')" title="회원삭제">';
+                    html += '<i class="bi bi-trash"></i>';
+                    html += '</button>';
+                    html += '</div>';
                 } else {
-                    row.style.display = 'none';
+                    html += '<span class="text-muted">관리자</span>';
+                }
+                
+                html += '</td>';
+                html += '</tr>';
+            });
+
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
+
+            $('#memberListContainer').html(html);
+        }
+
+        // 페이지네이션 업데이트
+        function updatePagination(currentPage, totalPages, totalCount) {
+            if (totalPages <= 1) {
+                $('#paginationContainer').hide();
+                return;
+            }
+
+            let html = '';
+            
+            // 이전 페이지
+            if (currentPage > 0) {
+                html += '<li class="page-item"><a class="page-link" href="#" onclick="loadMembers(' + (currentPage - 1) + ')">이전</a></li>';
+            }
+            
+            // 페이지 번호들
+            const startPage = Math.max(0, currentPage - 2);
+            const endPage = Math.min(totalPages - 1, currentPage + 2);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const active = i === currentPage ? ' active' : '';
+                html += '<li class="page-item' + active + '"><a class="page-link" href="#" onclick="loadMembers(' + i + ')">' + (i + 1) + '</a></li>';
+            }
+            
+            // 다음 페이지
+            if (currentPage < totalPages - 1) {
+                html += '<li class="page-item"><a class="page-link" href="#" onclick="loadMembers(' + (currentPage + 1) + ')">다음</a></li>';
+            }
+
+            $('#pagination').html(html);
+            $('#paginationContainer').show();
+        }
+
+        // 회원 상태 변경
+        function changeMemberStatus(userid, status) {
+            if (!status) return;
+            
+            if (!confirm('회원 상태를 변경하시겠습니까?')) {
+                location.reload(); // 셀렉트 박스 초기화
+                return;
+            }
+
+            $.ajax({
+                url: '<%=root%>/api/admin/members/' + userid + '/status',
+                method: 'PUT',
+                data: { status: status },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        loadMembers(currentPage);
+                        loadMemberStats();
+                } else {
+                        alert('오류: ' + response.message);
+                        location.reload();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('상태 변경 오류:', error);
+                    alert('서버 오류가 발생했습니다.');
+                    location.reload();
                 }
             });
-            
-            // 검색 결과 정보 업데이트
-            updateFilterInfo(currentFilter, visibleCount);
-        }
-
-        // 실시간 검색 (디바운싱)
-        let searchTimeout;
-        document.getElementById('searchInput').addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(searchMembers, 300);
-        });
-
-        // 회원 상태 수정
-        function editMemberStatus(userid, nickname, currentStatus) {
-            // 모달 생성
-            const modal = document.createElement('div');
-            modal.className = 'modal fade show';
-            modal.style.display = 'block';
-            modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
-            
-                         modal.innerHTML = 
-                 '<div class="modal-dialog">' +
-                     '<div class="modal-content">' +
-                         '<div class="modal-header">' +
-                             '<h5 class="modal-title" style="color: #000;">회원 상태 수정</h5>' +
-                             '<button type="button" class="btn-close" onclick="this.closest(\'.modal\').remove()"></button>' +
-                         '</div>' +
-                         '<div class="modal-body">' +
-                             '<p style="color: #000;"><strong>' + nickname + '</strong> 회원의 상태를 변경합니다.</p>' +
-                            '<div class="mb-3">' +
-                                '<label for="newStatus" class="form-label">새로운 상태:</label>' +
-                                '<select class="form-select" id="newStatus">' +
-                                    '<option value="A" ' + (currentStatus === 'A' ? 'selected' : '') + '>A - 활성</option>' +
-                                    '<option value="B" ' + (currentStatus === 'B' ? 'selected' : '') + '>B - 경고</option>' +
-                                    '<option value="C" ' + (currentStatus === 'C' ? 'selected' : '') + '>C - 정지</option>' +
-                                '</select>' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="modal-footer">' +
-                            '<button type="button" class="btn btn-secondary" onclick="this.closest(\'.modal\').remove()">취소</button>' +
-                            '<button type="button" class="btn btn-primary" onclick="confirmStatusChange(\'' + userid + '\', \'' + nickname + '\')">상태 변경</button>' +
-                        '</div>' +
-                    '</div>' +
-                '</div>';
-            
-            document.body.appendChild(modal);
-        }
-
-        // 상태 변경 확인 및 실행
-        function confirmStatusChange(userid, nickname) {
-            const newStatus = document.getElementById('newStatus').value;
-            const statusText = newStatus === 'A' ? '활성' : newStatus === 'B' ? '경고' : '정지';
-            
-            if (confirm(`정말로 ${nickname} 회원의 상태를 '${statusText}'로 변경하시겠습니까?`)) {
-                // 상태 변경 요청
-                fetch('<%=root%>/adminpage/changeMemberStatusAction.jsp', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: 'userid=' + encodeURIComponent(userid) + '&status=' + encodeURIComponent(newStatus)
-                })
-                .then(response => response.text())
-                .then(text => {
-                    try {
-                        const data = JSON.parse(text);
-                        if (data.success) {
-                            alert('상태가 변경되었습니다.');
-                            location.reload();
-                        } else {
-                            alert('오류: ' + data.message);
-                        }
-                    } catch (e) {
-                        alert('서버 응답 오류');
-                    }
-                })
-                .catch(error => alert('오류: ' + error.message));
-                
-                // 모달 닫기
-                document.querySelector('.modal').remove();
-            }
         }
 
         // 회원 삭제
-        function deleteMember(userid, nickname) {
-            if (confirm('정말로 ' + nickname + ' 회원을 삭제하시겠습니까?')) {
-                fetch('<%=root%>/adminpage/deleteMemberAction.jsp', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: 'userid=' + encodeURIComponent(userid)
-                })
-                .then(response => response.text())
-                .then(text => {
-                    try {
-                        const data = JSON.parse(text);
-                        if (data.success) {
-                            alert('회원이 삭제되었습니다.');
-                            location.reload();
+        function deleteMember(userid) {
+            if (!confirm('정말로 이 회원을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+                return;
+            }
+
+            $.ajax({
+                url: '<%=root%>/api/admin/members/' + userid,
+                method: 'DELETE',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        loadMembers(currentPage);
+                        loadMemberStats();
                         } else {
-                            alert('오류: ' + data.message);
-                        }
-                    } catch (e) {
-                        alert('서버 응답 오류');
+                        alert('오류: ' + response.message);
                     }
-                })
-                .catch(error => alert('오류: ' + error.message));
+                },
+                error: function(xhr, status, error) {
+                    console.error('회원 삭제 오류:', error);
+                    alert('서버 오류가 발생했습니다.');
+                }
+            });
+        }
+
+        // 유틸리티 함수들
+        function getProviderColor(provider) {
+            switch(provider) {
+                case 'naver': return 'success';
+                case 'admin': return 'dark';
+                default: return 'primary';
             }
         }
-        
-        // 페이지 로드 시 초기화
-        document.addEventListener('DOMContentLoaded', function() {
-            // 초기 필터 정보 설정
-            updateFilterInfo('all', '<%=totalMembers%>');
-        });
-    </script>
-    
 
+        function getStatusColor(status) {
+            switch(status) {
+                case 'A': return 'success';
+                case 'B': return 'warning';
+                case 'C': return 'danger';
+                default: return 'secondary';
+            }
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'A': return '활성';
+                case 'B': return '경고';
+                case 'C': return '정지';
+                default: return '알수없음';
+            }
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR');
+        }
+    </script>
+</body>
+</html>

@@ -219,7 +219,7 @@
     <update id="updateProfileImage">
         UPDATE member 
         SET 
-            update_date = #{updateDate} 
+            update_date = #{update_date} 
         WHERE userid = #{userid}
     </update>
     -->

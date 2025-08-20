@@ -6,6 +6,8 @@
     if (mainPage == null) {
         mainPage = "main.jsp";
     }
+    // 디버깅: mainPage 값 확인
+    System.out.println("DEBUG: index.jsp - mainPage = " + mainPage);
 %>
 <!DOCTYPE html>
 <html lang="ko">
@@ -18,6 +20,9 @@
 <link
 	href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap"
 	rel="stylesheet">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <!-- Bootstrap 5.3.3 -->
 <link
@@ -119,17 +124,20 @@
 		try {
 			if (mainPage != null && !mainPage.equals("main.jsp")) {
 				// 메뉴에서 온 JSP 처리
+				System.out.println("DEBUG: including page - " + mainPage);
 				try {
 		%>
 					<jsp:include page="<%= mainPage %>" />
 		<%
 				} catch (Exception e) {
 					// 파일이 없으면 main.jsp로 fallback
+					System.out.println("DEBUG: Exception occurred while including " + mainPage + ": " + e.getMessage());
+					e.printStackTrace();
 		%>
 					<jsp:include page="main/main.jsp" />
 					<div class="alert alert-warning mt-3">
 						<i class="bi bi-exclamation-triangle"></i>
-						요청하신 페이지를 찾을 수 없어 메인 페이지를 표시합니다.
+						요청하신 페이지를 찾을 수 없어 메인 페이지를 표시합니다. (오류: <%= e.getMessage() %>)
 					</div>
 		<%
 				}

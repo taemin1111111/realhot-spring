@@ -1,75 +1,15 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.*" %>
-<%@ page import="MD.MdDao" %>
-<%@ page import="MD.MdDto" %>
-<%@ page import="MD.MdWishDao" %>
-<%@ page import="hotplace_info.HotplaceDao" %>
-<%@ page import="hotplace_info.HotplaceDto" %>
 <%
     String root = request.getContextPath();
     String loginId = (String)session.getAttribute("loginid");
     String nickname = (String)session.getAttribute("nickname");
     String provider = (String)session.getAttribute("provider");
-    
-    // 페이징 파라미터 처리
-    String pageParam = request.getParameter("page");
-    int currentPage = 1;
-    int pageSize = 10; // 페이지당 10개
-    
-    if (pageParam != null && !pageParam.isEmpty()) {
-        try {
-            currentPage = Integer.parseInt(pageParam);
-            if (currentPage < 1) currentPage = 1;
-        } catch (NumberFormatException e) {
-            currentPage = 1;
-        }
-    }
-    
-    // MD 정보와 장소 정보를 함께 조회 (페이징 적용)
-    MdDao mdDao = new MdDao();
-    List<Map<String, Object>> mdList = mdDao.getMdWithPlaceInfoPaged(currentPage, pageSize);
-    int mdCount = mdDao.getMdCount();
-    int totalPages = mdDao.getTotalPages(pageSize);
-    
-    // 장소 목록 조회 (자동완성용)
-    HotplaceDao hotplaceDao = new HotplaceDao();
-    List<String> hotplaceNameList = hotplaceDao.getAllHotplaceNames();
-    List<HotplaceDto> hotplaceList = hotplaceDao.getAllHotplaces();
 %>
 
-<script>
-// 장소명 목록을 JavaScript 변수로 설정 (main.jsp와 동일한 방식)
-var hotplaceNameList = [<% for(int i=0;i<hotplaceNameList.size();i++){ %>'<%=hotplaceNameList.get(i).replace("'", "\\'")%>'<% if(i<hotplaceNameList.size()-1){%>,<%}}%>];
 
-// 장소 정보 목록 (ID 매핑용)
-var hotplaceList = [
-    <% for(int i=0; i<hotplaceList.size(); i++) { 
-        HotplaceDto place = hotplaceList.get(i); %>
-    {
-        id: <%= place.getId() %>,
-        name: '<%= place.getName().replace("'", "\\'") %>',
-        address: '<%= place.getAddress().replace("'", "\\'") %>'
-    }<% if(i < hotplaceList.size()-1) { %>,<% } %>
-    <% } %>
-];
-
-
-</script>
 
 <div class="md-container">
-    <!-- 헤더 섹션 -->
-    <div class="md-header">
-        <div class="md-header-content">
-            <h1 class="md-title">
-                <i class="bi bi-shield-check me-3"></i>
-                클럽 MD 예약 창
-            </h1>
-            <p class="md-subtitle">검증된 MD들과 안전하게 예약하세요</p>
-            <span class="md-badge">
-                <i class="bi bi-verified me-2"></i>검증된 MD
-            </span>
-        </div>
-    </div>
     
     <!-- 신뢰도 표시 섹션 -->
     <div class="md-trust-section">
@@ -98,160 +38,61 @@ var hotplaceList = [
         </div>
     </div>
     
-    <!-- MD 카드 섹션 -->
-    <div class="md-cards-section">
-        
-        <!-- 관리자만 MD 등록 버튼 표시 -->
-        <% if("admin".equals(provider)) { %>
-            <div class="text-end mb-3">
-                <button type="button" class="md-admin-btn" data-bs-toggle="modal" data-bs-target="#mdRegisterModal">
-                    <i class="bi bi-plus-circle me-2"></i> MD 등록
-                </button>
+    <!-- 검색 및 정렬 섹션 -->
+    <div class="md-search-section">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-3">
+                <select id="searchType" class="form-select">
+                    <option value="all">전체 검색</option>
+                    <option value="mdName">MD명 검색</option>
+                    <option value="placeName">장소명 검색</option>
+                </select>
             </div>
-        <% } %>
-        
-        <!-- MD 정보 출력 -->
-        <% if(mdCount > 0) { %>
-            <div class="md-cards-grid">
-                <% for(Map<String, Object> md : mdList) { %>
-                    <div class="md-card">
-                        <!-- 검증 배지 -->
-                        <div class="md-verified-badge">
-                            <i class="bi bi-shield-check me-1"></i>검증됨
-                        </div>
-                        
-                        <!-- 찜 버튼 (우상단) -->
-                        <% if(loginId != null) { %>
-                            <% 
-                            MdWishDao wishDao = new MdWishDao();
-                            boolean isWished = wishDao.isMdWished((Integer)md.get("mdId"), loginId);
-                            %>
-                            <button type="button" 
-                                    class="md-wish-btn <%= isWished ? "wished" : "" %>"
-                                    onclick="toggleMdWish(<%= md.get("mdId") != null ? md.get("mdId") : 0 %>, this)"
-                                    data-md-id="<%= md.get("mdId") != null ? md.get("mdId") : 0 %>"
-                                    data-wished="<%= isWished %>">
-                                <i class="bi <%= isWished ? "bi-heart-fill" : "bi-heart" %>"></i>
-                            </button>
-                        <% } %>
-                        
-                        <div class="md-card-header">
-                            <% if(md.get("photo") != null && !md.get("photo").toString().isEmpty()) { %>
-                                <img src="<%= root %>/mdphotos/<%= md.get("photo") %>" class="md-card-image" alt="MD 사진">
-                            <% } else { %>
-                                <div class="md-card-placeholder">
-                                    <i class="bi bi-person-circle"></i>
-                                </div>
-                            <% } %>
-                        </div>
-                        
-                        <div class="md-card-body">
-                            <h5 class="md-card-name"><%= md.get("mdName") %></h5>
-                            <div class="md-card-location">
-                                <i class="bi bi-geo-alt"></i>
-                                <span class="md-card-place"><%= md.get("placeName") %></span>
-                            </div>
-                            <div class="md-card-address">
-                                <i class="bi bi-geo-alt-fill"></i>
-                                <span class="address-text"><%= md.get("address") %></span>
-                            </div>
-                            <% if(md.get("contact") != null && !md.get("contact").toString().isEmpty()) { %>
-                                <div class="md-card-contact">
-                                    <i class="bi bi-telephone"></i>
-                                    <span class="md-card-contact-text"><%= md.get("contact") %></span>
-                                </div>
-                            <% } %>
-                            <% if(md.get("description") != null && !md.get("description").toString().isEmpty()) { %>
-                                <div class="md-card-description">
-                                    <span class="description-text">연결주소: <%= md.get("description") %></span>
-                                </div>
-                            <% } %>
-                        </div>
-                    </div>
+            <div class="col-md-4">
+                <div class="input-group">
+                    <input type="text" id="searchKeyword" class="form-control" placeholder="검색어를 입력하세요...">
+                    <button class="btn btn-outline-primary" onclick="searchMds()">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select id="sortOption" class="form-select" onchange="searchMds()">
+                    <option value="latest">최신순</option>
+                    <option value="popular">인기순 (찜 많은순)</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <% if("admin".equals(provider)) { %>
+                    <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#mdRegisterModal">
+                        <i class="bi bi-plus-circle me-2"></i> MD 등록
+                    </button>
                 <% } %>
             </div>
-            
-            <!-- 페이징 네비게이션 -->
-            <% if(totalPages > 1) { %>
-                <nav class="md-pagination">
-                    <ul class="pagination">
-                        <!-- 이전 페이지 -->
-                        <% if(currentPage > 1) { %>
-                            <li class="page-item">
-                                <a class="page-link" href="<%= root %>/index.jsp?main=clubmd/clubmd.jsp&page=<%= currentPage - 1 %>" aria-label="이전">
-                                    <span aria-hidden="true">&laquo;</span>
-                                </a>
-                            </li>
-                        <% } else { %>
-                            <li class="page-item disabled">
-                                <span class="page-link" aria-hidden="true">&laquo;</span>
-                            </li>
-                        <% } %>
-                        
-                        <!-- 페이지 번호 -->
-                        <% 
-                        int startPage = Math.max(1, currentPage - 2);
-                        int endPage = Math.min(totalPages, currentPage + 2);
-                        
-                        if(startPage > 1) { %>
-                            <li class="page-item">
-                                <a class="page-link" href="<%= root %>/index.jsp?main=clubmd/clubmd.jsp&page=1">1</a>
-                            </li>
-                            <% if(startPage > 2) { %>
-                                <li class="page-item disabled">
-                                    <span class="page-link">...</span>
-                                </li>
-                            <% } %>
-                        <% } %>
-                        
-                        <% for(int i = startPage; i <= endPage; i++) { %>
-                            <li class="page-item <%= i == currentPage ? "active" : "" %>">
-                                <a class="page-link" href="<%= root %>/index.jsp?main=clubmd/clubmd.jsp&page=<%= i %>"><%= i %></a>
-                            </li>
-                        <% } %>
-                        
-                        <% if(endPage < totalPages) { %>
-                            <% if(endPage < totalPages - 1) { %>
-                                <li class="page-item disabled">
-                                    <span class="page-link">...</span>
-                                </li>
-                            <% } %>
-                            <li class="page-item">
-                                <a class="page-link" href="<%= root %>/index.jsp?main=clubmd/clubmd.jsp&page=<%= totalPages %>"><%= totalPages %></a>
-                            </li>
-                        <% } %>
-                        
-                        <!-- 다음 페이지 -->
-                        <% if(currentPage < totalPages) { %>
-                            <li class="page-item">
-                                <a class="page-link" href="<%= root %>/index.jsp?main=clubmd/clubmd.jsp&page=<%= currentPage + 1 %>" aria-label="다음">
-                                    <span aria-hidden="true">&raquo;</span>
-                                </a>
-                            </li>
-                        <% } else { %>
-                            <li class="page-item disabled">
-                                <span class="page-link" aria-hidden="true">&raquo;</span>
-                            </li>
-                        <% } %>
-                    </ul>
-                </nav>
-                
-                <!-- 페이지 정보 표시 -->
-                <div class="text-center text-muted mt-2">
-                    <small>총 <%= mdCount %>개의 MD 중 <%= (currentPage - 1) * pageSize + 1 %>-<%= Math.min(currentPage * pageSize, mdCount) %>번째</small>
+        </div>
+    </div>
+    
+    <!-- MD 카드 섹션 -->
+    <div class="md-cards-section mt-4">
+        <!-- MD 목록 컨테이너 -->
+        <div id="mdListContainer">
+            <div class="loading text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">로딩중...</span>
                 </div>
-            <% } %>
-        <% } else { %>
-            <!-- MD가 없을 때 메시지 -->
-            <div class="md-empty-state">
-                <div class="md-empty-icon">
-                    <i class="bi bi-exclamation-triangle"></i>
-                </div>
-                <h4 class="md-empty-title">등록된 MD가 없습니다</h4>
-                <p class="md-empty-description">현재 등록된 MD가 없습니다.</p>
-                <p class="md-empty-description">관리자에게 연락해서 MD 등록을 해주세요!</p>
+                <p class="mt-2">MD 목록을 불러오는 중...</p>
             </div>
-        <% } %>
+        </div>
+        
+        <!-- 페이지네이션 -->
+        <nav id="paginationContainer" class="mt-4" style="display: none;">
+            <ul class="pagination justify-content-center" id="pagination">
+            </ul>
+        </nav>
+        
+        <!-- 페이지 정보 -->
+        <div id="pageInfo" class="text-center text-muted mt-2" style="display: none;">
+        </div>
     </div>
 </div>
 
@@ -264,7 +105,7 @@ var hotplaceList = [
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="mdRegisterForm">
+                <form id="mdRegisterForm" enctype="multipart/form-data">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -279,8 +120,8 @@ var hotplaceList = [
                                     <input type="text" class="form-control" id="placeSearch" 
                                            placeholder="장소명을 입력하세요" autocomplete="off">
                                     <input type="hidden" id="placeId" name="placeId" required>
-                                    <div id="placeSearchResults" class="position-absolute w-100 bg-white border rounded shadow-sm" 
-                                         style="position:absolute; left:0; top:46px; width:100%; background:rgba(255,255,255,0.97); border-radius:14px; box-shadow:0 4px 16px rgba(0,0,0,0.10); z-index:9999; flex-direction:column; overflow:hidden; border:1.5px solid #e0e0e0; display:none !important;">
+                                    <div id="placeSearchResults" class="list-group position-absolute w-100" 
+                                         style="z-index: 1050; display: none;">
                                     </div>
                                 </div>
                             </div>
@@ -315,99 +156,228 @@ var hotplaceList = [
 </div>
 
 <script>
-// 장소 검색 및 자동완성 기능 (main.jsp와 동일한 방식)
-let searchTimeout;
+let currentPage = 0;
+let totalPages = 0;
+let totalElements = 0;
 
-// 모달이 완전히 로드된 후에 이벤트 리스너 등록
-document.addEventListener('DOMContentLoaded', function() {
-    // 모달이 열릴 때마다 이벤트 리스너 등록
-    const mdRegisterModal = document.getElementById('mdRegisterModal');
-    if (mdRegisterModal) {
-        mdRegisterModal.addEventListener('shown.bs.modal', function() {
-            setupSearchListener();
-        });
-    }
-});
-
-function setupSearchListener() {
-    const searchInput = document.getElementById('placeSearch');
-    if (!searchInput) {
-        return;
-    }
+// 페이지 로드시 초기화
+$(document).ready(function() {
+    loadMds();
+    setupPlaceAutoComplete();
     
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.trim();
-        const resultsDiv = document.getElementById('placeSearchResults');
-        const placeIdInput = document.getElementById('placeId');
-        
-        if (!resultsDiv) {
-            return;
+    // Enter 키 검색
+    $('#searchKeyword').on('keypress', function(e) {
+        if (e.which === 13) {
+            searchMds();
         }
-        
-        // 이전 타이머 클리어
-        clearTimeout(searchTimeout);
-        
-        if (searchTerm.length < 2) {
-            resultsDiv.style.setProperty('display', 'none', 'important');
-            placeIdInput.value = '';
-            return;
-        }
-        
-        // 300ms 후에 검색 실행 (타이핑 중단 시)
-        searchTimeout = setTimeout(() => {
-            // main.jsp와 동일한 방식으로 클라이언트에서 필터링
-            const filtered = hotplaceNameList.filter(function(item) {
-                return item && item.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1;
-            }).slice(0, 8); // 최대 8개
-            
-            resultsDiv.innerHTML = '';
-            
-            if (filtered.length > 0) {
-                // main.jsp와 동일한 방식으로 단순하게 표시
-                resultsDiv.innerHTML = filtered.map(function(placeName) {
-                    const place = hotplaceList.find(p => p.name === placeName);
-                    if (place) {
-                        return '<div class="autocomplete-item" style="padding:10px 18px; font-size:1.04rem; color:#222 !important; cursor:pointer; transition:background 0.13s; border-bottom:1px solid #f3f3f3; background:transparent;" data-place-id="' + place.id + '" data-place-name="' + place.name + '" data-place-address="' + place.address + '">' + placeName + '</div>';
-                    }
-                    return '';
-                }).join('');
-                
-                // 클릭 이벤트 추가
-                Array.from(resultsDiv.children).forEach(function(child) {
-                    child.onclick = function() {
-                        const placeId = this.getAttribute('data-place-id');
-                        const placeName = this.getAttribute('data-place-name');
-                        const placeAddress = this.getAttribute('data-place-address');
-                        document.getElementById('placeSearch').value = placeName + ' - ' + placeAddress;
-                        document.getElementById('placeId').value = placeId;
-                        resultsDiv.style.setProperty('display', 'none', 'important');
-                    };
-                });
-                
-                resultsDiv.style.setProperty('display', 'flex', 'important');
-            } else {
-                resultsDiv.innerHTML = '<div class="autocomplete-item" style="padding:10px 18px; font-size:1.04rem; color:#666; text-align:center;">검색 결과가 없습니다.</div>';
-                resultsDiv.style.setProperty('display', 'flex', 'important');
-            }
-        }, 300);
     });
     
-    // 검색 결과 외부 클릭 시 닫기
-    document.addEventListener('click', function(e) {
-        const resultsDiv = document.getElementById('placeSearchResults');
-        const searchInput = document.getElementById('placeSearch');
-        
-        if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
-            resultsDiv.style.setProperty('display', 'none', 'important');
+    // 검색 자동완성 설정
+    setupSearchAutocomplete();
+});
+
+// MD 목록 로드
+function loadMds(page = 0) {
+    const keyword = $('#searchKeyword').val();
+    const sort = $('#sortOption').val();
+    const searchType = $('#searchType').val();
+    currentPage = page;
+
+    const params = new URLSearchParams({
+        page: page,
+        size: 15
+    });
+    
+    if (keyword) params.append('keyword', keyword);
+    if (sort) params.append('sort', sort);
+    if (searchType) params.append('searchType', searchType);
+    
+    const apiUrl = '<%=root%>/api/md?' + params.toString();
+
+
+    
+    // JWT 토큰을 헤더에 포함하여 API 호출
+    const headers = {};
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+
+    }
+    
+    $.ajax({
+        url: apiUrl,
+        method: 'GET',
+        headers: headers,
+        dataType: 'json',
+        success: function(response) {
+
+            if (response.success) {
+                displayMds(response.mds || []);
+                updatePagination(response.currentPage || 0, response.totalPages || 1, response.totalElements || 0);
+            } else {
+                showError('MD 목록을 불러오는데 실패했습니다.');
+            }
+        },
+        error: function(xhr, status, error) {
+
+            showError('MD 목록을 불러오는 중 오류가 발생했습니다.');
         }
     });
 }
 
-// 스타일: hover 효과 (main.jsp와 동일)
-var style = document.createElement('style');
-style.innerHTML = `.autocomplete-item:hover { background: #f0f4fa !important; color: #1275E0 !important; }`;
-document.head.appendChild(style);
+// MD 목록 표시
+function displayMds(mds) {
+    if (!mds || mds.length === 0) {
+        $('#mdListContainer').html(
+            '<div class="md-empty-state text-center py-5">' +
+                '<div class="md-empty-icon">' +
+                    '<i class="bi bi-exclamation-triangle display-1 text-muted"></i>' +
+                '</div>' +
+                '<h4 class="md-empty-title mt-3">등록된 MD가 없습니다</h4>' +
+                '<p class="md-empty-description text-muted">현재 등록된 MD가 없습니다.</p>' +
+                '<p class="md-empty-description text-muted">관리자에게 연락해서 MD 등록을 요청해주세요!</p>' +
+            '</div>'
+        );
+        return;
+    }
 
+
+    
+    // JWT 토큰 기반 로그인 상태 확인
+    const token = localStorage.getItem('accessToken');
+    const isLoggedIn = token && token !== 'null' && token !== '';
+
+    
+    let html = '<div class="md-cards-grid">';
+    mds.forEach(function(md) {
+
+        const isWished = md.isWished || false;
+        const wishCount = md.wishCount || 0;
+
+        
+        // Model1과 동일한 구조로 변경
+        html += '<div class="md-card">' +
+                    '<div class="md-verified-badge">' +
+                        '<i class="bi bi-shield-check me-1"></i>검증됨' +
+                    '</div>';
+                    
+        // 하트 버튼 항상 표시 (찜 기능은 로그인 시에만 작동)
+
+        html += '<button type="button" class="md-wish-btn ' + (isWished ? 'wished' : '') + '"' +
+                ' onclick="toggleMdWish(' + md.mdId + ', this)"' +
+                ' data-md-id="' + md.mdId + '"' +
+                ' data-wished="' + isWished + '">' +
+                    '<i class="bi ' + (isWished ? 'bi-heart-fill' : 'bi-heart') + '"></i>' +
+                '</button>';
+        
+        html += '<div class="md-card-header">';
+        if (md.photo && md.photo.trim() !== '') {
+            html += '<img src="<%=root%>/uploads/mdphotos/' + md.photo + '" class="md-card-image" alt="MD 사진">';
+        } else {
+            html += '<div class="md-card-placeholder"><i class="bi bi-person-circle"></i></div>';
+        }
+        html += '</div>' +
+                '<div class="md-card-body">' +
+                    '<div class="md-card-title-row">' +
+                        
+                        '<h5 class="md-card-name">' + md.mdName + '</h5>' +
+                        '<div class="md-wish-count">' +
+                            '<i class="bi bi-heart-fill me-1"></i>' +
+                            '<span class="wish-count-number">' + wishCount + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="md-card-location">' +
+                        '<i class="bi bi-geo-alt"></i>' +
+                        '<span class="md-card-place">' + (md.placeName || '장소 미정') + '</span>' +
+                    '</div>' +
+                    '<div class="md-card-address">' +
+                        '<i class="bi bi-geo-alt-fill"></i>' +
+                        '<span class="address-text">' + (md.address || '') + '</span>' +
+                    '</div>';
+                    
+        if (md.contact && md.contact.trim() !== '') {
+            html += '<div class="md-card-contact">' +
+                        '<i class="bi bi-telephone"></i>' +
+                        '<span class="md-card-contact-text">' + md.contact + '</span>' +
+                    '</div>';
+        }
+        if (md.description && md.description.trim() !== '') {
+            html += '<div class="md-card-description">' +
+                        '<span class="description-text">연결주소: ' + md.description + '</span>' +
+                    '</div>';
+        }
+        html += '</div>' +
+            '</div>';
+    });
+    html += '</div>';
+
+    $('#mdListContainer').html(html);
+}
+
+// 페이지네이션 업데이트
+function updatePagination(currentPage, totalPages, totalElements) {
+    const pageSize = 15;
+    
+    if (totalPages <= 1) {
+        $('#paginationContainer').hide();
+        $('#pageInfo').hide();
+        return;
+    }
+
+    let html = '';
+    
+    // 이전 페이지
+    if (currentPage > 0) {
+        html += '<li class="page-item"><a class="page-link" href="#" onclick="loadMds(' + (currentPage - 1) + ')">이전</a></li>';
+    } else {
+        html += '<li class="page-item disabled"><span class="page-link">이전</span></li>';
+    }
+    
+    // 페이지 번호들
+    const startPage = Math.max(0, currentPage - 2);
+    const endPage = Math.min(totalPages - 1, currentPage + 2);
+    
+    if (startPage > 0) {
+        html += '<li class="page-item"><a class="page-link" href="#" onclick="loadMds(0)">1</a></li>';
+        if (startPage > 1) {
+            html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const active = i === currentPage ? ' active' : '';
+        html += '<li class="page-item' + active + '"><a class="page-link" href="#" onclick="loadMds(' + i + ')">' + (i + 1) + '</a></li>';
+    }
+    
+    if (endPage < totalPages - 1) {
+        if (endPage < totalPages - 2) {
+            html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+        }
+        html += '<li class="page-item"><a class="page-link" href="#" onclick="loadMds(' + (totalPages - 1) + ')">' + totalPages + '</a></li>';
+    }
+    
+    // 다음 페이지
+    if (currentPage < totalPages - 1) {
+        html += '<li class="page-item"><a class="page-link" href="#" onclick="loadMds(' + (currentPage + 1) + ')">다음</a></li>';
+    } else {
+        html += '<li class="page-item disabled"><span class="page-link">다음</span></li>';
+    }
+
+    $('#pagination').html(html);
+    $('#paginationContainer').show();
+    
+    // 페이지 정보 표시
+    const startItem = currentPage * pageSize + 1;
+    const endItem = Math.min((currentPage + 1) * pageSize, totalElements);
+    $('#pageInfo').html('<small>총 ' + totalElements + '개의 MD 중 ' + startItem + '-' + endItem + '번째</small>').show();
+}
+
+// 검색
+function searchMds() {
+    loadMds(0);
+}
+
+// MD 등록
 function registerMd() {
     const form = document.getElementById('mdRegisterForm');
     const formData = new FormData(form);
@@ -417,76 +387,325 @@ function registerMd() {
     const placeId = formData.get('placeId');
     
     if (!mdName || !placeId) {
-        alert('필수 항목을 모두 입력해주세요.');
+        showMessage('필수 항목을 모두 입력해주세요.', 'warning');
         return;
     }
     
-    // AJAX로 전송
-    fetch('<%= root %>/clubmd/mdRegisterAction.jsp', {
+    $.ajax({
+        url: '<%=root%>/api/md/register',
         method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('MD가 성공적으로 등록되었습니다.');
-            location.reload(); // 페이지 새로고침
-        } else {
-            alert('MD 등록에 실패했습니다: ' + data.message);
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                showMessage('MD가 성공적으로 등록되었습니다.', 'success');
+                $('#mdRegisterModal').modal('hide');
+                $('#mdRegisterForm')[0].reset();
+                $('#placeId').val('');
+                loadMds(currentPage);
+            } else {
+                showMessage('MD 등록에 실패했습니다: ' + response.message, 'error');
+            }
+        },
+        error: function() {
+            showMessage('MD 등록 중 오류가 발생했습니다.', 'error');
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('MD 등록 중 오류가 발생했습니다.');
     });
 }
 
-// MD 찜 토글 함수
+// MD 찜 토글 - JWT 토큰 기반
 function toggleMdWish(mdId, button) {
-    const isWished = button.getAttribute('data-wished') === 'true';
-    const action = isWished ? 'remove' : 'add';
+
     
-    // 버튼 비활성화 (중복 클릭 방지)
-    button.disabled = true;
+    // JWT 토큰 기반 로그인 확인
+    const token = localStorage.getItem('accessToken');
+    if (!token || token === 'null' || token === '') {
+        showMessage('로그인이 필요합니다.', 'warning');
+        return;
+    }
     
-    // AJAX 요청
-    const formData = new URLSearchParams();
-    formData.append('action', action);
-    formData.append('mdId', mdId);
+    const isWished = $(button).attr('data-wished') === 'true';
+    const method = isWished ? 'DELETE' : 'POST';
     
-    fetch('<%= root %>/clubmd/mdWishAction.jsp', {
-        method: 'POST',
+
+    $(button).prop('disabled', true);
+    
+    const apiUrl = '<%=root%>/api/md/' + mdId + '/wish';
+
+    
+    $.ajax({
+        url: apiUrl,
+        method: method,
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
         },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // 찜 상태 토글
-            const newWished = !isWished;
-            button.setAttribute('data-wished', newWished);
-            
-            // 아이콘 변경
-            const icon = button.querySelector('i');
-            if (newWished) {
-                icon.className = 'bi bi-heart-fill text-danger';
+        dataType: 'json',
+        success: function(response) {
+
+            if (response.success) {
+                const newWished = !isWished;
+                $(button).attr('data-wished', newWished);
+                
+
+                if (newWished) {
+                    $(button).addClass('wished');
+                    $(button).find('i').removeClass('bi-heart').addClass('bi-heart-fill');
+                } else {
+                    $(button).removeClass('wished');
+                    $(button).find('i').removeClass('bi-heart-fill').addClass('bi-heart');
+                }
+                
+                $(button).prop('disabled', false);
+                // alert 제거 - 사용자 경험 개선
+
             } else {
-                icon.className = 'bi bi-heart text-muted';
+
+                showMessage(response.message, 'success');
+                $(button).prop('disabled', false);
             }
-            
-            // 버튼 활성화
-            button.disabled = false;
-        } else {
-            alert(data.message);
-            button.disabled = false;
+        },
+        error: function(xhr, status, error) {
+
+            if (xhr.status === 401) {
+                showMessage('로그인이 필요합니다.', 'warning');
+            } else {
+                showMessage('찜하기 처리 중 오류가 발생했습니다.', 'error');
+            }
+            $(button).prop('disabled', false);
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('찜 처리 중 오류가 발생했습니다.');
-        button.disabled = false;
     });
+}
+
+// MD 상세보기
+function viewMdDetail(mdId) {
+    showMessage('MD 상세보기 기능 구현 예정입니다.', 'info');
+}
+
+// 장소 자동완성 설정
+function setupPlaceAutoComplete() {
+    $('#placeSearch').on('input', function() {
+        const keyword = $(this).val();
+        if (keyword.length >= 2) {
+            searchPlaces(keyword);
+        } else {
+            $('#placeSearchResults').hide();
+            $('#placeId').val('');
+        }
+    });
+
+    // 외부 클릭시 자동완성 숨기기
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('#placeSearch, #placeSearchResults').length) {
+            $('#placeSearchResults').hide();
+        }
+    });
+}
+
+// 장소 검색
+function searchPlaces(keyword) {
+    $.ajax({
+        url: '<%=root%>/api/places/search?keyword=' + encodeURIComponent(keyword),
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success && response.places) {
+                displayPlaceResults(response.places);
+            }
+        },
+        error: function() {
+            // 임시 더미 데이터 (장소 API가 없을 경우)
+            const dummyPlaces = [
+                {id: 1, name: '강남역 클럽', address: '서울 강남구'},
+                {id: 2, name: '홍대 클럽', address: '서울 마포구'},
+                {id: 3, name: '이태원 클럽', address: '서울 용산구'}
+            ].filter(place => place.name.includes(keyword));
+            displayPlaceResults(dummyPlaces);
+        }
+    });
+}
+
+// 장소 검색 결과 표시
+function displayPlaceResults(places) {
+    let html = '';
+    places.forEach(function(place) {
+        html += '<a href="#" class="list-group-item list-group-item-action" onclick="selectPlace(' + place.id + ', \'' + place.name + '\', \'' + (place.address || '') + '\')">' + place.name + (place.address ? ' - ' + place.address : '') + '</a>';
+    });
+    
+    if (html) {
+        $('#placeSearchResults').html(html).show();
+    } else {
+        $('#placeSearchResults').html('<div class="list-group-item">검색 결과가 없습니다.</div>').show();
+    }
+}
+
+// 장소 선택
+function selectPlace(id, name, address) {
+    $('#placeId').val(id);
+    $('#placeSearch').val(name + (address ? ' - ' + address : ''));
+    $('#placeSearchResults').hide();
+}
+
+// 검색 자동완성 설정
+function setupSearchAutocomplete() {
+    let searchTimeout;
+    
+    $('#searchKeyword').on('input', function() {
+        const keyword = $(this).val();
+        const searchType = $('#searchType').val();
+        
+        clearTimeout(searchTimeout);
+        
+        if (keyword.length >= 2) {
+            searchTimeout = setTimeout(function() {
+                getSearchSuggestions(keyword, searchType);
+            }, 300);
+        } else {
+            hideSearchSuggestions();
+        }
+    });
+    
+    // 외부 클릭시 자동완성 숨기기
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('#searchKeyword, .search-suggestions').length) {
+            hideSearchSuggestions();
+        }
+    });
+}
+
+// 검색 제안 가져오기
+function getSearchSuggestions(keyword, searchType) {
+    const params = new URLSearchParams({
+        keyword: keyword,
+        searchType: searchType,
+        limit: 5
+    });
+    
+    const token = localStorage.getItem('accessToken');
+    const headers = {};
+    if (token) {
+        headers['Authorization'] = 'Bearer ' + token;
+    }
+    
+    $.ajax({
+        url: '<%=root%>/api/md/suggestions?' + params.toString(),
+        method: 'GET',
+        headers: headers,
+        dataType: 'json',
+        success: function(response) {
+            if (response.success && response.suggestions) {
+                showSearchSuggestions(response.suggestions);
+            }
+        },
+        error: function() {
+            // 자동완성 실패시 조용히 무시
+        }
+    });
+}
+
+// 검색 제안 표시
+function showSearchSuggestions(suggestions) {
+    let html = '<div class="search-suggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 8px; max-height: 300px; overflow-y: auto; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-top: 2px;">';
+    
+    suggestions.forEach(function(suggestion, index) {
+        let suggestionText = suggestion.suggestion || suggestion;
+        let suggestionType = suggestion.type || '';
+        let typeIcon = '';
+        let typeLabel = '';
+        
+        if (suggestionType === 'mdName') {
+            typeIcon = '<i class="bi bi-person-fill me-2 text-primary"></i>';
+            typeLabel = '<small class="text-muted ms-auto">MD</small>';
+        } else if (suggestionType === 'placeName') {
+            typeIcon = '<i class="bi bi-geo-alt-fill me-2 text-success"></i>';
+            typeLabel = '<small class="text-muted ms-auto">장소</small>';
+        }
+        
+        let borderClass = index === suggestions.length - 1 ? '' : 'border-bottom: 1px solid #f0f0f0;';
+        
+        html += '<div class="suggestion-item d-flex align-items-center px-3 py-2" style="cursor: pointer; ' + borderClass + ' transition: all 0.2s ease; color: #212529;" onmouseover="this.style.backgroundColor=\'#e3f2fd\'; this.style.transform=\'translateX(2px)\';" onmouseout="this.style.backgroundColor=\'white\'; this.style.transform=\'translateX(0)\';" onclick="selectSuggestion(\'' + suggestionText.replace("'", "\\'") + '\')">' + 
+                typeIcon + 
+                '<span class="flex-grow-1 fw-medium" style="color: #212529;">' + suggestionText + '</span>' + 
+                typeLabel + 
+                '</div>';
+    });
+    
+    html += '</div>';
+    
+    // 기존 제안 제거
+    $('.search-suggestions').remove();
+    
+    // 검색 input 그룹에 상대 위치 설정하고 제안 추가
+    $('#searchKeyword').closest('.input-group').css('position', 'relative').append(html);
+}
+
+// 검색 제안 선택
+function selectSuggestion(suggestion) {
+    $('#searchKeyword').val(suggestion);
+    hideSearchSuggestions();
+    searchMds();
+}
+
+// 검색 제안 숨기기
+function hideSearchSuggestions() {
+    $('.search-suggestions').remove();
+}
+
+// 사용자 친화적 메시지 표시
+function showMessage(message, type = 'info') {
+    // 기존 메시지 제거
+    $('.toast-message').remove();
+    
+    let iconClass = '';
+    let bgClass = '';
+    
+    switch(type) {
+        case 'success':
+            iconClass = 'bi-check-circle-fill';
+            bgClass = 'bg-success';
+            break;
+        case 'error':
+            iconClass = 'bi-exclamation-triangle-fill';
+            bgClass = 'bg-danger';
+            break;
+        case 'warning':
+            iconClass = 'bi-exclamation-circle-fill';
+            bgClass = 'bg-warning';
+            break;
+        default:
+            iconClass = 'bi-info-circle-fill';
+            bgClass = 'bg-info';
+    }
+    
+    const toastHtml = `
+        <div class="toast-message position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 10000;">
+            <div class="alert ${bgClass} text-white d-flex align-items-center border-0 shadow" role="alert">
+                <i class="bi ${iconClass} me-2"></i>
+                <span>${message}</span>
+                <button type="button" class="btn-close btn-close-white ms-auto" onclick="$(this).closest('.toast-message').remove()"></button>
+            </div>
+        </div>
+    `;
+    
+    $('body').append(toastHtml);
+    
+    // 3초 후 자동 제거
+    setTimeout(() => {
+        $('.toast-message').fadeOut(300, function() {
+            $(this).remove();
+        });
+    }, 3000);
+}
+
+// 오류 표시
+function showError(message) {
+    $('#mdListContainer').html(
+        '<div class="alert alert-danger text-center">' +
+            '<h5><i class="bi bi-exclamation-triangle"></i> 오류</h5>' +
+            '<p>' + message + '</p>' +
+            '<button class="btn btn-primary" onclick="loadMds()">다시 시도</button>' +
+        '</div>'
+    );
 }
 </script>

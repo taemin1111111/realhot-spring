@@ -6,7 +6,7 @@ import com.wherehot.spring.service.ClubGenreService;
 import com.wherehot.spring.service.ReviewService;
 import com.wherehot.spring.service.ContentImageService;
 import com.wherehot.spring.service.AuthService;
-import com.wherehot.spring.entity.ContentImages;
+import com.wherehot.spring.entity.ContentImage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -135,11 +135,18 @@ public class MainApiController {
             String loginId = getUserIdFromToken(request);
             String ipAddress = getClientIpAddress(request);
             
-            // 로그인한 사용자 또는 IP 기반으로 투표 처리
-            boolean voted = voteService.submitVote(loginId, placeId, congestion, genderRatio, waitTime, ipAddress);
+            // 투표자 식별: 로그인 사용자 우선, 없으면 IP 주소 사용
+            String voterId = loginId != null ? loginId : ipAddress;
+            
+            // 투표 처리
+            boolean voted = voteService.addNowHotVote(placeId, voterId, congestion, genderRatio, waitTime);
             result.put("result", voted);
             result.put("message", voted ? "투표가 완료되었습니다." : "투표에 실패했습니다.");
             
+        } catch (RuntimeException e) {
+            // 비즈니스 로직 오류 (중복 투표, 제한 등)
+            result.put("result", false);
+            result.put("message", e.getMessage());
         } catch (Exception e) {
             result.put("result", false);
             result.put("message", "투표 처리 중 오류가 발생했습니다: " + e.getMessage());
@@ -288,7 +295,7 @@ public class MainApiController {
         Map<String, Object> result = new HashMap<>();
         
         try {
-            List<ContentImages> images = contentImageService.getImagesByHotplaceId(placeId);
+            List<ContentImage> images = contentImageService.getImagesByHotplaceId(placeId);
             result.put("success", true);
             result.put("images", images);
         } catch (Exception e) {

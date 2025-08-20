@@ -22,6 +22,11 @@ public interface PostService {
     Optional<Post> findPostById(int id);
     
     /**
+     * ID로 게시글 조회 - null 허용
+     */
+    Post findById(int id);
+    
+    /**
      * 카테고리별 게시글 조회
      */
     List<Post> findPostsByCategory(int categoryId, int page, int size);
@@ -77,6 +82,12 @@ public interface PostService {
     boolean incrementViewCount(int id);
     
     /**
+     * 신고수 증가
+     * Model1: increaseReports(int id)
+     */
+    boolean incrementReportCount(int id);
+    
+    /**
      * 좋아요 수 업데이트
      */
     boolean updateLikeCount(int id, int likeCount);
@@ -130,4 +141,14 @@ public interface PostService {
      * 월별 게시글 통계
      */
     List<Map<String, Object>> getMonthlyStatistics();
+    
+    /**
+     * 카테고리별 인기 게시글 조회 (좋아요 수 기준)
+     */
+    List<Post> findPopularPostsByCategory(int categoryId, int start, int perPage);
+    
+    /**
+     * 게시글 조회 및 조회수 증가
+     */
+    Post findPostByIdAndIncrementViews(int id);
 }

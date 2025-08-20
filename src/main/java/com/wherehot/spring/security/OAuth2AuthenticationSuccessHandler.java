@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+
 import java.util.Map;
 import java.util.Optional;
 
@@ -41,6 +41,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         try {
             // 네이버 사용자 정보 추출
             Map<String, Object> attributes = oAuth2User.getAttributes();
+            @SuppressWarnings("unchecked")
             Map<String, Object> responseMap = (Map<String, Object>) attributes.get("response");
             
             String naverId = (String) responseMap.get("id");

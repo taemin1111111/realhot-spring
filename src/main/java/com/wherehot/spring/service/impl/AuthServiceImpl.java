@@ -11,11 +11,7 @@ import com.wherehot.spring.service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 인증 서비스 구현체
@@ -45,9 +40,6 @@ public class AuthServiceImpl implements AuthService {
     
     @Autowired
     private EmailService emailService;
-    
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
     
     @Override
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
@@ -95,21 +87,7 @@ public class AuthServiceImpl implements AuthService {
             String accessToken = jwtUtils.generateAccessToken(member);
             String refreshToken = jwtUtils.generateRefreshToken(member);
             
-            // 리프레시 토큰을 Redis에 저장 (7일) - Redis 연결 실패 시 무시
-            try {
-                redisTemplate.opsForValue().set(
-                    "refresh_token:" + member.getUserid(), 
-                    refreshToken, 
-                    7, 
-                    TimeUnit.DAYS
-                );
-                logger.info("Refresh token stored in Redis for user: {}", member.getUserid());
-            } catch (Exception e) {
-                logger.warn("Failed to store refresh token in Redis for user: {}, error: {}", member.getUserid(), e.getMessage());
-                // Redis 연결 실패해도 로그인은 계속 진행
-            }
-            
-            logger.info("User logged in successfully: {}", member.getUserid());
+            logger.info("Login successful for user: {}", member.getUserid());
             
             return new JwtResponse(accessToken, member.getUserid(), member.getNickname(), 
                                  member.getProvider(), member.getEmail());
@@ -163,7 +141,6 @@ public class AuthServiceImpl implements AuthService {
         member.setStatus("A"); // Model1 호환성: 'A'(정상)
         member.setRegdate(LocalDateTime.now());
         member.setUpdateDate(LocalDateTime.now());
-        // member.setLoginCount(0); // 해당 컬럼이 없으므로 제거
         
         // DB 저장
         int result = memberMapper.insertMember(member);
@@ -201,7 +178,6 @@ public class AuthServiceImpl implements AuthService {
         member.setStatus("A"); // Model1 호환성: 'A'(정상)
         member.setRegdate(LocalDateTime.now());
         member.setUpdateDate(LocalDateTime.now());
-        // member.setLoginCount(0); // 해당 컬럼이 없으므로 제거
         
         // DB 저장
         int result = memberMapper.insertMember(member);
@@ -255,16 +231,7 @@ public class AuthServiceImpl implements AuthService {
             
             String userid = jwtUtils.getUseridFromToken(refreshToken);
             
-            // Redis에서 리프레시 토큰 확인 - Redis 연결 실패 시 JWT 자체 검증만 수행
-            try {
-                String storedToken = redisTemplate.opsForValue().get("refresh_token:" + userid);
-                if (storedToken == null || !storedToken.equals(refreshToken)) {
-                    throw new IllegalArgumentException("리프레시 토큰이 만료되었거나 유효하지 않습니다.");
-                }
-            } catch (org.springframework.data.redis.RedisConnectionFailureException e) {
-                logger.warn("Redis connection failed during refresh token validation, proceeding with JWT validation only");
-                // Redis 연결 실패 시 JWT 자체 검증만 수행
-            }
+            logger.info("Refresh token validation: JWT validation only");
             
             // 사용자 정보 조회
             Optional<Member> memberOpt = memberMapper.findByUserid(userid);
@@ -285,28 +252,7 @@ public class AuthServiceImpl implements AuthService {
     public void logout(String token) {
         try {
             String userid = jwtUtils.getUseridFromToken(token);
-            
-                        // Redis에서 리프레시 토큰 삭제 및 블랙리스트 추가 - Redis 연결 실패 시 무시
-            try {
-                redisTemplate.delete("refresh_token:" + userid);
-                
-                // 액세스 토큰을 블랙리스트에 추가 (토큰 만료시간까지)
-                long expiration = jwtUtils.getExpirationFromToken(token).getTime() - System.currentTimeMillis();
-                if (expiration > 0) {
-                    redisTemplate.opsForValue().set(
-                        "blacklist_token:" + token, 
-                        "logged_out", 
-                        expiration,
-                        TimeUnit.MILLISECONDS
-                    );
-                }
-                logger.info("User logged out and tokens cleaned from Redis: {}", userid);
-            } catch (Exception e) {
-                logger.warn("Failed to clean tokens from Redis during logout for user: {}, error: {}", userid, e.getMessage());
-                // Redis 연결 실패해도 로그아웃은 계속 진행
-            }
-            
-            logger.info("User logged out: {}", userid);
+            logger.info("User logged out successfully: {}", userid);
             
         } catch (Exception e) {
             logger.error("Error during logout: ", e);

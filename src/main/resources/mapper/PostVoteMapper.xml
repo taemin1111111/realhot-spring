@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wherehot.spring.mapper.PostVoteMapper">
+
+    <!-- PostVote 결과 매핑 -->
+    <resultMap id="PostVoteResultMap" type="com.wherehot.spring.entity.PostVote">
+        <id property="id" column="id"/>
+        <result property="postId" column="post_id"/>
+        <result property="userid" column="userid"/>
+        <result property="voteType" column="vote_type"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 투표 추가 -->
+    <insert id="insertVote" parameterType="com.wherehot.spring.entity.PostVote">
+        INSERT INTO hottalk_vote (post_id, userid, vote_type, created_at)
+        VALUES (#{postId}, #{userid}, #{voteType}, NOW())
+    </insert>
+
+    <!-- 특정 사용자의 특정 게시글 투표 조회 -->
+    <select id="getUserVote" resultMap="PostVoteResultMap">
+        SELECT * FROM hottalk_vote 
+        WHERE post_id = #{postId} AND userid = #{userid}
+    </select>
+
+    <!-- 투표 변경 (좋아요 → 싫어요 또는 그 반대) -->
+    <update id="updateVote">
+        UPDATE hottalk_vote 
+        SET vote_type = #{voteType}, created_at = NOW()
+        WHERE post_id = #{postId} AND userid = #{userid}
+    </update>
+
+    <!-- 투표 삭제 (투표 취소) -->
+    <delete id="deleteVote">
+        DELETE FROM hottalk_vote 
+        WHERE post_id = #{postId} AND userid = #{userid}
+    </delete>
+
+    <!-- 게시글별 좋아요 수 조회 -->
+    <select id="getLikeCount" resultType="int">
+        SELECT COUNT(*) FROM hottalk_vote 
+        WHERE post_id = #{postId} AND vote_type = 'like'
+    </select>
+
+    <!-- 게시글별 싫어요 수 조회 -->
+    <select id="getDislikeCount" resultType="int">
+        SELECT COUNT(*) FROM hottalk_vote 
+        WHERE post_id = #{postId} AND vote_type = 'dislike'
+    </select>
+
+    <!-- 게시글의 모든 투표 조회 -->
+    <select id="getVotesByPost" resultMap="PostVoteResultMap">
+        SELECT * FROM hottalk_vote 
+        WHERE post_id = #{postId} 
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 사용자가 특정 게시글에 투표했는지 확인 -->
+    <select id="hasUserVoted" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM hottalk_vote 
+        WHERE post_id = #{postId} AND userid = #{userid}
+    </select>
+
+</mapper>

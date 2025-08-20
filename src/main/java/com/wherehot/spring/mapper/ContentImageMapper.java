@@ -1,6 +1,6 @@
 package com.wherehot.spring.mapper;
 
-import com.wherehot.spring.entity.ContentImages;
+import com.wherehot.spring.entity.ContentImage;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -15,22 +15,22 @@ public interface ContentImageMapper {
     /**
      * 특정 핫플레이스의 모든 이미지 조회 (순서대로)
      */
-    List<ContentImages> getImagesByHotplaceId(@Param("hotplaceId") int hotplaceId);
+    List<ContentImage> getImagesByHotplaceId(@Param("hotplaceId") int hotplaceId);
     
     /**
      * 이미지 ID로 단일 이미지 조회
      */
-    ContentImages getImageById(@Param("imageId") int imageId);
+    ContentImage getImageById(@Param("imageId") int imageId);
     
     /**
      * 이미지 정보 저장
      */
-    int insertImage(ContentImages contentImage);
+    int insertImage(ContentImage contentImage);
     
     /**
      * 이미지 정보 수정
      */
-    int updateImage(ContentImages contentImage);
+    int updateImage(ContentImage contentImage);
     
     /**
      * 이미지 삭제
@@ -60,7 +60,7 @@ public interface ContentImageMapper {
     /**
      * 특정 순서의 이미지 조회
      */
-    ContentImages getImageByOrder(@Param("hotplaceId") int hotplaceId, @Param("imageOrder") int imageOrder);
+    ContentImage getImageByOrder(@Param("hotplaceId") int hotplaceId, @Param("imageOrder") int imageOrder);
     
     /**
      * 이미지 순서 변경

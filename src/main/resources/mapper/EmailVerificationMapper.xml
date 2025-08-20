@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wherehot.spring.mapper.EmailVerificationMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="EmailVerificationResultMap" type="com.wherehot.spring.entity.EmailVerification">
+        <id property="id" column="id"/>
+        <result property="email" column="email"/>
+        <result property="verificationCode" column="verification_code"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="expiresAt" column="expires_at"/>
+        <result property="isVerified" column="is_verified"/>
+        <result property="ipAddress" column="ip_address"/>
+    </resultMap>
+
+    <!-- 이메일 인증 정보 저장 -->
+    <insert id="insertEmailVerification" parameterType="com.wherehot.spring.entity.EmailVerification">
+        INSERT INTO email_verification (
+            email, verification_code, created_at, expires_at, is_verified, ip_address
+        ) VALUES (
+            #{email}, #{verificationCode}, #{createdAt}, #{expiresAt}, #{isVerified}, #{ipAddress}
+        )
+    </insert>
+
+    <!-- 이메일과 인증번호로 조회 -->
+    <select id="findByEmailAndCode" resultMap="EmailVerificationResultMap">
+        SELECT * FROM email_verification 
+        WHERE email = #{email} 
+        AND verification_code = #{code} 
+        AND expires_at > NOW()
+        AND is_verified = 0
+        ORDER BY created_at DESC 
+        LIMIT 1
+    </select>
+
+    <!-- 이메일로 최신 인증 정보 조회 -->
+    <select id="findLatestByEmail" resultMap="EmailVerificationResultMap">
+        SELECT * FROM email_verification 
+        WHERE email = #{email} 
+        ORDER BY created_at DESC 
+        LIMIT 1
+    </select>
+
+    <!-- 인증 완료 처리 -->
+    <update id="markAsVerified">
+        UPDATE email_verification 
+        SET is_verified = 1 
+        WHERE id = #{id}
+    </update>
+
+    <!-- 만료된 인증 정보 삭제 -->
+    <delete id="deleteExpiredVerifications">
+        DELETE FROM email_verification 
+        WHERE expires_at &lt; NOW()
+    </delete>
+
+    <!-- 특정 이메일의 모든 인증 정보 삭제 -->
+    <delete id="deleteByEmail">
+        DELETE FROM email_verification 
+        WHERE email = #{email}
+    </delete>
+
+    <!-- 이메일 인증 완료 여부 확인 (24시간 내) -->
+    <select id="isEmailVerifiedRecently" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM email_verification 
+        WHERE email = #{email} 
+        AND is_verified = 1 
+        AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+    </select>
+
+</mapper>

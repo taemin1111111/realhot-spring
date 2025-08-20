@@ -12,9 +12,14 @@ import java.util.Optional;
 public interface MemberService {
     
     /**
-     * 회원 정보 조회 (ID로)
+     * 회원 정보 조회 (ID로) - Optional 반환
      */
-    Optional<Member> findByUserid(String userid);
+    Optional<Member> findByUseridOptional(String userid);
+    
+    /**
+     * 회원 정보 조회 (ID로) - null 허용
+     */
+    Member findByUserid(String userid);
     
     /**
      * 회원 정보 조회 (이메일로)
@@ -125,4 +130,24 @@ public interface MemberService {
      * 회원 통계 조회
      */
     Map<String, Object> getMemberStatistics();
+    
+    /**
+     * 월별 가입자 수 통계
+     */
+    List<Map<String, Object>> getMemberStatsByMonth();
+    
+    /**
+     * 제공자별 회원 수 통계
+     */
+    List<Map<String, Object>> getMemberStatsByProvider();
+    
+    /**
+     * 성별 통계
+     */
+    List<Map<String, Object>> getMemberStatsByGender();
+    
+    /**
+     * 연령대별 통계
+     */
+    List<Map<String, Object>> getMemberStatsByAge();
 }

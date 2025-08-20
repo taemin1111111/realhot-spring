@@ -89,6 +89,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/review/**").permitAll()                    // 리뷰 API
                 .requestMatchers("/api/community/**").permitAll()                 // 커뮤니티 API (로그인 체크는 서비스에서)
                 .requestMatchers("/api/club/**").permitAll()                      // 클럽 관련 API
+                .requestMatchers("/api/md/**").permitAll()                        // MD API (찜 기능 포함)
                 .requestMatchers("/api/notice/**").permitAll()                    // 공지사항 API
                 
                 // == 관리자 전용 ==

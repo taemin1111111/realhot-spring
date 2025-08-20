@@ -162,6 +162,12 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+	<!-- org.json 라이브러리 -->
+<dependency>
+    <groupId>org.json</groupId>
+    <artifactId>json</artifactId>
+    <version>20230227</version>
+</dependency>
 	</dependencies>
 
 	<build>

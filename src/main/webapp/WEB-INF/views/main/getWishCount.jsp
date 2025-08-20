@@ -1,5 +1,6 @@
 <%@ page contentType="application/json; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.util.*, wishList.*, java.sql.*" %>
+<%@ page import="java.util.*" %>
+<%-- WishList DAO import 제거 - Spring Controller 사용 --%>
 <%
 response.setContentType("application/json; charset=UTF-8");
 
@@ -14,14 +15,11 @@ try {
     
     int placeId = Integer.parseInt(placeIdStr);
     
-    // DAO 생성
-    WishListDao dao = new WishListDao();
+    // Spring API 호출 안내
+    String contextPath = request.getContextPath();
+    String apiUrl = contextPath + "/api/places/" + placeId + "/wish-count";
     
-    // 위시리스트 개수 조회
-    int wishCount = dao.getWishCount(placeId);
-    
-    // 성공 응답
-    response.getWriter().write("{\"success\":true,\"count\":" + wishCount + "}");
+    response.getWriter().write("{\"success\":true,\"message\":\"찜 개수 조회는 GET " + apiUrl + " 를 호출하세요.\",\"apiUrl\":\"" + apiUrl + "\",\"method\":\"GET\",\"count\":0,\"todo\":\"PlaceService 구현 필요\"}");
     
 } catch (NumberFormatException e) {
     response.getWriter().write("{\"success\":false,\"message\":\"잘못된 파라미터입니다.\",\"count\":0}");
@@ -30,3 +28,4 @@ try {
     response.getWriter().write("{\"success\":false,\"message\":\"서버 오류가 발생했습니다.\",\"count\":0}");
 }
 %>
+

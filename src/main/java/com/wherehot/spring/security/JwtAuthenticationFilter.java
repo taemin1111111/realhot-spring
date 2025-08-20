@@ -96,6 +96,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return redisTemplate.hasKey(blacklistKey);
         } catch (Exception e) {
             logger.warn("Error checking token blacklist: {}", e.getMessage());
+            // Redis 연결 실패 시 블랙리스트 체크를 건너뛰고 false 반환
+            // 이렇게 하면 Redis가 없어도 JWT 토큰 검증이 가능
             return false;
         }
     }

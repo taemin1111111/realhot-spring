@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -125,22 +126,22 @@ public class NoticeServiceImpl implements NoticeService {
     @Override
     public Notice updateNotice(Notice notice) {
         try {
-            Optional<Notice> existingNotice = noticeMapper.findById(notice.getId());
+            Optional<Notice> existingNotice = noticeMapper.findById(notice.getNoticeId());
             if (existingNotice.isEmpty()) {
-                throw new IllegalArgumentException("존재하지 않는 공지사항입니다: " + notice.getId());
+                throw new IllegalArgumentException("존재하지 않는 공지사항입니다: " + notice.getNoticeId());
             }
             
             notice.setUpdatedAt(LocalDateTime.now());
             
             int result = noticeMapper.updateNotice(notice);
             if (result > 0) {
-                logger.info("Notice updated successfully: {}", notice.getId());
+                logger.info("Notice updated successfully: {}", notice.getNoticeId());
                 return notice;
             } else {
                 throw new RuntimeException("공지사항 수정에 실패했습니다.");
             }
         } catch (Exception e) {
-            logger.error("Error updating notice: {}", notice.getId(), e);
+            logger.error("Error updating notice: {}", notice.getNoticeId(), e);
             throw new RuntimeException("공지사항 수정 중 오류가 발생했습니다.", e);
         }
     }

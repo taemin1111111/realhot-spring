@@ -41,7 +41,7 @@ public class ClubGenreServiceImpl implements ClubGenreService {
             
             if (!result.isEmpty()) {
                 for (ClubGenre genre : result) {
-                    logger.info("조회된 장르 - ID: {}, Name: '{}'", genre.getId(), genre.getGenreName());
+                    logger.info("조회된 장르 - ID: {}, Name: '{}'", genre.getGenre_id(), genre.getGenre_name());
                 }
             } else {
                 logger.warn("Place ID {}에 대한 장르가 없습니다. hotplace_genre_map 테이블을 확인하세요.", placeId);
@@ -152,7 +152,7 @@ public class ClubGenreServiceImpl implements ClubGenreService {
         try {
             List<ClubGenre> genres = getGenresByPlaceId(placeId);
             return genres.stream()
-                    .map(ClubGenre::getGenreName)
+                    .map(ClubGenre::getGenre_name)
                     .collect(Collectors.joining(", "));
         } catch (Exception e) {
             logger.error("Error getting genre names as string for place {}", placeId, e);

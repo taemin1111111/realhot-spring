@@ -96,6 +96,36 @@ public interface ReviewMapper {
     int updateLikeCount(@Param("id") int id, @Param("likeCount") int likeCount);
     
     /**
+     * 추천 이력 존재 체크 (Model1 호환)
+     */
+    int checkRecommendationExists(@Param("reviewId") int reviewId, @Param("userid") String userid);
+    
+    /**
+     * 추천 이력 추가 (Model1 호환)
+     */
+    int insertRecommendation(@Param("reviewId") int reviewId, @Param("userid") String userid);
+    
+    /**
+     * 리뷰 추천 수 증가 (Model1 호환)
+     */
+    int incrementRecommendCount(@Param("reviewId") int reviewId);
+    
+    /**
+     * 모든 지역명 조회 (Model1 호환)
+     */
+    List<String> findAllRegionNames();
+    
+    /**
+     * 지역별 리뷰 조회 (Model1 호환)
+     */
+    List<Review> findByRegion(@Param("region") String region);
+    
+    /**
+     * 지역 및 카테고리별 리뷰 조회 (Model1 호환)
+     */
+    List<Review> findByRegionAndCategory(@Param("region") String region, @Param("category") int category);
+    
+    /**
      * 리뷰 상태 변경
      */
     int updateStatus(@Param("id") int id, @Param("status") String status);

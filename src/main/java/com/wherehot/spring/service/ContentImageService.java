@@ -1,6 +1,6 @@
 package com.wherehot.spring.service;
 
-import com.wherehot.spring.entity.ContentImages;
+import com.wherehot.spring.entity.ContentImage;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -14,12 +14,12 @@ public interface ContentImageService {
     /**
      * 특정 핫플레이스의 모든 이미지 조회
      */
-    List<ContentImages> getImagesByHotplaceId(int hotplaceId);
+    List<ContentImage> getImagesByHotplaceId(int hotplaceId);
     
     /**
      * 이미지 ID로 단일 이미지 조회
      */
-    ContentImages getImageById(int imageId);
+    ContentImage getImageById(int imageId);
     
     /**
      * 이미지 업로드 및 저장
@@ -49,7 +49,7 @@ public interface ContentImageService {
     /**
      * 특정 핫플레이스의 대표 이미지 조회
      */
-    ContentImages getMainImage(int hotplaceId);
+    ContentImage getMainImage(int hotplaceId);
     
     /**
      * 이미지 경로 유효성 검증

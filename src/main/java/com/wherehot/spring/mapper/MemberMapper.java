@@ -5,7 +5,7 @@ import com.wherehot.spring.entity.Member;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -63,7 +63,7 @@ public interface MemberMapper {
      */
     int updatePassword(@Param("userid") String userid, 
                       @Param("password") String password, 
-                      @Param("updatedAt") LocalDateTime updatedAt);
+                      @Param("updatedAt") Timestamp updatedAt);
     
     /**
      * 로그인 정보 업데이트 (로그인 횟수, 마지막 로그인 시간)
@@ -75,13 +75,13 @@ public interface MemberMapper {
      */
     int updateStatus(@Param("userid") String userid, 
                     @Param("status") String status, 
-                    @Param("updatedAt") LocalDateTime updatedAt);
+                    @Param("updatedAt") Timestamp updatedAt);
     
     /**
      * 회원 삭제 (탈퇴 처리)
      */
     int deleteMember(@Param("userid") String userid, 
-                    @Param("updatedAt") LocalDateTime updatedAt);
+                    @Param("updatedAt") Timestamp updatedAt);
     
     /**
      * 프로필 이미지 업데이트 - 해당 컬럼이 없으므로 제거

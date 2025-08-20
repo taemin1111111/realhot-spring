@@ -64,6 +64,7 @@
         SELECT * FROM vote_nowhot
         WHERE voter_id = #{userId}
         AND place_id = #{hotplaceId}
+        AND DATE(voted_at) = CURDATE()
     </select>
 
     <!-- 핫플레이스별 현재 핫 투표 조회 (Model1 구조) -->
@@ -459,5 +460,7 @@
         FROM wishlist 
         WHERE hotplace_id = #{hotplaceId}
     </select>
+    
+   
 
 </mapper>

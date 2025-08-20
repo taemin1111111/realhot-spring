@@ -87,6 +87,17 @@ public interface PostMapper {
     int updateViewCount(@Param("id") int id);
     
     /**
+     * 조회수 1 증가
+     */
+    int incrementViewCount(@Param("id") int id);
+    
+    /**
+     * 신고수 증가
+     * Model1: increaseReports(int id)
+     */
+    int updateReportCount(@Param("id") int id);
+    
+    /**
      * 좋아요 수 업데이트
      */
     int updateLikeCount(@Param("id") int id, @Param("likeCount") int likeCount);
@@ -140,4 +151,11 @@ public interface PostMapper {
      * 월별 게시글 통계
      */
     List<Map<String, Object>> getMonthlyStatistics();
+    
+    /**
+     * 카테고리별 인기 게시글 조회 (좋아요 수 기준, 페이징)
+     */
+    List<Post> findPopularPostsByCategory(@Param("categoryId") int categoryId, 
+                                         @Param("start") int start, 
+                                         @Param("perPage") int perPage);
 }

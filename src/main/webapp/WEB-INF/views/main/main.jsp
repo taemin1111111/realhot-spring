@@ -229,7 +229,7 @@
       + '</div>'
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(10px, 1.8vw, 12px); word-break:break-word;" id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</div>'
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(11px, 2vw, 13px); word-break:break-word; line-height:1.3;">' + place.address + '</div>'
-      + (place.genres && place.genres !== '' ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;">🎵 장르: ' + place.genres + '</div>' : '')
+      + '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>'
       + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
       + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
       + '</div>'
@@ -272,9 +272,9 @@
   var hotplaces = [<% for (int i = 0; i < hotplaceList.size(); i++) { 
     Object obj = hotplaceList.get(i);
     if (obj instanceof com.wherehot.spring.entity.Hotplace) {
-      com.wherehot.spring.entity.Hotplace dto = (com.wherehot.spring.entity.Hotplace) obj;
-      String genres = dto.getGenres() != null ? dto.getGenres() : "";
-  %>{id:<%=dto.getId()%>, name:'<%=dto.getName().replace("'", "\\'")%>', categoryId:<%=dto.getCategoryId()%>, address:'<%=dto.getAddress().replace("'", "\\'")%>', lat:<%=dto.getLat()%>, lng:<%=dto.getLng()%>, regionId:<%=dto.getRegionId()%>, genres:'<%=genres.replace("'", "\\'")%>'}<% if (i < hotplaceList.size() - 1) { %>,<% } } }%>];
+      com.wherehot.spring.entity.Hotplace hotplace = (com.wherehot.spring.entity.Hotplace) obj;
+      // 장르 정보는 별도로 조회하도록 변경 (Hotplace Entity에서 제거됨)
+  %>{id:<%=hotplace.getId()%>, name:'<%=hotplace.getName().replace("'", "\\'")%>', categoryId:<%=hotplace.getCategoryId()%>, address:'<%=hotplace.getAddress().replace("'", "\\'")%>', lat:<%=hotplace.getLat()%>, lng:<%=hotplace.getLng()%>, regionId:<%=hotplace.getRegionId()%>}<% if (i < hotplaceList.size() - 1) { %>,<% } } }%>];
   
   var rootPath = '<%=root%>';
   var sigunguCenters = [<% for (int i = 0; i < sigunguCenterList.size(); i++) { Map<String, Object> row = sigunguCenterList.get(i); %>{sido:'<%=row.get("sido")%>', sigungu:'<%=row.get("sigungu")%>', lat:<%=row.get("lat")%>, lng:<%=row.get("lng")%>}<% if (i < sigunguCenterList.size() - 1) { %>,<% } %><% } %>];
@@ -347,7 +347,7 @@
       + '</div>'
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(10px, 1.8vw, 12px); word-break:break-word;" id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</div>'
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(11px, 2vw, 13px); word-break:break-word; line-height:1.3;">' + place.address + '</div>'
-      + (place.genres && place.genres !== '' ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;">🎵 장르: ' + place.genres + '</div>' : '')
+      + '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>'
       + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
       + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
       + '</div>'
@@ -404,6 +404,11 @@
           setTimeout(function() {
             loadVoteTrends(place.id);
           }, 500);
+          
+          // 장르 정보 로드
+          setTimeout(function() {
+            loadGenreInfo(place.id);
+          }, 600);
           
           // 관리자용 버튼들 추가 (하트와 같은 위치에)
           if (isAdmin) {
@@ -1210,6 +1215,40 @@
     .catch(error => {
       console.error('투표 현황 로드 오류:', error);
       trendsElement.innerHTML = '📊 역대 투표: 로드 실패';
+    });
+  }
+
+  // 장르 정보 로드 함수 (Spring API 호출)
+  function loadGenreInfo(placeId) {
+    const genresElement = document.getElementById('genres-' + placeId);
+    if (!genresElement) return;
+    
+    // Spring API 호출
+    fetch(root + '/api/main/genre?action=getGenres&placeId=' + placeId, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.genres) {
+        // 선택된 장르들만 필터링
+        const selectedGenres = data.genres.filter(genre => genre.isSelected);
+        
+        if (selectedGenres.length > 0) {
+          const genreNames = selectedGenres.map(genre => genre.genreName).join(', ');
+          genresElement.innerHTML = '🎵 장르: ' + genreNames;
+        } else {
+          genresElement.innerHTML = '🎵 장르: 미분류';
+        }
+      } else {
+        genresElement.innerHTML = '🎵 장르: 미분류';
+      }
+    })
+    .catch(error => {
+      console.error('장르 정보 로드 오류:', error);
+      genresElement.innerHTML = '🎵 장르: 로드 실패';
     });
   }
 

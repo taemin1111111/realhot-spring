@@ -1,10 +1,10 @@
 package com.wherehot.spring.entity;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 /**
- * 회원 엔티티
+ * 회원 엔티티 - Model1 DTO와 일치하도록 수정
  */
 public class Member {
     
@@ -39,7 +39,6 @@ public class Member {
         this.status = "A"; // Model1 호환성: 'A'(정상)
         this.regdate = LocalDateTime.now();
         this.updateDate = LocalDateTime.now();
-        // this.loginCount = 0; // 해당 컬럼이 없으므로 제거
     }
     
     // Getters and Setters
@@ -216,8 +215,6 @@ public class Member {
      * 로그인 정보 업데이트 (해당 컬럼들이 없으므로 업데이트 시간만)
      */
     public void updateLoginInfo() {
-        // this.loginCount++; // 해당 컬럼이 없으므로 제거
-        // this.lastLoginAt = LocalDateTime.now(); // 해당 컬럼이 없으므로 제거
         this.updateDate = LocalDateTime.now();
     }
     

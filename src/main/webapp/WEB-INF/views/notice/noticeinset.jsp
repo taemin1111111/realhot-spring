@@ -1,9 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="Notice.*" %>
-<%@ page import="java.io.*" %>
-<%@ page import="java.util.*" %>
-<%@ page import="com.oreilly.servlet.MultipartRequest" %>
-<%@ page import="com.oreilly.servlet.multipart.DefaultFileRenamePolicy" %>
+<%-- Spring REST API 방식: Model1 DAO/DTO 사용 안함 --%>
 <%
   request.setCharacterEncoding("UTF-8");
   String root = request.getContextPath();
@@ -12,15 +8,15 @@
     response.sendRedirect(root + "/index.jsp?main=notice/noticemain.jsp");
     return;
   }
-
-
 %>
+
+
 
 <div class="notice-form-container">
   <div class="notice-form-card">
     <h3 class="notice-form-title">📝 공지사항 등록</h3>
 
-    <form method="post" action="<%=root%>/notice/noticeAction.jsp" enctype="multipart/form-data" class="notice-form">
+    <form method="post" action="<%=root%>/api/notices" enctype="multipart/form-data" class="notice-form">
       <div class="mb-4">
         <label class="form-label">📌 제목</label>
         <input type="text" name="title" class="form-control" placeholder="공지사항 제목을 입력하세요" required>

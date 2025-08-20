@@ -3,203 +3,111 @@ package com.wherehot.spring.entity;
 import java.time.LocalDateTime;
 
 /**
- * 리뷰 엔티티
+ * 리뷰 엔티티 - Model1 DTO와 일치하도록 수정
  */
 public class Review {
     
-    private int id;
-    private int hotplaceId;
-    private String authorId;
-    private String authorNickname;
-    private String title;
-    private String content;
-    private int rating;
-    private String region;
-    private String sigungu;
-    private int categoryId;
-    private int likeCount;
-    private String status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private String imageUrl;
-    private boolean isRecommended;
+    private int num;             // 후기 번호 (PK)
+    private String userid;       // 사용자 식별자 (IP or 로그인 ID)
+    private String nickname;     // 표시용 닉네임
+    private String content;      // 후기 내용
+    private double stars;        // 별점 (0.5 ~ 5.0)
+    private String hg_id;        // 지역 or 휴게소 ID
+    private String type;         // 업종 세부 설명 (예: 조용한 분위기)
+    private int good;            // 추천 수
+    private LocalDateTime writeday; // 작성일
+    private int category_id;     // 카테고리 ID (1~5: 클럽, 포차 등)
+    private String passwd;       // 비밀번호 (삭제용)
     
     // 기본 생성자
     public Review() {}
     
-    // 생성자
-    public Review(int hotplaceId, String authorId, String title, String content, int rating) {
-        this.hotplaceId = hotplaceId;
-        this.authorId = authorId;
-        this.title = title;
-        this.content = content;
-        this.rating = rating;
-        this.likeCount = 0;
-        this.status = "정상";
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-        this.isRecommended = false;
+    // Getter & Setter
+    public int getNum() {
+        return num;
     }
-    
-    // Getters and Setters
-    public int getId() {
-        return id;
+
+    public void setNum(int num) {
+        this.num = num;
     }
-    
-    public void setId(int id) {
-        this.id = id;
+
+    public String getUserid() {
+        return userid;
     }
-    
-    public int getHotplaceId() {
-        return hotplaceId;
+
+    public void setUserid(String userid) {
+        this.userid = userid;
     }
-    
-    public void setHotplaceId(int hotplaceId) {
-        this.hotplaceId = hotplaceId;
+
+    public String getNickname() {
+        return nickname;
     }
-    
-    public String getAuthorId() {
-        return authorId;
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
-    
-    public void setAuthorId(String authorId) {
-        this.authorId = authorId;
-    }
-    
-    public String getAuthorNickname() {
-        return authorNickname;
-    }
-    
-    public void setAuthorNickname(String authorNickname) {
-        this.authorNickname = authorNickname;
-    }
-    
-    public String getTitle() {
-        return title;
-    }
-    
-    public void setTitle(String title) {
-        this.title = title;
-    }
-    
+
     public String getContent() {
         return content;
     }
-    
+
     public void setContent(String content) {
         this.content = content;
     }
-    
-    public int getRating() {
-        return rating;
+
+    public double getStars() {
+        return stars;
     }
-    
-    public void setRating(int rating) {
-        this.rating = rating;
+
+    public void setStars(double stars) {
+        this.stars = stars;
     }
-    
-    public String getRegion() {
-        return region;
+
+    public String getHg_id() {
+        return hg_id;
     }
-    
-    public void setRegion(String region) {
-        this.region = region;
+
+    public void setHg_id(String hg_id) {
+        this.hg_id = hg_id;
     }
-    
-    public String getSigungu() {
-        return sigungu;
+
+    public String getType() {
+        return type;
     }
-    
-    public void setSigungu(String sigungu) {
-        this.sigungu = sigungu;
+
+    public void setType(String type) {
+        this.type = type;
     }
-    
-    public int getCategoryId() {
-        return categoryId;
+
+    public int getGood() {
+        return good;
     }
-    
-    public void setCategoryId(int categoryId) {
-        this.categoryId = categoryId;
+
+    public void setGood(int good) {
+        this.good = good;
     }
-    
-    public int getLikeCount() {
-        return likeCount;
+
+    public LocalDateTime getWriteday() {
+        return writeday;
     }
-    
-    public void setLikeCount(int likeCount) {
-        this.likeCount = likeCount;
+
+    public void setWriteday(LocalDateTime writeday) {
+        this.writeday = writeday;
     }
-    
-    public String getStatus() {
-        return status;
+
+    public int getCategory_id() {
+        return category_id;
     }
-    
-    public void setStatus(String status) {
-        this.status = status;
+
+    public void setCategory_id(int category_id) {
+        this.category_id = category_id;
     }
-    
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+
+    public String getPasswd() {
+        return passwd;
     }
-    
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-    
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-    
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-    
-    public String getImageUrl() {
-        return imageUrl;
-    }
-    
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-    
-    public boolean isRecommended() {
-        return isRecommended;
-    }
-    
-    public void setRecommended(boolean recommended) {
-        isRecommended = recommended;
-    }
-    
-    /**
-     * 추천 수 증가
-     */
-    public void incrementLikeCount() {
-        this.likeCount++;
-        this.updatedAt = LocalDateTime.now();
-    }
-    
-    /**
-     * 별점이 유효한지 확인
-     */
-    public boolean isValidRating() {
-        return rating >= 1 && rating <= 5;
-    }
-    
-    @Override
-    public String toString() {
-        return "Review{" +
-                "id=" + id +
-                ", hotplaceId=" + hotplaceId +
-                ", authorId='" + authorId + '\'' +
-                ", authorNickname='" + authorNickname + '\'' +
-                ", title='" + title + '\'' +
-                ", rating=" + rating +
-                ", region='" + region + '\'' +
-                ", sigungu='" + sigungu + '\'' +
-                ", likeCount=" + likeCount +
-                ", status='" + status + '\'' +
-                ", createdAt=" + createdAt +
-                ", isRecommended=" + isRecommended +
-                '}';
+
+    public void setPasswd(String passwd) {
+        this.passwd = passwd;
     }
 }

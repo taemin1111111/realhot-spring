@@ -5,9 +5,9 @@
     <!-- WishList ResultMap - Model1 구조에 맞게 수정 -->
     <resultMap id="WishListResultMap" type="com.wherehot.spring.entity.WishList">
         <id property="id" column="id"/>
-        <result property="userId" column="userid"/>
-        <result property="hotplaceId" column="place_id"/>
-        <result property="createdAt" column="wish_date"/>
+        <result property="userid" column="userid"/>
+        <result property="place_id" column="place_id"/>
+        <result property="wishDate" column="wish_date"/>
         <!-- 핫플레이스 정보 -->
         <result property="hotplaceName" column="hotplace_name"/>
         <result property="hotplaceAddress" column="hotplace_address"/>
@@ -43,7 +43,7 @@
         <include refid="selectWishListColumns"/>
         WHERE w.userid = #{userId}
         ORDER BY w.wish_date DESC
-        LIMIT #{offset}, #{size}
+        LIMIT #{offset}, #{limit}
     </select>
 
     <!-- 핫플레이스별 위시리스트 조회 -->
@@ -51,7 +51,7 @@
         <include refid="selectWishListColumns"/>
         WHERE w.place_id = #{hotplaceId}
         ORDER BY w.wish_date DESC
-        LIMIT #{offset}, #{size}
+        LIMIT #{offset}, #{limit}
     </select>
 
     <!-- 사용자와 핫플레이스로 위시리스트 조회 -->
@@ -68,9 +68,9 @@
             place_id,
             wish_date
         ) VALUES (
-            #{userId},
-            #{hotplaceId},
-            #{createdAt}
+            #{userid},
+            #{place_id},
+            #{wishDate}
         )
     </insert>
 
@@ -102,6 +102,14 @@
 
     <!-- 위시리스트 존재 여부 확인 -->
     <select id="existsByUserIdAndHotplaceId" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM wishlist
+        WHERE userid = #{userId}
+        AND place_id = #{hotplaceId}
+    </select>
+
+    <!-- 위시리스트 존재 여부 확인 (메서드명 variant) -->
+    <select id="existsWishListByUserAndHotplace" resultType="boolean">
         SELECT COUNT(*) > 0
         FROM wishlist
         WHERE userid = #{userId}

@@ -1,6 +1,6 @@
 package com.wherehot.spring.service.impl;
 
-import com.wherehot.spring.entity.ContentImages;
+import com.wherehot.spring.entity.ContentImage;
 import com.wherehot.spring.mapper.ContentImageMapper;
 import com.wherehot.spring.service.ContentImageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +35,7 @@ public class ContentImageServiceImpl implements ContentImageService {
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
     
     @Override
-    public List<ContentImages> getImagesByHotplaceId(int hotplaceId) {
+    public List<ContentImage> getImagesByHotplaceId(int hotplaceId) {
         try {
             return contentImageMapper.getImagesByHotplaceId(hotplaceId);
         } catch (Exception e) {
@@ -44,7 +44,7 @@ public class ContentImageServiceImpl implements ContentImageService {
     }
     
     @Override
-    public ContentImages getImageById(int imageId) {
+    public ContentImage getImageById(int imageId) {
         try {
             return contentImageMapper.getImageById(imageId);
         } catch (Exception e) {
@@ -80,7 +80,7 @@ public class ContentImageServiceImpl implements ContentImageService {
                 
                 // 파일명 생성 (타임스탬프 + 원본파일명)
                 String originalFilename = image.getOriginalFilename();
-                String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                // String extension = originalFilename.substring(originalFilename.lastIndexOf(".")); // TODO: 파일 유효성 검사에 사용
                 String newFilename = System.currentTimeMillis() + "_" + originalFilename;
                 
                 // 파일 저장
@@ -88,7 +88,7 @@ public class ContentImageServiceImpl implements ContentImageService {
                 Files.copy(image.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
                 
                 // DB에 이미지 정보 저장
-                ContentImages contentImage = new ContentImages();
+                ContentImage contentImage = new ContentImage();
                 contentImage.setHotplaceId(placeId);
                 contentImage.setImagePath("/uploads/places/" + placeId + "/" + newFilename);
                 contentImage.setImageOrder(getNextImageOrder(placeId));
@@ -118,7 +118,7 @@ public class ContentImageServiceImpl implements ContentImageService {
         
         try {
             // 이미지 정보 조회
-            ContentImages image = contentImageMapper.getImageById(imageId);
+            ContentImage image = contentImageMapper.getImageById(imageId);
             
             if (image == null) {
                 result.put("success", false);
@@ -173,7 +173,7 @@ public class ContentImageServiceImpl implements ContentImageService {
         
         try {
             // 이미지 존재 여부 확인
-            ContentImages image = contentImageMapper.getImageById(imageId);
+            ContentImage image = contentImageMapper.getImageById(imageId);
             
             if (image == null || image.getHotplaceId() != placeId) {
                 result.put("success", false);
@@ -220,9 +220,9 @@ public class ContentImageServiceImpl implements ContentImageService {
     }
     
     @Override
-    public ContentImages getMainImage(int hotplaceId) {
+    public ContentImage getMainImage(int hotplaceId) {
         try {
-            List<ContentImages> images = contentImageMapper.getImagesByHotplaceId(hotplaceId);
+            List<ContentImage> images = contentImageMapper.getImagesByHotplaceId(hotplaceId);
             return images.isEmpty() ? null : images.get(0); // 첫 번째 이미지가 대표 이미지
         } catch (Exception e) {
             return null;

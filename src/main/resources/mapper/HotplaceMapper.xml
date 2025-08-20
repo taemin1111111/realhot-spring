@@ -8,15 +8,15 @@
         <result property="name" column="name"/>
         <result property="address" column="address"/>
         <result property="categoryId" column="category_id"/>
-        <result property="latitude" column="latitude"/>
-        <result property="longitude" column="longitude"/>
+        <result property="lat" column="lat"/>
+        <result property="lng" column="lng"/>
         <result property="regionId" column="region_id"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
 
     <!-- 공통 SQL 조각들 -->
     <sql id="hotplaceColumns">
-        id, name, address, category_id, lat as latitude, lng as longitude, region_id, created_at
+        id, name, address, category_id, lat, lng, region_id, created_at
     </sql>
 
     <!-- 모든 핫플레이스 조회 -->

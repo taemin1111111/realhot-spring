@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -130,8 +129,7 @@ public class HotplaceServiceImpl implements HotplaceService {
     @Override
     public Hotplace saveHotplace(Hotplace hotplace) {
         try {
-            hotplace.setCreatedAt(LocalDateTime.now());
-            hotplace.setUpdatedAt(LocalDateTime.now());
+            // Hotplace Entity에서 createdAt, updatedAt 필드가 제거됨
             
             int result = hotplaceMapper.insertHotplace(hotplace);
             if (result > 0) {
@@ -155,7 +153,7 @@ public class HotplaceServiceImpl implements HotplaceService {
                 throw new IllegalArgumentException("존재하지 않는 핫플레이스입니다: " + hotplace.getId());
             }
             
-            hotplace.setUpdatedAt(LocalDateTime.now());
+            // Hotplace Entity에서 updatedAt 필드가 제거됨
             
             int result = hotplaceMapper.updateHotplace(hotplace);
             if (result > 0) {

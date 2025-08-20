@@ -4,164 +4,124 @@
 
     <!-- Review ResultMap -->
     <resultMap id="ReviewResultMap" type="com.wherehot.spring.entity.Review">
-        <id property="id" column="id"/>
-        <result property="hotplaceId" column="hotplace_id"/>
-        <result property="authorId" column="author_id"/>
-        <result property="authorNickname" column="author_nickname"/>
-        <result property="title" column="title"/>
+        <id property="num" column="num"/>
+        <result property="userid" column="userid"/>
+        <result property="nickname" column="nickname"/>
         <result property="content" column="content"/>
-        <result property="rating" column="rating"/>
-        <result property="visitDate" column="visit_date"/>
-        <result property="likeCount" column="like_count"/>
-        <result property="viewCount" column="view_count"/>
-        <result property="imageUrl" column="image_url"/>
-        <result property="isRecommended" column="is_recommended"/>
-        <result property="status" column="status"/>
-        <result property="createdAt" column="created_at"/>
-        <result property="updatedAt" column="updated_at"/>
-        <!-- 핫플레이스 정보 -->
-        <result property="hotplaceName" column="hotplace_name"/>
-        <result property="hotplaceAddress" column="hotplace_address"/>
-        <result property="hotplaceRegion" column="hotplace_region"/>
-        <result property="hotplaceSigungu" column="hotplace_sigungu"/>
-        <result property="hotplaceCategoryId" column="hotplace_category_id"/>
+        <result property="stars" column="stars"/>
+        <result property="hg_id" column="hg_id"/>
+        <result property="type" column="type"/>
+        <result property="good" column="good"/>
+        <result property="writeday" column="writeday"/>
+        <result property="category_id" column="category_id"/>
+        <result property="passwd" column="passwd"/>
     </resultMap>
 
     <!-- 기본 SELECT 절 -->
     <sql id="selectReviewColumns">
-        SELECT r.*, 
-               m.nickname as author_nickname,
-               h.name as hotplace_name,
-               h.address as hotplace_address,
-               h.region as hotplace_region,
-               h.sigungu as hotplace_sigungu,
-               h.category_id as hotplace_category_id
+        SELECT r.num, r.userid, r.nickname, r.content, r.stars, r.hg_id, r.type, r.good, r.writeday, r.category_id, r.passwd
         FROM review r
-        LEFT JOIN member m ON r.author_id = m.userid
-        LEFT JOIN hotplace_info h ON r.hotplace_id = h.id
     </sql>
 
     <!-- 모든 리뷰 조회 (페이징) -->
     <select id="findAll" resultMap="ReviewResultMap">
         <include refid="selectReviewColumns"/>
-        WHERE r.status = 'ACTIVE'
-        ORDER BY r.created_at DESC
-        LIMIT #{offset}, #{size}
+        ORDER BY r.writeday DESC
+        LIMIT #{offset}, #{limit}
     </select>
 
     <!-- ID로 리뷰 조회 -->
     <select id="findById" parameterType="int" resultMap="ReviewResultMap">
         <include refid="selectReviewColumns"/>
-        WHERE r.id = #{id}
+        WHERE r.num = #{id}
     </select>
 
     <!-- 핫플레이스별 리뷰 조회 -->
     <select id="findByHotplaceId" resultMap="ReviewResultMap">
         <include refid="selectReviewColumns"/>
-        WHERE r.hotplace_id = #{hotplaceId}
-        AND r.status = 'ACTIVE'
-        ORDER BY r.created_at DESC
-        LIMIT #{offset}, #{size}
+        WHERE r.hg_id = #{hotplaceId}
+        ORDER BY r.writeday DESC
+        LIMIT #{offset}, #{limit}
     </select>
 
     <!-- 작성자별 리뷰 조회 -->
     <select id="findByAuthorId" resultMap="ReviewResultMap">
         <include refid="selectReviewColumns"/>
-        WHERE r.author_id = #{authorId}
-        AND r.status = 'ACTIVE'
-        ORDER BY r.created_at DESC
-        LIMIT #{offset}, #{size}
+        WHERE r.userid = #{authorId}
+        ORDER BY r.writeday DESC
+        LIMIT #{offset}, #{limit}
     </select>
 
     <!-- 지역별 리뷰 조회 -->
     <select id="findByRegion" resultMap="ReviewResultMap">
         <include refid="selectReviewColumns"/>
-        WHERE r.status = 'ACTIVE'
-        <choose>
-            <when test="isSigungu">
-                AND h.sigungu = #{region}
-            </when>
-            <otherwise>
-                AND h.region = #{region}
-            </otherwise>
-        </choose>
-        ORDER BY r.created_at DESC
-        LIMIT #{offset}, #{size}
+        WHERE r.hg_id = #{region}
+        ORDER BY r.writeday DESC
+        LIMIT #{offset}, #{limit}
     </select>
 
     <!-- 카테고리별 리뷰 조회 -->
     <select id="findByCategoryId" resultMap="ReviewResultMap">
         <include refid="selectReviewColumns"/>
-        WHERE h.category_id = #{categoryId}
-        AND r.status = 'ACTIVE'
-        ORDER BY r.created_at DESC
-        LIMIT #{offset}, #{size}
+        WHERE r.category_id = #{categoryId}
+        ORDER BY r.writeday DESC
+        LIMIT #{offset}, #{limit}
     </select>
 
     <!-- 평점별 리뷰 조회 -->
     <select id="findByRating" resultMap="ReviewResultMap">
         <include refid="selectReviewColumns"/>
-        WHERE r.rating = #{rating}
-        AND r.status = 'ACTIVE'
-        ORDER BY r.created_at DESC
-        LIMIT #{offset}, #{size}
+        WHERE r.stars = #{rating}
+        ORDER BY r.writeday DESC
+        LIMIT #{offset}, #{limit}
     </select>
 
     <!-- 추천 리뷰 조회 -->
-    <select id="findRecommended" parameterType="int" resultMap="ReviewResultMap">
+    <select id="findRecommendedReviews" parameterType="int" resultMap="ReviewResultMap">
         <include refid="selectReviewColumns"/>
-        WHERE r.is_recommended = true
-        AND r.status = 'ACTIVE'
-        ORDER BY r.created_at DESC
+        WHERE r.good > 0
+        ORDER BY r.good DESC, r.writeday DESC
         LIMIT #{limit}
     </select>
 
     <!-- 최신 리뷰 조회 -->
-    <select id="findRecent" parameterType="int" resultMap="ReviewResultMap">
+    <select id="findRecentReviews" parameterType="int" resultMap="ReviewResultMap">
         <include refid="selectReviewColumns"/>
-        WHERE r.status = 'ACTIVE'
-        ORDER BY r.created_at DESC
+        ORDER BY r.writeday DESC
         LIMIT #{limit}
     </select>
 
     <!-- 인기 리뷰 조회 -->
-    <select id="findPopular" parameterType="int" resultMap="ReviewResultMap">
+    <select id="findPopularReviews" parameterType="int" resultMap="ReviewResultMap">
         <include refid="selectReviewColumns"/>
-        WHERE r.status = 'ACTIVE'
-        ORDER BY (r.like_count * 2 + r.view_count) DESC, r.created_at DESC
+        ORDER BY r.good DESC, r.writeday DESC
         LIMIT #{limit}
     </select>
 
     <!-- 리뷰 등록 -->
-    <insert id="insertReview" parameterType="com.wherehot.spring.entity.Review" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insertReview" parameterType="com.wherehot.spring.entity.Review" useGeneratedKeys="true" keyProperty="num">
         INSERT INTO review (
-            hotplace_id,
-            author_id,
-            title,
+            userid,
+            nickname,
             content,
-            rating,
-            visit_date,
-            like_count,
-            view_count,
-            image_url,
-            is_recommended,
-            status,
-            created_at,
-            updated_at
+            stars,
+            hg_id,
+            type,
+            good,
+            writeday,
+            category_id,
+            passwd
         ) VALUES (
-            #{hotplaceId},
-            #{authorId},
-            #{title},
+            #{userid},
+            #{nickname},
             #{content},
-            #{rating},
-            #{visitDate},
-            #{likeCount, jdbcType=INTEGER},
-            #{viewCount, jdbcType=INTEGER},
-            #{imageUrl},
-            #{isRecommended, jdbcType=BOOLEAN},
-            #{status},
-            #{createdAt},
-            #{updatedAt}
+            #{stars},
+            #{hg_id},
+            #{type},
+            #{good},
+            #{writeday},
+            #{category_id},
+            #{passwd}
         )
     </insert>
 
@@ -169,177 +129,173 @@
     <update id="updateReview" parameterType="com.wherehot.spring.entity.Review">
         UPDATE review
         SET 
-            title = #{title},
+            nickname = #{nickname},
             content = #{content},
-            rating = #{rating},
-            visit_date = #{visitDate},
-            image_url = #{imageUrl},
-            updated_at = #{updatedAt}
-        WHERE id = #{id}
+            stars = #{stars},
+            type = #{type},
+            category_id = #{category_id}
+        WHERE num = #{num}
     </update>
 
     <!-- 리뷰 삭제 -->
     <delete id="deleteReview" parameterType="int">
-        DELETE FROM review WHERE id = #{id}
+        DELETE FROM review WHERE num = #{id}
     </delete>
 
     <!-- 좋아요 수 업데이트 -->
     <update id="updateLikeCount">
         UPDATE review
-        SET like_count = #{likeCount}
-        WHERE id = #{id}
+        SET good = #{likeCount}
+        WHERE num = #{id}
     </update>
 
-    <!-- 조회수 증가 -->
-    <update id="incrementViewCount" parameterType="int">
+    <!-- 추천 이력 존재 체크 (Model1 호환) -->
+    <select id="checkRecommendationExists" resultType="int">
+        SELECT COUNT(*)
+        FROM review_recommendation
+        WHERE review_id = #{reviewId} AND userid = #{userid}
+    </select>
+
+    <!-- 추천 이력 추가 (Model1 호환) -->
+    <insert id="insertRecommendation">
+        INSERT INTO review_recommendation (review_id, userid, created_at)
+        VALUES (#{reviewId}, #{userid}, NOW())
+    </insert>
+
+    <!-- 리뷰 추천 수 증가 (Model1 호환) -->
+    <update id="incrementRecommendCount">
         UPDATE review
-        SET view_count = view_count + 1
-        WHERE id = #{id}
+        SET good = good + 1
+        WHERE num = #{reviewId}
     </update>
+
+    <!-- 모든 지역명 조회 (Model1 호환) -->
+    <select id="findAllRegionNames" resultType="String">
+        SELECT DISTINCT hg_id
+        FROM review
+        WHERE hg_id IS NOT NULL AND hg_id != ''
+        ORDER BY hg_id
+    </select>
+
+
+
+    <!-- 지역 및 카테고리별 리뷰 조회 (Model1 호환) -->
+    <select id="findByRegionAndCategory" resultMap="ReviewResultMap">
+        <include refid="selectReviewColumns"/>
+        WHERE r.hg_id = #{region}
+        <if test="category > 0">
+            AND r.category_id = #{category}
+        </if>
+        ORDER BY r.writeday DESC
+        LIMIT 100
+    </select>
 
     <!-- 리뷰 상태 변경 -->
     <update id="updateStatus">
         UPDATE review
         SET status = #{status}
-        WHERE id = #{id}
+        WHERE num = #{id}
     </update>
 
     <!-- 추천 상태 변경 -->
     <update id="updateRecommendedStatus">
         UPDATE review
         SET is_recommended = #{isRecommended}
-        WHERE id = #{id}
+        WHERE num = #{id}
     </update>
 
     <!-- 전체 리뷰 수 조회 -->
     <select id="countAll" resultType="int">
-        SELECT COUNT(*) FROM review WHERE status = 'ACTIVE'
+        SELECT COUNT(*) FROM review
     </select>
 
     <!-- 핫플레이스별 리뷰 수 조회 -->
     <select id="countByHotplaceId" parameterType="int" resultType="int">
         SELECT COUNT(*)
         FROM review
-        WHERE hotplace_id = #{hotplaceId}
-        AND status = 'ACTIVE'
+        WHERE hg_id = #{hotplaceId}
     </select>
 
     <!-- 작성자별 리뷰 수 조회 -->
     <select id="countByAuthorId" parameterType="string" resultType="int">
         SELECT COUNT(*)
         FROM review
-        WHERE author_id = #{authorId}
-        AND status = 'ACTIVE'
+        WHERE userid = #{authorId}
     </select>
 
     <!-- 지역별 리뷰 수 조회 -->
     <select id="countByRegion" resultType="int">
         SELECT COUNT(*)
-        FROM review r
-        LEFT JOIN hotplace_info h ON r.hotplace_id = h.id
-        WHERE r.status = 'ACTIVE'
-        <choose>
-            <when test="isSigungu">
-                AND h.sigungu = #{region}
-            </when>
-            <otherwise>
-                AND h.region = #{region}
-            </otherwise>
-        </choose>
+        FROM review
+        WHERE hg_id = #{region}
     </select>
 
     <!-- 평점별 리뷰 수 조회 -->
     <select id="countByRating" parameterType="int" resultType="int">
         SELECT COUNT(*)
         FROM review
-        WHERE rating = #{rating}
-        AND status = 'ACTIVE'
+        WHERE stars = #{rating}
     </select>
 
     <!-- 핫플레이스별 평균 평점 조회 -->
-    <select id="getAverageRatingByHotplace" parameterType="int" resultType="double">
-        SELECT AVG(rating)
+    <select id="getAverageRatingByHotplaceId" parameterType="int" resultType="double">
+        SELECT AVG(stars)
         FROM review
-        WHERE hotplace_id = #{hotplaceId}
-        AND status = 'ACTIVE'
+        WHERE hg_id = #{hotplaceId}
     </select>
 
     <!-- 지역별 평균 평점 조회 -->
     <select id="getAverageRatingByRegion" resultType="double">
-        SELECT AVG(r.rating)
-        FROM review r
-        LEFT JOIN hotplace_info h ON r.hotplace_id = h.id
-        WHERE r.status = 'ACTIVE'
-        <choose>
-            <when test="isSigungu">
-                AND h.sigungu = #{region}
-            </when>
-            <otherwise>
-                AND h.region = #{region}
-            </otherwise>
-        </choose>
-    </select>
-
-    <!-- 모든 지역명 조회 -->
-    <select id="getAllRegionNames" resultType="string">
-        SELECT DISTINCT region
-        FROM hotplace_info
-        WHERE region IS NOT NULL
-        ORDER BY region
+        SELECT AVG(stars)
+        FROM review
+        WHERE hg_id = #{region}
     </select>
 
     <!-- 평점별 통계 -->
     <select id="getRatingStatistics" resultType="map">
         SELECT 
-            rating,
+            stars as rating,
             COUNT(*) as count,
-            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM review WHERE status = 'ACTIVE'), 2) as percentage
+            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM review), 2) as percentage
         FROM review
-        WHERE status = 'ACTIVE'
-        GROUP BY rating
-        ORDER BY rating DESC
+        GROUP BY stars
+        ORDER BY stars DESC
     </select>
 
     <!-- 지역별 통계 -->
     <select id="getRegionStatistics" resultType="map">
         SELECT 
-            h.region,
+            hg_id as region,
             COUNT(*) as review_count,
-            AVG(r.rating) as avg_rating,
-            MAX(r.created_at) as latest_review_date
-        FROM review r
-        LEFT JOIN hotplace_info h ON r.hotplace_id = h.id
-        WHERE r.status = 'ACTIVE'
-        AND h.region IS NOT NULL
-        GROUP BY h.region
+            AVG(stars) as avg_rating,
+            MAX(writeday) as latest_review_date
+        FROM review
+        WHERE hg_id IS NOT NULL
+        GROUP BY hg_id
         ORDER BY review_count DESC
     </select>
 
     <!-- 카테고리별 통계 -->
     <select id="getCategoryStatistics" resultType="map">
         SELECT 
-            c.name as category_name,
+            category_id,
             COUNT(*) as review_count,
-            AVG(r.rating) as avg_rating
-        FROM review r
-        LEFT JOIN hotplace_info h ON r.hotplace_id = h.id
-        LEFT JOIN category c ON h.category_id = c.id
-        WHERE r.status = 'ACTIVE'
-        AND c.name IS NOT NULL
-        GROUP BY c.id, c.name
+            AVG(stars) as avg_rating
+        FROM review
+        WHERE category_id IS NOT NULL
+        GROUP BY category_id
         ORDER BY review_count DESC
     </select>
 
     <!-- 월별 통계 -->
     <select id="getMonthlyStatistics" resultType="map">
         SELECT 
-            DATE_FORMAT(created_at, '%Y-%m') as month,
+            DATE_FORMAT(writeday, '%Y-%m') as month,
             COUNT(*) as review_count,
-            AVG(rating) as avg_rating
+            AVG(stars) as avg_rating
         FROM review
-        WHERE status = 'ACTIVE'
-        AND created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-        GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+        WHERE writeday >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+        GROUP BY DATE_FORMAT(writeday, '%Y-%m')
         ORDER BY month DESC
     </select>
 

@@ -90,8 +90,14 @@ public class VoteController {
                 return ResponseEntity.badRequest().body(response);
             }
             
+        } catch (RuntimeException e) {
+            // 비즈니스 로직 오류 (중복 투표, 제한 등)
+            logger.warn("투표 제한: {}", e.getMessage());
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         } catch (Exception e) {
-            logger.error("투표 처리 중 오류 발생", e);
+            logger.error("투표 처리 중 시스템 오류 발생", e);
             response.put("success", false);
             response.put("message", "투표 처리 중 오류가 발생했습니다.");
             return ResponseEntity.internalServerError().body(response);

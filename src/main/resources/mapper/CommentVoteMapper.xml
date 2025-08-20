@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wherehot.spring.mapper.CommentVoteMapper">
+
+    <!-- CommentVote 결과 매핑 -->
+    <resultMap id="CommentVoteResultMap" type="com.wherehot.spring.entity.CommentVote">
+        <id property="id" column="id"/>
+        <result property="commentId" column="comment_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="voteType" column="vote_type"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 투표 추가 -->
+    <insert id="insertVote" parameterType="com.wherehot.spring.entity.CommentVote">
+        INSERT INTO hottalk_comment_vote (comment_id, user_id, ip_address, vote_type, created_at)
+        VALUES (#{commentId}, #{userId}, #{ipAddress}, #{voteType}, NOW())
+    </insert>
+
+    <!-- 특정 사용자의 특정 댓글 투표 조회 (로그인 사용자) -->
+    <select id="getUserVote" resultMap="CommentVoteResultMap">
+        SELECT * FROM hottalk_comment_vote 
+        WHERE comment_id = #{commentId} AND user_id = #{userId} AND user_id IS NOT NULL
+    </select>
+
+    <!-- 특정 IP의 특정 댓글 투표 조회 (비로그인 사용자) -->
+    <select id="getIpVote" resultMap="CommentVoteResultMap">
+        SELECT * FROM hottalk_comment_vote 
+        WHERE comment_id = #{commentId} AND ip_address = #{ipAddress} AND ip_address IS NOT NULL
+    </select>
+
+    <!-- 투표 변경 (좋아요 → 싫어요 또는 그 반대) - 로그인 사용자 -->
+    <update id="updateVoteByUser">
+        UPDATE hottalk_comment_vote 
+        SET vote_type = #{voteType}, created_at = NOW()
+        WHERE comment_id = #{commentId} AND user_id = #{userId}
+    </update>
+
+    <!-- 투표 변경 (좋아요 → 싫어요 또는 그 반대) - 비로그인 사용자 -->
+    <update id="updateVoteByIp">
+        UPDATE hottalk_comment_vote 
+        SET vote_type = #{voteType}, created_at = NOW()
+        WHERE comment_id = #{commentId} AND ip_address = #{ipAddress}
+    </update>
+
+    <!-- 투표 삭제 (투표 취소) - 로그인 사용자 -->
+    <delete id="deleteVoteByUser">
+        DELETE FROM hottalk_comment_vote 
+        WHERE comment_id = #{commentId} AND user_id = #{userId}
+    </delete>
+
+    <!-- 투표 삭제 (투표 취소) - 비로그인 사용자 -->
+    <delete id="deleteVoteByIp">
+        DELETE FROM hottalk_comment_vote 
+        WHERE comment_id = #{commentId} AND ip_address = #{ipAddress}
+    </delete>
+
+    <!-- 댓글별 좋아요 수 조회 -->
+    <select id="getLikeCount" resultType="int">
+        SELECT COUNT(*) FROM hottalk_comment_vote 
+        WHERE comment_id = #{commentId} AND vote_type = 'like'
+    </select>
+
+    <!-- 댓글별 싫어요 수 조회 -->
+    <select id="getDislikeCount" resultType="int">
+        SELECT COUNT(*) FROM hottalk_comment_vote 
+        WHERE comment_id = #{commentId} AND vote_type = 'dislike'
+    </select>
+
+    <!-- 댓글의 모든 투표 조회 -->
+    <select id="getVotesByComment" resultMap="CommentVoteResultMap">
+        SELECT * FROM hottalk_comment_vote 
+        WHERE comment_id = #{commentId} 
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 사용자가 특정 댓글에 투표했는지 확인 - 로그인 사용자 -->
+    <select id="hasUserVoted" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM hottalk_comment_vote 
+        WHERE comment_id = #{commentId} AND user_id = #{userId}
+    </select>
+
+    <!-- IP가 특정 댓글에 투표했는지 확인 - 비로그인 사용자 -->
+    <select id="hasIpVoted" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM hottalk_comment_vote 
+        WHERE comment_id = #{commentId} AND ip_address = #{ipAddress}
+    </select>
+
+</mapper>

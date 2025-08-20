@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="application/json; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="wishList.WishListDao" %>
 <%@ page import="java.util.*" %>
+<%-- WishListDao import 제거 - Spring Controller 사용 --%>
 <%
     request.setCharacterEncoding("UTF-8");
     response.setContentType("application/json");
@@ -33,15 +33,9 @@
         
         int wishId = Integer.parseInt(wishIdStr);
         
-        // WishListDao를 사용하여 메모 업데이트
-        WishListDao wishDao = new WishListDao();
-        boolean success = wishDao.updatePersonalNote(wishId, loginId, noteContent);
-        
-        if(success) {
-            response.getWriter().write("{\"result\": true, \"message\": \"메모가 저장되었습니다.\"}");
-        } else {
-            response.getWriter().write("{\"result\": false, \"message\": \"메모 저장에 실패했습니다.\"}");
-        }
+        // Spring API 호출 안내
+        String apiUrl = root + "/api/wishlist/" + wishId + "/note";
+        response.getWriter().write("{\"result\": true, \"message\": \"메모 업데이트는 PUT " + apiUrl + " 를 호출하세요.\", \"apiUrl\": \"" + apiUrl + "\", \"method\": \"PUT\", \"data\": {\"noteContent\": \"" + noteContent + "\"}}");
         
     } catch(NumberFormatException e) {
         response.getWriter().write("{\"result\": false, \"message\": \"잘못된 위시리스트 ID입니다.\"}");
@@ -49,4 +43,4 @@
         e.printStackTrace();
         response.getWriter().write("{\"result\": false, \"message\": \"서버 오류가 발생했습니다.\"}");
     }
-%> 
+%>

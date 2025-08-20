@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -60,19 +61,19 @@ public class WishListServiceImpl implements WishListService {
     @Override
     public WishList saveWishList(WishList wishList) {
         try {
-            wishList.setCreatedAt(LocalDateTime.now());
+            wishList.setWishDate(LocalDateTime.now());
             
             int result = wishListMapper.insertWishList(wishList);
             if (result > 0) {
-                logger.info("WishList saved successfully: userId={}, hotplaceId={}", 
-                    wishList.getUserId(), wishList.getHotplaceId());
+                logger.info("WishList saved successfully: userId={}, placeId={}", 
+                    wishList.getUserid(), wishList.getPlace_id());
                 return wishList;
             } else {
                 throw new RuntimeException("위시리스트 저장에 실패했습니다.");
             }
         } catch (Exception e) {
-            logger.error("Error saving wish list: userId={}, hotplaceId={}", 
-                wishList.getUserId(), wishList.getHotplaceId(), e);
+            logger.error("Error saving wish list: userId={}, placeId={}", 
+                wishList.getUserid(), wishList.getPlace_id(), e);
             throw new RuntimeException("위시리스트 저장 중 오류가 발생했습니다.", e);
         }
     }
@@ -160,15 +161,22 @@ public class WishListServiceImpl implements WishListService {
         try {
             // 이미 위시리스트에 있는지 확인
             if (existsWishListByUserAndHotplace(loginId, placeId)) {
+                logger.info("Wish already exists: userId={}, placeId={}", loginId, placeId);
                 return false; // 이미 존재하면 false 반환
             }
             
             WishList wishList = new WishList();
-            wishList.setUserId(loginId);
-            wishList.setHotplaceId(placeId);
+            wishList.setUserid(loginId);
+            wishList.setPlace_id(placeId);
             
             WishList saved = saveWishList(wishList);
-            return saved != null;
+            if (saved != null) {
+                logger.info("Wish added successfully: userId={}, placeId={}", loginId, placeId);
+                return true;
+            } else {
+                logger.error("Failed to save wish: userId={}, placeId={}", loginId, placeId);
+                return false;
+            }
             
         } catch (Exception e) {
             logger.error("Error adding wish: userId={}, placeId={}", loginId, placeId, e);

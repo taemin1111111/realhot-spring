@@ -123,7 +123,7 @@ public class CommentController {
                 return ResponseEntity.status(401).build(); // Unauthorized
             }
             
-            comment.setAuthorId(userDetails.getUsername());
+            comment.setNickname(userDetails.getUsername());
             Comment savedComment = commentService.saveComment(comment);
             return ResponseEntity.ok(savedComment);
         } catch (Exception e) {
@@ -146,12 +146,12 @@ public class CommentController {
             }
             
             // 작성자 권한 확인
-            if (userDetails == null || !existingComment.get().getAuthorId().equals(userDetails.getUsername())) {
+            if (userDetails == null || !existingComment.get().getNickname().equals(userDetails.getUsername())) {
                 return ResponseEntity.status(403).build(); // Forbidden
             }
             
             comment.setId(id);
-            comment.setAuthorId(userDetails.getUsername());
+            comment.setNickname(userDetails.getUsername());
             Comment updatedComment = commentService.updateComment(comment);
             return ResponseEntity.ok(updatedComment);
         } catch (Exception e) {
@@ -173,7 +173,7 @@ public class CommentController {
             }
             
             // 작성자 권한 확인 (또는 관리자)
-            if (userDetails == null || (!existingComment.get().getAuthorId().equals(userDetails.getUsername()) 
+            if (userDetails == null || (!existingComment.get().getNickname().equals(userDetails.getUsername()) 
                 && !userDetails.getAuthorities().stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN")))) {
                 return ResponseEntity.status(403).build(); // Forbidden
             }
@@ -215,7 +215,7 @@ public class CommentController {
                 return ResponseEntity.notFound().build();
             }
             
-            int newLikeCount = comment.get().getLikeCount() + 1;
+            int newLikeCount = comment.get().getLikes() + 1;
             boolean updated = commentService.updateLikeCount(id, newLikeCount);
             
             Map<String, Object> result = new HashMap<>();
@@ -239,7 +239,7 @@ public class CommentController {
                 return ResponseEntity.notFound().build();
             }
             
-            int newDislikeCount = comment.get().getDislikeCount() + 1;
+            int newDislikeCount = comment.get().getDislikes() + 1;
             boolean updated = commentService.updateDislikeCount(id, newDislikeCount);
             
             Map<String, Object> result = new HashMap<>();

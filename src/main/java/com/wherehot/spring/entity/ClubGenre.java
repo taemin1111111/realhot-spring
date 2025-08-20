@@ -1,95 +1,44 @@
 package com.wherehot.spring.entity;
 
 /**
- * 클럽 장르 엔티티
+ * 클럽 장르 엔티티 - 실제 DB 테이블 구조에 맞춤
  */
 public class ClubGenre {
     
-    private int id;
-    private String name;
-    private String description;
-    private String icon;
-    private int sortOrder;
-    private boolean active;
+    private int genre_id;
+    private String genre_name;
     
     // 기본 생성자
     public ClubGenre() {}
     
     // 생성자
-    public ClubGenre(String name, String description) {
-        this.name = name;
-        this.description = description;
-        this.active = true;
-        this.sortOrder = 0;
+    public ClubGenre(int genre_id, String genre_name) {
+        this.genre_id = genre_id;
+        this.genre_name = genre_name;
     }
     
     // Getters and Setters
-    public int getId() {
-        return id;
+    public int getGenre_id() {
+        return genre_id;
     }
     
-    public void setId(int id) {
-        this.id = id;
+    public void setGenre_id(int genre_id) {
+        this.genre_id = genre_id;
     }
     
-    public String getName() {
-        return name;
+    public String getGenre_name() {
+        return genre_name;
     }
     
-    public void setName(String name) {
-        this.name = name;
-    }
-    
-    public String getDescription() {
-        return description;
-    }
-    
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    
-    public String getIcon() {
-        return icon;
-    }
-    
-    public void setIcon(String icon) {
-        this.icon = icon;
-    }
-    
-    public int getSortOrder() {
-        return sortOrder;
-    }
-    
-    public void setSortOrder(int sortOrder) {
-        this.sortOrder = sortOrder;
-    }
-    
-    public boolean isActive() {
-        return active;
-    }
-    
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-    
-    // Model1 호환성을 위한 메서드들
-    public String getGenreName() {
-        return name;
-    }
-    
-    public void setGenreName(String genreName) {
-        this.name = genreName;
+    public void setGenre_name(String genre_name) {
+        this.genre_name = genre_name;
     }
     
     @Override
     public String toString() {
         return "ClubGenre{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", icon='" + icon + '\'' +
-                ", sortOrder=" + sortOrder +
-                ", active=" + active +
+                "genre_id=" + genre_id +
+                ", genre_name='" + genre_name + '\'' +
                 '}';
     }
 }

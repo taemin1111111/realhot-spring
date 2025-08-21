@@ -1,4 +1,4 @@
-package com.wherehot.spring.controller.api;
+package com.wherehot.spring.controller;
 
 import com.wherehot.spring.entity.WishList;
 import com.wherehot.spring.service.WishListService;

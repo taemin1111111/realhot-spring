@@ -300,8 +300,9 @@ hr.divider {
 
 /* 핫플 정보 카드 */
 .hotplace-info {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  color: #333;
   padding: 15px;
   border-radius: 8px;
   margin-bottom: 20px;
@@ -352,43 +353,44 @@ hr.divider {
 
 /* 투표 안내 메시지 스타일 */
 .vote-guide-container {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border: 2px dashed #dee2e6;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px dashed rgba(255,255,255,0.3);
   border-radius: 15px;
   padding: 25px;
   text-align: center;
   margin-bottom: 20px;
+  color: white;
 }
 
 .vote-guide-icon {
   font-size: 3rem;
-  color: #6c757d;
-  opacity: 0.6;
+  color: white;
+  opacity: 0.9;
   margin-bottom: 15px;
 }
 
 .vote-guide-title {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  color: #495057;
-  margin-bottom: 8px;
+  color: white;
+  margin-bottom: 5px;
   line-height: 1.4;
 }
 
 .vote-guide-subtitle {
   font-size: 0.9rem;
-  color: #6c757d;
+  color: rgba(255,255,255,0.8);
   margin-bottom: 20px;
 }
 
 /* 지정하기 버튼 스타일 */
 .pick-location-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.3);
   color: white;
-  padding: 10px 25px;
+  padding: 10px 20px;
   border-radius: 25px;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.9rem;
   transition: all 0.3s ease;
   display: inline-flex;
@@ -397,8 +399,18 @@ hr.divider {
 }
 
 .pick-location-btn:hover {
+  background: rgba(255,255,255,0.3);
+  border-color: rgba(255,255,255,0.5);
+  color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* 투표 폼 체크박스 스타일 */
+.form-check-input:checked {
+  background-color: #667eea;
+  border-color: #667eea;
+}
   color: #ff1493;
 }
 

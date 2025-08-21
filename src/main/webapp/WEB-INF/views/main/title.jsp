@@ -19,13 +19,13 @@
         <!--  중앙 메뉴 -->
         <nav class="flex-grow-1 text-center header-nav">
             <ul class="nav justify-content-center">
-                <!-- 📌 핫플 평점보기 -->
+                <!-- 📌 코스 추천 -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                         핫플 평점보기
+                         코스 추천
                     </a>
                     <ul class="dropdown-menu text-start">
-                       <li><a class="dropdown-item" href="<%=root%>/?main=review/gpaform.jsp">지역별 평점 보기</a></li>
+                                               <li><a class="dropdown-item" href="<%=root%>/course">지역별 코스 추천</a></li>
                     </ul>
                 </li>
 

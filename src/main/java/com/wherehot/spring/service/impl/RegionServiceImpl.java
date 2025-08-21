@@ -30,7 +30,12 @@ public class RegionServiceImpl implements RegionService {
     @Transactional(readOnly = true)
     public List<Region> findAllRegions() {
         try {
-            return regionMapper.findAll();
+            List<Region> regions = regionMapper.findAll();
+            logger.info("Found {} regions from database", regions.size());
+            if (!regions.isEmpty()) {
+                logger.info("First region: {}", regions.get(0));
+            }
+            return regions;
         } catch (Exception e) {
             logger.error("Error finding all regions", e);
             throw new RuntimeException("지역 목록 조회 중 오류가 발생했습니다.", e);

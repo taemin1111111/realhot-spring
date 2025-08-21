@@ -1,0 +1,753 @@
+/* ========================================
+   코스 추천 페이지 - 블라인드 스타일
+   ======================================== */
+
+/* 코스 추천 페이지에서만 배경색 적용 */
+.course-hunting-container {
+    background: #f8f9fa;
+    min-height: 100vh;
+    padding: 20px;
+    font-family: 'Noto Sans KR', sans-serif;
+    color: #333333;
+}
+
+/* 코스 추천 페이지의 body 배경만 오버라이드 */
+body:has(.course-hunting-container) {
+    background-color: #f8f9fa !important;
+}
+
+/* 상단 헤더 영역 */
+.course-hunting-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fafbfc;
+    border-radius: 16px;
+    padding: 20px 25px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* 탭 버튼 영역 */
+.course-hunting-tabs {
+    display: flex;
+    gap: 15px;
+}
+
+.course-hunting-tab-btn {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.course-hunting-tab-btn:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.course-hunting-tab-btn.active {
+    background: #007bff;
+    border-color: #007bff;
+    color: #ffffff;
+}
+
+.course-hunting-tab-btn i {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+/* 공유하기 버튼 */
+.course-hunting-share-btn {
+    background: #28a745;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.course-hunting-share-btn:hover {
+    background: #218838;
+}
+
+/* 지역 필터 영역 */
+.course-hunting-region-filter {
+    background: #fafbfc;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.course-hunting-region-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 시도 섹션 */
+.course-hunting-sido-section {
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fafbfc;
+    margin-bottom: 10px;
+}
+
+.course-hunting-sido-header {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 16px;
+    color: #495057;
+}
+
+.course-hunting-sido-header:hover {
+    background: #e9ecef;
+}
+
+.course-hunting-sido-header i:first-child {
+    color: #6c757d;
+    margin-right: 10px;
+    font-size: 16px;
+}
+
+.course-hunting-sido-arrow {
+    color: #cccccc;
+    transition: transform 0.3s ease;
+}
+
+/* 시군구 컨테이너 */
+.course-hunting-sigungu-container {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 16px;
+    margin: 10px;
+}
+
+/* 시군구 그룹 간격 추가 */
+.course-hunting-sigungu-container > div {
+    margin-bottom: 25px;
+}
+
+.course-hunting-sigungu-container > div:last-child {
+    margin-bottom: 0;
+}
+
+/* 시군구 제목 행 */
+.course-hunting-sigungu-titles {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+/* 시군구 제목 */
+.course-hunting-sigungu-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: #495057;
+    padding: 10px 12px;
+    background: #ffffff;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+.course-hunting-sigungu-name:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+/* 동 목록 행 */
+.course-hunting-dong-list {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    align-items: start;
+}
+
+/* 동 그리드 */
+.course-hunting-dong-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+    background: #ffffff;
+    border-radius: 8px;
+    min-height: 80px;
+    border: 1px solid #dee2e6;
+}
+
+/* 동 아이템 */
+.course-hunting-dong-item {
+    background: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    font-size: 12px;
+    border: 1px solid #dee2e6;
+    font-weight: 400;
+    color: #6c757d;
+}
+
+.course-hunting-dong-item:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+    color: #495057;
+}
+
+/* 코스 목록 영역 */
+.course-hunting-list {
+    margin-bottom: 40px;
+}
+
+.course-hunting-no-courses {
+    text-align: center;
+    padding: 40px 20px;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.course-hunting-no-courses i {
+    font-size: 60px;
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+
+.course-hunting-no-courses h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+.course-hunting-no-courses p {
+    color: #6c757d;
+    font-size: 16px;
+}
+
+/* 코스 그리드 */
+.course-hunting-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 25px;
+}
+
+/* 코스 카드 */
+.course-hunting-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #e9ecef;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.course-hunting-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #007bff;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.course-hunting-card:hover::before {
+    transform: scaleX(1);
+}
+
+.course-hunting-card:hover {
+    border-color: #adb5bd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 코스 카드 헤더 */
+.course-hunting-card-header {
+    margin-bottom: 15px;
+}
+
+.course-hunting-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 10px;
+    line-height: 1.3;
+}
+
+.course-hunting-card-stats {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.course-hunting-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #6c757d;
+    background: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.course-hunting-stat-item i {
+    color: #6c757d;
+    font-size: 12px;
+}
+
+/* 코스 카드 내용 */
+.course-hunting-card-content {
+    margin-bottom: 20px;
+}
+
+.course-hunting-card-summary {
+    color: #6c757d;
+    line-height: 1.5;
+    font-size: 13px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* 코스 카드 푸터 */
+.course-hunting-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #e9ecef;
+}
+
+.course-hunting-card-author {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #6c757d;
+    font-size: 12px;
+}
+
+.course-hunting-card-author i {
+    color: #6c757d;
+}
+
+.course-hunting-card-date {
+    color: #6c757d;
+    font-size: 11px;
+    background: #f8f9fa;
+    padding: 3px 6px;
+    border-radius: 12px;
+}
+
+/* 페이징 */
+.course-hunting-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 40px;
+}
+
+.course-hunting-page-btn {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    padding: 8px 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    min-width: 36px;
+    text-align: center;
+}
+
+.course-hunting-page-btn:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+    color: #495057;
+    text-decoration: none;
+}
+
+.course-hunting-page-btn.active {
+    background: #6c757d;
+    border-color: #6c757d;
+    color: #ffffff;
+}
+
+/* 모달 스타일 */
+.course-hunting-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.course-hunting-modal-content {
+    background: #ffffff;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.course-hunting-modal-header {
+    background: #007bff;
+    color: white;
+    padding: 20px 30px;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.course-hunting-modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.course-hunting-close {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.course-hunting-close:hover {
+    transform: scale(1.2);
+}
+
+.course-hunting-modal-body {
+    padding: 30px;
+}
+
+/* 폼 스타일 */
+.course-hunting-form-group {
+    margin-bottom: 20px;
+}
+
+.course-hunting-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #212529;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.course-hunting-form-group input,
+.course-hunting-form-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #212529;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.course-hunting-form-group input:focus,
+.course-hunting-form-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.course-hunting-form-group input::placeholder,
+.course-hunting-form-group textarea::placeholder {
+    color: #495057;
+}
+
+/* 스텝 컨테이너 */
+.course-hunting-steps-container {
+    margin-top: 25px;
+}
+
+.course-hunting-steps-container h3 {
+    color: #212529;
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.course-hunting-step-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+}
+
+.course-hunting-step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.course-hunting-step-number {
+    background: #007bff;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.course-hunting-remove-step {
+    background: #ff4757;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.course-hunting-remove-step:hover {
+    background: #ff3742;
+    transform: scale(1.05);
+}
+
+.course-hunting-step-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.course-hunting-step-place,
+.course-hunting-step-photo,
+.course-hunting-step-description {
+    padding: 10px 12px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #212529;
+    font-size: 13px;
+}
+
+.course-hunting-step-place:focus,
+.course-hunting-step-photo:focus,
+.course-hunting-step-description:focus {
+    outline: none;
+    border-color: #007bff;
+    background: #ffffff;
+}
+
+/* 스텝 추가 버튼 */
+.course-hunting-add-step-btn {
+    background: #28a745;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.course-hunting-add-step-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(40, 167, 69, 0.3);
+    background: #218838;
+}
+
+/* 폼 액션 버튼 */
+.course-hunting-form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    justify-content: flex-end;
+}
+
+.course-hunting-submit-btn {
+    background: #007bff;
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.course-hunting-submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3);
+    background: #0056b3;
+}
+
+.course-hunting-cancel-btn {
+    background: #6c757d;
+    border: 1px solid #6c757d;
+    color: #ffffff;
+    padding: 12px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.course-hunting-cancel-btn:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .course-hunting-container {
+        padding: 15px;
+    }
+    
+    .course-hunting-header {
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+    }
+    
+    .course-hunting-tabs {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .course-hunting-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .course-hunting-modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+    
+    .course-hunting-form-actions {
+        flex-direction: column;
+    }
+    
+    .course-hunting-sigungu-titles {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .course-hunting-dong-list {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .course-hunting-sigungu-name {
+        font-size: 14px;
+        padding: 8px 10px;
+    }
+    
+    .course-hunting-dong-grid {
+        min-height: 80px;
+    }
+    
+    .course-hunting-dong-item {
+        padding: 5px 8px;
+        font-size: 11px;
+    }
+}
+
+/* 애니메이션 효과 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.course-hunting-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.course-hunting-card:nth-child(1) { animation-delay: 0.1s; }
+.course-hunting-card:nth-child(2) { animation-delay: 0.2s; }
+.course-hunting-card:nth-child(3) { animation-delay: 0.3s; }
+.course-hunting-card:nth-child(4) { animation-delay: 0.4s; }
+.course-hunting-card:nth-child(5) { animation-delay: 0.5s; }
+.course-hunting-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* 코스 디테일 페이지 */
+.course-hunting-detail-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+    min-height: 100vh;
+    padding: 20px;
+    font-family: 'Noto Sans KR', sans-serif;
+    color: #495057;
+}
+
+.course-hunting-detail-content {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.course-hunting-detail-content h2 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #007bff;
+}
+
+.course-hunting-detail-content p {
+    font-size: 18px;
+    color: #6c757d;
+    line-height: 1.6;
+}

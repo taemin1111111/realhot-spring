@@ -1,4 +1,4 @@
-package com.wherehot.spring.controller.api;
+package com.wherehot.spring.controller;
 
 import com.wherehot.spring.entity.Member;
 import com.wherehot.spring.service.AuthService;

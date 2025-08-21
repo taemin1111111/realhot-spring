@@ -37,8 +37,6 @@
 
 <!-- 외부 스타일시트 연결 -->
 <link rel="stylesheet" href="<%=root%>/css/all.css">
-<!-- gpaform,main,title,footer -->
-<link rel="stylesheet" href="<%=root%>/css/review.css">
 <!-- 후기작성 -->
 <link rel="stylesheet" href="<%=root%>/css/LoginModal.css">
 <!-- 후기작성 -->
@@ -59,6 +57,8 @@
 <link rel="stylesheet" href="<%=root%>/css/mapserach.css">
 <!-- 네이버 가입 -->
 <link rel="stylesheet" href="<%=root%>/css/naverJoin.css">
+<!-- 코스 추천 -->
+<link rel="stylesheet" href="<%=root%>/css/course.css">
 
 <style>
 .main-welcome {

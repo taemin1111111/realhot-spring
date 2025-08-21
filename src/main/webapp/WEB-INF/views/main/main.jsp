@@ -33,9 +33,7 @@
     List<String> hotplaceNameList = (List<String>) request.getAttribute("hotplaceNameList");
     if (hotplaceNameList == null) hotplaceNameList = new ArrayList<>();
     
-    @SuppressWarnings("unchecked")
-    Map<String, Double> regionRatings = (Map<String, Double>) request.getAttribute("regionRatings");
-    if (regionRatings == null) regionRatings = new HashMap<>();
+    // 평점 관련 데이터 제거
     
     @SuppressWarnings("unchecked")
     Map<String, Integer> dongToRegionIdMapping = (Map<String, Integer>) request.getAttribute("dongToRegionIdMapping");
@@ -249,12 +247,8 @@
     console.log('URL 파라미터 감지: lat=' + targetLat + ', lng=' + targetLng);
   }
   
-  // 지역별 평균 평점 데이터
-  var regionRatings = {<% 
-    java.util.Iterator<Map.Entry<String, Double>> iterator = regionRatings.entrySet().iterator();
-    while(iterator.hasNext()) { 
-      Map.Entry<String, Double> entry = iterator.next(); 
-  %>'<%=entry.getKey().replace("'", "\\'")%>':<%=entry.getValue()%><% if(iterator.hasNext()) { %>,<% } %><% } %>};
+  // 평점 관련 데이터 제거
+  var regionRatings = {};
   
   var dongToRegionId = {
     <% for(java.util.Map.Entry<String, Integer> entry : dongToRegionIdMapping.entrySet()) { %>
@@ -266,7 +260,7 @@
   window.dongToRegionId = dongToRegionId;
   window.regionCategoryCounts = regionCategoryCounts;
   window.hotplaces = hotplaces;
-  window.regionRatings = regionRatings;
+  // 평점 관련 데이터 제거
 
   // JSP 변수들을 JavaScript로 전달
   var hotplaces = [<% for (int i = 0; i < hotplaceList.size(); i++) { 
@@ -776,11 +770,9 @@
               + '<span style="color:#8d6e63; font-weight:600; margin-left:4px;">P:' + (typeof count.pochaCount === 'number' ? count.pochaCount : 0) + '</span>'
               + '</span>';
           }
-          var rating = regionRatings[dong] || 0.0;
-          var starIcon = '<i class="bi bi-star-fill" style="color:#f9cb3e; font-size:0.9rem; margin:0 2px;"></i>';
           return '<div class="region-search-item" style="width:92%; margin:'
             + (idx === 0 ? '14px' : '0') + ' auto 10px auto; background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04); padding:16px 18px; color:#222; font-size:1.08rem; display:flex; align-items:center; cursor:pointer; transition:background 0.13s;">'
-            + '<span class="region-name" style="color:#1275E0; font-weight:600; font-size:1.13rem; cursor:pointer; display:flex; align-items:center; white-space:nowrap;">' + dong + ' (' + starIcon + ' ' + rating.toFixed(1) + ')</span>'
+            + '<span class="region-name" style="color:#1275E0; font-weight:600; font-size:1.13rem; cursor:pointer; display:flex; align-items:center; white-space:nowrap;">' + dong + '</span>'
             + countHtml
             + '</div>';
         }).join('');
@@ -903,9 +895,7 @@
       };
     });
     
-    var rating = regionRatings[dong] || 0.0;
-    var starIcon = '<i class="bi bi-star-fill" style="color:#f9cb3e; font-size:0.9rem; margin:0 2px;"></i>';
-    var dongTitle = '<div style="font-size:1.13rem; font-weight:600; color:#1275E0; margin:14px 0 8px 0; display:flex; align-items:center;">지역: ' + dong + ' (' + starIcon + ' ' + rating.toFixed(1) + ')</div>';
+    var dongTitle = '<div style="font-size:1.13rem; font-weight:600; color:#1275E0; margin:14px 0 8px 0; display:flex; align-items:center;">지역: ' + dong + '</div>';
     if (filtered.length === 0) {
       window.searchResultBox.innerHTML = dongTitle + '<div style="color:#bbb; text-align:center; padding:40px 0;">해당 지역의 핫플레이스가 없습니다.</div>';
       return;

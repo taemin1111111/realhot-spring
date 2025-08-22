@@ -12,6 +12,7 @@ import java.util.List;
 public class Course {
     
     private Integer id;
+    private String userId;
     private String title;
     private String summary;
     private String authorUserid;
@@ -43,6 +44,14 @@ public class Course {
     
     public void setId(Integer id) {
         this.id = id;
+    }
+    
+    public String getUserId() {
+        return userId;
+    }
+    
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
     
     public String getTitle() {

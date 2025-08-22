@@ -186,8 +186,18 @@
                 </div>
                 <div class="course-hunting-form-group">
                     <label>작성자</label>
-                    <input type="text" id="courseNickname" name="nickname" required>
+                    <input type="text" id="courseNickname" name="nickname" required 
+                           maxlength="5" placeholder="닉네임 (5자 이하)">
                 </div>
+                <div class="course-hunting-form-group">
+                    <label>비밀번호</label>
+                    <input type="password" id="coursePassword" name="passwd_hash" 
+                           maxlength="4" pattern="[0-9]{4}" placeholder="숫자 4자리" 
+                           title="숫자 4자리를 입력해주세요"
+                           oninput="validatePassword(this)" onkeypress="return onlyNumbers(event)">
+                </div>
+                <!-- 사용자 ID 히든 필드 (로그인 상태에 따라 자동 설정) -->
+                <input type="hidden" id="courseUserId" name="userId" value="">
                 
                 <div class="course-hunting-steps-container">
                     <h3>코스 스텝</h3>
@@ -199,7 +209,12 @@
                             </div>
                             <div class="course-hunting-step-content">
                                 <div class="hotplace-search-container">
-                                    <input type="text" placeholder="핫플레이스 검색..." class="course-hunting-step-place" required>
+                                    <div class="search-input-wrapper">
+                                        <input type="text" placeholder="핫플레이스 검색..." class="course-hunting-step-place" required>
+                                        <button type="button" class="search-refresh-btn" onclick="clearSearch(this)" title="검색 초기화">
+                                            <span class="refresh-icon">↻</span>
+                                        </button>
+                                    </div>
                                     <input type="hidden" class="course-hunting-step-place-id" value="">
                                     <div class="hotplace-autocomplete" style="display: none;"></div>
                                 </div>
@@ -292,9 +307,84 @@ function goToDetail(courseId) {
     window.location.href = '<%=root%>/course/' + courseId;
 }
 
+// JWT 토큰 관리 함수들
+function getToken() {
+    return localStorage.getItem('accessToken');
+}
+
+function getUserInfo() {
+    const userInfo = localStorage.getItem('userInfo');
+    return userInfo ? JSON.parse(userInfo) : null;
+}
+
+// 비밀번호 입력 검증 함수들
+function onlyNumbers(event) {
+    const charCode = (event.which) ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+        return false;
+    }
+    return true;
+}
+
+function validatePassword(input) {
+    // 숫자가 아닌 문자 제거
+    input.value = input.value.replace(/[^0-9]/g, '');
+    
+    // 4자리로 제한
+    if (input.value.length > 4) {
+        input.value = input.value.slice(0, 4);
+    }
+    
+    // 4자리가 아니면 경고 표시
+    if (input.value.length > 0 && input.value.length !== 4) {
+        input.style.borderColor = '#ff6b6b';
+        input.title = '숫자 4자리를 입력해주세요';
+    } else {
+        input.style.borderColor = '#ddd';
+        input.title = '숫자 4자리를 입력해주세요';
+    }
+}
+
 // 코스 공유하기 모달 표시
 function showCreateForm() {
     document.getElementById('createModal').style.display = 'block';
+    
+    // 로그인 상태 확인 및 작성자 필드 설정
+    const userInfo = getUserInfo();
+    const nicknameInput = document.getElementById('courseNickname');
+    const passwordInput = document.getElementById('coursePassword');
+    
+    if (userInfo && userInfo.nickname) {
+        // 로그인된 사용자: 닉네임 자동 설정
+        nicknameInput.value = userInfo.nickname;
+        nicknameInput.readOnly = true;
+        nicknameInput.style.backgroundColor = '#f8f9fa';
+        
+        // 비밀번호 필드는 항상 표시 (숫자 4자리 입력)
+        passwordInput.style.display = 'block';
+        passwordInput.parentElement.style.display = 'block';
+        passwordInput.required = true;
+        
+        // 히든 필드에 사용자 ID 설정
+        const userIdInput = document.getElementById('courseUserId');
+        if (userIdInput) {
+            userIdInput.value = userInfo.userid || '';
+        }
+    } else {
+        // 비로그인 사용자: 닉네임 입력 가능, 비밀번호 필드 표시
+        nicknameInput.value = '';
+        nicknameInput.readOnly = false;
+        nicknameInput.style.backgroundColor = '#ffffff';
+        passwordInput.style.display = 'block';
+        passwordInput.parentElement.style.display = 'block';
+        passwordInput.required = true;
+        
+        // 히든 필드 초기화 (서버에서 IP 주소로 설정됨)
+        const userIdInput = document.getElementById('courseUserId');
+        if (userIdInput) {
+            userIdInput.value = '';
+        }
+    }
 }
 
 // 코스 공유하기 모달 닫기
@@ -308,6 +398,13 @@ function closeCreateModal() {
 function resetForm() {
     document.getElementById('courseForm').reset();
     
+    // 비밀번호 필드 초기화
+    const passwordInput = document.getElementById('coursePassword');
+    if (passwordInput) {
+        passwordInput.value = '';
+        passwordInput.required = false;
+    }
+    
     // 스텝을 1개로 초기화
     const stepsList = document.getElementById('stepsList');
     stepsList.innerHTML = `
@@ -318,7 +415,12 @@ function resetForm() {
             </div>
             <div class="course-hunting-step-content">
                 <div class="hotplace-search-container">
-                    <input type="text" placeholder="핫플레이스 검색..." class="course-hunting-step-place" required>
+                    <div class="search-input-wrapper">
+                        <input type="text" placeholder="핫플레이스 검색..." class="course-hunting-step-place" required>
+                        <button type="button" class="search-refresh-btn" onclick="clearSearch(this)" title="검색 초기화">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
                     <input type="hidden" class="course-hunting-step-place-id" value="">
                     <div class="hotplace-autocomplete" style="display: none;"></div>
                 </div>
@@ -359,7 +461,12 @@ function addStep() {
         </div>
                     <div class="course-hunting-step-content">
                 <div class="hotplace-search-container">
-                    <input type="text" placeholder="핫플레이스 검색..." class="course-hunting-step-place" required>
+                    <div class="search-input-wrapper">
+                        <input type="text" placeholder="핫플레이스 검색..." class="course-hunting-step-place" required>
+                        <button type="button" class="search-refresh-btn" onclick="clearSearch(this)" title="검색 초기화">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
                     <input type="hidden" class="course-hunting-step-place-id" value="">
                     <div class="hotplace-autocomplete" style="display: none;"></div>
                 </div>
@@ -684,11 +791,23 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
     
     console.log('폼 제출 처리 시작');
     
+    // 비밀번호 검증
+    const passwordInput = document.getElementById('coursePassword');
+    if (passwordInput && passwordInput.style.display !== 'none') {
+        const password = passwordInput.value;
+        if (password.length !== 4 || !/^\d{4}$/.test(password)) {
+            alert('비밀번호는 숫자 4자리로 입력해주세요.');
+            passwordInput.focus();
+            return;
+        }
+    }
+    
     // 폼 데이터 수집
     const formData = {
         title: document.getElementById('courseTitle').value,
         summary: document.getElementById('courseSummary').value,
         nickname: document.getElementById('courseNickname').value,
+        passwd_hash: document.getElementById('coursePassword').value,
         steps: []
     };
     
@@ -751,6 +870,7 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
     formDataToSend.append('title', formData.title);
     formDataToSend.append('summary', formData.summary);
     formDataToSend.append('nickname', formData.nickname);
+    formDataToSend.append('passwd_hash', formData.passwd_hash);
     
     // 스텝 데이터와 파일을 FormData에 추가 (유효한 스텝만)
     console.log('FormData에 스텝 추가 시작');
@@ -793,11 +913,23 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
     });
     console.log('=== FormData 내용 완료 ===');
     
+    // JWT 토큰 가져오기
+    const token = getToken();
+    
     // AJAX로 코스 등록 (파일 포함)
-    fetch('<%=root%>/course/create', {
+    const fetchOptions = {
         method: 'POST',
         body: formDataToSend // Content-Type은 브라우저가 자동으로 설정
-    })
+    };
+    
+    // JWT 토큰이 있으면 헤더에 추가
+    if (token) {
+        fetchOptions.headers = {
+            'Authorization': `Bearer ${token}`
+        };
+    }
+    
+    fetch('<%=root%>/course/create', fetchOptions)
     .then(response => response.text())
     .then(result => {
         if (result === 'success') {
@@ -813,4 +945,35 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
         alert('등록에 실패했습니다.');
     });
 });
+
+// 검색 초기화 함수
+function clearSearch(button) {
+    const searchContainer = button.closest('.hotplace-search-container');
+    const input = searchContainer.querySelector('.course-hunting-step-place');
+    const placeIdInput = searchContainer.querySelector('.course-hunting-step-place-id');
+    const autocompleteDiv = searchContainer.querySelector('.hotplace-autocomplete');
+    
+    // 입력 필드 초기화
+    input.value = '';
+    placeIdInput.value = '';
+    
+    // 자동완성 숨기기
+    if (autocompleteDiv) {
+        autocompleteDiv.style.display = 'none';
+    }
+    
+    // 입력 필드에 포커스
+    input.focus();
+    
+    // 새로고침 버튼 애니메이션
+    const icon = button.querySelector('.refresh-icon');
+    if (icon) {
+        icon.style.transform = 'rotate(360deg)';
+        icon.style.transition = 'transform 0.5s ease';
+        
+        setTimeout(() => {
+            icon.style.transform = 'rotate(0deg)';
+        }, 500);
+    }
+}
 </script>

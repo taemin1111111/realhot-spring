@@ -9,6 +9,79 @@
     z-index: 1;
 }
 
+/* 검색 입력 필드 래퍼 */
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* 검색 입력 필드 */
+.course-hunting-step-place {
+    flex: 1;
+    width: 100%;
+    padding: 12px 40px 12px 12px; /* 오른쪽에 버튼 공간 확보 */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.course-hunting-step-place:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* 새로고침 버튼 */
+.search-refresh-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #ffffff;
+    border: 1px solid #ddd;
+    color: #666;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    min-height: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.search-refresh-btn:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.search-refresh-btn:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.search-refresh-btn i {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+    color: #666;
+}
+
+/* 새로고침 아이콘 스타일 */
+.refresh-icon {
+    font-size: 18px;
+    font-weight: bold;
+    color: #666;
+    transition: transform 0.3s ease;
+    display: inline-block;
+    line-height: 1;
+}
+
 .hotplace-autocomplete {
     position: absolute;
     top: 100%;
@@ -655,7 +728,6 @@ body:has(.course-hunting-container) {
     gap: 10px;
 }
 
-.course-hunting-step-place,
 .course-hunting-step-photo,
 .course-hunting-step-description {
     padding: 10px 12px;
@@ -666,7 +738,6 @@ body:has(.course-hunting-container) {
     font-size: 13px;
 }
 
-.course-hunting-step-place:focus,
 .course-hunting-step-photo:focus,
 .course-hunting-step-description:focus {
     outline: none;

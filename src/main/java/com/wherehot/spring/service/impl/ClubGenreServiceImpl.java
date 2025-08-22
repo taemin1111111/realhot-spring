@@ -6,11 +6,13 @@ import com.wherehot.spring.service.ClubGenreService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -137,12 +139,13 @@ public class ClubGenreServiceImpl implements ClubGenreService {
     
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "genres", key = "'all'")
     public List<ClubGenre> getAllGenres() {
         try {
             return clubGenreMapper.findAllGenres();
         } catch (Exception e) {
             logger.error("Error getting all genres", e);
-            return new java.util.ArrayList<>();
+            throw new RuntimeException("장르 목록 조회 중 오류가 발생했습니다.", e);
         }
     }
     

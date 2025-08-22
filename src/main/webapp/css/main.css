@@ -1,0 +1,627 @@
+/* ===== main.jsp 전용 스타일 ===== */
+
+/* ✅ 커스텀 마커 스타일 */
+.custom-marker {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+    line-height: 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.custom-marker:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+/* 카테고리별 마커 색상 */
+.marker-club {
+    background: linear-gradient(135deg, #9c27b0, #ba68c8);
+}
+
+.marker-hunting {
+    background: linear-gradient(135deg, #f44336, #ef5350);
+}
+
+.marker-lounge {
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+}
+
+.marker-pocha {
+    background: linear-gradient(135deg, #8d6e63, #a1887f);
+}
+
+/* 마커 아래 상호명 */
+.marker-label {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 4px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.custom-marker:hover .marker-label {
+    opacity: 1;
+}
+
+/* 마커 컨테이너 */
+.marker-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* === 동/구 오버레이(큰 원/라벨) === */
+.region-label {
+  background: rgba(255,255,255,0.92);
+  color: #222;
+  font-weight: 700;
+  font-size: 1.08rem;
+  border-radius: 14px;
+  padding: 8px 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  border: 1.5px solid #e0e0e0;
+  text-align: center;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  letter-spacing: 0.01em;
+  opacity: 0.98;
+}
+.region-label:hover {
+  background: #e3f0fb;
+  color: #1275E0;
+  border-color: #b6dafe;
+  box-shadow: 0 4px 16px rgba(18,117,224,0.10);
+}
+
+/* === 카테고리별 개수 오버레이(마커+숫자) === */
+.region-counts {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  justify-content: center;
+  align-items: center;
+}
+.region-count-marker {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 16px;
+  padding: 4px 10px 4px 8px;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  margin-right: 2px;
+}
+.region-count-marker.marker-club { background: linear-gradient(135deg, #9c27b0, #ba68c8); }
+.region-count-marker.marker-hunting { background: linear-gradient(135deg, #f44336, #ef5350); }
+.region-count-marker.marker-lounge { background: linear-gradient(135deg, #4caf50, #66bb6a); }
+.region-count-marker.marker-pocha { background: linear-gradient(135deg, #8d6e63, #a1887f); }
+.region-count-marker .count {
+  font-size: 12px;
+  margin-left: 4px;
+  color: #fff;
+  opacity: 0.85;
+}
+
+.region-label {
+  pointer-events: auto !important;
+}
+.region-counts, .dong-category-counts {
+  pointer-events: none !important;
+}
+.dong-category-counts {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 24px;
+  background: rgba(255,255,255,0.85);
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  border: 1.5px solid #e0e0e0;
+  backdrop-filter: blur(4px);
+}
+.category-ball {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: bold;
+  font-size: 18px;
+  margin-right: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.marker-club   { background: linear-gradient(135deg, #9c27b0, #ba68c8); }
+.marker-hunting{ background: linear-gradient(135deg, #f44336, #ef5350); }
+.marker-lounge { background: linear-gradient(135deg, #4caf50, #66bb6a); }
+.marker-pocha  { background: linear-gradient(135deg, #8d6e63, #a1887f); }
+
+/* 투표 별점 스타일 */
+.rating-stars {
+  font-size: 18px;
+  color: #ffc107;
+  cursor: pointer;
+}
+.rating-stars .bi-star {
+  transition: color 0.2s;
+}
+.rating-stars .bi-star:hover,
+.rating-stars .bi-star-fill {
+  color: #ffc107;
+}
+
+/* 핫플 정보 카드 */
+.hotplace-info {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  color: #333;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+/* 투표 폼 버튼 */
+.btn.vote-btn, .btn-primary.btn-sm.w-100 {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-weight: 600;
+  transition: transform 0.2s;
+}
+.btn.vote-btn:hover, .btn-primary.btn-sm.w-100:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  color: #ff1493;
+}
+
+.pick-location-btn:active, .btn-primary.btn-sm.w-100:active {
+  transform: translateY(0);
+}
+
+/* 투표 카테고리 뱃지 */
+.badge.bg-light.text-dark, .category-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.category-club { background: #9c27b0; }
+.category-hunting { background: #f44336; }
+.category-lounge { background: #4caf50; }
+.category-pocha { background: #8d6e63; }
+
+/* 투표 안내 메시지 스타일 */
+.vote-guide-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px dashed rgba(255,255,255,0.3);
+  border-radius: 15px;
+  padding: 25px;
+  text-align: center;
+  margin-bottom: 20px;
+  color: white;
+}
+
+.vote-guide-icon {
+  font-size: 3rem;
+  color: white;
+  opacity: 0.9;
+  margin-bottom: 15px;
+}
+
+.vote-guide-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 5px;
+  line-height: 1.4;
+}
+
+.vote-guide-subtitle {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 20px;
+}
+
+/* 지정하기 버튼 스타일 */
+.pick-location-btn {
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pick-location-btn:hover {
+  background: rgba(255,255,255,0.3);
+  border-color: rgba(255,255,255,0.5);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* 투표 폼 체크박스 스타일 */
+.form-check-input:checked {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+  color: #ff1493;
+}
+
+.pick-location-btn:active {
+  transform: translateY(0);
+}
+
+/* 지도 번쩍 효과 (투명한 트렌디한 핑크) */
+.map-glow-effect {
+  box-shadow: 0 0 0 4px rgba(255, 20, 147, 0.3), 
+              0 0 20px 8px rgba(255, 20, 147, 0.2),
+              0 0 40px 16px rgba(255, 20, 147, 0.1) !important;
+  transition: box-shadow 0.6s ease-in-out;
+}
+
+/* 오늘핫 오른쪽 고정 패널 */
+.todayhot-float-panel {
+  position: fixed;
+  top: 170px;
+  right: 32px;
+  width: 320px;
+  background: none;
+  box-shadow: none;
+  z-index: 2000;
+  border: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.today-hot-box.card-box {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  padding: 18px 16px;
+  min-width: 220px;
+}
+
+@media (max-width: 900px) {
+  .todayhot-float-panel {
+    display: none;
+  }
+}
+
+/* ✅ 토스트 메시지 (투표 등 알림용) */
+.toast-message {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  opacity: 0.95;
+  transition: opacity 0.5s;
+  pointer-events: none;
+}
+.toast-message.success {
+  background: #28a745;
+}
+.toast-message.error {
+  background: #dc3545;
+}
+
+/* 위시리스트 하트 아이콘 */
+.wish-heart {
+  font-size: 1.6em;
+  color: #bbb;
+  cursor: pointer;
+  transition: color 0.2s;
+  user-select: none;
+  vertical-align: middle;
+}
+.wish-heart.on {
+  color: #ff357a;
+}
+.wish-heart:hover {
+  color: #ff357a;
+}
+
+/* ===== main.jsp 전용 이미지 모달 스타일 ===== */
+.main-image-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.main-image-modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.main-image-modal-content {
+    position: relative;
+    max-width: 60%;
+    max-height: 60%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.main-image-modal-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    min-width: 90%;
+    min-height: 90%;
+    width: auto;
+    height: auto;
+}
+
+.main-image-modal-close {
+    position: absolute;
+    top: -50px;
+    right: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.main-image-modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+/* 모달 좌우 화살표 버튼 */
+.modal-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 2001;
+}
+
+.modal-nav-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.modal-prev-btn {
+    left: -80px;
+}
+
+.modal-next-btn {
+    right: -80px;
+}
+
+/* 모달 이미지 개수 표시 */
+.modal-image-counter {
+    position: absolute;
+    bottom: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 2001;
+}
+
+/* ✅ InfoWindow 반응형 스타일 */
+.infoWindow {
+    box-sizing: border-box !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+.infoWindow * {
+    box-sizing: border-box !important;
+}
+
+/* 작은 화면에서의 InfoWindow 최적화 */
+@media (max-width: 480px) {
+    .infoWindow {
+        min-width: 260px !important;
+        max-width: 90vw !important;
+        width: 90vw !important;
+    }
+    
+    .infoWindow .place-images-container {
+        height: 140px !important;
+    }
+    
+    .infoWindow strong {
+        font-size: 14px !important;
+    }
+    
+    .infoWindow span,
+    .infoWindow div {
+        font-size: 11px !important;
+    }
+}
+
+/* 중간 화면에서의 InfoWindow 최적화 */
+@media (min-width: 481px) and (max-width: 768px) {
+    .infoWindow {
+        min-width: 280px !important;
+        max-width: 70vw !important;
+        width: clamp(280px, 320px, 70vw) !important;
+    }
+    
+    .infoWindow .place-images-container {
+        height: 160px !important;
+    }
+}
+
+/* 큰 화면에서의 InfoWindow 최적화 */
+@media (min-width: 769px) {
+    .infoWindow {
+        min-width: 280px !important;
+        max-width: 320px !important;
+        width: 320px !important;
+    }
+    
+    .infoWindow .place-images-container {
+        height: 180px !important;
+    }
+}
+
+/* InfoWindow 내부 요소들의 텍스트 오버플로우 방지 */
+.infoWindow strong,
+.infoWindow div,
+.infoWindow span {
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+}
+
+/* InfoWindow 내부 링크들의 반응형 처리 */
+.infoWindow a {
+    display: block !important;
+    max-width: 100% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    text-align: center !important;
+    margin-bottom: 8px !important;
+}
+
+/* InfoWindow 버튼 hover 효과 강화 */
+.infoWindow a[onclick*="showVoteSection"] {
+    transition: all 0.3s ease !important;
+    background: linear-gradient(135deg, #ff6b9d, #ff85a2) !important;
+    border-color: #ff6b9d !important;
+    color: white !important;
+    font-weight: 600 !important;
+    border-radius: 25px !important;
+    box-shadow: 0 4px 15px rgba(255, 107, 157, 0.25) !important;
+}
+
+.infoWindow a[onclick*="showVoteSection"]:hover {
+    background: linear-gradient(135deg, #ff5a8c, #ff6b9d) !important;
+    border-color: #ff5a8c !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4) !important;
+}
+
+.infoWindow a[onclick*="openGenreEditModal"] {
+    transition: all 0.3s ease !important;
+}
+
+.infoWindow a[onclick*="openGenreEditModal"]:hover {
+    background: #ffe0b2 !important;
+    border-color: #ff6b35 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3) !important;
+}
+
+/* InfoWindow 이미지 컨테이너 반응형 */
+.infoWindow .place-images-container {
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+/* InfoWindow 내부 레이아웃 최적화 */
+.infoWindow .place-name-wish-container {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+}
+
+.infoWindow .action-buttons-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin-top: 16px !important;
+    padding-bottom: 16px !important;
+}
+
+/* InfoWindow 내 "역대 투표:" 텍스트 크기 증가 */
+.infoWindow div[id*="voteTrends"] {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+    margin-bottom: 8px !important;
+}
+
+/* InfoWindow 내 "장르:" 텍스트 앞에 음표 이모티콘 추가 */
+.infoWindow div[style*="color:#9c27b0"][style*="장르:"]::before {
+    content: "🎵 ";
+    color: #9c27b0;
+    margin-right: 4px;
+}

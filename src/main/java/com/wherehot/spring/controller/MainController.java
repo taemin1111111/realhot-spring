@@ -1,29 +1,32 @@
 package com.wherehot.spring.controller;
 
+import com.wherehot.spring.entity.ClubGenre;
+import com.wherehot.spring.entity.Hotplace;
+import com.wherehot.spring.entity.Post;
+import com.wherehot.spring.service.*;
+import com.wherehot.spring.security.JwtUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.*;
 
-import com.wherehot.spring.entity.Hotplace;
-import com.wherehot.spring.entity.Category;
-import com.wherehot.spring.entity.Post;
-import com.wherehot.spring.service.HotplaceService;
-import com.wherehot.spring.service.CategoryService;
-import com.wherehot.spring.service.RegionService;
-import com.wherehot.spring.service.PostService;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
-import java.util.HashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.ResponseBody;
+import com.wherehot.spring.service.WishListService;
+import com.wherehot.spring.service.ContentImageService;
+import com.wherehot.spring.service.VoteService;
+import com.wherehot.spring.entity.Category;
+import com.wherehot.spring.entity.Region;
+import com.wherehot.spring.entity.WishList;
+import com.wherehot.spring.entity.ContentImage;
 
 @Controller
 public class MainController {
@@ -42,6 +45,21 @@ public class MainController {
     @Autowired
     private PostService postService;
 
+    @Autowired
+    private WishListService wishListService;
+
+    @Autowired
+    private ContentImageService contentImageService;
+
+    @Autowired
+    private VoteService voteService;
+
+    @Autowired
+    private ClubGenreService clubGenreService;
+
+    @Autowired
+    private JwtUtils jwtUtils;
+
     /**
      * 메인 페이지 (기본 페이지)
      */
@@ -57,7 +75,7 @@ public class MainController {
      */
     @GetMapping("/index.jsp")
     public String indexJsp(@RequestParam(value = "main", required = false) String main, 
-                          Model model, HttpServletRequest request) {
+                          Model model, jakarta.servlet.http.HttpServletRequest request) {
         // 기존 JSP 호출 방식과의 호환성을 위해
         if (main != null && !main.isEmpty()) {
             model.addAttribute("mainPage", main);
@@ -149,5 +167,171 @@ public class MainController {
         model.addAttribute("popularPosts", new ArrayList<>());
         model.addAttribute("isAuthenticated", false);
         model.addAttribute("cacheTimestamp", System.currentTimeMillis());
+    }
+
+    // 찜 목록 API (POST만 사용)
+    @PostMapping("/api/main/wish")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> getWishList(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestParam(value = "action", required = false) String action,
+            @RequestParam(value = "placeId", required = false) Integer placeId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String userid = null;
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                userid = jwtUtils.getUseridFromToken(token);
+            }
+            
+            if ("check".equals(action) && placeId != null) {
+                // 찜 여부 확인
+                boolean isWished = wishListService.isWished(userid, placeId);
+                response.put("result", isWished);
+                return org.springframework.http.ResponseEntity.ok(response);
+            } else if ("add".equals(action) && placeId != null) {
+                // 찜 추가
+                boolean success = wishListService.addWish(userid, placeId);
+                response.put("result", success);
+                return org.springframework.http.ResponseEntity.ok(response);
+            } else if ("remove".equals(action) && placeId != null) {
+                // 찜 제거
+                boolean success = wishListService.removeWish(userid, placeId);
+                response.put("result", success);
+                return org.springframework.http.ResponseEntity.ok(response);
+            } else {
+                // 찜 목록 조회
+                List<WishList> wishList = wishListService.findWishListByUser(userid, 0, 100);
+                response.put("result", true);
+                response.put("wishList", wishList);
+                return org.springframework.http.ResponseEntity.ok(response);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Wish list error: ", e);
+            response.put("result", false);
+            response.put("error", "찜 목록 조회 중 오류가 발생했습니다.");
+            return org.springframework.http.ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    // 장소 이미지 API
+    @GetMapping("/api/main/place-images")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> getPlaceImages(@RequestParam int placeId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            List<ContentImage> images = contentImageService.getImagesByHotplaceId(placeId);
+            List<String> imageUrls = new ArrayList<>();
+            
+            for (ContentImage image : images) {
+                imageUrls.add(image.getImagePath());
+            }
+            
+            response.put("result", true);
+            response.put("images", imageUrls);
+            return org.springframework.http.ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Place images error: ", e);
+            response.put("result", false);
+            response.put("error", "이미지 조회 중 오류가 발생했습니다.");
+            return org.springframework.http.ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    // 찜 개수 API (POST만 사용)
+    @PostMapping("/api/main/wish-count")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> getWishCount(@RequestParam int placeId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            int count = wishListService.getWishCount(placeId);
+            response.put("success", true);
+            response.put("count", count);
+            return org.springframework.http.ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Wish count error: ", e);
+            response.put("success", false);
+            response.put("error", "찜 개수 조회 중 오류가 발생했습니다.");
+            return org.springframework.http.ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    // 투표 트렌드 API (POST만 사용) - 실제 데이터베이스에서 가져오기
+    @PostMapping("/api/main/vote-trends")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> getVoteTrends(@RequestParam(value = "placeId", required = false) Integer placeId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            if (placeId != null) {
+                // 실제 데이터베이스에서 투표 트렌드 가져오기
+                Map<String, Object> trends = voteService.getVoteTrends(placeId);
+                
+                // 데이터가 없으면 기본값 설정
+                if (trends == null || trends.isEmpty()) {
+                    trends = new HashMap<>();
+                    trends.put("congestion", "데이터없음");
+                    trends.put("genderRatio", "데이터없음");
+                    trends.put("waitTime", "데이터없음");
+                }
+                
+                response.put("success", true);
+                response.put("trends", trends);
+            } else {
+                // 전체 투표 트렌드
+                Map<String, Object> trends = new HashMap<>();
+                trends.put("congestion", "데이터없음");
+                trends.put("genderRatio", "데이터없음");
+                trends.put("waitTime", "데이터없음");
+                response.put("success", true);
+                response.put("trends", trends);
+            }
+            
+            return org.springframework.http.ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Vote trends error: ", e);
+            response.put("success", false);
+            response.put("error", "투표 트렌드 조회 중 오류가 발생했습니다.");
+            return org.springframework.http.ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    // 장르 목록 API (POST만 사용)
+    @PostMapping("/api/main/genre")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> getGenres(
+            @RequestParam(value = "action", required = false) String action,
+            @RequestParam(value = "placeId", required = false) Integer placeId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            if ("getGenres".equals(action) && placeId != null) {
+                // 특정 장소의 장르 정보 조회
+                List<Map<String, Object>> genres = clubGenreService.getAllGenresWithSelection(placeId);
+                
+                response.put("success", true);
+                response.put("genres", genres);
+            } else {
+                // 전체 장르 목록 조회
+                List<ClubGenre> genres = clubGenreService.getAllGenres();
+                response.put("result", true);
+                response.put("genres", genres);
+            }
+            
+            return org.springframework.http.ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Genre error: ", e);
+            response.put("success", false);
+            response.put("error", "장르 목록 조회 중 오류가 발생했습니다.");
+            return org.springframework.http.ResponseEntity.internalServerError().body(response);
+        }
     }
 }

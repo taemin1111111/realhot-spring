@@ -46,6 +46,7 @@
 <!-- Kakao Map SDK -->
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9c8d14f1fa7135d1f77778321b1e25fa&libraries=services"></script>
 <link rel="stylesheet" href="<%=request.getContextPath()%>/css/all.css">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/css/main.css">
 
 <div class="main-container">
   <div class="row gx-4 gy-4 align-items-stretch">
@@ -1214,11 +1215,12 @@
     if (!genresElement) return;
     
     // Spring API 호출
-    fetch(root + '/api/main/genre?action=getGenres&placeId=' + placeId, {
-      method: 'GET',
+    fetch(root + '/api/main/genre', {
+      method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'action=getGenres&placeId=' + placeId
     })
     .then(response => response.json())
     .then(data => {
@@ -1348,12 +1350,13 @@
 
   // 장르 편집 모달 (Spring API 기반)
   function openGenreEditModal(placeId, placeName) {
-    // 장르 목록 가져오기 (GET 방식으로 변경)
-    fetch(root + '/api/main/genre?action=getGenres&placeId=' + placeId, {
-      method: 'GET',
+    // 장르 목록 가져오기 (POST 방식으로 변경)
+    fetch(root + '/api/main/genre', {
+      method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'action=getGenres&placeId=' + placeId
     })
     .then(response => response.json())
     .then(data => {

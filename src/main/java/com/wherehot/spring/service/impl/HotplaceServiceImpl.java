@@ -6,6 +6,7 @@ import com.wherehot.spring.service.HotplaceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class HotplaceServiceImpl implements HotplaceService {
     
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "hotplaces", key = "'all'")
     public List<Hotplace> findAllHotplaces() {
         try {
             return hotplaceMapper.findAll();
@@ -270,12 +272,13 @@ public class HotplaceServiceImpl implements HotplaceService {
     
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "hotplaces", key = "'names'")
     public List<String> findAllHotplaceNames() {
         try {
             return hotplaceMapper.findAllHotplaceNames();
         } catch (Exception e) {
             logger.error("Error finding all hotplace names", e);
-            return new java.util.ArrayList<>();
+            throw new RuntimeException("핫플레이스명 목록 조회 중 오류가 발생했습니다.", e);
         }
     }
 }

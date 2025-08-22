@@ -2,6 +2,102 @@
    코스 추천 페이지 - 블라인드 스타일
    ======================================== */
 
+/* 핫플레이스 검색 자동완성 스타일 */
+.hotplace-search-container {
+    position: relative;
+    width: 100%;
+    z-index: 1;
+}
+
+.hotplace-autocomplete {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10000;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+}
+
+/* 모달 내부에서 자동완성이 제대로 표시되도록 추가 스타일 */
+.course-hunting-modal .hotplace-autocomplete {
+    z-index: 10001 !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: white !important;
+    border: 1px solid #ddd !important;
+    border-top: none !important;
+    border-radius: 0 0 8px 8px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
+    display: block !important;
+}
+
+/* 모달 자체의 z-index를 낮춰서 자동완성이 위에 표시되도록 */
+.course-hunting-modal {
+    z-index: 9998;
+}
+
+.course-hunting-modal-content {
+    z-index: 9999;
+}
+
+.autocomplete-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s ease;
+}
+
+.autocomplete-item:hover {
+    background-color: #f8f9fa;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.autocomplete-address {
+    color: #666;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+/* 자동완성 스크롤바 스타일 */
+.hotplace-autocomplete::-webkit-scrollbar {
+    width: 6px;
+}
+
+.hotplace-autocomplete::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.hotplace-autocomplete::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.hotplace-autocomplete::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
 /* 코스 추천 페이지에서만 배경색 적용 */
 .course-hunting-container {
     background: #f8f9fa;

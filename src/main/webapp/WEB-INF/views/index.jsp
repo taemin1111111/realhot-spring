@@ -16,10 +16,6 @@
 <title>어디핫?</title>
 <link rel="icon" type="image/x-icon" href="<%=root%>/favicon.ico">
 
-<!-- 구글 폰트: Noto Sans KR -->
-<link
-	href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap"
-	rel="stylesheet">
 
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -41,24 +37,9 @@
 <link rel="stylesheet" href="<%=root%>/css/LoginModal.css">
 <!-- 후기작성 -->
 <link rel="stylesheet" href="<%=root%>/css/join.css">
-<!-- 커뮤니티 -->
-<link rel="stylesheet" href="<%=root%>/css/community.css">
-<!-- 마이페이지 -->
-<link rel="stylesheet" href="<%=root%>/css/mypage.css">
-<!-- MD 페이지 -->
-<link rel="stylesheet" href="<%=root%>/css/md.css">
-<!-- 공지사항 -->
-<link rel="stylesheet" href="<%=root%>/css/notice.css">
-<!-- 관리자 페이지 -->
-<link rel="stylesheet" href="<%=root%>/css/admin.css">
-<!-- TAEMIN 게시판 관리 -->
-<link rel="stylesheet" href="<%=root%>/css/taemin.css">
-<!-- 지도 검색 -->
-<link rel="stylesheet" href="<%=root%>/css/mapserach.css">
 <!-- 네이버 가입 -->
 <link rel="stylesheet" href="<%=root%>/css/naverJoin.css">
-<!-- 코스 추천 -->
-<link rel="stylesheet" href="<%=root%>/css/course.css">
+
 
 <style>
 .main-welcome {

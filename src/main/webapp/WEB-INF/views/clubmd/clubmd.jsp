@@ -7,7 +7,8 @@
     String provider = (String)session.getAttribute("provider");
 %>
 
-
+<!-- MD 전용 CSS -->
+<link rel="stylesheet" href="<%=root%>/css/md.css">
 
 <div class="md-container">
     

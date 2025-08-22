@@ -6,13 +6,13 @@ import com.wherehot.spring.service.RegionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Optional;
 
 /**
  * 지역 서비스 구현체
@@ -25,6 +25,66 @@ public class RegionServiceImpl implements RegionService {
     
     @Autowired
     private RegionMapper regionMapper;
+    
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "regions", key = "'sigungu-centers'")
+    public List<Map<String, Object>> getAllSigunguCenters() {
+        try {
+            return regionMapper.getAllSigunguCenters();
+        } catch (Exception e) {
+            logger.error("Error getting all sigungu centers", e);
+            throw new RuntimeException("시군구 중심좌표 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "regions", key = "'sigungu-category-counts'")
+    public List<Map<String, Object>> getSigunguCategoryCounts() {
+        try {
+            return regionMapper.getSigunguCategoryCounts();
+        } catch (Exception e) {
+            logger.error("Error getting sigungu category counts", e);
+            throw new RuntimeException("시군구별 카테고리 개수 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "regions", key = "'region-centers'")
+    public List<Map<String, Object>> getAllRegionCenters() {
+        try {
+            return regionMapper.getAllRegionCenters();
+        } catch (Exception e) {
+            logger.error("Error getting all region centers", e);
+            throw new RuntimeException("지역 중심좌표 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "regions", key = "'region-category-counts'")
+    public List<Map<String, Object>> getRegionCategoryCounts() {
+        try {
+            return regionMapper.getRegionCategoryCounts();
+        } catch (Exception e) {
+            logger.error("Error getting region category counts", e);
+            throw new RuntimeException("지역별 카테고리 개수 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "regions", key = "'region-names'")
+    public List<String> getAllRegionNames() {
+        try {
+            return regionMapper.getAllRegionNames();
+        } catch (Exception e) {
+            logger.error("Error getting all region names", e);
+            throw new RuntimeException("지역명 목록 조회 중 오류가 발생했습니다.", e);
+        }
+    }
     
     @Override
     @Transactional(readOnly = true)
@@ -44,56 +104,20 @@ public class RegionServiceImpl implements RegionService {
     
     @Override
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> getAllSigunguCenters() {
+    @Cacheable(value = "regions", key = "'dong-mapping'")
+    public Map<String, Integer> getDongToRegionIdMapping() {
         try {
-            return regionMapper.getAllSigunguCenters();
+            List<Map<String, Object>> mappings = regionMapper.getDongToRegionIdMapping();
+            Map<String, Integer> result = new java.util.HashMap<>();
+            for (Map<String, Object> mapping : mappings) {
+                String dong = (String) mapping.get("dong");
+                Integer id = (Integer) mapping.get("id");
+                result.put(dong, id);
+            }
+            return result;
         } catch (Exception e) {
-            logger.error("Error getting sigungu centers", e);
-            return new java.util.ArrayList<>();
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> getSigunguCategoryCounts() {
-        try {
-            return regionMapper.getSigunguCategoryCounts();
-        } catch (Exception e) {
-            logger.error("Error getting sigungu category counts", e);
-            return new java.util.ArrayList<>();
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> getAllRegionCenters() {
-        try {
-            return regionMapper.getAllRegionCenters();
-        } catch (Exception e) {
-            logger.error("Error getting region centers", e);
-            return new java.util.ArrayList<>();
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> getRegionCategoryCounts() {
-        try {
-            return regionMapper.getRegionCategoryCounts();
-        } catch (Exception e) {
-            logger.error("Error getting region category counts", e);
-            return new java.util.ArrayList<>();
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<String> getAllRegionNames() {
-        try {
-            return regionMapper.getAllRegionNames();
-        } catch (Exception e) {
-            logger.error("Error getting region names", e);
-            return new java.util.ArrayList<>();
+            logger.error("Error getting dong to region id mapping", e);
+            throw new RuntimeException("동/구별 ID 매핑 조회 중 오류가 발생했습니다.", e);
         }
     }
     
@@ -102,7 +126,7 @@ public class RegionServiceImpl implements RegionService {
     public Map<String, Double> getRegionAverageRatings() {
         try {
             List<Map<String, Object>> ratings = regionMapper.getRegionAverageRatings();
-            Map<String, Double> result = new HashMap<>();
+            Map<String, Double> result = new java.util.HashMap<>();
             for (Map<String, Object> rating : ratings) {
                 String dong = (String) rating.get("dong");
                 Object avgRatingObj = rating.get("averageRating");
@@ -117,25 +141,7 @@ public class RegionServiceImpl implements RegionService {
             return result;
         } catch (Exception e) {
             logger.error("Error getting region average ratings", e);
-            return new HashMap<>();
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public Map<String, Integer> getDongToRegionIdMapping() {
-        try {
-            List<Map<String, Object>> mappings = regionMapper.getDongToRegionIdMapping();
-            Map<String, Integer> result = new HashMap<>();
-            for (Map<String, Object> mapping : mappings) {
-                String dong = (String) mapping.get("dong");
-                Integer id = (Integer) mapping.get("id");
-                result.put(dong, id);
-            }
-            return result;
-        } catch (Exception e) {
-            logger.error("Error getting dong to region id mapping", e);
-            return new HashMap<>();
+            return new java.util.HashMap<>();
         }
     }
     
@@ -146,7 +152,7 @@ public class RegionServiceImpl implements RegionService {
             return regionMapper.getRegionStatistics(dong);
         } catch (Exception e) {
             logger.error("Error getting region statistics for dong: {}", dong, e);
-            return new HashMap<>();
+            return new java.util.HashMap<>();
         }
     }
     

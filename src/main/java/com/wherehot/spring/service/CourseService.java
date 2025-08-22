@@ -57,17 +57,25 @@ public class CourseService {
     // 코스 등록
     @Transactional
     public int createCourse(Course course, List<CourseStep> courseSteps) {
+        System.out.println("=== CourseService.createCourse 시작 ===");
+        System.out.println("코스 정보: " + course.getTitle() + ", " + course.getSummary() + ", " + course.getNickname());
+        System.out.println("스텝 개수: " + (courseSteps != null ? courseSteps.size() : 0));
+        
         // 코스 등록
         int result = courseMapper.insertCourse(course);
+        System.out.println("코스 등록 결과: " + result);
+        System.out.println("생성된 코스 ID: " + course.getId());
         
         if (result > 0 && courseSteps != null) {
             // 스텝 등록
             for (CourseStep step : courseSteps) {
                 step.setCourseId(course.getId());
-                courseStepMapper.insertCourseStep(step);
+                int stepResult = courseStepMapper.insertCourseStep(step);
+                System.out.println("스텝 등록 결과: " + stepResult + " (스텝번호: " + step.getStepNo() + ")");
             }
         }
         
+        System.out.println("=== CourseService.createCourse 완료 ===");
         return result;
     }
     

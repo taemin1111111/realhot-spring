@@ -13,6 +13,7 @@ public class CourseStep {
     private Integer courseId;
     private Integer stepNo;
     private Integer placeId;
+    private String placeName; // 핫플레이스 이름 (JOIN으로 가져올 때 사용)
     private String photoUrl;
     private String description;
     private LocalDateTime createdAt;
@@ -57,6 +58,14 @@ public class CourseStep {
     
     public void setPlaceId(Integer placeId) {
         this.placeId = placeId;
+    }
+    
+    public String getPlaceName() {
+        return placeName;
+    }
+    
+    public void setPlaceName(String placeName) {
+        this.placeName = placeName;
     }
     
     public String getPhotoUrl() {

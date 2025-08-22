@@ -70,7 +70,7 @@
             <div id="user-section" style="display: none;">
                 <div class="dropdown">
                     <a href="#" class="text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                        <span id="user-nickname">사용자</span>님
+                        <span id="user-icon">👤</span> <span id="user-nickname">사용자</span>님
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="<%=root%>/?main=mypage/mypageMain.jsp">마이페이지</a></li>
@@ -154,6 +154,7 @@ function updateTitleUIFromSavedInfo(userInfo) {
     const loginSection = document.getElementById('login-section');
     const userSection = document.getElementById('user-section');
     const userNickname = document.getElementById('user-nickname');
+    const userIcon = document.getElementById('user-icon');
     const adminMenu = document.getElementById('admin-menu');
     
     if (loginSection && userSection && userNickname) {
@@ -161,8 +162,17 @@ function updateTitleUIFromSavedInfo(userInfo) {
         userSection.style.display = 'block';
         userNickname.textContent = userInfo.nickname || userInfo.userid;
         
+        // 이모티콘 설정
+        if (userIcon) {
+            if (userInfo.provider === 'admin' || userInfo.userid === 'admin') {
+                userIcon.textContent = '👑'; // 관리자는 왕관
+            } else {
+                userIcon.textContent = '👤'; // 일반 사용자는 사람
+            }
+        }
+        
         if (adminMenu) {
-            adminMenu.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
+            adminMenu.style.display = (userInfo.provider === 'admin' || userInfo.userid === 'admin') ? 'block' : 'none';
         }
         
         console.log('즉시 UI 업데이트 완료:', userInfo.nickname);
@@ -176,10 +186,11 @@ async function updateAuthUI() {
     const loginSection = document.getElementById('login-section');
     const userSection = document.getElementById('user-section');
     const userNickname = document.getElementById('user-nickname');
+    const userIcon = document.getElementById('user-icon');
     const adminMenu = document.getElementById('admin-menu');
     
     console.log('토큰 확인:', token ? '토큰 있음' : '토큰 없음');
-    console.log('UI 요소들:', { loginSection, userSection, userNickname, adminMenu });
+    console.log('UI 요소들:', { loginSection, userSection, userNickname, userIcon, adminMenu });
     
     if (token) {
         try {
@@ -199,6 +210,15 @@ async function updateAuthUI() {
                 if (loginSection) loginSection.style.display = 'none';
                 if (userSection) userSection.style.display = 'block';
                 if (userNickname) userNickname.textContent = data.nickname || data.userid;
+                
+                // 이모티콘 설정
+                if (userIcon) {
+                    if (data.isAdmin === true) {
+                        userIcon.textContent = '👑'; // 관리자는 왕관
+                    } else {
+                        userIcon.textContent = '👤'; // 일반 사용자는 사람
+                    }
+                }
                 
                 console.log('로그인 UI 업데이트 완료:', data.nickname || data.userid);
                 

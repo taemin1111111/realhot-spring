@@ -37,10 +37,11 @@ public class CacheConfig {
             "communityCategories",    // 커뮤니티 카테고리 목록
             "communityCategory",      // 개별 커뮤니티 카테고리
             "popularCommunityCategories", // 인기 커뮤니티 카테고리
-            "hotplaces",              // 핫플레이스 목록
+            "hotplaces",              // 핫플레이스 목록 (새로 추가)
             "hotplace",               // 개별 핫플레이스
-            "categories",             // 일반 카테고리
-            "regions",                // 지역 정보
+            "categories",             // 일반 카테고리 (새로 추가)
+            "regions",                // 지역 정보 (새로 추가)
+            "genres",                 // 장르 정보 (새로 추가)
             "posts",                  // 게시글
             "comments",               // 댓글
             "memberStats",            // 회원 통계

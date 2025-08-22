@@ -2,6 +2,9 @@
 <%
     String root = request.getContextPath();
 %>
+<!-- 커뮤니티 전용 CSS -->
+<link rel="stylesheet" href="<%=root%>/css/community.css">
+
     <div class="container community-container">
     <!-- 카테고리 헤더 -->
     <div class="community-header">

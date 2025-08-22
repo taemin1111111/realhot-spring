@@ -249,29 +249,33 @@ function showLogin() {
     document.getElementById("loginForm").style.display = "block";
 }
 
-// title UI 즉시 업데이트 함수
+// 타이틀 UI 업데이트 함수
 function updateTitleUI(nickname, provider) {
-    console.log('title UI 즉시 업데이트:', nickname, provider);
-    
     const loginSection = document.getElementById('login-section');
     const userSection = document.getElementById('user-section');
     const userNickname = document.getElementById('user-nickname');
+    const userIcon = document.getElementById('user-icon');
     const adminMenu = document.getElementById('admin-menu');
     
     if (loginSection && userSection && userNickname) {
-        // 로그인 상태로 변경
         loginSection.style.display = 'none';
         userSection.style.display = 'block';
-        userNickname.textContent = nickname || '사용자';
+        userNickname.textContent = nickname;
         
-        // 관리자 메뉴 표시/숨김
-        if (adminMenu) {
-            adminMenu.style.display = (provider === 'admin') ? 'block' : 'none';
+        // 이모티콘 설정
+        if (userIcon) {
+            if (provider === 'admin' || nickname === 'admin') {
+                userIcon.textContent = '👑'; // 관리자는 왕관
+            } else {
+                userIcon.textContent = '👤'; // 일반 사용자는 사람
+            }
         }
         
-        console.log('Title UI 업데이트 완료:', nickname);
-    } else {
-        console.error('Title UI 요소를 찾을 수 없음');
+        if (adminMenu) {
+            adminMenu.style.display = (provider === 'admin' || nickname === 'admin') ? 'block' : 'none';
+        }
+        
+        console.log('타이틀 UI 업데이트 완료:', nickname);
     }
 }
 

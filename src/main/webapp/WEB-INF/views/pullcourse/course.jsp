@@ -7,6 +7,9 @@
     String root = request.getContextPath();
 %>
 
+<!-- 코스 추천 전용 CSS -->
+<link rel="stylesheet" href="<%=root%>/css/course.css">
+
 <!-- 코스 추천 메인 페이지 -->
 <div class="course-hunting-container">
     
@@ -192,10 +195,14 @@
                         <div class="course-hunting-step-item" data-step="1">
                             <div class="course-hunting-step-header">
                                 <span class="course-hunting-step-number">1</span>
-                                <button type="button" class="course-hunting-remove-step" onclick="removeStep(1)" style="display:none;">삭제</button>
+                                <button type="button" class="course-hunting-remove-step" style="display:none;">삭제</button>
                             </div>
                             <div class="course-hunting-step-content">
-                                <input type="text" placeholder="핫플레이스 선택" class="course-hunting-step-place" required>
+                                <div class="hotplace-search-container">
+                                    <input type="text" placeholder="핫플레이스 검색..." class="course-hunting-step-place" required>
+                                    <input type="hidden" class="course-hunting-step-place-id" value="">
+                                    <div class="hotplace-autocomplete" style="display: none;"></div>
+                                </div>
                                 <input type="file" class="course-hunting-step-photo" accept="image/*">
                                 <textarea placeholder="스텝 설명" class="course-hunting-step-description" rows="2"></textarea>
                             </div>
@@ -216,11 +223,11 @@
 </div>
 
 <script>
-let currentSort = '${sort}';
-let currentPage = ${currentPage};
-let currentSido = '${sido}';
-let currentSigungu = '${sigungu}';
-let currentDong = '${dong}';
+let currentSort = '${sort}' || '';
+let currentPage = ${currentPage} || 1;
+let currentSido = '${sido}' || '';
+let currentSigungu = '${sigungu}' || '';
+let currentDong = '${dong}' || '';
 let stepCount = 1;
 
 // 탭 변경
@@ -264,9 +271,18 @@ function changePage(page) {
 // 코스 목록 로드
 function loadCourses() {
     let url = '<%=root%>/course?page=' + currentPage + '&sort=' + currentSort;
-    if (currentSido) url += '&sido=' + encodeURIComponent(currentSido);
-    if (currentSigungu) url += '&sigungu=' + encodeURIComponent(currentSigungu);
-    if (currentDong) url += '&dong=' + encodeURIComponent(currentDong);
+    if (currentSido) {
+        var encodedSido = window.encodeURIComponent(currentSido);
+        url += '&sido=' + encodedSido;
+    }
+    if (currentSigungu) {
+        var encodedSigungu = window.encodeURIComponent(currentSigungu);
+        url += '&sigungu=' + encodedSigungu;
+    }
+    if (currentDong) {
+        var encodedDong = window.encodeURIComponent(currentDong);
+        url += '&dong=' + encodedDong;
+    }
     
     window.location.href = url;
 }
@@ -284,63 +300,180 @@ function showCreateForm() {
 // 코스 공유하기 모달 닫기
 function closeCreateModal() {
     document.getElementById('createModal').style.display = 'none';
+    // 모달 닫을 때 폼 초기화
+    resetForm();
+}
+
+// 폼 초기화
+function resetForm() {
+    document.getElementById('courseForm').reset();
+    
+    // 스텝을 1개로 초기화
+    const stepsList = document.getElementById('stepsList');
+    stepsList.innerHTML = `
+        <div class="course-hunting-step-item" data-step="1">
+            <div class="course-hunting-step-header">
+                <span class="course-hunting-step-number">1</span>
+                <button type="button" class="course-hunting-remove-step" onclick="removeStep(1)" style="display:none;">삭제</button>
+            </div>
+            <div class="course-hunting-step-content">
+                <div class="hotplace-search-container">
+                    <input type="text" placeholder="핫플레이스 검색..." class="course-hunting-step-place" required>
+                    <input type="hidden" class="course-hunting-step-place-id" value="">
+                    <div class="hotplace-autocomplete" style="display: none;"></div>
+                </div>
+                <input type="file" class="course-hunting-step-photo" accept="image/*">
+                <textarea placeholder="스텝 설명" class="course-hunting-step-description" rows="2"></textarea>
+            </div>
+        </div>
+    `;
+    
+    stepCount = 1;
+    updateRemoveButtons();
+    
+    // 새로 생성된 입력 필드에 자동완성 설정
+    const newInput = document.querySelector('.course-hunting-step-place');
+    if (newInput) {
+        setupInputAutocomplete(newInput);
+    }
 }
 
 // 스텝 추가
 function addStep() {
-    if (stepCount >= 5) {
+    const currentSteps = document.querySelectorAll('.course-hunting-step-item').length;
+    if (currentSteps >= 5) {
         alert('최대 5개까지 추가 가능합니다.');
         return;
     }
     
-    stepCount++;
+    const newStepNumber = currentSteps + 1;
     const stepsList = document.getElementById('stepsList');
     const newStep = document.createElement('div');
-    newStep.className = 'step-item';
-    newStep.setAttribute('data-step', stepCount);
+    newStep.className = 'course-hunting-step-item';
+    newStep.setAttribute('data-step', newStepNumber);
     
     newStep.innerHTML = `
         <div class="course-hunting-step-header">
-            <span class="course-hunting-step-number">${stepCount}</span>
-            <button type="button" class="course-hunting-remove-step" onclick="removeStep(${stepCount})">삭제</button>
+            <span class="course-hunting-step-number">${newStepNumber}</span>
+            <button type="button" class="course-hunting-remove-step">삭제</button>
         </div>
-        <div class="course-hunting-step-content">
-            <input type="text" placeholder="핫플레이스 선택" class="course-hunting-step-place" required>
-            <input type="file" class="course-hunting-step-photo" accept="image/*">
-            <textarea placeholder="스텝 설명" class="course-hunting-step-description" rows="2"></textarea>
-        </div>
+                    <div class="course-hunting-step-content">
+                <div class="hotplace-search-container">
+                    <input type="text" placeholder="핫플레이스 검색..." class="course-hunting-step-place" required>
+                    <input type="hidden" class="course-hunting-step-place-id" value="">
+                    <div class="hotplace-autocomplete" style="display: none;"></div>
+                </div>
+                <input type="file" class="course-hunting-step-photo" accept="image/*">
+                <textarea placeholder="스텝 설명" class="course-hunting-step-description" rows="2"></textarea>
+            </div>
     `;
     
     stepsList.appendChild(newStep);
     
+    // 삭제 버튼에 이벤트 리스너 직접 추가
+    const removeButton = newStep.querySelector('.course-hunting-remove-step');
+    if (removeButton) {
+        removeButton.addEventListener('click', function() {
+            const stepNum = parseInt(this.closest('.course-hunting-step-item').getAttribute('data-step'));
+            removeStep(stepNum);
+        });
+    }
+    
+    // stepCount 업데이트
+    stepCount = newStepNumber;
+    
     // 삭제 버튼 표시/숨김 처리
     updateRemoveButtons();
+    
+    // 강제로 번호 다시 설정
+    setTimeout(() => {
+        const numberElements = document.querySelectorAll('.course-hunting-step-number');
+        numberElements.forEach((el, index) => {
+            const stepNum = index + 1;
+            el.textContent = stepNum.toString();
+            el.closest('.course-hunting-step-item').setAttribute('data-step', stepNum);
+        });
+    }, 10);
+    
+    // 디버깅용 로그
+    console.log('스텝 추가됨:', newStepNumber);
+    console.log('현재 스텝들:', document.querySelectorAll('.course-hunting-step-item').length);
+    console.log('스텝 번호들:', Array.from(document.querySelectorAll('.course-hunting-step-number')).map(el => el.textContent));
+    console.log('data-step 속성들:', Array.from(document.querySelectorAll('.course-hunting-step-item')).map(el => el.getAttribute('data-step')));
+    
+    // 새로 추가된 스텝의 핫플레이스 입력 필드에 자동완성 설정
+    const newInput = newStep.querySelector('.course-hunting-step-place');
+    if (newInput) {
+        setupInputAutocomplete(newInput);
+    }
 }
 
 // 스텝 삭제
 function removeStep(stepNum) {
+    console.log('삭제 시도:', stepNum);
+    console.log('현재 stepCount:', stepCount);
+    
     if (stepCount <= 1) {
         alert('최소 1개의 스텝은 필요합니다.');
         return;
     }
     
-    const stepElement = document.querySelector(`[data-step="${stepNum}"]`);
-    stepElement.remove();
-    stepCount--;
+    // 모든 스텝 요소를 가져와서 인덱스로 삭제
+    const stepElements = document.querySelectorAll('.course-hunting-step-item');
+    const stepToRemove = stepElements[stepNum - 1]; // 0-based index
     
-    // 스텝 번호 재정렬
-    reorderSteps();
-    updateRemoveButtons();
+    console.log('삭제할 스텝 요소:', stepToRemove);
+    console.log('총 스텝 수:', stepElements.length);
+    console.log('삭제할 인덱스:', stepNum - 1);
+    
+    if (stepToRemove) {
+        stepToRemove.remove();
+        stepCount--;
+        
+        console.log('스텝 삭제 후 stepCount:', stepCount);
+        
+        // 스텝 번호 재정렬
+        reorderSteps();
+        updateRemoveButtons();
+        
+        console.log('삭제 완료, 남은 스텝들:', document.querySelectorAll('.course-hunting-step-item').length);
+    } else {
+        console.log('삭제할 스텝을 찾을 수 없음:', stepNum);
+    }
 }
 
 // 스텝 번호 재정렬
 function reorderSteps() {
     const steps = document.querySelectorAll('.course-hunting-step-item');
+    console.log('재정렬 시작, 총 스텝 수:', steps.length);
+    
     steps.forEach((step, index) => {
         const stepNum = index + 1;
         step.setAttribute('data-step', stepNum);
-        step.querySelector('.course-hunting-step-number').textContent = stepNum;
+        
+        const numberElement = step.querySelector('.course-hunting-step-number');
+        if (numberElement) {
+            numberElement.textContent = stepNum;
+            console.log(`스텝 ${stepNum} 번호 설정:`, stepNum);
+        }
+        
+        // 삭제 버튼의 이벤트 리스너 업데이트
+        const removeButton = step.querySelector('.course-hunting-remove-step');
+        if (removeButton) {
+            // 기존 이벤트 리스너 제거
+            removeButton.replaceWith(removeButton.cloneNode(true));
+            const newRemoveButton = step.querySelector('.course-hunting-remove-step');
+            
+            // 새로운 이벤트 리스너 추가
+            newRemoveButton.addEventListener('click', function() {
+                const currentStepNum = parseInt(this.closest('.course-hunting-step-item').getAttribute('data-step'));
+                removeStep(currentStepNum);
+            });
+        }
     });
+    
+    console.log('재정렬 완료');
+    console.log('재정렬 후 data-step 속성들:', Array.from(document.querySelectorAll('.course-hunting-step-item')).map(el => el.getAttribute('data-step')));
 }
 
 // 삭제 버튼 표시/숨김 처리
@@ -349,6 +482,10 @@ function updateRemoveButtons() {
     removeButtons.forEach(btn => {
         btn.style.display = stepCount > 1 ? 'block' : 'none';
     });
+    
+    // stepCount 업데이트 (실제 스텝 개수와 동기화)
+    const actualStepCount = document.querySelectorAll('.course-hunting-step-item').length;
+    stepCount = actualStepCount;
 }
 
 // 모달 외부 클릭 시 닫기
@@ -359,24 +496,307 @@ window.onclick = function(event) {
     }
 }
 
+// 페이지 로드 시 초기 스텝의 삭제 버튼에 이벤트 리스너 추가
+document.addEventListener('DOMContentLoaded', function() {
+    const initialRemoveButton = document.querySelector('.course-hunting-remove-step');
+    if (initialRemoveButton) {
+        initialRemoveButton.addEventListener('click', function() {
+            const stepNum = parseInt(this.closest('.course-hunting-step-item').getAttribute('data-step'));
+            removeStep(stepNum);
+        });
+    }
+    
+    // 핫플레이스 검색 자동완성 이벤트 리스너 추가
+    setupHotplaceAutocomplete();
+});
+
+// 핫플레이스 검색 자동완성 설정
+function setupHotplaceAutocomplete() {
+    // 기존 핫플레이스 입력 필드에 이벤트 리스너 추가
+    const existingInputs = document.querySelectorAll('.course-hunting-step-place');
+    console.log('찾은 입력 필드 개수:', existingInputs.length);
+    existingInputs.forEach((input, index) => {
+        console.log(`입력 필드 ${index + 1}에 자동완성 설정`);
+        setupInputAutocomplete(input);
+    });
+}
+
+// 개별 입력 필드에 자동완성 설정
+function setupInputAutocomplete(input) {
+    let searchTimeout;
+    let isSelectingFromAutocomplete = false; // 자동완성에서 선택 중인지 확인하는 플래그
+    
+    input.addEventListener('input', function() {
+        // 자동완성에서 선택 중이면 검색하지 않음
+        if (isSelectingFromAutocomplete) {
+            return;
+        }
+        
+        const keyword = this.value.trim();
+        const searchContainer = this.closest('.hotplace-search-container');
+        const autocompleteDiv = searchContainer.querySelector('.hotplace-autocomplete');
+        
+        console.log('입력 이벤트 발생:', keyword);
+        console.log('검색 컨테이너:', searchContainer);
+        console.log('자동완성 div:', autocompleteDiv);
+        
+        // 이전 검색 타이머 클리어
+        clearTimeout(searchTimeout);
+        
+        if (keyword.length < 2) {
+            if (autocompleteDiv) {
+                autocompleteDiv.style.display = 'none';
+            }
+            return;
+        }
+        
+        // 숨겨진 필드에 ID가 이미 설정되어 있으면 검색하지 않음 (자동완성에서 선택된 경우)
+        const placeIdInput = searchContainer.querySelector('.course-hunting-step-place-id');
+        if (placeIdInput && placeIdInput.value) {
+            // ID가 설정되어 있으면 자동완성 숨기기
+            if (autocompleteDiv) {
+                autocompleteDiv.style.display = 'none';
+            }
+            return;
+        }
+        
+        // 300ms 후에 검색 실행 (타이핑 중단 시)
+        searchTimeout = setTimeout(() => {
+            searchHotplaces(keyword, autocompleteDiv, this);
+        }, 300);
+    });
+    
+    // 포커스 아웃 시 자동완성 숨기기
+    input.addEventListener('blur', function() {
+        setTimeout(() => {
+            const autocompleteDiv = this.closest('.hotplace-search-container').querySelector('.hotplace-autocomplete');
+            if (autocompleteDiv) {
+                autocompleteDiv.style.display = 'none';
+                autocompleteDiv.innerHTML = '';
+            }
+        }, 200);
+    });
+}
+
+// 핫플레이스 검색
+function searchHotplaces(keyword, autocompleteDiv, input) {
+    var encodedKeyword = window.encodeURIComponent(keyword);
+    fetch('<%=root%>/course/hotplace/search?keyword=' + encodedKeyword)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('검색 결과:', data); // 디버깅용 로그
+            if (data && data.length > 0) {
+                displayAutocompleteResults(data, autocompleteDiv, input);
+            } else {
+                autocompleteDiv.style.display = 'none';
+                autocompleteDiv.innerHTML = '';
+            }
+        })
+        .catch(error => {
+            console.error('핫플레이스 검색 오류:', error);
+            autocompleteDiv.style.display = 'none';
+        });
+}
+
+// 자동완성 결과 표시
+function displayAutocompleteResults(results, autocompleteDiv, input) {
+    console.log('자동완성 결과 표시 시작');
+    console.log('autocompleteDiv:', autocompleteDiv);
+    console.log('results:', results);
+    
+    if (!autocompleteDiv) {
+        console.error('자동완성 div를 찾을 수 없습니다!');
+        return;
+    }
+    
+    autocompleteDiv.innerHTML = '';
+    
+    results.forEach(item => {
+        const resultItem = document.createElement('div');
+        resultItem.className = 'autocomplete-item';
+        
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'autocomplete-name';
+        nameDiv.textContent = item.name;
+        
+        const addressDiv = document.createElement('div');
+        addressDiv.className = 'autocomplete-address';
+        addressDiv.textContent = item.address;
+        
+        resultItem.appendChild(nameDiv);
+        resultItem.appendChild(addressDiv);
+        
+        resultItem.addEventListener('click', function(e) {
+            // 이벤트 전파 중단
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // 자동완성에서 선택 중임을 표시
+            isSelectingFromAutocomplete = true;
+            
+            // 입력 필드에 가게 이름 설정
+            input.value = item.name;
+            
+            // 숨겨진 필드에 핫플레이스 ID 설정
+            const placeIdInput = input.closest('.hotplace-search-container').querySelector('.course-hunting-step-place-id');
+            placeIdInput.value = item.id;
+            
+            // 자동완성 숨기기
+            autocompleteDiv.style.display = 'none';
+            autocompleteDiv.innerHTML = '';
+            
+            // 입력 필드에서 포커스 제거 (자동완성이 다시 뜨지 않도록)
+            input.blur();
+            
+            // 잠시 후 플래그 리셋 (다음 입력을 위해)
+            setTimeout(() => {
+                isSelectingFromAutocomplete = false;
+            }, 100);
+            
+            // 이벤트 완전 중단
+            return false;
+        });
+        
+        autocompleteDiv.appendChild(resultItem);
+    });
+    
+    autocompleteDiv.style.display = 'block';
+    
+
+    
+    console.log('자동완성 표시 완료, display:', autocompleteDiv.style.display);
+    console.log('자동완성 요소 개수:', autocompleteDiv.children.length);
+    console.log('자동완성 스타일:', autocompleteDiv.style.cssText);
+    console.log('자동완성 위치:', autocompleteDiv.getBoundingClientRect());
+    console.log('자동완성 z-index:', autocompleteDiv.style.zIndex);
+}
+
 // 폼 제출
+console.log('폼 제출 이벤트 리스너 등록 시작');
 document.getElementById('courseForm').addEventListener('submit', function(e) {
+    console.log('폼 제출 이벤트 발생!');
     e.preventDefault();
+    
+    console.log('폼 제출 처리 시작');
     
     // 폼 데이터 수집
     const formData = {
         title: document.getElementById('courseTitle').value,
         summary: document.getElementById('courseSummary').value,
-        nickname: document.getElementById('courseNickname').value
+        nickname: document.getElementById('courseNickname').value,
+        steps: []
     };
     
-    // AJAX로 코스 등록
+    // 스텝 데이터 수집
+    const stepElements = document.querySelectorAll('.course-hunting-step-item');
+    console.log('찾은 스텝 요소 개수:', stepElements.length);
+    console.log('스텝 요소들:', stepElements);
+    
+    // 유효한 스텝만 수집 (placeId가 있는 스텝만)
+    const validSteps = [];
+    
+    stepElements.forEach((stepElement, index) => {
+        const placeInput = stepElement.querySelector('.course-hunting-step-place');
+        const placeIdInput = stepElement.querySelector('.course-hunting-step-place-id');
+        const descriptionInput = stepElement.querySelector('.course-hunting-step-description');
+        
+        console.log(`스텝 ${index + 1} 요소:`, stepElement);
+        console.log(`스텝 ${index + 1} placeInput:`, placeInput);
+        console.log(`스텝 ${index + 1} placeIdInput:`, placeIdInput);
+        console.log(`스텝 ${index + 1} descriptionInput:`, descriptionInput);
+        
+        const placeName = placeInput ? placeInput.value : '';
+        const placeId = placeIdInput ? placeIdInput.value : '';
+        const description = descriptionInput ? descriptionInput.value : '';
+        
+        console.log(`스텝 ${index + 1}:`, {
+            placeName: placeName,
+            placeId: placeId,
+            description: description
+        });
+        
+        // placeId가 있는 스텝만 유효한 스텝으로 간주
+        
+        if (placeId && placeId.trim() !== '') {
+            validSteps.push({
+                stepNo: validSteps.length + 1, // 유효한 스텝만 번호 재할당
+                placeName: placeName,
+                placeId: placeId,
+                description: description,
+                originalIndex: index // 원본 인덱스 저장
+            });
+        } else if (placeName && placeName.trim() !== '') {
+            // placeId가 없지만 placeName이 있는 경우 경고
+            alert(`스텝 ${index + 1}: 핫플레이스를 자동완성에서 선택해주세요.`);
+            return;
+        }
+    });
+    
+    console.log('유효한 스텝 개수:', validSteps.length);
+    console.log('유효한 스텝들:', validSteps);
+    
+    // 유효한 스텝이 없으면 등록 중단
+    if (validSteps.length === 0) {
+        alert('최소 하나의 핫플레이스를 선택해주세요.');
+        return;
+    }
+    
+    // FormData를 사용해서 파일과 텍스트 데이터를 함께 전송
+    const formDataToSend = new FormData();
+    formDataToSend.append('title', formData.title);
+    formDataToSend.append('summary', formData.summary);
+    formDataToSend.append('nickname', formData.nickname);
+    
+    // 스텝 데이터와 파일을 FormData에 추가 (유효한 스텝만)
+    console.log('FormData에 스텝 추가 시작');
+    for (let i = 0; i < validSteps.length; i++) {
+        const step = validSteps[i];
+        const validIndex = i;
+        
+        // 해당 스텝의 파일 찾기
+        const stepElement = stepElements[step.originalIndex];
+        const fileInput = stepElement.querySelector('.course-hunting-step-photo');
+        
+        console.log(`FormData 유효 스텝 ${validIndex + 1} 추가:`, {
+            stepNo: step.stepNo,
+            placeName: step.placeName,
+            placeId: step.placeId,
+            description: step.description,
+            originalIndex: step.originalIndex
+        });
+        
+        // validIndex를 사용하여 FormData 인덱스 설정
+        const formIndex = validIndex;
+        console.log(`FormData 인덱스: ${formIndex} (originalIndex: ${step.originalIndex}, validIndex: ${validIndex})`);
+        
+        formDataToSend.append(`steps[${formIndex}].stepNo`, step.stepNo);
+        formDataToSend.append(`steps[${formIndex}].placeName`, step.placeName);
+        formDataToSend.append(`steps[${formIndex}].placeId`, step.placeId);
+        formDataToSend.append(`steps[${formIndex}].description`, step.description);
+        
+        // 파일이 선택된 경우에만 추가
+        if (fileInput && fileInput.files.length > 0) {
+            formDataToSend.append(`steps[${formIndex}].photo`, fileInput.files[0]);
+        }
+    }
+    console.log('FormData에 스텝 추가 완료');
+    
+    // FormData 내용 로깅
+    console.log('=== FormData 내용 ===');
+    formDataToSend.forEach((value, key) => {
+        console.log(key + ': ' + value);
+    });
+    console.log('=== FormData 내용 완료 ===');
+    
+    // AJAX로 코스 등록 (파일 포함)
     fetch('<%=root%>/course/create', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
+        body: formDataToSend // Content-Type은 브라우저가 자동으로 설정
     })
     .then(response => response.text())
     .then(result => {

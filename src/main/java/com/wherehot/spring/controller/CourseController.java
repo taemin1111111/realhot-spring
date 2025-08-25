@@ -100,6 +100,8 @@ public class CourseController {
                            @RequestParam(required = false) String dong,
                            Model model) {
         
+
+        
         List<Course> courseList;
         int totalCount;
         
@@ -121,16 +123,7 @@ public class CourseController {
             totalCount = courseService.getTotalCourseCount();
         }
         
-        // 디버깅 로그 추가
-        System.out.println("=== 코스 목록 조회 결과 ===");
-        System.out.println("전체 코스 수: " + totalCount);
-        System.out.println("조회된 코스 수: " + (courseList != null ? courseList.size() : 0));
-        if (courseList != null && !courseList.isEmpty()) {
-            for (Course course : courseList) {
-                System.out.println("코스 ID: " + course.getId() + ", 제목: " + course.getTitle() + ", 작성자: " + course.getNickname());
-            }
-        }
-        System.out.println("=== 코스 목록 조회 완료 ===");
+
         
         model.addAttribute("courseList", courseList);
         model.addAttribute("currentPage", page);
@@ -235,137 +228,152 @@ public class CourseController {
             
 
             
-            // steps[].stepNo 형태로 전송된 경우 처리
-            String stepNoParam = request.getParameter("steps[].stepNo");
-            String placeIdParam = request.getParameter("steps[].placeId");
-            String placeNameParam = request.getParameter("steps[].placeName");
-            String descriptionParam = request.getParameter("steps[].description");
+                                     // steps[].stepNo 형태로 전송된 경우 처리
+            String[] stepNoParams = request.getParameterValues("steps[].stepNo");
+            String[] placeIdParams = request.getParameterValues("steps[].placeId");
+            String[] placeNameParams = request.getParameterValues("steps[].placeName");
+            String[] descriptionParams = request.getParameterValues("steps[].description");
             
-            if (stepNoParam != null && placeIdParam != null) {
-                // 콤마로 구분된 값들을 배열로 분리
-                String[] stepNos = stepNoParam.split(",");
-                String[] placeIds = placeIdParam.split(",");
-                String[] placeNames = placeNameParam != null ? placeNameParam.split(",") : new String[0];
-                String[] descriptions = descriptionParam != null ? descriptionParam.split(",") : new String[0];
-                
-                for (int i = 0; i < stepNos.length; i++) {
-                    CourseStep step = new CourseStep();
-                    step.setStepNo(Integer.parseInt(stepNos[i].trim()));
-                    
-                    // placeId 설정
-                    String placeIdStr = placeIds[i].trim();
-                    if (placeIdStr != null && !placeIdStr.isEmpty()) {
-                        step.setPlaceId(Integer.parseInt(placeIdStr));
-                        System.out.println("스텝 " + (i+1) + "의 placeId: " + step.getPlaceId());
-                    } else {
-                        System.out.println("스텝 " + (i+1) + "의 placeId가 없습니다.");
-                        continue;
-                    }
-                    
-                    // description 설정
-                    if (i < descriptions.length) {
-                        step.setDescription(descriptions[i].trim());
-                    }
-                    
-                    System.out.println("스텝 " + (i+1) + " 정보: stepNo=" + step.getStepNo() + ", placeId=" + step.getPlaceId() + ", description=" + step.getDescription());
-                
-                    // 파일 처리 - 여러 가능한 파라미터명으로 시도
-                    MultipartFile photoFile = null;
-                    String[] possibleParamNames = {
-                        "steps[" + i + "].photo",
-                        "steps[].photo",
-                        "photo",
-                        "file",
-                        "image"
-                    };
-                    
-                    System.out.println("스텝 " + (i+1) + " 파일 처리 시작");
-                    
-                    // 가능한 파라미터명으로 파일 찾기
-                    for (String paramName : possibleParamNames) {
-                        photoFile = request.getFile(paramName);
-                        if (photoFile != null && !photoFile.isEmpty()) {
-                            System.out.println("파일 찾음! 파라미터명: " + paramName);
-                            break;
-                        }
-                    }
-                    
-                    System.out.println("파일 존재 여부: " + (photoFile != null));
-                    if (photoFile != null) {
-                        System.out.println("파일 크기: " + photoFile.getSize());
-                        System.out.println("파일명: " + photoFile.getOriginalFilename());
-                    }
-                    
-                    if (photoFile != null && !photoFile.isEmpty()) {
-                        // Spring Boot의 ResourceLoader를 사용하여 안전한 경로 설정
-                        try {
-                            String uploadDir;
-                            // 프로젝트 루트 디렉토리 찾기
-                            File projectRoot = new File(System.getProperty("user.dir"));
-                            
-                            // target/classes에서 실행되는 경우 프로젝트 루트로 이동
-                            if (projectRoot.getAbsolutePath().contains("target")) {
-                                projectRoot = projectRoot.getParentFile().getParentFile();
-                            }
-                            
-                            uploadDir = projectRoot.getAbsolutePath() + File.separator + "src" + File.separator + "main" + File.separator + "webapp" + File.separator + "uploads" + File.separator + "course" + File.separator;
-                            
-                            System.out.println("프로젝트 루트: " + projectRoot.getAbsolutePath());
-                            System.out.println("업로드 디렉토리: " + uploadDir);
-                        
-                            File dir = new File(uploadDir);
-                            System.out.println("디렉토리 존재 여부: " + dir.exists());
-                            System.out.println("디렉토리 절대 경로: " + dir.getAbsolutePath());
-                            
-                            if (!dir.exists()) {
-                                boolean created = dir.mkdirs();
-                                System.out.println("디렉토리 생성 시도 결과: " + created);
-                                if (!created) {
-                                    System.out.println("업로드 디렉토리 생성 실패: " + uploadDir);
-                                    // 대체 경로 시도
-                                    uploadDir = projectRoot.getAbsolutePath() + File.separator + "uploads" + File.separator + "course" + File.separator;
-                                    dir = new File(uploadDir);
-                                    if (!dir.exists()) {
-                                        dir.mkdirs();
-                                    }
-                                }
-                            }
-                        
-                        // 파일명 생성 (타임스탬프 + 원본파일명)
-                        String originalFilename = photoFile.getOriginalFilename();
-                        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-                        String newFilename = System.currentTimeMillis() + "_" + i + fileExtension;
-                        
-                        // 파일 저장
-                        File dest = new File(uploadDir + newFilename);
-                        System.out.println("저장할 파일 경로: " + dest.getAbsolutePath());
-                        
-                        try {
-                            photoFile.transferTo(dest);
-                            System.out.println("파일 저장 성공: " + dest.getAbsolutePath());
-                            
-                            // 데이터베이스에 저장할 경로 설정
-                            step.setPhotoUrl("/uploads/course/" + newFilename);
-                            System.out.println("DB에 저장할 URL: " + step.getPhotoUrl());
-                        } catch (IOException e) {
-                            System.out.println("파일 저장 실패: " + e.getMessage());
-                            e.printStackTrace();
-                            System.out.println("파일 크기: " + photoFile.getSize());
-                            System.out.println("파일명: " + photoFile.getOriginalFilename());
-                            System.out.println("업로드 디렉토리 쓰기 권한 확인 필요");
-                            // 파일 저장 실패해도 스텝은 계속 진행
-                        }
-                    } catch (Exception e) {
-                        System.out.println("경로 설정 실패: " + e.getMessage());
-                        e.printStackTrace();
-                    }
-                } else {
-                    System.out.println("스텝 " + (i+1) + " 파일 없음");
-                }
-                
-                courseSteps.add(step);
-                }
-            }
+            if (stepNoParams != null && placeIdParams != null && stepNoParams.length > 0) {
+                System.out.println("steps[].stepNo로 찾은 스텝 개수: " + stepNoParams.length);
+                 
+                 System.out.println("분리된 스텝 데이터:");
+                 System.out.println("stepNoParams: " + String.join(", ", stepNoParams));
+                 System.out.println("placeIdParams: " + String.join(", ", placeIdParams));
+                 System.out.println("placeNameParams: " + String.join(", ", placeNameParams));
+                 System.out.println("descriptionParams: " + String.join(", ", descriptionParams));
+                 
+                 // 배열 길이 확인 및 조정
+                 int maxLength = Math.max(stepNoParams.length, placeIdParams.length);
+                 System.out.println("처리할 스텝 개수: " + maxLength);
+                 
+                 for (int i = 0; i < maxLength; i++) {
+                     CourseStep step = new CourseStep();
+                     
+                     // stepNo 설정
+                     if (i < stepNoParams.length) {
+                         step.setStepNo(Integer.parseInt(stepNoParams[i].trim()));
+                     } else {
+                         step.setStepNo(i + 1); // 기본값
+                     }
+                     
+                     // placeId 설정
+                     if (i < placeIdParams.length) {
+                         String placeIdStr = placeIdParams[i].trim();
+                         if (placeIdStr != null && !placeIdStr.isEmpty()) {
+                             step.setPlaceId(Integer.parseInt(placeIdStr));
+                             System.out.println("스텝 " + (i+1) + "의 placeId: " + step.getPlaceId());
+                         } else {
+                             System.out.println("스텝 " + (i+1) + "의 placeId가 비어있습니다.");
+                             continue;
+                         }
+                     } else {
+                         System.out.println("스텝 " + (i+1) + "의 placeId가 없습니다.");
+                         continue;
+                     }
+                     
+                     // placeName 설정
+                     if (i < placeNameParams.length) {
+                         step.setPlaceName(placeNameParams[i].trim());
+                     }
+                     
+                     // description 설정
+                     if (i < descriptionParams.length) {
+                         step.setDescription(descriptionParams[i].trim());
+                     }
+                     
+                     System.out.println("스텝 " + (i+1) + " 정보: stepNo=" + step.getStepNo() + ", placeId=" + step.getPlaceId() + ", placeName=" + step.getPlaceName() + ", description=" + step.getDescription());
+                 
+                     // 파일 처리 - steps[].photo 파라미터로 파일 찾기
+                     MultipartFile photoFile = null;
+                     
+                     System.out.println("스텝 " + (i+1) + " 파일 처리 시작");
+                     
+                     // steps[].photo 파라미터로 파일 찾기
+                     photoFile = request.getFile("steps[].photo");
+                     if (photoFile != null && !photoFile.isEmpty()) {
+                         System.out.println("파일 찾음! 파라미터명: steps[].photo");
+                     } else {
+                         System.out.println("steps[].photo 파일을 찾을 수 없습니다.");
+                     }
+                     
+                     System.out.println("파일 존재 여부: " + (photoFile != null));
+                     if (photoFile != null) {
+                         System.out.println("파일 크기: " + photoFile.getSize());
+                         System.out.println("파일명: " + photoFile.getOriginalFilename());
+                     }
+                     
+                     if (photoFile != null && !photoFile.isEmpty()) {
+                         // Spring Boot의 ResourceLoader를 사용하여 안전한 경로 설정
+                         try {
+                             String uploadDir;
+                             // 프로젝트 루트 디렉토리 찾기
+                             File projectRoot = new File(System.getProperty("user.dir"));
+                             
+                             // target/classes에서 실행되는 경우 프로젝트 루트로 이동
+                             if (projectRoot.getAbsolutePath().contains("target")) {
+                                 projectRoot = projectRoot.getParentFile().getParentFile();
+                             }
+                             
+                             uploadDir = projectRoot.getAbsolutePath() + File.separator + "src" + File.separator + "main" + File.separator + "webapp" + File.separator + "uploads" + File.separator + "course" + File.separator;
+                             
+                             System.out.println("프로젝트 루트: " + projectRoot.getAbsolutePath());
+                             System.out.println("업로드 디렉토리: " + uploadDir);
+                         
+                             File dir = new File(uploadDir);
+                             System.out.println("디렉토리 존재 여부: " + dir.exists());
+                             System.out.println("디렉토리 절대 경로: " + dir.getAbsolutePath());
+                             
+                             if (!dir.exists()) {
+                                 boolean created = dir.mkdirs();
+                                 System.out.println("디렉토리 생성 시도 결과: " + created);
+                                 if (!created) {
+                                     System.out.println("업로드 디렉토리 생성 실패: " + uploadDir);
+                                     // 대체 경로 시도
+                                     uploadDir = projectRoot.getAbsolutePath() + File.separator + "uploads" + File.separator + "course" + File.separator;
+                                     dir = new File(uploadDir);
+                                     if (!dir.exists()) {
+                                         dir.mkdirs();
+                                     }
+                                 }
+                             }
+                         
+                         // 파일명 생성 (타임스탬프 + 원본파일명)
+                         String originalFilename = photoFile.getOriginalFilename();
+                         String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                         String newFilename = System.currentTimeMillis() + "_" + i + fileExtension;
+                         
+                         // 파일 저장
+                         File dest = new File(uploadDir + newFilename);
+                         System.out.println("저장할 파일 경로: " + dest.getAbsolutePath());
+                         
+                         try {
+                             photoFile.transferTo(dest);
+                             System.out.println("파일 저장 성공: " + dest.getAbsolutePath());
+                             
+                             // 데이터베이스에 저장할 경로 설정
+                             step.setPhotoUrl("/uploads/course/" + newFilename);
+                             System.out.println("DB에 저장할 URL: " + step.getPhotoUrl());
+                         } catch (IOException e) {
+                             System.out.println("파일 저장 실패: " + e.getMessage());
+                             e.printStackTrace();
+                             System.out.println("파일 크기: " + photoFile.getSize());
+                             System.out.println("파일명: " + photoFile.getOriginalFilename());
+                             System.out.println("업로드 디렉토리 쓰기 권한 확인 필요");
+                             // 파일 저장 실패해도 스텝은 계속 진행
+                         }
+                     } catch (Exception e) {
+                         System.out.println("경로 설정 실패: " + e.getMessage());
+                         e.printStackTrace();
+                     }
+                 } else {
+                     System.out.println("스텝 " + (i+1) + " 파일 없음");
+                 }
+                 
+                 courseSteps.add(step);
+                 System.out.println("스텝 " + (i+1) + " 추가 완료, 현재 courseSteps 크기: " + courseSteps.size());
+                 }
+             }
             
             System.out.println("최종 courseSteps 크기: " + courseSteps.size());
             

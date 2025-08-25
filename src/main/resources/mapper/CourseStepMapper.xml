@@ -8,6 +8,7 @@
         <result property="courseId" column="course_id"/>
         <result property="stepNo" column="step_no"/>
         <result property="placeId" column="place_id"/>
+        <result property="placeName" column="placeName"/>
         <result property="photoUrl" column="photo_url"/>
         <result property="description" column="description"/>
         <result property="createdAt" column="created_at"/>
@@ -15,10 +16,12 @@
 
     <!-- 코스의 모든 스텝 조회 -->
     <select id="getCourseStepsByCourseId" resultMap="CourseStepResultMap">
-        SELECT id, course_id, step_no, place_id, photo_url, description, created_at
-        FROM course_step 
-        WHERE course_id = #{courseId}
-        ORDER BY step_no ASC
+        SELECT cs.id, cs.course_id, cs.step_no, cs.place_id, cs.photo_url, cs.description, cs.created_at,
+               h.name as placeName
+        FROM course_step cs
+        LEFT JOIN hotplace_info h ON cs.place_id = h.id
+        WHERE cs.course_id = #{courseId}
+        ORDER BY cs.step_no ASC
     </select>
 
     <!-- 코스 스텝 등록 -->

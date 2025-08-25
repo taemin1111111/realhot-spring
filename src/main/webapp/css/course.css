@@ -198,6 +198,37 @@ body:has(.course-hunting-container) {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
+/* 현재 선택된 지역 표시 */
+.course-hunting-current-region {
+    display: flex;
+    align-items: center;
+}
+
+.region-badge {
+    background: #007bff;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+    transition: all 0.2s ease;
+}
+
+.region-badge i {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.region-badge:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
 /* 탭 버튼 영역 */
 .course-hunting-tabs {
     display: flex;
@@ -338,6 +369,7 @@ body:has(.course-hunting-container) {
     text-align: center;
     border: 1px solid #dee2e6;
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .course-hunting-sigungu-name:hover {
@@ -434,6 +466,9 @@ body:has(.course-hunting-container) {
     position: relative;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    height: 420px;
+    display: flex;
+    flex-direction: column;
 }
 
 .course-hunting-card::before {
@@ -457,17 +492,92 @@ body:has(.course-hunting-container) {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* 코스 카드 헤더 */
-.course-hunting-card-header {
+/* 코스 카드 제목 섹션 */
+.course-hunting-card-title-section {
     margin-bottom: 15px;
 }
 
 .course-hunting-card-title {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 22px;
+    font-weight: 700;
     color: #333333;
-    margin-bottom: 10px;
+    margin: 0;
     line-height: 1.3;
+}
+
+/* 코스 스텝 경로 */
+.course-hunting-card-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 15px;
+    padding: 12px 0;
+    min-height: 120px; /* 5개 스텝이 들어갈 공간 확보 */
+}
+
+.course-step-number {
+    background: #007bff;
+    color: white;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 16px;
+    text-align: center;
+}
+
+.course-step-arrow {
+    color: #007bff;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.course-step-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 6px;
+}
+
+.course-step-place {
+    color: #666666;
+    font-size: 13px;
+    font-weight: 500;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.course-step-info {
+    color: #999999;
+    font-size: 13px;
+    font-style: italic;
+}
+
+/* 구분선 */
+.course-hunting-card-divider {
+    height: 1px;
+    background: #e9ecef;
+    margin: 15px 0;
+}
+
+/* 요약 섹션 */
+.course-hunting-card-summary-section {
+    margin-bottom: 12px;
+}
+
+/* 작성자 섹션 */
+.course-hunting-card-author-section {
+    margin-bottom: 0;
+}
+
+
+.course-hunting-card-nickname {
+    color: #666666;
+    font-size: 13px;
+    font-weight: 500;
 }
 
 .course-hunting-card-stats {
@@ -494,17 +604,19 @@ body:has(.course-hunting-container) {
 
 /* 코스 카드 내용 */
 .course-hunting-card-content {
-    margin-bottom: 20px;
+    margin-bottom: 0;
 }
 
 .course-hunting-card-summary {
-    color: #6c757d;
+    color: #000000;
     line-height: 1.5;
     font-size: 13px;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 39px; /* 2줄 공간 확보 (13px * 1.5 * 2) */
 }
 
 /* 코스 카드 푸터 */
@@ -512,21 +624,17 @@ body:has(.course-hunting-container) {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 12px;
-    border-top: 1px solid #e9ecef;
+    padding-top: 0;
+    margin-top: auto;
 }
 
-.course-hunting-card-author {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: #6c757d;
+.course-hunting-card-time {
     font-size: 12px;
+    color: #6c757d;
+    font-weight: 500;
 }
 
-.course-hunting-card-author i {
-    color: #6c757d;
-}
+
 
 .course-hunting-card-date {
     color: #6c757d;
@@ -824,6 +932,17 @@ body:has(.course-hunting-container) {
     .course-hunting-tabs {
         width: 100%;
         justify-content: center;
+    }
+    
+    .course-hunting-current-region {
+        order: -1;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .region-badge {
+        font-size: 13px;
+        padding: 6px 12px;
     }
     
     .course-hunting-grid {

@@ -25,25 +25,49 @@ public class CourseService {
     // 최신글 목록 조회
     public List<Course> getLatestCourseList(int page) {
         int offset = (page - 1) * PAGE_SIZE;
-        return courseMapper.getLatestCourseList(offset, PAGE_SIZE);
+        List<Course> courses = courseMapper.getLatestCourseList(offset, PAGE_SIZE);
+        // 각 코스의 스텝 정보 로드
+        for (Course course : courses) {
+            List<CourseStep> steps = courseStepMapper.getCourseStepsByCourseId(course.getId());
+            course.setCourseSteps(steps);
+        }
+        return courses;
     }
     
     // 인기글 목록 조회
     public List<Course> getPopularCourseList(int page) {
         int offset = (page - 1) * PAGE_SIZE;
-        return courseMapper.getPopularCourseList(offset, PAGE_SIZE);
+        List<Course> courses = courseMapper.getPopularCourseList(offset, PAGE_SIZE);
+        // 각 코스의 스텝 정보 로드
+        for (Course course : courses) {
+            List<CourseStep> steps = courseStepMapper.getCourseStepsByCourseId(course.getId());
+            course.setCourseSteps(steps);
+        }
+        return courses;
     }
     
     // 지역별 최신글 조회
     public List<Course> getLatestCourseListByRegion(String sido, String sigungu, String dong, int page) {
         int offset = (page - 1) * PAGE_SIZE;
-        return courseMapper.getCourseListByRegion(sido, sigungu, dong, offset, PAGE_SIZE);
+        List<Course> courses = courseMapper.getCourseListByRegion(sido, sigungu, dong, offset, PAGE_SIZE);
+        // 각 코스의 스텝 정보 로드
+        for (Course course : courses) {
+            List<CourseStep> steps = courseStepMapper.getCourseStepsByCourseId(course.getId());
+            course.setCourseSteps(steps);
+        }
+        return courses;
     }
     
     // 지역별 인기글 조회
     public List<Course> getPopularCourseListByRegion(String sido, String sigungu, String dong, int page) {
         int offset = (page - 1) * PAGE_SIZE;
-        return courseMapper.getPopularCourseListByRegion(sido, sigungu, dong, offset, PAGE_SIZE);
+        List<Course> courses = courseMapper.getPopularCourseListByRegion(sido, sigungu, dong, offset, PAGE_SIZE);
+        // 각 코스의 스텝 정보 로드
+        for (Course course : courses) {
+            List<CourseStep> steps = courseStepMapper.getCourseStepsByCourseId(course.getId());
+            course.setCourseSteps(steps);
+        }
+        return courses;
     }
     
     // 코스 상세 조회 (조회수 증가)

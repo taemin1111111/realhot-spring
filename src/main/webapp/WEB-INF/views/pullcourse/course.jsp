@@ -39,7 +39,7 @@
                                         <c:forEach var="tempEntry" items="${sigunguList}" varStatus="tempStatus">
                                             <c:if test="${tempStatus.index == currentIndex}">
                                                 <c:set var="sigungu" value="${tempEntry.key}" />
-                                                <div class="course-hunting-sigungu-name">${sigungu}</div>
+                                                <div class="course-hunting-sigungu-name" onclick="filterByRegion('${sido}', '${tempEntry.key}', '')">${sigungu}</div>
                                             </c:if>
                                         </c:forEach>
                                     </c:if>
@@ -58,7 +58,7 @@
                                                 
                                                 <div class="course-hunting-dong-grid">
                                                     <c:forEach var="region" items="${dongList}">
-                                                        <div class="course-hunting-dong-item" onclick="filterByRegion('${sido}', '${sigungu}', '${region.dong}')">
+                                                        <div class="course-hunting-dong-item" onclick="filterByRegion('${sido}', '${tempEntry.key}', '${region.dong}')">
                                                             ${region.dong}
                                                         </div>
                                                     </c:forEach>
@@ -85,6 +85,28 @@
                 <i class="fas fa-fire"></i> 인기글
             </button>
         </div>
+        
+        <!-- 현재 선택된 지역 표시 -->
+        <div class="course-hunting-current-region">
+            <c:choose>
+                <c:when test="${not empty param.dong and param.dong ne ''}">
+                    <span class="region-badge">
+                        <i class="fas fa-map-marker-alt"></i> ${param.dong} 코스
+                    </span>
+                </c:when>
+                <c:when test="${not empty param.sigungu and param.sigungu ne ''}">
+                    <span class="region-badge">
+                        <i class="fas fa-map-marker-alt"></i> ${param.sigungu} 전체 코스
+                    </span>
+                </c:when>
+                <c:otherwise>
+                    <span class="region-badge">
+                        <i class="fas fa-map-marker-alt"></i> 전체 코스
+                    </span>
+                </c:otherwise>
+            </c:choose>
+        </div>
+        
         <div class="course-hunting-share-btn">
             <button class="course-hunting-share-btn" onclick="showCreateForm()">
                 <i class="fas fa-plus"></i> 코스 공유하기
@@ -104,67 +126,152 @@
             </c:when>
             <c:otherwise>
                 <div class="course-hunting-grid">
-                    <c:forEach var="course" items="${courseList}">
-                        <div class="course-hunting-card" onclick="goToDetail(${course.id})">
-                            <div class="course-hunting-card-header">
-                                <h3 class="course-hunting-card-title">${course.title}</h3>
-                                <div class="course-hunting-card-stats">
-                                    <span class="course-hunting-stat-item">
-                                        <i class="fas fa-eye"></i> ${course.viewCount}
-                                    </span>
-                                    <span class="course-hunting-stat-item">
-                                        <i class="fas fa-heart"></i> ${course.likeCount}
-                                    </span>
-                                    <span class="course-hunting-stat-item">
-                                        <i class="fas fa-comment"></i> ${course.commentCount}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="course-hunting-card-content">
-                                <p class="course-hunting-card-summary">${course.summary}</p>
-                            </div>
-                            <div class="course-hunting-card-footer">
-                                <div class="course-hunting-card-author">
-                                    <i class="fas fa-user"></i> ${course.nickname}
-                                </div>
-                                <div class="course-hunting-card-date">
-                                    <fmt:formatDate value="${course.createdAt}" pattern="MM.dd"/>
-                                </div>
-                            </div>
-                        </div>
-                    </c:forEach>
+                                         <c:forEach var="course" items="${courseList}">
+                         <div class="course-hunting-card" onclick="goToDetail(${course.id})">
+                             <!-- 제목 섹션 -->
+                             <div class="course-hunting-card-title-section">
+                                 <h3 class="course-hunting-card-title">${course.title}</h3>
+                             </div>
+                             
+                             <!-- 스텝 경로 -->
+                             <div class="course-hunting-card-steps">
+                                 <c:choose>
+                                     <c:when test="${not empty course.courseSteps}">
+                                         <c:forEach var="step" items="${course.courseSteps}" varStatus="status">
+                                             <div class="course-step-line">
+                                                 <span class="course-step-number">${step.stepNo}</span>
+                                                 <span class="course-step-place">${step.placeName}</span>
+                                             </div>
+                                         </c:forEach>
+                                     </c:when>
+                                     <c:otherwise>
+                                         <span class="course-step-info">스텝 정보 없음</span>
+                                     </c:otherwise>
+                                 </c:choose>
+                             </div>
+                             
+                             <!-- 구분선 -->
+                             <div class="course-hunting-card-divider"></div>
+                             
+                             <!-- 요약 -->
+                             <div class="course-hunting-card-summary-section">
+                                 <p class="course-hunting-card-summary">${course.summary}</p>
+                             </div>
+                             
+                             <!-- 닉네임 -->
+                             <div class="course-hunting-card-author-section">
+                                 <span class="course-hunting-card-nickname">${course.nickname}</span>
+                             </div>
+                             
+                             <!-- 하단 통계 -->
+                             <div class="course-hunting-card-footer">
+                                 <div class="course-hunting-card-stats">
+                                     <span class="course-hunting-stat-item">
+                                         👁️ ${course.viewCount}
+                                     </span>
+                                     <span class="course-hunting-stat-item">
+                                         👍 ${course.likeCount}
+                                     </span>
+                                     <span class="course-hunting-stat-item">
+                                         👎 ${course.dislikeCount != null ? course.dislikeCount : 0}
+                                     </span>
+                                     <span class="course-hunting-stat-item">
+                                         💬 ${course.commentCount}
+                                     </span>
+                                 </div>
+
+                                                                   <div class="course-hunting-card-time">
+                                      <c:choose>
+                                          <c:when test="${not empty course.createdAt}">
+                                              <%
+                                                  // 현재 시간과 생성 시간의 차이를 계산
+                                                  java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                                                  com.wherehot.spring.entity.Course course = (com.wherehot.spring.entity.Course) pageContext.getAttribute("course");
+                                                  if (course != null && course.getCreatedAt() != null) {
+                                                      long secondsDiff = java.time.Duration.between(course.getCreatedAt(), now).getSeconds();
+                                                      
+                                                      if (secondsDiff < 60) {
+                                                          out.print("방금전");
+                                                      } else if (secondsDiff < 3600) {
+                                                          long minutes = secondsDiff / 60;
+                                                          out.print(minutes + "분전");
+                                                      } else if (secondsDiff < 86400) {
+                                                          long hours = secondsDiff / 3600;
+                                                          out.print(hours + "시간전");
+                                                      } else {
+                                                          long days = secondsDiff / 86400;
+                                                          out.print(days + "일전");
+                                                      }
+                                                  } else {
+                                                      out.print("방금전");
+                                                  }
+                                              %>
+                                          </c:when>
+                                          <c:otherwise>방금전</c:otherwise>
+                                      </c:choose>
+                                  </div>
+                             </div>
+                         </div>
+                     </c:forEach>
                 </div>
             </c:otherwise>
         </c:choose>
     </div>
     
-    <!-- 페이징 -->
-    <c:if test="${totalCount > 0}">
-        <div class="course-hunting-pagination">
-            <c:if test="${currentPage > 1}">
-                <a href="javascript:void(0)" onclick="changePage(${currentPage - 1})" class="course-hunting-page-btn">
-                    <i class="fas fa-chevron-left"></i>
-                </a>
-            </c:if>
-            
-            <c:forEach begin="1" end="${(totalCount + 11) / 12}" var="pageNum">
-                <c:choose>
-                    <c:when test="${pageNum == currentPage}">
-                        <span class="course-hunting-page-btn active">${pageNum}</span>
-                    </c:when>
-                    <c:otherwise>
-                        <a href="javascript:void(0)" onclick="changePage(${pageNum})" class="course-hunting-page-btn">${pageNum}</a>
-                    </c:otherwise>
-                </c:choose>
-            </c:forEach>
-            
-            <c:if test="${currentPage < (totalCount + 11) / 12}">
-                <a href="javascript:void(0)" onclick="changePage(${currentPage + 1})" class="course-hunting-page-btn">
-                    <i class="fas fa-chevron-right"></i>
-                </a>
-            </c:if>
-        </div>
-    </c:if>
+         <!-- 페이징 -->
+     <c:if test="${totalCount > 12}">
+         <div class="course-hunting-pagination">
+             <c:set var="pageSize" value="12" />
+             <c:set var="totalPages" value="${(totalCount + pageSize - 1) / pageSize}" />
+             <c:set var="startPage" value="${((currentPage - 1) / 5) * 5 + 1}" />
+             <c:set var="endPage" value="${startPage + 4}" />
+             <c:if test="${endPage > totalPages}">
+                 <c:set var="endPage" value="${totalPages}" />
+             </c:if>
+             
+             <!-- 이전 페이지 버튼 -->
+             <c:if test="${currentPage > 1}">
+                 <a href="javascript:void(0)" onclick="changePage(${currentPage - 1})" class="course-hunting-page-btn">
+                     <i class="fas fa-chevron-left"></i>
+                 </a>
+             </c:if>
+             
+             <!-- 첫 페이지로 이동 (현재 페이지가 6 이상일 때) -->
+             <c:if test="${startPage > 1}">
+                 <a href="javascript:void(0)" onclick="changePage(1)" class="course-hunting-page-btn">1</a>
+                 <c:if test="${startPage > 2}">
+                     <span class="course-hunting-page-dots">...</span>
+                 </c:if>
+             </c:if>
+             
+             <!-- 페이지 번호들 -->
+             <c:forEach begin="${startPage}" end="${endPage}" var="pageNum">
+                 <c:choose>
+                     <c:when test="${pageNum == currentPage}">
+                         <span class="course-hunting-page-btn active">${pageNum}</span>
+                     </c:when>
+                     <c:otherwise>
+                         <a href="javascript:void(0)" onclick="changePage(${pageNum})" class="course-hunting-page-btn">${pageNum}</a>
+                     </c:otherwise>
+                 </c:choose>
+             </c:forEach>
+             
+             <!-- 마지막 페이지로 이동 (현재 페이지가 마지막 5페이지 이전일 때) -->
+             <c:if test="${endPage < totalPages}">
+                 <c:if test="${endPage < totalPages - 1}">
+                     <span class="course-hunting-page-dots">...</span>
+                 </c:if>
+                 <a href="javascript:void(0)" onclick="changePage(${totalPages})" class="course-hunting-page-btn">${totalPages}</a>
+             </c:if>
+             
+             <!-- 다음 페이지 버튼 -->
+             <c:if test="${currentPage < totalPages}">
+                 <a href="javascript:void(0)" onclick="changePage(${currentPage + 1})" class="course-hunting-page-btn">
+                     <i class="fas fa-chevron-right"></i>
+                 </a>
+             </c:if>
+         </div>
+     </c:if>
 </div>
 
 <!-- 코스 공유하기 모달 -->
@@ -240,10 +347,59 @@
 <script>
 let currentSort = '${sort}' || '';
 let currentPage = ${currentPage} || 1;
-let currentSido = '${sido}' || '';
-let currentSigungu = '${sigungu}' || '';
-let currentDong = '${dong}' || '';
+let currentSido = '${param.sido}' || '';
+let currentSigungu = '${param.sigungu}' || '';
+let currentDong = '${param.dong}' || '';
 let stepCount = 1;
+
+
+
+// 시간 계산 함수
+function calculateTimeAgo(createdAt) {
+    if (!createdAt) return '방금전';
+    
+    const createdDate = new Date(createdAt);
+    const now = new Date();
+    const diffMs = now - createdDate;
+    
+    if (diffMs < 60000) { // 1분 미만
+        return '방금전';
+    } else if (diffMs < 3600000) { // 1시간 미만
+        const minutes = Math.floor(diffMs / 60000);
+        return minutes + '분전';
+    } else if (diffMs < 86400000) { // 24시간 미만
+        const hours = Math.floor(diffMs / 3600000);
+        return hours + '시간전';
+    } else {
+        const days = Math.floor(diffMs / 86400000);
+        return days + '일전';
+    }
+}
+
+// 페이지 로드 시 시간 계산 실행
+document.addEventListener('DOMContentLoaded', function() {
+    // 시간 계산
+    const timeElements = document.querySelectorAll('.course-hunting-card-time');
+    timeElements.forEach(function(element) {
+        const createdAt = element.getAttribute('data-created-at');
+        const timeTextElement = element.querySelector('.time-text');
+        if (timeTextElement) {
+            timeTextElement.textContent = calculateTimeAgo(createdAt);
+        }
+    });
+    
+    // 기존 초기화 코드들...
+    const initialRemoveButton = document.querySelector('.course-hunting-remove-step');
+    if (initialRemoveButton) {
+        initialRemoveButton.addEventListener('click', function() {
+            const stepNum = parseInt(this.closest('.course-hunting-step-item').getAttribute('data-step'));
+            removeStep(stepNum);
+        });
+    }
+    
+    // 핫플레이스 검색 자동완성 이벤트 리스너 추가
+    setupHotplaceAutocomplete();
+});
 
 // 탭 변경
 function changeTab(sort) {
@@ -299,6 +455,8 @@ function loadCourses() {
         url += '&dong=' + encodedDong;
     }
     
+
+    
     window.location.href = url;
 }
 
@@ -313,8 +471,43 @@ function getToken() {
 }
 
 function getUserInfo() {
-    const userInfo = localStorage.getItem('userInfo');
-    return userInfo ? JSON.parse(userInfo) : null;
+    // JWT 토큰에서 직접 사용자 정보 추출 (localStorage보다 신뢰할 수 있음)
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        return null;
+    }
+    
+    try {
+        // Base64 디코딩 시 한글 인코딩 문제 해결
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        
+        const payload = JSON.parse(jsonPayload);
+        console.log('JWT 토큰에서 추출한 사용자 정보:', payload);
+        
+        return {
+            userid: payload.sub,
+            nickname: payload.nickname,
+            provider: payload.provider || 'site'
+        };
+    } catch (error) {
+        console.error('Token parsing error:', error);
+        // localStorage에서 백업 정보 확인
+        const backupInfo = localStorage.getItem('userInfo');
+        if (backupInfo) {
+            try {
+                const parsed = JSON.parse(backupInfo);
+                console.log('백업 사용자 정보 사용:', parsed);
+                return parsed;
+            } catch (e) {
+                console.error('백업 정보 파싱 오류:', e);
+            }
+        }
+        return null;
+    }
 }
 
 // 비밀번호 입력 검증 함수들
@@ -418,7 +611,7 @@ function resetForm() {
                     <div class="search-input-wrapper">
                         <input type="text" placeholder="핫플레이스 검색..." class="course-hunting-step-place" required>
                         <button type="button" class="search-refresh-btn" onclick="clearSearch(this)" title="검색 초기화">
-                            <i class="fas fa-sync-alt"></i>
+                            <span class="refresh-icon">↻</span>
                         </button>
                     </div>
                     <input type="hidden" class="course-hunting-step-place-id" value="">
@@ -464,7 +657,7 @@ function addStep() {
                     <div class="search-input-wrapper">
                         <input type="text" placeholder="핫플레이스 검색..." class="course-hunting-step-place" required>
                         <button type="button" class="search-refresh-btn" onclick="clearSearch(this)" title="검색 초기화">
-                            <i class="fas fa-sync-alt"></i>
+                            <span class="refresh-icon">↻</span>
                         </button>
                     </div>
                     <input type="hidden" class="course-hunting-step-place-id" value="">
@@ -603,8 +796,41 @@ window.onclick = function(event) {
     }
 }
 
-// 페이지 로드 시 초기 스텝의 삭제 버튼에 이벤트 리스너 추가
+// 시간 계산 함수
+function calculateTimeAgo(createdAt) {
+    if (!createdAt) return '방금전';
+    
+    const createdDate = new Date(createdAt);
+    const now = new Date();
+    const diffMs = now - createdDate;
+    
+    if (diffMs < 60000) { // 1분 미만
+        return '방금전';
+    } else if (diffMs < 3600000) { // 1시간 미만
+        const minutes = Math.floor(diffMs / 60000);
+        return minutes + '분전';
+    } else if (diffMs < 86400000) { // 24시간 미만
+        const hours = Math.floor(diffMs / 3600000);
+        return hours + '시간전';
+    } else {
+        const days = Math.floor(diffMs / 86400000);
+        return days + '일전';
+    }
+}
+
+// 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
+    // 시간 계산
+    const timeElements = document.querySelectorAll('.course-hunting-card-time');
+    timeElements.forEach(function(element) {
+        const createdAt = element.getAttribute('data-created-at');
+        const timeTextElement = element.querySelector('.time-text');
+        if (timeTextElement) {
+            timeTextElement.textContent = calculateTimeAgo(createdAt);
+        }
+    });
+    
+    // 초기 스텝의 삭제 버튼에 이벤트 리스너 추가
     const initialRemoveButton = document.querySelector('.course-hunting-remove-step');
     if (initialRemoveButton) {
         initialRemoveButton.addEventListener('click', function() {
@@ -872,38 +1098,38 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
     formDataToSend.append('nickname', formData.nickname);
     formDataToSend.append('passwd_hash', formData.passwd_hash);
     
-    // 스텝 데이터와 파일을 FormData에 추가 (유효한 스텝만)
-    console.log('FormData에 스텝 추가 시작');
-    for (let i = 0; i < validSteps.length; i++) {
-        const step = validSteps[i];
-        const validIndex = i;
-        
-        // 해당 스텝의 파일 찾기
-        const stepElement = stepElements[step.originalIndex];
-        const fileInput = stepElement.querySelector('.course-hunting-step-photo');
-        
-        console.log(`FormData 유효 스텝 ${validIndex + 1} 추가:`, {
-            stepNo: step.stepNo,
-            placeName: step.placeName,
-            placeId: step.placeId,
-            description: step.description,
-            originalIndex: step.originalIndex
-        });
-        
-        // validIndex를 사용하여 FormData 인덱스 설정
-        const formIndex = validIndex;
-        console.log(`FormData 인덱스: ${formIndex} (originalIndex: ${step.originalIndex}, validIndex: ${validIndex})`);
-        
-        formDataToSend.append(`steps[${formIndex}].stepNo`, step.stepNo);
-        formDataToSend.append(`steps[${formIndex}].placeName`, step.placeName);
-        formDataToSend.append(`steps[${formIndex}].placeId`, step.placeId);
-        formDataToSend.append(`steps[${formIndex}].description`, step.description);
-        
-        // 파일이 선택된 경우에만 추가
-        if (fileInput && fileInput.files.length > 0) {
-            formDataToSend.append(`steps[${formIndex}].photo`, fileInput.files[0]);
-        }
-    }
+         // 스텝 데이터와 파일을 FormData에 추가 (유효한 스텝만)
+     console.log('FormData에 스텝 추가 시작');
+     for (let i = 0; i < validSteps.length; i++) {
+         const step = validSteps[i];
+         const validIndex = i;
+         
+         // 해당 스텝의 파일 찾기
+         const stepElement = stepElements[step.originalIndex];
+         const fileInput = stepElement.querySelector('.course-hunting-step-photo');
+         
+         console.log(`FormData 유효 스텝 ${validIndex + 1} 추가:`, {
+             stepNo: step.stepNo,
+             placeName: step.placeName,
+             placeId: step.placeId,
+             description: step.description,
+             originalIndex: step.originalIndex
+         });
+         
+         // 서버가 기대하는 형태로 FormData 추가 (steps[].stepNo 형태)
+         formDataToSend.append(`steps[].stepNo`, step.stepNo);
+         formDataToSend.append(`steps[].placeName`, step.placeName);
+         formDataToSend.append(`steps[].placeId`, step.placeId);
+         formDataToSend.append(`steps[].description`, step.description);
+         
+         // 파일이 선택된 경우에만 추가
+         if (fileInput && fileInput.files.length > 0) {
+             formDataToSend.append(`steps[].photo`, fileInput.files[0]);
+         }
+         
+         // 디버깅: FormData에 추가된 내용 확인
+         console.log(`스텝 ${validIndex + 1} FormData 추가 완료`);
+     }
     console.log('FormData에 스텝 추가 완료');
     
     // FormData 내용 로깅

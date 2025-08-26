@@ -9,6 +9,7 @@
         <result property="stepNo" column="step_no"/>
         <result property="placeId" column="place_id"/>
         <result property="placeName" column="placeName"/>
+        <result property="placeAddress" column="placeAddress"/>
         <result property="photoUrl" column="photo_url"/>
         <result property="description" column="description"/>
         <result property="createdAt" column="created_at"/>
@@ -17,7 +18,7 @@
     <!-- 코스의 모든 스텝 조회 -->
     <select id="getCourseStepsByCourseId" resultMap="CourseStepResultMap">
         SELECT cs.id, cs.course_id, cs.step_no, cs.place_id, cs.photo_url, cs.description, cs.created_at,
-               h.name as placeName
+               h.name as placeName, h.address as placeAddress
         FROM course_step cs
         LEFT JOIN hotplace_info h ON cs.place_id = h.id
         WHERE cs.course_id = #{courseId}

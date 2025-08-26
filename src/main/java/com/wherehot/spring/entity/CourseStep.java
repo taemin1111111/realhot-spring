@@ -14,6 +14,7 @@ public class CourseStep {
     private Integer stepNo;
     private Integer placeId;
     private String placeName; // 핫플레이스 이름 (JOIN으로 가져올 때 사용)
+    private String placeAddress; // 핫플레이스 주소 (JOIN으로 가져올 때 사용)
     private String photoUrl;
     private String description;
     private LocalDateTime createdAt;
@@ -66,6 +67,14 @@ public class CourseStep {
     
     public void setPlaceName(String placeName) {
         this.placeName = placeName;
+    }
+    
+    public String getPlaceAddress() {
+        return placeAddress;
+    }
+    
+    public void setPlaceAddress(String placeAddress) {
+        this.placeAddress = placeAddress;
     }
     
     public String getPhotoUrl() {

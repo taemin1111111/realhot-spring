@@ -70,12 +70,22 @@ public class CourseService {
         return courses;
     }
     
-    // 코스 상세 조회 (조회수 증가)
+    // 코스 상세 조회 (조회수 증가 없음)
     @Transactional
     public Course getCourseById(int id) {
-        // 조회수 증가
-        courseMapper.incrementViewCount(id);
         return courseMapper.getCourseById(id);
+    }
+    
+    // 코스 상세 조회 (조회수 증가 없음)
+    @Transactional
+    public Course getCourseByIdWithoutIncrement(int id) {
+        return courseMapper.getCourseById(id);
+    }
+    
+    // 조회수 증가
+    @Transactional
+    public void incrementViewCount(int id) {
+        courseMapper.incrementViewCount(id);
     }
     
     // 코스 등록

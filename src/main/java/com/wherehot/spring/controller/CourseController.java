@@ -5,6 +5,7 @@ import com.wherehot.spring.entity.CourseStep;
 import com.wherehot.spring.entity.Hotplace;
 import com.wherehot.spring.entity.Region;
 import com.wherehot.spring.service.CourseService;
+import com.wherehot.spring.service.CourseReactionService;
 import com.wherehot.spring.service.HotplaceService;
 import com.wherehot.spring.service.RegionService;
 import com.wherehot.spring.security.JwtUtils;
@@ -16,7 +17,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 @Controller
@@ -47,6 +51,9 @@ public class CourseController {
     
     @Autowired
     private JwtUtils jwtUtils;
+    
+    @Autowired
+    private CourseReactionService courseReactionService;
     
     // IP 주소 가져오기
     private String getClientIpAddress(HttpServletRequest request) {
@@ -89,6 +96,46 @@ public class CourseController {
         String ipAddress = getClientIpAddress(request);
         System.out.println("IP 주소 사용: " + ipAddress);
         return ipAddress;
+    }
+    
+    // 사용자 로그인 상태 확인
+    private boolean isUserLoggedIn(HttpServletRequest request) {
+        try {
+            // Authorization 헤더에서 JWT 토큰 추출
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                
+                // JWT 토큰 유효성 검증
+                if (jwtUtils.validateToken(token)) {
+                    // 토큰에서 사용자 ID 추출
+                    String userId = jwtUtils.getUseridFromToken(token);
+                    if (userId != null && !userId.isEmpty()) {
+                        return true;
+                    }
+                }
+            }
+            
+            // 쿠키에서 토큰 확인
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("jwt_token".equals(cookie.getName())) {
+                        String token = cookie.getValue();
+                        if (jwtUtils.validateToken(token)) {
+                            String userId = jwtUtils.getUseridFromToken(token);
+                            if (userId != null && !userId.isEmpty()) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("로그인 상태 확인 중 오류: " + e.getMessage());
+        }
+        
+        return false;
     }
     
     // 코스 목록 페이지 (기존 JSP Include 방식 유지)
@@ -143,12 +190,36 @@ public class CourseController {
     
     // 코스 상세 페이지 (기존 JSP Include 방식 유지)
     @GetMapping("/{id}")
-    public String courseDetail(@PathVariable int id, Model model) {
-        Course course = courseService.getCourseById(id);
+    public String courseDetail(@PathVariable int id, Model model, HttpSession session, HttpServletRequest request) {
+        // 조회수 증가 (세션 기반 중복 방지)
+        String viewKey = "course_view_" + id;
+        if (session.getAttribute(viewKey) == null) {
+            courseService.incrementViewCount(id);
+            session.setAttribute(viewKey, true);
+            System.out.println("조회수 증가: 코스 ID " + id + " (세션: " + session.getId() + ")");
+        } else {
+            System.out.println("조회수 증가 안함: 코스 ID " + id + " (이미 조회됨)");
+        }
+        
+        // 데이터 조회
+        Course course = courseService.getCourseByIdWithoutIncrement(id);
         List<CourseStep> courseSteps = courseService.getCourseSteps(id);
+        
+        // 사용자 식별 (JWT 토큰 또는 IP)
+        String userKey = determineUserId(request);
+        
+        // 좋아요/싫어요 개수 조회
+        Map<String, Integer> reactionCounts = courseReactionService.getReactionCounts(id);
+        
+        // 현재 사용자의 리액션 상태 조회
+        String currentReaction = courseReactionService.getCurrentReaction(id, userKey);
         
         model.addAttribute("course", course);
         model.addAttribute("courseSteps", courseSteps);
+        model.addAttribute("likeCount", reactionCounts.get("likeCount"));
+        model.addAttribute("dislikeCount", reactionCounts.get("dislikeCount"));
+        model.addAttribute("currentReaction", currentReaction);
+        model.addAttribute("userKey", userKey);
         
         // 기존 JSP Include 방식 유지
         model.addAttribute("mainPage", "pullcourse/courseDetail.jsp");
@@ -396,28 +467,42 @@ public class CourseController {
         }
     }
     
-    // 좋아요 처리
-    @PostMapping("/{id}/like")
+    // 좋아요/싫어요 토글 API
+    @PostMapping("/{id}/reaction")
     @ResponseBody
-    public String toggleLike(@PathVariable int id, @RequestParam boolean isLike) {
+    public Map<String, Object> toggleReaction(@PathVariable int id, 
+                                            @RequestParam String reactionType,
+                                            HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        
         try {
-            courseService.toggleLike(id, isLike);
-            return "success";
+            // 로그인 상태 확인
+            String userKey = determineUserId(request);
+            boolean isLoggedIn = isUserLoggedIn(request);
+            
+            if (!isLoggedIn) {
+                response.put("success", false);
+                response.put("message", "좋아요/싫어요는 로그인 후 가능합니다.");
+                response.put("requireLogin", true);
+                return response;
+            }
+            
+            // 리액션 토글 처리
+            Map<String, Object> result = courseReactionService.toggleReaction(id, userKey, reactionType);
+            
+            response.put("success", true);
+            response.put("currentReaction", result.get("currentReaction"));
+            response.put("likeCount", result.get("likeCount"));
+            response.put("dislikeCount", result.get("dislikeCount"));
+            response.put("action", result.get("action"));
+            
         } catch (Exception e) {
-            return "error";
+            response.put("success", false);
+            response.put("message", "리액션 처리 중 오류가 발생했습니다.");
+            e.printStackTrace();
         }
-    }
-    
-    // 싫어요 처리
-    @PostMapping("/{id}/dislike")
-    @ResponseBody
-    public String toggleDislike(@PathVariable int id, @RequestParam boolean isDislike) {
-        try {
-            courseService.toggleDislike(id, isDislike);
-            return "success";
-        } catch (Exception e) {
-            return "error";
-        }
+        
+        return response;
     }
     
     // 지역 데이터 로드

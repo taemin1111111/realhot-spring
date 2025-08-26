@@ -1007,33 +1007,4 @@ body:has(.course-hunting-container) {
 .course-hunting-card:nth-child(5) { animation-delay: 0.5s; }
 .course-hunting-card:nth-child(6) { animation-delay: 0.6s; }
 
-/* 코스 디테일 페이지 */
-.course-hunting-detail-container {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
-    min-height: 100vh;
-    padding: 20px;
-    font-family: 'Noto Sans KR', sans-serif;
-    color: #495057;
-}
 
-.course-hunting-detail-content {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 40px;
-    text-align: center;
-    border: 1px solid #e9ecef;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.course-hunting-detail-content h2 {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: #007bff;
-}
-
-.course-hunting-detail-content p {
-    font-size: 18px;
-    color: #6c757d;
-    line-height: 1.6;
-}

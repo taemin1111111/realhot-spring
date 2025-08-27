@@ -17,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -355,23 +356,33 @@ public class CourseController {
                      
                      System.out.println("스텝 " + (i+1) + " 정보: stepNo=" + step.getStepNo() + ", placeId=" + step.getPlaceId() + ", placeName=" + step.getPlaceName() + ", description=" + step.getDescription());
                  
-                     // 파일 처리 - steps[].photo 파라미터로 파일 찾기
+                     // 파일 처리 - MultipartFile 방식으로 복원
                      MultipartFile photoFile = null;
                      
                      System.out.println("스텝 " + (i+1) + " 파일 처리 시작");
                      
-                     // steps[].photo 파라미터로 파일 찾기
-                     photoFile = request.getFile("steps[].photo");
-                     if (photoFile != null && !photoFile.isEmpty()) {
-                         System.out.println("파일 찾음! 파라미터명: steps[].photo");
+                     // 모든 파일 파라미터 로깅
+                     System.out.println("=== 스텝 " + (i+1) + " 파일 파라미터 확인 ===");
+                     request.getFileMap().forEach((key, file) -> {
+                         System.out.println("파일 키: " + key + " -> " + (file != null ? file.getOriginalFilename() : "null"));
+                     });
+                     
+                     // getFiles()를 사용하여 모든 파일을 가져와서 순서대로 처리
+                     List<MultipartFile> allFiles = request.getFiles("steps[].photo");
+                     System.out.println("getFiles('steps[].photo') 결과: " + allFiles.size() + "개 파일");
+                     
+                     if (i < allFiles.size()) {
+                         photoFile = allFiles.get(i);
+                         System.out.println("스텝 " + (i+1) + " 파일 찾음: " + photoFile.getOriginalFilename());
                      } else {
-                         System.out.println("steps[].photo 파일을 찾을 수 없습니다.");
+                         System.out.println("스텝 " + (i+1) + " 파일 없음");
                      }
                      
                      System.out.println("파일 존재 여부: " + (photoFile != null));
                      if (photoFile != null) {
                          System.out.println("파일 크기: " + photoFile.getSize());
                          System.out.println("파일명: " + photoFile.getOriginalFilename());
+                         System.out.println("파일이 비어있지 않음: " + !photoFile.isEmpty());
                      }
                      
                      if (photoFile != null && !photoFile.isEmpty()) {
@@ -409,17 +420,27 @@ public class CourseController {
                                  }
                              }
                          
-                         // 파일명 생성 (타임스탬프 + 원본파일명)
+                         // 파일명 생성 (타임스탬프 + 스텝번호 + 랜덤값 + 원본파일명)
                          String originalFilename = photoFile.getOriginalFilename();
                          String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-                         String newFilename = System.currentTimeMillis() + "_" + i + fileExtension;
+                         String newFilename = System.currentTimeMillis() + "_" + step.getStepNo() + "_" + (int)(Math.random() * 1000) + fileExtension;
                          
                          // 파일 저장
                          File dest = new File(uploadDir + newFilename);
                          System.out.println("저장할 파일 경로: " + dest.getAbsolutePath());
                          
                          try {
-                             photoFile.transferTo(dest);
+                             // 파일 스트림을 사용하여 안전하게 파일 저장
+                             try (java.io.InputStream inputStream = photoFile.getInputStream();
+                                  java.io.FileOutputStream outputStream = new java.io.FileOutputStream(dest)) {
+                                 
+                                 byte[] buffer = new byte[1024];
+                                 int bytesRead;
+                                 while ((bytesRead = inputStream.read(buffer)) != -1) {
+                                     outputStream.write(buffer, 0, bytesRead);
+                                 }
+                             }
+                             
                              System.out.println("파일 저장 성공: " + dest.getAbsolutePath());
                              
                              // 데이터베이스에 저장할 경로 설정

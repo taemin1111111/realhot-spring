@@ -234,6 +234,28 @@ body.course-detail-page {
     border-radius: 6px;
 }
 
+/* 비활성화된 버튼 스타일 */
+.course-detail-like-btn:disabled,
+.course-detail-dislike-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+.course-detail-like-btn:disabled:hover,
+.course-detail-dislike-btn:disabled:hover {
+    color: inherit;
+    background-color: transparent;
+    transform: none;
+}
+
+.course-detail-like-btn:disabled.active,
+.course-detail-dislike-btn:disabled.active {
+    color: inherit;
+    background-color: transparent;
+    transform: none;
+}
+
 .course-detail-comment-count {
     color: #6c757d;
     font-weight: 600;

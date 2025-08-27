@@ -12,6 +12,74 @@
 <script>
 // body에 클래스 추가
 document.body.classList.add('course-detail-page');
+
+// fetchWithAuth 함수가 없으면 정의
+if (typeof window.fetchWithAuth === 'undefined') {
+    window.fetchWithAuth = async function(url, options = {}) {
+        const token = localStorage.getItem('accessToken');
+        
+        // 기본 헤더 설정
+        if (!options.headers) {
+            options.headers = {};
+        }
+        
+        // Authorization 헤더 추가
+        if (token) {
+            options.headers['Authorization'] = 'Bearer ' + token;
+        }
+        
+        try {
+            let response = await fetch(url, options);
+            
+            // 401 에러 시 토큰 갱신 시도
+            if (response.status === 401) {
+                const refreshToken = localStorage.getItem('refreshToken');
+                if (refreshToken) {
+                    try {
+                        const refreshResponse = await fetch('<%=root%>/api/auth/refresh', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ refreshToken: refreshToken })
+                        });
+                        
+                        if (refreshResponse.ok) {
+                            const refreshData = await refreshResponse.json();
+                            if (refreshData.token) {
+                                localStorage.setItem('accessToken', refreshData.token);
+                                
+                                // 새로운 토큰으로 원래 요청 재시도
+                                options.headers['Authorization'] = 'Bearer ' + refreshData.token;
+                                response = await fetch(url, options);
+                            }
+                        }
+                    } catch (refreshError) {
+                        console.error('토큰 갱신 실패:', refreshError);
+                        // 토큰 갱신 실패 시 로그아웃 처리
+                        localStorage.removeItem('accessToken');
+                        localStorage.removeItem('refreshToken');
+                        localStorage.removeItem('userInfo');
+                        location.reload();
+                        return;
+                    }
+                } else {
+                    // 리프레시 토큰이 없으면 로그아웃 처리
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('userInfo');
+                    location.reload();
+                    return;
+                }
+            }
+            
+            return response;
+        } catch (error) {
+            console.error('fetchWithAuth 오류:', error);
+            throw error;
+        }
+    };
+}
 </script>
 
 <div class="course-detail-container">
@@ -150,68 +218,98 @@ document.body.classList.add('course-detail-page');
 </div>
 
 <script>
-// 토스트 메시지 표시 함수
-function showMessage(message, type = 'info') {
-    // 기존 토스트 메시지 제거
-    const existingToast = document.querySelector('.toast-message');
+// 로그인 상태 확인 함수
+function isLoggedIn() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        console.log('토큰이 없습니다');
+        return false;
+    }
+    
+    try {
+        // Base64 디코딩 시 한글 인코딩 문제 해결
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        
+        const payload = JSON.parse(jsonPayload);
+        const currentTime = Date.now() / 1000;
+        const isValid = payload.exp > currentTime;
+        console.log('토큰 유효성 확인:', { exp: payload.exp, current: currentTime, isValid });
+        return isValid;
+    } catch (error) {
+        console.error('토큰 파싱 오류:', error);
+        return false;
+    }
+}
+
+// 코스 상세 전용 토스트 메시지 표시 함수
+function showCourseMessage(message, type = 'info') {
+    // 기존 코스 상세 토스트 메시지 제거
+    const existingToast = document.querySelector('.course-toast-message');
     if (existingToast) {
         existingToast.remove();
     }
     
     // 토스트 메시지 생성
     const toast = document.createElement('div');
-    toast.className = `toast-message toast-${type}`;
+    toast.className = `course-toast-message course-toast-${type}`;
     toast.textContent = message;
     
     // 스타일 설정
     toast.style.cssText = `
         position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 12px 20px;
-        border-radius: 6px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 15px 25px;
+        border-radius: 8px;
         color: white;
         font-weight: 600;
-        font-size: 14px;
+        font-size: 16px;
         z-index: 10000;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         animation: slideIn 0.3s ease-out;
+        text-align: center;
+        min-width: 300px;
     `;
     
     // 타입별 색상 설정
     if (type === 'error') {
         toast.style.backgroundColor = '#dc3545';
     } else if (type === 'warning') {
-        toast.style.backgroundColor = '#ffc107';
-        toast.style.color = '#212529';
+        toast.style.backgroundColor = '#dc3545';
+        toast.style.color = 'white';
     } else if (type === 'success') {
         toast.style.backgroundColor = '#28a745';
     } else {
         toast.style.backgroundColor = '#17a2b8';
     }
     
-    // 애니메이션 CSS 추가
-    if (!document.querySelector('#toast-animation')) {
+    // 코스 상세 전용 애니메이션 CSS 추가
+    if (!document.querySelector('#course-toast-animation')) {
         const style = document.createElement('style');
-        style.id = 'toast-animation';
+        style.id = 'course-toast-animation';
         style.textContent = `
-            @keyframes slideIn {
+            @keyframes courseSlideIn {
                 from {
-                    transform: translateX(100%);
+                    transform: translate(-50%, -50%) scale(0.8);
                     opacity: 0;
                 }
                 to {
-                    transform: translateX(0);
+                    transform: translate(-50%, -50%) scale(1);
                     opacity: 1;
                 }
             }
-            @keyframes slideOut {
+            @keyframes courseSlideOut {
                 from {
-                    transform: translateX(0);
+                    transform: translate(-50%, -50%) scale(1);
                     opacity: 1;
                 }
                 to {
-                    transform: translateX(100%);
+                    transform: translate(-50%, -50%) scale(0.8);
                     opacity: 0;
                 }
             }
@@ -224,7 +322,7 @@ function showMessage(message, type = 'info') {
     
     // 3초 후 자동 제거
     setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease-in';
+        toast.style.animation = 'courseSlideOut 0.3s ease-in';
         setTimeout(() => {
             if (toast.parentNode) {
                 toast.remove();
@@ -234,16 +332,51 @@ function showMessage(message, type = 'info') {
 }
 
 // 좋아요/싫어요 토글
-function toggleReaction(courseId, reactionType) {
-    fetch('<%=root%>/course/' + courseId + '/reaction', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: 'reactionType=' + reactionType
-    })
-    .then(response => response.json())
-    .then(data => {
+async function toggleReaction(courseId, reactionType) {
+    console.log('toggleReaction 호출:', { courseId, reactionType });
+    
+    // 로그인 상태 확인
+    const loggedIn = isLoggedIn();
+    console.log('로그인 상태:', loggedIn);
+    
+    if (!loggedIn) {
+        showCourseMessage('로그인 후 좋아요/싫어요를 사용할 수 있습니다.', 'warning');
+        return;
+    }
+    
+    try {
+        // JWT 토큰 가져오기
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            showCourseMessage('로그인 후 좋아요/싫어요를 사용할 수 있습니다.', 'warning');
+            return;
+        }
+        
+        // fetchWithAuth 사용 (자동 토큰 갱신 포함)
+        let response;
+        if (typeof window.fetchWithAuth === 'function') {
+            response = await window.fetchWithAuth('<%=root%>/course/' + courseId + '/reaction', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: 'reactionType=' + reactionType
+            });
+        } else {
+            // fallback: 일반 fetch 사용
+            response = await fetch('<%=root%>/course/' + courseId + '/reaction', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: 'reactionType=' + reactionType
+            });
+        }
+        
+        const data = await response.json();
+        
         if (data.success) {
             // 개수 업데이트
             document.querySelector('.like-count').textContent = data.likeCount;
@@ -263,23 +396,27 @@ function toggleReaction(courseId, reactionType) {
             } else if (data.currentReaction === 'DISLIKE') {
                 dislikeBtn.classList.add('active');
             }
+            
+            // 성공 시에는 토스트 메시지 표시하지 않음 (조용히 처리)
+            console.log('리액션 처리 성공:', data.action);
+            
         } else {
-            // 로그인 필요 메시지 표시
+            // 에러 메시지 표시
             if (data.requireLogin) {
-                showMessage(data.message, 'error');
+                showCourseMessage('로그인 후 좋아요/싫어요를 사용할 수 있습니다.', 'warning');
             } else {
-                showMessage(data.message, 'error');
+                showCourseMessage(data.message || '리액션 처리 중 오류가 발생했습니다.', 'error');
             }
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error:', error);
-        showMessage('리액션 처리 중 오류가 발생했습니다.', 'error');
-    });
+        showCourseMessage('리액션 처리 중 오류가 발생했습니다.', 'error');
+    }
 }
 
-// 페이지 로드 시 현재 리액션 상태 설정
+// 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
+    // 현재 리액션 상태 설정
     const currentReaction = '${currentReaction}';
     const likeBtn = document.getElementById('likeBtn');
     const dislikeBtn = document.getElementById('dislikeBtn');
@@ -289,7 +426,37 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if (currentReaction === 'DISLIKE') {
         dislikeBtn.classList.add('active');
     }
+    
+    // 로그인 상태에 따른 버튼 스타일 조정
+    updateReactionButtonsStyle();
+    
+    // 주기적으로 로그인 상태 확인 (5초마다)
+    setInterval(updateReactionButtonsStyle, 5000);
 });
+
+// 로그인 상태에 따른 버튼 스타일 업데이트
+function updateReactionButtonsStyle() {
+    const likeBtn = document.getElementById('likeBtn');
+    const dislikeBtn = document.getElementById('dislikeBtn');
+    
+    if (!isLoggedIn()) {
+        // 비로그인 상태: 버튼 비활성화
+        likeBtn.disabled = true;
+        dislikeBtn.disabled = true;
+        
+        // 툴팁 추가
+        likeBtn.title = '로그인 후 사용 가능합니다';
+        dislikeBtn.title = '로그인 후 사용 가능합니다';
+    } else {
+        // 로그인 상태: 버튼 활성화
+        likeBtn.disabled = false;
+        dislikeBtn.disabled = false;
+        
+        // 툴팁 제거
+        likeBtn.title = '';
+        dislikeBtn.title = '';
+    }
+}
 
 // 댓글 작성
 function submitComment(courseId) {

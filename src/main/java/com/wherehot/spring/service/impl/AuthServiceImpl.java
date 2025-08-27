@@ -89,7 +89,7 @@ public class AuthServiceImpl implements AuthService {
             
             logger.info("Login successful for user: {}", member.getUserid());
             
-            return new JwtResponse(accessToken, member.getUserid(), member.getNickname(), 
+            return new JwtResponse(accessToken, refreshToken, member.getUserid(), member.getNickname(), 
                                  member.getProvider(), member.getEmail());
                                  
         } catch (AuthenticationException e) {

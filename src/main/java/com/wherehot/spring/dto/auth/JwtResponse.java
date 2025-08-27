@@ -6,6 +6,7 @@ package com.wherehot.spring.dto.auth;
 public class JwtResponse {
     
     private String token;
+    private String refreshToken;
     private String type = "Bearer";
     private String userid;
     private String nickname;
@@ -15,7 +16,17 @@ public class JwtResponse {
     // 기본 생성자
     public JwtResponse() {}
     
-    // 생성자
+    // 생성자 (refresh token 포함)
+    public JwtResponse(String token, String refreshToken, String userid, String nickname, String provider, String email) {
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.userid = userid;
+        this.nickname = nickname;
+        this.provider = provider;
+        this.email = email;
+    }
+    
+    // 기존 생성자 (호환성 유지)
     public JwtResponse(String token, String userid, String nickname, String provider, String email) {
         this.token = token;
         this.userid = userid;
@@ -31,6 +42,14 @@ public class JwtResponse {
     
     public void setToken(String token) {
         this.token = token;
+    }
+    
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+    
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
     
     public String getType() {

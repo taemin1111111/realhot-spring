@@ -70,6 +70,7 @@ public class AuthController {
             if ("test".equals(loginRequest.getUserid()) && "test".equals(loginRequest.getPassword())) {
                 response.put("result", true);
                 response.put("token", "test_token_12345");
+                response.put("refreshToken", "test_refresh_token_12345");
                 response.put("userid", "test");
                 response.put("nickname", "테스트사용자");
                 response.put("provider", "local");
@@ -83,6 +84,7 @@ public class AuthController {
             if (jwtResponse != null && jwtResponse.getToken() != null) {
                 response.put("result", true);
                 response.put("token", jwtResponse.getToken());
+                response.put("refreshToken", jwtResponse.getRefreshToken());
                 response.put("userid", jwtResponse.getUserid());
                 response.put("nickname", jwtResponse.getNickname());
                 response.put("provider", jwtResponse.getProvider());
@@ -102,6 +104,44 @@ public class AuthController {
             
             response.put("result", false);
             response.put("error", "로그인 처리 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    // 토큰 갱신 API 엔드포인트
+    @PostMapping("/api/auth/refresh")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> refreshToken(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String refreshToken = request.get("refreshToken");
+            
+            if (refreshToken == null || refreshToken.trim().isEmpty()) {
+                response.put("result", false);
+                response.put("error", "리프레시 토큰이 필요합니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            String newAccessToken = authService.refreshAccessToken(refreshToken);
+            
+            if (newAccessToken != null) {
+                response.put("result", true);
+                response.put("token", newAccessToken);
+                response.put("message", "토큰이 갱신되었습니다.");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("result", false);
+                response.put("error", "토큰 갱신에 실패했습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+        } catch (Exception e) {
+            System.err.println("Token refresh error: " + e.getMessage());
+            e.printStackTrace();
+            
+            response.put("result", false);
+            response.put("error", "토큰 갱신 중 오류가 발생했습니다: " + e.getMessage());
             return ResponseEntity.internalServerError().body(response);
         }
     }

@@ -155,14 +155,21 @@
           loginUserId = payload.sub || '';
           console.log('로그인 상태 확인:', loginUserId);
           
-          // 관리자 확인을 위한 서버 API 호출
-          fetch(root + '/api/auth/check-admin', {
-            method: 'GET',
-            headers: {
-              'Authorization': 'Bearer ' + token,
-              'Content-Type': 'application/json'
-            }
-          })
+          // 관리자 확인을 위한 서버 API 호출 (자동 토큰 갱신 포함)
+          let adminCheckPromise;
+          if (typeof window.fetchWithAuth === 'function') {
+            adminCheckPromise = window.fetchWithAuth(root + '/api/auth/check-admin');
+          } else {
+            adminCheckPromise = fetch(root + '/api/auth/check-admin', {
+              method: 'GET',
+              headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+              }
+            });
+          }
+          
+          adminCheckPromise
           .then(response => response.json())
           .then(data => {
             if (data.isAdmin) {
@@ -195,6 +202,11 @@
   
   // 페이지 로드 시 인증 상태 확인
   initAuthStatus();
+  
+  // 토큰 갱신 타이머 설정 (title.jsp에서 설정되지 않은 경우를 대비)
+  if (typeof window.setupTokenRefreshTimer === 'function') {
+    window.setupTokenRefreshTimer();
+  }
   
   // 관리자 UI 업데이트 함수
   function updateAdminUI() {

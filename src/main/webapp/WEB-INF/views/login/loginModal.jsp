@@ -83,20 +83,64 @@
 
 <script>
 // JWT 토큰 관리 함수들
-function saveToken(token) {
+function saveToken(token, refreshToken) {
     localStorage.setItem('accessToken', token);
+    if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+    }
 }
 
 function getToken() {
     return localStorage.getItem('accessToken');
 }
 
-function removeToken() {
-    localStorage.removeItem('accessToken');
+function getRefreshToken() {
+    return localStorage.getItem('refreshToken');
 }
 
-// API 요청 시 JWT 토큰을 헤더에 포함하는 함수
-function fetchWithAuth(url, options = {}) {
+function removeToken() {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userInfo');
+}
+
+// 토큰 자동 갱신 함수
+async function refreshAccessToken() {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) {
+        console.log('리프레시 토큰이 없습니다.');
+        return false;
+    }
+    
+    try {
+        const response = await fetch('<%=root%>/api/auth/refresh', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ refreshToken: refreshToken })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.result && data.token) {
+                // 새 액세스 토큰 저장
+                localStorage.setItem('accessToken', data.token);
+                console.log('토큰 갱신 성공');
+                return true;
+            }
+        }
+        
+        console.log('토큰 갱신 실패');
+        return false;
+    } catch (error) {
+        console.error('토큰 갱신 오류:', error);
+        return false;
+    }
+}
+
+// API 요청 시 JWT 토큰을 헤더에 포함하는 함수 (자동 갱신 포함)
+async function fetchWithAuth(url, options = {}) {
     const token = getToken();
     const defaultOptions = {
         headers: {
@@ -106,7 +150,32 @@ function fetchWithAuth(url, options = {}) {
         }
     };
     
-    return fetch(url, { ...defaultOptions, ...options });
+    let response = await fetch(url, { ...defaultOptions, ...options });
+    
+    // 401 에러 시 토큰 갱신 시도
+    if (response.status === 401) {
+        console.log('토큰 만료, 갱신 시도...');
+        const refreshSuccess = await refreshAccessToken();
+        
+        if (refreshSuccess) {
+            // 갱신된 토큰으로 재요청
+            const newToken = getToken();
+            const retryOptions = {
+                ...defaultOptions,
+                headers: {
+                    ...defaultOptions.headers,
+                    'Authorization': `Bearer ${newToken}`
+                }
+            };
+            response = await fetch(url, { ...retryOptions, ...options });
+        } else {
+            // 갱신 실패 시 로그아웃
+            removeToken();
+            location.reload();
+        }
+    }
+    
+    return response;
 }
 
 // 로그인 처리 함수
@@ -147,7 +216,7 @@ async function handleLogin(event) {
             // 토큰 유효성 검사 (JwtResponse.token 필드 사용)
             if (data.token && data.token.includes('.')) {
                 console.log('JWT 토큰 저장:', data.token.substring(0, 50) + '...');
-                saveToken(data.token);
+                saveToken(data.token, data.refreshToken); // 리프레시 토큰도 저장
                 
                 // 사용자 정보도 함께 저장 (즉시 UI 업데이트용)
                 const userInfo = {

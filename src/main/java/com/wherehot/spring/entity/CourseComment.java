@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
  * 코스 댓글 엔티티
  * course_comment 테이블과 매핑
@@ -20,6 +21,7 @@ public class CourseComment {
     private String content;
     private Integer likeCount = 0;
     private Integer dislikeCount = 0;
+    private Integer replyCount = 0; // 대댓글 갯수 (DB에 저장되지 않음, 조회 시 계산)
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isDeleted = false;
@@ -107,6 +109,14 @@ public class CourseComment {
     
     public void setDislikeCount(Integer dislikeCount) {
         this.dislikeCount = dislikeCount;
+    }
+    
+    public Integer getReplyCount() {
+        return replyCount;
+    }
+    
+    public void setReplyCount(Integer replyCount) {
+        this.replyCount = replyCount;
     }
     
     public LocalDateTime getCreatedAt() {

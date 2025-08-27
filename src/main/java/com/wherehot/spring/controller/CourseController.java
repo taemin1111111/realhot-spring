@@ -2,10 +2,12 @@ package com.wherehot.spring.controller;
 
 import com.wherehot.spring.entity.Course;
 import com.wherehot.spring.entity.CourseStep;
+import com.wherehot.spring.entity.CourseComment;
 import com.wherehot.spring.entity.Hotplace;
 import com.wherehot.spring.entity.Region;
 import com.wherehot.spring.service.CourseService;
 import com.wherehot.spring.service.CourseReactionService;
+import com.wherehot.spring.service.CourseCommentService;
 import com.wherehot.spring.service.HotplaceService;
 import com.wherehot.spring.service.RegionService;
 import com.wherehot.spring.security.JwtUtils;
@@ -55,6 +57,9 @@ public class CourseController {
     
     @Autowired
     private CourseReactionService courseReactionService;
+    
+    @Autowired
+    private CourseCommentService courseCommentService;
     
     // IP 주소 가져오기
     private String getClientIpAddress(HttpServletRequest request) {
@@ -204,6 +209,14 @@ public class CourseController {
         
         // 데이터 조회
         Course course = courseService.getCourseByIdWithoutIncrement(id);
+        System.out.println("조회된 코스: " + (course != null ? "ID=" + course.getId() + ", 제목=" + course.getTitle() : "null"));
+        
+        if (course == null) {
+            System.out.println("코스 ID " + id + "에 해당하는 코스를 찾을 수 없습니다.");
+            // 에러 페이지로 리다이렉트 또는 에러 처리
+            return "redirect:/course";
+        }
+        
         List<CourseStep> courseSteps = courseService.getCourseSteps(id);
         
         // 사용자 식별 (JWT 토큰 또는 IP)
@@ -215,6 +228,7 @@ public class CourseController {
         // 현재 사용자의 리액션 상태 조회
         String currentReaction = courseReactionService.getCurrentReaction(id, userKey);
         
+        System.out.println("Model에 추가되는 course 객체: " + (course != null ? "ID=" + course.getId() + ", 제목=" + course.getTitle() : "null"));
         model.addAttribute("course", course);
         model.addAttribute("courseSteps", courseSteps);
         model.addAttribute("likeCount", reactionCounts.get("likeCount"));
@@ -561,6 +575,142 @@ public class CourseController {
             model.addAttribute("regionsBySido", new HashMap<>());
             model.addAttribute("regionsBySigungu", new HashMap<>());
         }
+    }
+    
+    // 댓글 작성 API
+    @PostMapping("/{courseId}/comment")
+    @ResponseBody
+    public Map<String, Object> createComment(@PathVariable int courseId,
+                                           @RequestParam String nickname,
+                                           @RequestParam(required = false) String password,
+                                           @RequestParam String content,
+                                           @RequestParam(required = false) Integer parentId,
+                                           HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 로그인 상태 확인
+            boolean isLoggedIn = isUserLoggedIn(request);
+            String authorUserid;
+            
+            // 댓글 객체 생성
+            CourseComment comment = new CourseComment();
+            comment.setCourseId(courseId);
+            comment.setContent(content);
+            comment.setParentId(parentId);
+            
+            if (isLoggedIn) {
+                // 로그인한 사용자
+                authorUserid = determineUserId(request);
+                comment.setAuthorUserid(authorUserid);
+                comment.setNickname(nickname);
+                comment.setPasswdHash(null); // 비밀번호 불필요
+            } else {
+                // 비로그인 사용자
+                comment.setAuthorUserid("anonymous");
+                comment.setNickname(nickname);
+                
+                // 비밀번호 검증
+                if (password == null || password.length() != 4 || !password.matches("\\d{4}")) {
+                    response.put("success", false);
+                    response.put("message", "비밀번호는 숫자 4자리로 입력해주세요.");
+                    return response;
+                }
+                comment.setPasswdHash(password);
+            }
+            
+            // 댓글 등록
+            int result = courseCommentService.createComment(comment);
+            
+            if (result > 0) {
+                // 새로 생성된 댓글 정보 조회
+                CourseComment savedComment = courseCommentService.getCommentById(comment.getId());
+                
+                response.put("success", true);
+                response.put("message", "댓글이 등록되었습니다.");
+                response.put("commentId", comment.getId());
+                response.put("comment", savedComment);
+            } else {
+                response.put("success", false);
+                response.put("message", "댓글 등록에 실패했습니다.");
+            }
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "댓글 등록 중 오류가 발생했습니다.");
+            e.printStackTrace();
+        }
+        
+        return response;
+    }
+    
+    // 댓글 목록 조회 API
+    @GetMapping("/{courseId}/comments")
+    @ResponseBody
+    public Map<String, Object> getComments(@PathVariable int courseId,
+                                          @RequestParam(defaultValue = "latest") String sort) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            List<CourseComment> comments = courseCommentService.getParentCommentsByCourseId(courseId);
+            
+            // 각 부모 댓글에 대댓글 갯수 추가
+            for (CourseComment comment : comments) {
+                int replyCount = courseCommentService.getReplyCountByParentId(comment.getId());
+                comment.setReplyCount(replyCount);
+            }
+            
+            // 정렬 처리
+            if ("popular".equals(sort)) {
+                // 인기순: 좋아요 수 기준으로 정렬
+                comments.sort((a, b) -> {
+                    int aScore = a.getLikeCount() - a.getDislikeCount();
+                    int bScore = b.getLikeCount() - b.getDislikeCount();
+                    return Integer.compare(bScore, aScore); // 내림차순
+                });
+            } else {
+                // 최신순: 생성일시 기준으로 정렬 (이미 매퍼에서 정렬됨)
+            }
+            
+            response.put("success", true);
+            response.put("comments", comments);
+            response.put("totalCount", comments.size()); // 부모 댓글 개수만
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "댓글 조회 중 오류가 발생했습니다.");
+            e.printStackTrace();
+        }
+        
+        return response;
+    }
+    
+    // 대댓글 목록 조회 API
+    @GetMapping("/{courseId}/replies")
+    @ResponseBody
+    public Map<String, Object> getReplies(@PathVariable int courseId,
+                                         @RequestParam int parentId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            List<CourseComment> replies = courseCommentService.getRepliesByParentId(parentId);
+            
+            // 대댓글에 replyCount 설정
+            for (CourseComment reply : replies) {
+                reply.setReplyCount(0); // 대댓글은 대댓글을 가질 수 없음
+            }
+            
+            response.put("success", true);
+            response.put("comments", replies);
+            response.put("totalCount", replies.size());
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "대댓글 조회 중 오류가 발생했습니다.");
+            e.printStackTrace();
+        }
+        
+        return response;
     }
     
     // 핫플레이스 검색 API (자동완성용)

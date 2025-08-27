@@ -298,28 +298,14 @@ body.course-detail-page {
     margin-bottom: 30px;
 }
 
-/* 댓글 목록 */
-.course-detail-comments {
-    margin-top: 30px;
-}
-
-.comments-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* 정렬 버튼 컨테이너 */
+.comments-sort-container {
     margin-bottom: 20px;
-}
-
-.comments-header h3 {
-    font-size: 20px;
-    font-weight: 600;
-    color: #000000;
-    margin: 0;
 }
 
 .comments-sort-buttons {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .sort-btn {
@@ -330,11 +316,13 @@ body.course-detail-page {
     border-radius: 6px;
     cursor: pointer;
     font-size: 14px;
+    font-weight: 500;
     transition: all 0.2s;
 }
 
 .sort-btn:hover {
     background: #f8f9fa;
+    border-color: #adb5bd;
 }
 
 .sort-btn.active {
@@ -343,10 +331,17 @@ body.course-detail-page {
     border-color: #007bff;
 }
 
+/* 댓글 목록 */
+.course-detail-comments {
+    margin-top: 0;
+}
+
+.comments-header {
+    display: none; /* 기존 헤더 숨김 */
+}
+
 .comments-divider {
-    height: 1px;
-    background: #e9ecef;
-    margin: 20px 0;
+    display: none; /* 기존 구분선 숨김 */
 }
 
 .comments-list {
@@ -360,9 +355,14 @@ body.course-detail-page {
 
 .comment-item {
     padding: 16px 0;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: none;
     background: transparent;
     position: relative;
+}
+
+/* 답글이 닫혀있을 때만 하단에 회색선 표시 */
+.comment-item:has(.reply-btn:not([data-expanded="true"])) {
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .comment-item:last-child {
@@ -378,21 +378,27 @@ body.course-detail-page {
     border-left: none;
     padding-left: 0;
     background: #f8f9fa;
-    border-bottom: 1px solid #f0f0f0;
+    border-top: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 16px 0;
 }
 
 .comment-reply:last-child {
-    border-bottom: none;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .comment-header {
     margin-bottom: 8px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 8px;
 }
 
 .comment-nickname {
     font-weight: 600;
     color: #333333;
     font-size: 14px;
+    border: none;
+    background: transparent;
 }
 
 .comment-content {
@@ -400,6 +406,14 @@ body.course-detail-page {
     line-height: 1.5;
     margin-bottom: 8px;
     font-size: 14px;
+    border: none;
+    background: transparent;
+}
+
+/* 댓글 표시 부분의 내용만 테두리 제거 */
+.comment-item .comment-content {
+    border: none;
+    background: transparent;
 }
 
 .comment-footer {
@@ -449,6 +463,12 @@ body.course-detail-page {
     position: relative;
 }
 
+/* 답글이 펼쳐져 있을 때는 상단선 제거 */
+.replies-container:not(:empty) {
+    border-top: none;
+    padding-top: 0;
+}
+
 .reply-form-container {
     margin-top: 15px;
     padding: 15px;
@@ -476,7 +496,7 @@ body.course-detail-page {
     height: 40px;
     padding: 10px 12px;
     border: none;
-    border-radius: 0;
+    border-radius: 4px;
     font-size: 13px;
     background: transparent;
 }
@@ -501,7 +521,7 @@ body.course-detail-page {
     height: 80px;
     padding: 10px 12px;
     border: none;
-    border-radius: 0;
+    border-radius: 4px;
     font-size: 13px;
     resize: none;
     transition: border-color 0.3s ease;
@@ -605,7 +625,7 @@ body.course-detail-page {
     height: 45px;
     padding: 12px 15px;
     border: none;
-    border-radius: 0;
+    border-radius: 4px;
     font-size: 14px;
     background: transparent;
 }
@@ -615,7 +635,7 @@ body.course-detail-page {
     height: 45px;
     padding: 12px 15px;
     border: none;
-    border-radius: 0;
+    border-radius: 4px;
     font-size: 14px;
     background: transparent;
 }
@@ -639,8 +659,8 @@ body.course-detail-page {
     flex: 1;
     height: 100px;
     padding: 12px 15px;
-    border: none;
-    border-radius: 0;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
     font-size: 14px;
     resize: none;
     transition: border-color 0.3s ease;
@@ -649,7 +669,7 @@ body.course-detail-page {
 
 .comment-content:focus {
     outline: none;
-    border: none;
+    border: 1px solid #007bff;
     box-shadow: none;
     background: transparent;
 }
@@ -730,4 +750,38 @@ body.course-detail-page {
     .comment-submit-btn {
         width: 100%;
     }
+}
+
+/* 댓글 갯수 컨테이너 */
+.comment-count-container {
+    margin-bottom: 20px;
+}
+
+.comment-count-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+.comment-count-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333333;
+}
+
+.comment-refresh-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+}
+
+.refresh-icon {
+    font-size: 20px;
+    color: #000000;
 }

@@ -176,11 +176,18 @@ if (typeof window.fetchWithAuth === 'undefined') {
             </button>
         </div>
         
-        <!-- 댓글 갯수 -->
-        
-        
         <!-- 구분선 -->
         <div class="course-detail-divider"></div>
+        
+        <!-- 댓글 갯수 -->
+        <div class="comment-count-container">
+            <div class="comment-count-box">
+                <span class="comment-count-text">댓글 <span id="comment-count-display">0</span></span>
+                <button class="comment-refresh-btn" onclick="loadComments('latest')">
+                    <span class="refresh-icon">🔄</span>
+                </button>
+            </div>
+        </div>
         
         <!-- 댓글 입력 -->
         <div class="course-detail-comment-form">
@@ -198,6 +205,14 @@ if (typeof window.fetchWithAuth === 'undefined') {
         
         <!-- 구분선 -->
         <div class="course-detail-divider"></div>
+        
+        <!-- 정렬 버튼 -->
+        <div class="comments-sort-container">
+            <div class="comments-sort-buttons">
+                <button class="sort-btn active" onclick="loadComments('latest')">최신순</button>
+                <button class="sort-btn" onclick="loadComments('popular')">인기순</button>
+            </div>
+        </div>
         
         <!-- 댓글 목록 -->
         <div class="course-detail-comments">
@@ -226,15 +241,6 @@ if (typeof window.fetchWithAuth === 'undefined') {
                     </div>
                 </div>
             </div>
-            <div class="comments-header">
-                <h3>댓글 <span id="comment-count-display" style="color: #666666; font-size: 16px; font-weight: normal;">+0개</span></h3>
-                <div class="comments-sort-buttons">
-                    <button class="sort-btn active" onclick="loadComments('latest')">최신순</button>
-                    <button class="sort-btn" onclick="loadComments('popular')">인기순</button>
-                </div>
-            </div>
-            
-            <div class="comments-divider"></div>
             
             <div id="commentsList" class="comments-list">
                 <!-- 댓글들이 여기에 동적으로 로드됩니다 -->
@@ -337,7 +343,7 @@ function displayComments(comments) {
 function updateCommentCount(count) {
     const countDisplay = document.getElementById('comment-count-display');
     if (countDisplay) {
-        countDisplay.textContent = count + '개';
+        countDisplay.textContent = count;
     }
 }
 
@@ -351,7 +357,7 @@ function createCommentHTML(comment) {
     // 대댓글인 경우 답글 버튼을 표시하지 않음
     let replyButtonHtml = '';
     if (!isReply) {
-        replyButtonHtml = '<button class="reply-btn" onclick="toggleRepliesAndShowForm(' + comment.id + ')">답글 ' + replyCount + '개</button>';
+        replyButtonHtml = '<button class="reply-btn" data-expanded="false" onclick="toggleRepliesAndShowForm(' + comment.id + ')">답글 ' + replyCount + '개</button>';
     }
     
     const html = '<div class="comment-item ' + (isReply ? 'comment-reply' : '') + '" data-comment-id="' + comment.id + '">' +
@@ -500,6 +506,7 @@ async function toggleRepliesAndShowForm(parentId) {
             repliesContainer.innerHTML = repliesHtml + formHtml;
             repliesContainer.style.display = 'block';
             replyBtn.textContent = '답글 접기';
+            replyBtn.setAttribute('data-expanded', 'true');
             
             // 포커스 설정
             const contentTextarea = document.getElementById('replyContent-' + parentId);
@@ -513,6 +520,7 @@ async function toggleRepliesAndShowForm(parentId) {
         // 답글 숨기기
         repliesContainer.style.display = 'none';
         replyBtn.textContent = '답글 ' + (repliesContainer.querySelectorAll('.comment-reply').length) + '개';
+        replyBtn.setAttribute('data-expanded', 'false');
     }
 }
 
@@ -612,6 +620,7 @@ async function submitReply(parentId) {
                 if (replyBtn) {
                     const currentCount = parseInt(replyBtn.textContent.match(/\d+/)[0]) || 0;
                     replyBtn.textContent = `답글 ${currentCount + 1}개`;
+                    replyBtn.setAttribute('data-expanded', 'true');
                 }
             }
             
@@ -642,6 +651,7 @@ function cancelReplyForm() {
                 const replyBtn = parentComment.querySelector('.reply-btn');
                 if (replyBtn) {
                     replyBtn.textContent = '답글 0개';
+                    replyBtn.setAttribute('data-expanded', 'false');
                 }
             }
         }

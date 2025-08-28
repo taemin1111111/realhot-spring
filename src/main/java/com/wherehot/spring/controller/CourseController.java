@@ -370,9 +370,62 @@ public class CourseController {
                      // 파일 처리 - MultipartFile 방식으로 복원
                      MultipartFile photoFile = null;
                      
-                     // 각 스텝별로 개별 파일명으로 파일 가져오기
-                     String photoParamName = "steps[" + i + "].photo";
-                     photoFile = request.getFile(photoParamName);
+                     // 모든 파일 맵 가져오기
+                     Map<String, MultipartFile> fileMap = request.getFileMap();
+                     System.out.println("전체 파일 맵: " + fileMap.keySet());
+                     
+                     // 파일 맵에서 현재 스텝에 해당하는 파일 찾기
+                     photoFile = null;
+                     
+                     // 1. stepPhoto_숫자 형태의 키를 찾기
+                     String photoKey = "stepPhoto_" + i;
+                     photoFile = fileMap.get(photoKey);
+                     if (photoFile != null && !photoFile.isEmpty()) {
+                         System.out.println("스텝 " + i + "에 해당하는 파일 찾음: " + photoKey);
+                     }
+                     
+                     // 2. stepPhoto_ 형태의 키가 있는 경우 (브라우저 호환성 문제로 숫자가 빠진 경우)
+                     if (photoFile == null) {
+                         photoFile = fileMap.get("stepPhoto_");
+                         if (photoFile != null && !photoFile.isEmpty()) {
+                             System.out.println("stepPhoto_ 형태의 파일을 스텝 " + i + "에 할당");
+                         }
+                     }
+                     
+                     // 2. 기존 steps[숫자].photo 형태의 키도 지원 (하위 호환성)
+                     if (photoFile == null) {
+                         for (Map.Entry<String, MultipartFile> entry : fileMap.entrySet()) {
+                             String key = entry.getKey();
+                             MultipartFile file = entry.getValue();
+                             
+                             if (key.matches("steps\\[\\d+\\]\\.photo")) {
+                                 // 키에서 숫자 추출
+                                 String numberStr = key.replaceAll("steps\\[(\\d+)\\]\\.photo", "$1");
+                                 int stepIndex = Integer.parseInt(numberStr);
+                                 
+                                 // 현재 스텝 인덱스와 일치하는지 확인
+                                 if (stepIndex == i) {
+                                     photoFile = file;
+                                     System.out.println("스텝 " + i + "에 해당하는 파일 찾음 (기존 방식): " + key);
+                                     break;
+                                 }
+                             }
+                         }
+                     }
+                     
+                     // 3. steps[].photo 형태의 키가 있는 경우, 모든 파일을 리스트로 가져와서 순서대로 할당
+                     if (photoFile == null) {
+                         List<MultipartFile> allPhotos = request.getFiles("steps[].photo");
+                         System.out.println("steps[].photo 파일 개수: " + allPhotos.size());
+                         
+                         if (i < allPhotos.size()) {
+                             MultipartFile stepPhoto = allPhotos.get(i);
+                             if (stepPhoto != null && !stepPhoto.isEmpty()) {
+                                 photoFile = stepPhoto;
+                                 System.out.println("steps[].photo에서 스텝 " + i + "에 파일 할당: " + stepPhoto.getOriginalFilename());
+                             }
+                         }
+                     }
                      
                      System.out.println("파일 존재 여부: " + (photoFile != null));
                      if (photoFile != null) {

@@ -1119,12 +1119,14 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
          formDataToSend.append(`steps[${validIndex}].placeId`, step.placeId);
          formDataToSend.append(`steps[${validIndex}].description`, step.description);
          
-         // 파일이 선택된 경우에만 추가 - steps[인덱스].photo 형태로 추가
+         // 파일이 선택된 경우에만 추가 - 각 스텝별로 고유한 키 사용
          if (fileInput && fileInput.files.length > 0) {
-             console.log(`스텝 ${validIndex + 1} 파일 추가:`, fileInput.files[0].name, '크기:', fileInput.files[0].size);
-             formDataToSend.append(`steps[${validIndex}].photo`, fileInput.files[0]);
+             var photoKey = 'stepPhoto_' + validIndex;
+             console.log('스텝 ' + (validIndex + 1) + ' 파일 추가:', fileInput.files[0].name, '크기:', fileInput.files[0].size, '키:', photoKey);
+             formDataToSend.append(photoKey, fileInput.files[0]);
          } else {
-             console.log(`스텝 ${validIndex + 1} 파일 없음`);
+             console.log('스텝 ' + (validIndex + 1) + ' 파일 없음');
+             // 파일이 없는 경우는 추가하지 않음
          }
          
          // 디버깅: FormData에 추가된 내용 확인

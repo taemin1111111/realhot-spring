@@ -82,7 +82,7 @@
                 <i class="fas fa-clock"></i> 최신글
             </button>
             <button class="course-hunting-tab-btn ${sort == 'popular' ? 'active' : ''}" onclick="changeTab('popular')">
-                <i class="fas fa-fire"></i> 인기글
+                <img src="<%=root%>/logo/fire.png" alt="fire" style="width: 16px; height: 16px; margin-right: 4px; vertical-align: middle;"> 인기글
             </button>
         </div>
         
@@ -126,11 +126,17 @@
             </c:when>
             <c:otherwise>
                 <div class="course-hunting-grid">
-                                         <c:forEach var="course" items="${courseList}">
+                                         <c:forEach var="course" items="${courseList}" varStatus="status">
                          <div class="course-hunting-card" onclick="goToDetail(${course.id})">
                              <!-- 제목 섹션 -->
                              <div class="course-hunting-card-title-section">
-                                 <h3 class="course-hunting-card-title">${course.title}</h3>
+                                 <h3 class="course-hunting-card-title">
+                                                             <c:if test="${param.sort == 'popular' && currentPage == 1}">
+                            <c:set var="rank" value="${status.index + 1}" />
+                            <span class="rank-number ${rank <= 3 ? 'top-rank' : ''}" style="font-weight: bold; color: #ff6b6b; margin-right: 8px; font-size: 20px;">${rank}위</span>
+                        </c:if>
+                                     ${course.title}
+                                 </h3>
                              </div>
                              
                              <!-- 스텝 경로 -->
@@ -232,7 +238,7 @@
              <!-- 이전 페이지 버튼 -->
              <c:if test="${currentPage > 1}">
                  <a href="javascript:void(0)" onclick="changePage(${currentPage - 1})" class="course-hunting-page-btn">
-                     <i class="fas fa-chevron-left"></i>
+                     &lt;
                  </a>
              </c:if>
              
@@ -267,12 +273,14 @@
              <!-- 다음 페이지 버튼 -->
              <c:if test="${currentPage < totalPages}">
                  <a href="javascript:void(0)" onclick="changePage(${currentPage + 1})" class="course-hunting-page-btn">
-                     <i class="fas fa-chevron-right"></i>
+                     &gt;
                  </a>
              </c:if>
          </div>
      </c:if>
 </div>
+
+
 
 <!-- 코스 공유하기 모달 -->
 <div id="createModal" class="course-hunting-modal">
@@ -464,6 +472,8 @@ function loadCourses() {
 function goToDetail(courseId) {
     window.location.href = '<%=root%>/course/' + courseId;
 }
+
+
 
 // JWT 토큰 관리 함수들
 function getToken() {
@@ -1094,6 +1104,20 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
     formDataToSend.append('summary', formData.summary);
     formDataToSend.append('nickname', formData.nickname);
     formDataToSend.append('passwd_hash', formData.passwd_hash);
+    
+    // userId 필드 추가 (로그인된 사용자면 userid, 아니면 "anonymous")
+    const userInfo = getUserInfo();
+    const userId = userInfo && userInfo.userid ? userInfo.userid : 'anonymous';
+    formDataToSend.append('userId', userId);
+    
+    console.log('전송할 데이터:', {
+        title: formData.title,
+        summary: formData.summary,
+        nickname: formData.nickname,
+        passwd_hash: formData.passwd_hash,
+        userId: userId,
+        userInfo: userInfo
+    });
     
          // 스텝 데이터와 파일을 FormData에 추가 (유효한 스텝만)
      console.log('FormData에 스텝 추가 시작');

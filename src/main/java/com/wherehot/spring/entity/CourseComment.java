@@ -12,16 +12,16 @@ import java.util.List;
  */
 public class CourseComment {
     
-    private Integer id;
-    private Integer courseId;
+    private int id;
+    private int courseId;
     private Integer parentId;
     private String authorUserid;
     private String nickname;
     private String passwdHash;
     private String content;
-    private Integer likeCount = 0;
-    private Integer dislikeCount = 0;
-    private Integer replyCount = 0; // 대댓글 갯수 (DB에 저장되지 않음, 조회 시 계산)
+    private int likeCount = 0;
+    private int dislikeCount = 0;
+    private int replyCount = 0; // 대댓글 갯수 (DB에 저장되지 않음, 조회 시 계산)
     private String userReaction; // 현재 사용자의 리액션 상태 (DB에 저장되지 않음, 조회 시 설정)
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -40,19 +40,19 @@ public class CourseComment {
     }
     
     // Getter & Setter
-    public Integer getId() {
+    public int getId() {
         return id;
     }
     
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
     
-    public Integer getCourseId() {
+    public int getCourseId() {
         return courseId;
     }
     
-    public void setCourseId(Integer courseId) {
+    public void setCourseId(int courseId) {
         this.courseId = courseId;
     }
     
@@ -96,27 +96,27 @@ public class CourseComment {
         this.content = content;
     }
     
-    public Integer getLikeCount() {
+    public int getLikeCount() {
         return likeCount;
     }
     
-    public void setLikeCount(Integer likeCount) {
+    public void setLikeCount(int likeCount) {
         this.likeCount = likeCount;
     }
     
-    public Integer getDislikeCount() {
+    public int getDislikeCount() {
         return dislikeCount;
     }
     
-    public void setDislikeCount(Integer dislikeCount) {
+    public void setDislikeCount(int dislikeCount) {
         this.dislikeCount = dislikeCount;
     }
     
-    public Integer getReplyCount() {
+    public int getReplyCount() {
         return replyCount;
     }
     
-    public void setReplyCount(Integer replyCount) {
+    public void setReplyCount(int replyCount) {
         this.replyCount = replyCount;
     }
     

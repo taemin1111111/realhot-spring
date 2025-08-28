@@ -21,8 +21,11 @@ public interface CourseCommentMapper {
     // 댓글 수정
     int updateCourseComment(CourseComment courseComment);
     
-    // 댓글 삭제 (soft delete)
+    // 댓글 삭제 (물리적 삭제)
     int deleteCourseComment(@Param("id") int id);
+    
+    // 코스의 모든 댓글 삭제
+    int deleteAllCommentsByCourseId(@Param("courseId") int courseId);
     
     // 특정 댓글 조회
     CourseComment getCourseCommentById(@Param("id") int id);
@@ -41,4 +44,10 @@ public interface CourseCommentMapper {
     
     // 부모 댓글의 대댓글 목록 조회 (현재 사용자의 리액션 상태 포함)
     List<CourseComment> getRepliesByParentIdWithUserReaction(@Param("parentId") int parentId, @Param("userKey") String userKey);
+    
+    // 부모 댓글의 모든 대댓글 삭제
+    int deleteRepliesByParentId(@Param("parentId") int parentId);
+    
+    // 댓글과 관련된 모든 리액션 삭제
+    int deleteReactionsByCommentId(@Param("commentId") int commentId);
 }

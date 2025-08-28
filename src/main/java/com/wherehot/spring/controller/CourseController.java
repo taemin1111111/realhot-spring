@@ -97,8 +97,25 @@ public class CourseController {
                     }
                 }
             }
+            
+            // 쿠키에서 토큰 확인
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("jwt_token".equals(cookie.getName())) {
+                        String token = cookie.getValue();
+                        if (jwtUtils.validateToken(token)) {
+                            String userId = jwtUtils.getUseridFromToken(token);
+                            if (userId != null && !userId.isEmpty()) {
+                                return userId;
+                            }
+                        }
+                    }
+                }
+            }
         } catch (Exception e) {
             // JWT 토큰 처리 중 오류 무시
+            e.printStackTrace();
         }
         
         // 로그인되지 않은 경우 IP 주소 반환
@@ -199,20 +216,26 @@ public class CourseController {
     // 코스 상세 페이지 (기존 JSP Include 방식 유지)
     @GetMapping("/{id}")
     public String courseDetail(@PathVariable int id, Model model, HttpSession session, HttpServletRequest request) {
-        // 조회수 증가 (세션 기반 중복 방지)
-        String viewKey = "course_view_" + id;
-        if (session.getAttribute(viewKey) == null) {
-            courseService.incrementViewCount(id);
-            session.setAttribute(viewKey, true);
-        }
-        
-        // 데이터 조회
-        Course course = courseService.getCourseByIdWithoutIncrement(id);
-        
-        if (course == null) {
-            // 에러 페이지로 리다이렉트 또는 에러 처리
-            return "redirect:/course";
-        }
+        try {
+            // ID 유효성 검사
+            if (id <= 0) {
+                return "redirect:/course";
+            }
+            
+            // 조회수 증가 (세션 기반 중복 방지)
+            String viewKey = "course_view_" + id;
+            if (session.getAttribute(viewKey) == null) {
+                courseService.incrementViewCount(id);
+                session.setAttribute(viewKey, true);
+            }
+            
+            // 데이터 조회
+            Course course = courseService.getCourseByIdWithoutIncrement(id);
+            
+            if (course == null) {
+                // 에러 페이지로 리다이렉트 또는 에러 처리
+                return "redirect:/course";
+            }
         
         List<CourseStep> courseSteps = courseService.getCourseSteps(id);
         
@@ -235,6 +258,11 @@ public class CourseController {
         // 기존 JSP Include 방식 유지
         model.addAttribute("mainPage", "pullcourse/courseDetail.jsp");
         return "index";
+        
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/course";
+        }
     }
     
     // 댓글 리액션 API (좋아요/싫어요)
@@ -294,15 +322,24 @@ public class CourseController {
             String title = request.getParameter("title");
             String summary = request.getParameter("summary");
             String nickname = request.getParameter("nickname");
+            String passwdHash = request.getParameter("passwd_hash");
+            String userId = request.getParameter("userId");
             
             course.setTitle(title);
             course.setSummary(summary);
             course.setNickname(nickname);
-            course.setAuthorUserid("anonymous"); // 임시 사용자 ID
+            course.setPasswdHash(passwdHash);
             
-            // 사용자 ID 결정 (로그인된 사용자면 userid, 아니면 IP)
-            String userId = determineUserId(request);
-            course.setUserId(userId);
+            // userId 처리: 클라이언트에서 전송한 값이 있으면 사용, 없으면 IP 주소 사용
+            if (userId != null && !userId.trim().isEmpty() && !"anonymous".equals(userId.trim())) {
+                course.setUserId(userId);
+                course.setAuthorUserid("user");
+            } else {
+                // 클라이언트에서 userId가 없거나 "anonymous"인 경우 IP 주소 사용
+                String ipUserId = determineUserId(request);
+                course.setUserId(ipUserId);
+                course.setAuthorUserid("anonymous");
+            }
             
             // 스텝 데이터와 파일 추출
             List<CourseStep> courseSteps = new ArrayList<>();
@@ -758,5 +795,173 @@ public class CourseController {
             e.printStackTrace();
             return new ArrayList<>();
         }
+    }
+    
+    // 코스 삭제 API
+    @PostMapping("/delete")
+    @ResponseBody
+    public Map<String, Object> deleteCourse(@RequestBody Map<String, Object> requestData, HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String courseIdStr = (String) requestData.get("courseId");
+            String password = (String) requestData.get("password");
+            String authorUserid = (String) requestData.get("authorUserid");
+            String userId = (String) requestData.get("userId");
+            
+            int courseId;
+            try {
+                courseId = Integer.parseInt(courseIdStr);
+            } catch (NumberFormatException e) {
+                response.put("success", false);
+                response.put("message", "유효하지 않은 코스 ID입니다.");
+                return response;
+            }
+            
+            if (courseIdStr == null || password == null) {
+                response.put("success", false);
+                response.put("message", "필수 정보가 누락되었습니다.");
+                return response;
+            }
+            
+            // 코스 정보 조회
+            Course course = courseService.getCourseByIdWithoutIncrement(courseId);
+            if (course == null) {
+                response.put("success", false);
+                response.put("message", "존재하지 않는 코스입니다.");
+                return response;
+            }
+            
+            // 비밀번호 확인
+            if (!password.equals(course.getPasswdHash())) {
+                response.put("success", false);
+                response.put("message", "비밀번호가 일치하지 않습니다.");
+                return response;
+            }
+            
+            // 권한 확인
+            if ("user".equals(authorUserid)) {
+                // 로그인된 사용자가 쓴 글인 경우, 현재 로그인한 사용자와 일치하는지 확인
+                String currentUserId = determineUserId(request);
+                
+                // JWT 토큰에서 사용자 ID를 가져올 수 없는 경우, 요청에서 전달받은 userId 사용
+                if (currentUserId == null || currentUserId.isEmpty() || currentUserId.equals(getClientIpAddress(request))) {
+                    // IP 주소인 경우 (로그인되지 않은 경우) 삭제 불가
+                    response.put("success", false);
+                    response.put("message", "로그인된 사용자만 삭제할 수 있습니다.");
+                    return response;
+                }
+                
+                if (!userId.equals(currentUserId)) {
+                    response.put("success", false);
+                    response.put("message", "글쓴이와 ID가 일치해야 삭제 가능합니다.");
+                    return response;
+                }
+            }
+            
+            // 삭제 실행
+            courseService.deleteCourse(courseId);
+            
+            response.put("success", true);
+            response.put("message", "코스가 삭제되었습니다.");
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "삭제 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    // 댓글 삭제 API
+    @PostMapping("/comment/delete")
+    @ResponseBody
+    public Map<String, Object> deleteComment(@RequestBody Map<String, Object> requestData, HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String commentIdStr = (String) requestData.get("commentId");
+            String nickname = (String) requestData.get("nickname");
+            String password = (String) requestData.get("password");
+            
+            int commentId;
+            try {
+                commentId = Integer.parseInt(commentIdStr);
+            } catch (NumberFormatException e) {
+                response.put("success", false);
+                response.put("message", "유효하지 않은 댓글 ID입니다.");
+                return response;
+            }
+            
+            if (commentIdStr == null || nickname == null) {
+                response.put("success", false);
+                response.put("message", "필수 정보가 누락되었습니다.");
+                return response;
+            }
+            
+            // 댓글 정보 조회
+            CourseComment comment = courseCommentService.getCommentById(commentId);
+            if (comment == null) {
+                response.put("success", false);
+                response.put("message", "존재하지 않는 댓글입니다.");
+                return response;
+            }
+            
+            // 닉네임 확인
+            if (!nickname.equals(comment.getNickname())) {
+                response.put("success", false);
+                response.put("message", "댓글 작성자와 일치하지 않습니다.");
+                return response;
+            }
+            
+            // 로그인 상태 확인
+            boolean isLoggedIn = isUserLoggedIn(request);
+            String currentUserId = determineUserId(request);
+            
+            // 권한 확인
+            boolean hasPermission = false;
+            
+            if (isLoggedIn) {
+                // 로그인한 사용자인 경우: 본인이 작성한 댓글인지 확인
+                if (currentUserId.equals(comment.getAuthorUserid())) {
+                    hasPermission = true;
+                }
+            } else {
+                // 비로그인 사용자인 경우: 비밀번호 확인
+                if (password == null) {
+                    response.put("success", false);
+                    response.put("message", "비밀번호를 입력해주세요.");
+                    return response;
+                }
+                
+                if (comment.getPasswdHash() != null && password.equals(comment.getPasswdHash())) {
+                    hasPermission = true;
+                }
+            }
+            
+            if (!hasPermission) {
+                response.put("success", false);
+                response.put("message", "댓글을 삭제할 권한이 없습니다.");
+                return response;
+            }
+            
+            // 댓글 삭제 (댓글과 관련된 모든 데이터 삭제)
+            boolean deleteResult = courseCommentService.deleteCommentWithAllData(commentId);
+            
+            if (deleteResult) {
+                response.put("success", true);
+                response.put("message", "댓글이 삭제되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("message", "댓글 삭제에 실패했습니다.");
+            }
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "댓글 삭제 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return response;
     }
 }

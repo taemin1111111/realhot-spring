@@ -53,4 +53,9 @@ public interface CourseCommentReactionMapper {
      * 댓글의 싫어요 수 업데이트
      */
     int updateDislikeCount(@Param("commentId") Integer commentId, @Param("dislikeCount") Integer dislikeCount);
+    
+    /**
+     * 코스의 모든 댓글 리액션 삭제
+     */
+    int deleteAllReactionsByCourseId(@Param("courseId") Integer courseId);
 }

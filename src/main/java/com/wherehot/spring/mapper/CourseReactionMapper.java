@@ -30,4 +30,7 @@ public interface CourseReactionMapper {
     
     // 사용자의 리액션 존재 여부 확인
     boolean existsByCourseIdAndUserKey(@Param("courseId") int courseId, @Param("userKey") String userKey);
+    
+    // 코스의 모든 리액션 삭제
+    int deleteAllReactionsByCourseId(@Param("courseId") int courseId);
 }

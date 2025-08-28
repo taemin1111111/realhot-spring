@@ -69,4 +69,7 @@ public interface CourseMapper {
     int getCourseCountByRegion(@Param("sido") String sido, 
                               @Param("sigungu") String sigungu, 
                               @Param("dong") String dong);
+    
+    // 코스 삭제 (논리적 삭제)
+    int deleteCourse(@Param("id") int id);
 }

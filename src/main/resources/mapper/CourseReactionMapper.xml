@@ -59,5 +59,10 @@
         FROM course_reaction
         WHERE course_id = #{courseId} AND user_key = #{userKey}
     </select>
+    
+    <!-- 코스의 모든 리액션 삭제 -->
+    <delete id="deleteAllReactionsByCourseId">
+        DELETE FROM course_reaction WHERE course_id = #{courseId}
+    </delete>
 
 </mapper>

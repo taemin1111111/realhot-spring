@@ -59,12 +59,15 @@
         WHERE id = #{id} AND is_deleted = 0
     </update>
 
-    <!-- 댓글 삭제 (soft delete) -->
-    <update id="deleteCourseComment">
-        UPDATE course_comment 
-        SET is_deleted = 1, updated_at = NOW()
-        WHERE id = #{id}
-    </update>
+    <!-- 댓글 삭제 (물리적 삭제) -->
+    <delete id="deleteCourseComment">
+        DELETE FROM course_comment WHERE id = #{id}
+    </delete>
+    
+    <!-- 코스의 모든 댓글 삭제 -->
+    <delete id="deleteAllCommentsByCourseId">
+        DELETE FROM course_comment WHERE course_id = #{courseId}
+    </delete>
 
     <!-- 특정 댓글 조회 -->
     <select id="getCourseCommentById" resultMap="CourseCommentResultMap">
@@ -118,5 +121,15 @@
         WHERE c.parent_id = #{parentId} AND c.is_deleted = 0
         ORDER BY c.created_at ASC
     </select>
+
+    <!-- 부모 댓글의 모든 대댓글 삭제 -->
+    <delete id="deleteRepliesByParentId">
+        DELETE FROM course_comment WHERE parent_id = #{parentId}
+    </delete>
+
+    <!-- 댓글과 관련된 모든 리액션 삭제 -->
+    <delete id="deleteReactionsByCommentId">
+        DELETE FROM course_comment_reaction WHERE comment_id = #{commentId}
+    </delete>
 
 </mapper>

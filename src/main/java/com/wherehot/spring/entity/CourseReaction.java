@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
  */
 public class CourseReaction {
     
-    private Integer courseId;
+    private int courseId;
     private String userKey;
     private String reaction; // 'LIKE' 또는 'DISLIKE'
     private LocalDateTime createdAt;
@@ -23,11 +23,11 @@ public class CourseReaction {
     }
     
     // Getter & Setter
-    public Integer getCourseId() {
+    public int getCourseId() {
         return courseId;
     }
     
-    public void setCourseId(Integer courseId) {
+    public void setCourseId(int courseId) {
         this.courseId = courseId;
     }
     

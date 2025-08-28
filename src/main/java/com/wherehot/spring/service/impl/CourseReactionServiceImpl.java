@@ -23,6 +23,13 @@ public class CourseReactionServiceImpl implements CourseReactionService {
     public Map<String, Object> toggleReaction(int courseId, String userKey, String reactionType) {
         Map<String, Object> result = new HashMap<>();
         
+        // courseId 유효성 검사
+        if (courseId <= 0) {
+            result.put("success", false);
+            result.put("message", "유효하지 않은 코스 ID입니다.");
+            return result;
+        }
+        
         // 현재 사용자의 리액션 조회
         Optional<CourseReaction> existingReaction = courseReactionMapper.findByCourseIdAndUserKey(courseId, userKey);
         
@@ -66,16 +73,28 @@ public class CourseReactionServiceImpl implements CourseReactionService {
     @Override
     @Transactional(readOnly = true)
     public String getCurrentReaction(int courseId, String userKey) {
-        Optional<CourseReaction> reaction = courseReactionMapper.findByCourseIdAndUserKey(courseId, userKey);
-        return reaction.map(CourseReaction::getReaction).orElse(null);
+        try {
+            Optional<CourseReaction> reaction = courseReactionMapper.findByCourseIdAndUserKey(courseId, userKey);
+            return reaction.map(CourseReaction::getReaction).orElse(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
     
     @Override
     @Transactional(readOnly = true)
     public Map<String, Integer> getReactionCounts(int courseId) {
         Map<String, Integer> counts = new HashMap<>();
-        counts.put("likeCount", courseReactionMapper.countLikesByCourseId(courseId));
-        counts.put("dislikeCount", courseReactionMapper.countDislikesByCourseId(courseId));
+        try {
+            counts.put("likeCount", courseReactionMapper.countLikesByCourseId(courseId));
+            counts.put("dislikeCount", courseReactionMapper.countDislikesByCourseId(courseId));
+        } catch (Exception e) {
+            // 오류 발생 시 기본값 설정
+            counts.put("likeCount", 0);
+            counts.put("dislikeCount", 0);
+            e.printStackTrace();
+        }
         return counts;
     }
     

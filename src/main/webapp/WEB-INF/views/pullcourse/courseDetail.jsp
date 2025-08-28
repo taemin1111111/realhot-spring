@@ -91,9 +91,16 @@ if (typeof window.fetchWithAuth === 'undefined') {
 <div class="course-detail-container">
     <div class="course-detail-content">
 
-        
-        <!-- 제목 -->
-        <h1 class="course-detail-title">${course.title}</h1>
+        <!-- 제목과 삭제 버튼 -->
+        <div class="course-detail-title-container">
+            <h1 class="course-detail-title">${course.title}</h1>
+            <div class="course-detail-menu" onclick="showDeleteMenu(${course.id}, '${course.authorUserid}', '${course.userId}')">
+                <span class="course-detail-menu-dots">⋯</span>
+                <div class="course-detail-menu-dropdown" id="deleteMenu_${course.id}" style="display: none;">
+                    <div class="course-detail-menu-item" onclick="deleteCourse(${course.id}, '${course.authorUserid}', '${course.userId}')">삭제</div>
+                </div>
+            </div>
+        </div>
         
         <!-- 작성자 정보 -->
         <div class="course-detail-author-info">
@@ -212,6 +219,20 @@ if (typeof window.fetchWithAuth === 'undefined') {
 </div>
 
 <script>
+// 사용자 정보 가져오기 함수
+function getUserInfo() {
+    const userInfoStr = localStorage.getItem('userInfo');
+    if (userInfoStr) {
+        try {
+            return JSON.parse(userInfoStr);
+        } catch (error) {
+            console.error('사용자 정보 파싱 오류:', error);
+            return null;
+        }
+    }
+    return null;
+}
+
 // 로그인 상태 확인 함수
 function isLoggedIn() {
     const token = localStorage.getItem('accessToken');
@@ -352,23 +373,29 @@ function createCommentHTML(comment) {
     const html = '<div class="comment-item ' + (isReply ? 'comment-reply' : '') + '" data-comment-id="' + comment.id + '">' +
         '<div class="comment-header">' +
             '<span class="comment-display-nickname">' + (comment.nickname || '') + '</span>' +
+            '<div class="comment-menu" onclick="showCommentDeleteMenu(' + comment.id + ', \'' + (comment.nickname || '') + '\')">' +
+                '<span class="comment-menu-dots">⋯</span>' +
+                '<div class="comment-menu-dropdown" id="commentDeleteMenu_' + comment.id + '" style="display: none;">' +
+                    '<div class="comment-menu-item" onclick="deleteComment(' + comment.id + ', \'' + (comment.nickname || '') + '\')">삭제</div>' +
+                '</div>' +
+            '</div>' +
         '</div>' +
                     '<div class="comment-display-content">' +
-                (comment.content || '') +
-            '</div>' +
+            (comment.content || '') +
+        '</div>' +
         '<div class="comment-footer">' +
             '<div class="comment-info">' +
                 '<span class="comment-time">' + timeAgo + '</span>' +
                 replyButtonHtml +
             '</div>' +
                          '<div class="comment-reactions">' +
-                 '<button class="comment-like-btn' + (comment.userReaction === 'LIKE' ? ' active' : '') + '" onclick="likeComment(' + comment.id + ')">' +
-                     '👍 <span class="like-count">' + (comment.likeCount || 0) + '</span>' +
-                 '</button>' +
-                 '<button class="comment-dislike-btn' + (comment.userReaction === 'DISLIKE' ? ' active' : '') + '" onclick="dislikeComment(' + comment.id + ')">' +
-                     '👎 <span class="dislike-count">' + (comment.dislikeCount || 0) + '</span>' +
-                 '</button>' +
-             '</div>' +
+                '<button class="comment-like-btn' + (comment.userReaction === 'LIKE' ? ' active' : '') + '" onclick="likeComment(' + comment.id + ')">' +
+                    '👍 <span class="like-count">' + (comment.likeCount || 0) + '</span>' +
+                '</button>' +
+                '<button class="comment-dislike-btn' + (comment.userReaction === 'DISLIKE' ? ' active' : '') + '" onclick="dislikeComment(' + comment.id + ')">' +
+                    '👎 <span class="dislike-count">' + (comment.dislikeCount || 0) + '</span>' +
+                '</button>' +
+            '</div>' +
         '</div>' +
         '<div id="replies-' + comment.id + '" class="replies-container" style="display: none;"></div>' +
     '</div>';
@@ -385,22 +412,28 @@ function createReplyHTML(reply) {
     const html = '<div class="comment-item comment-reply" data-comment-id="' + reply.id + '">' +
         '<div class="comment-header">' +
             '<span class="comment-display-nickname">' + (reply.nickname || '') + '</span>' +
+            '<div class="comment-menu" onclick="showCommentDeleteMenu(' + reply.id + ', \'' + (reply.nickname || '') + '\')">' +
+                '<span class="comment-menu-dots">⋯</span>' +
+                '<div class="comment-menu-dropdown" id="commentDeleteMenu_' + reply.id + '" style="display: none;">' +
+                    '<div class="comment-menu-item" onclick="deleteComment(' + reply.id + ', \'' + (reply.nickname || '') + '\')">삭제</div>' +
+                '</div>' +
+            '</div>' +
         '</div>' +
                     '<div class="comment-display-content">' +
-                (reply.content || '') +
-            '</div>' +
+            (reply.content || '') +
+        '</div>' +
         '<div class="comment-footer">' +
             '<div class="comment-info">' +
                 '<span class="comment-time">' + timeAgo + '</span>' +
             '</div>' +
                          '<div class="comment-reactions">' +
-                 '<button class="comment-like-btn' + (reply.userReaction === 'LIKE' ? ' active' : '') + '" onclick="likeComment(' + reply.id + ')">' +
-                     '👍 <span class="like-count">' + (reply.likeCount || 0) + '</span>' +
-                 '</button>' +
-                 '<button class="comment-dislike-btn' + (reply.userReaction === 'DISLIKE' ? ' active' : '') + '" onclick="dislikeComment(' + reply.id + ')">' +
-                     '👎 <span class="dislike-count">' + (reply.dislikeCount || 0) + '</span>' +
-                 '</button>' +
-             '</div>' +
+                '<button class="comment-like-btn' + (reply.userReaction === 'LIKE' ? ' active' : '') + '" onclick="likeComment(' + reply.id + ')">' +
+                    '👍 <span class="like-count">' + (reply.likeCount || 0) + '</span>' +
+                '</button>' +
+                '<button class="comment-dislike-btn' + (reply.userReaction === 'DISLIKE' ? ' active' : '') + '" onclick="dislikeComment(' + reply.id + ')">' +
+                    '👎 <span class="dislike-count">' + (reply.dislikeCount || 0) + '</span>' +
+                '</button>' +
+            '</div>' +
         '</div>' +
     '</div>';
     
@@ -1107,4 +1140,293 @@ async function submitComment() {
 document.addEventListener('DOMContentLoaded', function() {
     loadComments('latest');
 });
+
+// 삭제 메뉴 표시/숨김
+function showDeleteMenu(courseId, authorUserid, userId) {
+    const menu = document.getElementById('deleteMenu_' + courseId);
+    if (menu.style.display === 'none') {
+        menu.style.display = 'block';
+    } else {
+        menu.style.display = 'none';
+    }
+}
+
+// 삭제 처리
+function deleteCourse(courseId, authorUserid, userId) {
+    const userInfo = getUserInfo();
+    const currentUserId = userInfo && userInfo.userid ? userInfo.userid : null;
+    
+    // 로그인된 사용자가 쓴 글인 경우
+    if (authorUserid === 'user') {
+        // 현재 로그인한 사용자와 글쓴이가 같은지 확인
+        if (!currentUserId || currentUserId !== userId) {
+            showToast('글쓴이와 ID가 일치해야 삭제 가능합니다', 2500);
+            return;
+        }
+    }
+    
+    // 비밀번호 확인 모달 표시
+    showPasswordModal(courseId, authorUserid, userId);
+}
+
+// 비밀번호 확인 모달 표시
+function showPasswordModal(courseId, authorUserid, userId) {
+    const modal = document.getElementById('passwordModal');
+    const title = document.getElementById('passwordModalTitle');
+    const input = document.getElementById('passwordModalInput');
+    
+    // 모달 제목 설정
+    if (authorUserid === 'user') {
+        title.textContent = '비밀번호를 입력해주세요';
+    } else {
+        title.textContent = '작성 시 입력한 비밀번호를 입력해주세요';
+    }
+    
+    // 모달에 데이터 저장
+    modal.dataset.courseId = courseId;
+    modal.dataset.authorUserid = authorUserid;
+    modal.dataset.userId = userId;
+    
+    // 입력 필드 초기화
+    input.value = '';
+    input.focus();
+    
+    // 모달 표시
+    modal.style.display = 'flex';
+}
+
+// 비밀번호 확인 모달 닫기
+function closePasswordModal() {
+    const modal = document.getElementById('passwordModal');
+    modal.style.display = 'none';
+}
+
+// 삭제 확인
+function confirmDelete() {
+    const modal = document.getElementById('passwordModal');
+    const input = document.getElementById('passwordModalInput');
+    const courseId = modal.dataset.courseId;
+    const authorUserid = modal.dataset.authorUserid;
+    const userId = modal.dataset.userId;
+    const password = input.value;
+    
+    if (!password || password.length !== 4 || !/^\d{4}$/.test(password)) {
+        alert('비밀번호는 숫자 4자리로 입력해주세요.');
+        input.focus();
+        return;
+    }
+    
+    // JWT 토큰 가져오기
+    const token = localStorage.getItem('accessToken');
+    
+    // 삭제 요청
+    fetch('<%=root%>/course/delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? 'Bearer ' + token : ''
+        },
+        body: JSON.stringify({
+            courseId: courseId,
+            password: password,
+            authorUserid: authorUserid,
+            userId: userId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('코스가 삭제되었습니다', 2000);
+            // 목록 페이지로 이동
+            setTimeout(() => {
+                window.location.href = '<%=root%>/course';
+            }, 1000);
+        } else {
+            showToast(data.message || '삭제에 실패했습니다', 2500);
+        }
+    })
+    .catch(error => {
+        console.error('삭제 오류:', error);
+        showToast('삭제 중 오류가 발생했습니다', 2500);
+    })
+    .finally(() => {
+        closePasswordModal();
+    });
+}
+
+// 토스트 메시지 표시
+function showToast(message, duration = 2500) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast-message';
+    toast.textContent = message;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+            container.removeChild(toast);
+        }, 300);
+    }, duration);
+}
+
+// 댓글 삭제 메뉴 표시/숨김
+function showCommentDeleteMenu(commentId, nickname) {
+    const menu = document.getElementById('commentDeleteMenu_' + commentId);
+    if (menu.style.display === 'none') {
+        menu.style.display = 'block';
+    } else {
+        menu.style.display = 'none';
+    }
+}
+
+// 댓글 삭제 처리
+function deleteComment(commentId, nickname) {
+    // 비밀번호 확인 모달 표시
+    showCommentPasswordModal(commentId, nickname);
+}
+
+// 댓글 비밀번호 확인 모달 표시
+function showCommentPasswordModal(commentId, nickname) {
+    const modal = document.getElementById('commentPasswordModal');
+    const title = document.getElementById('commentPasswordModalTitle');
+    const input = document.getElementById('commentPasswordModalInput');
+    
+    // 로그인 상태 확인
+    const loggedIn = isLoggedIn();
+    
+    // 모달 제목 설정
+    if (loggedIn) {
+        title.textContent = '댓글을 삭제하시겠습니까?';
+        input.style.display = 'none'; // 비밀번호 입력 필드 숨기기
+    } else {
+        title.textContent = '댓글 삭제를 위한 비밀번호를 입력해주세요';
+        input.style.display = 'block'; // 비밀번호 입력 필드 표시
+    }
+    
+    // 모달에 데이터 저장
+    modal.dataset.commentId = commentId;
+    modal.dataset.nickname = nickname;
+    
+    // 입력 필드 초기화
+    input.value = '';
+    
+    // 로그인한 사용자가 아닌 경우에만 포커스 설정
+    if (!loggedIn) {
+        input.focus();
+    }
+    
+    // 모달 표시
+    modal.style.display = 'flex';
+}
+
+// 댓글 비밀번호 확인 모달 닫기
+function closeCommentPasswordModal() {
+    const modal = document.getElementById('commentPasswordModal');
+    modal.style.display = 'none';
+}
+
+// 댓글 삭제 확인
+function confirmCommentDelete() {
+    const modal = document.getElementById('commentPasswordModal');
+    const input = document.getElementById('commentPasswordModalInput');
+    const commentId = modal.dataset.commentId;
+    const nickname = modal.dataset.nickname;
+    const password = input.value;
+    
+    // 로그인 상태 확인
+    const loggedIn = isLoggedIn();
+    
+    // 비로그인 사용자의 경우에만 비밀번호 검증
+    if (!loggedIn) {
+        if (!password || password.length !== 4 || !/^\d{4}$/.test(password)) {
+            alert('비밀번호는 숫자 4자리로 입력해주세요.');
+            input.focus();
+            return;
+        }
+    }
+    
+    // JWT 토큰 가져오기
+    const token = localStorage.getItem('accessToken');
+    
+    // 삭제 요청 데이터 준비
+    const requestData = {
+        commentId: commentId,
+        nickname: nickname
+    };
+    
+    // 비로그인 사용자의 경우에만 비밀번호 포함
+    if (!loggedIn) {
+        requestData.password = password;
+    }
+    
+    // 삭제 요청
+    fetch('<%=root%>/course/comment/delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? 'Bearer ' + token : ''
+        },
+        body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showCourseMessage('댓글이 삭제되었습니다.', 'success');
+            // 댓글 목록 새로고침
+            loadComments('latest');
+        } else {
+            showCourseMessage(data.message || '삭제에 실패했습니다.', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('댓글 삭제 오류:', error);
+        showCourseMessage('삭제 중 오류가 발생했습니다.', 'error');
+    })
+    .finally(() => {
+        closeCommentPasswordModal();
+    });
+}
+
+// 페이지 클릭 시 메뉴 닫기
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.course-detail-menu')) {
+        document.querySelectorAll('.course-detail-menu-dropdown').forEach(menu => {
+            menu.style.display = 'none';
+        });
+    }
+    if (!e.target.closest('.comment-menu')) {
+        document.querySelectorAll('.comment-menu-dropdown').forEach(menu => {
+            menu.style.display = 'none';
+        });
+    }
+});
 </script>
+
+<!-- 토스트 메시지 컨테이너 -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- 비밀번호 확인 모달 -->
+<div id="passwordModal" class="password-modal">
+    <div class="password-modal-content">
+        <div class="password-modal-title" id="passwordModalTitle">비밀번호를 입력해주세요</div>
+        <input type="password" id="passwordModalInput" class="password-modal-input" placeholder="비밀번호 4자리" maxlength="4" pattern="[0-9]{4}">
+        <div class="password-modal-buttons">
+            <button class="password-modal-btn confirm" onclick="confirmDelete()">삭제</button>
+            <button class="password-modal-btn cancel" onclick="closePasswordModal()">취소</button>
+        </div>
+    </div>
+</div>
+
+<!-- 댓글 삭제용 비밀번호 확인 모달 -->
+<div id="commentPasswordModal" class="password-modal">
+    <div class="password-modal-content">
+        <div class="password-modal-title" id="commentPasswordModalTitle">댓글 삭제를 위한 비밀번호를 입력해주세요</div>
+        <input type="password" id="commentPasswordModalInput" class="password-modal-input" placeholder="비밀번호 4자리" maxlength="4" pattern="[0-9]{4}">
+        <div class="password-modal-buttons">
+            <button class="password-modal-btn confirm" onclick="confirmCommentDelete()">삭제</button>
+            <button class="password-modal-btn cancel" onclick="closeCommentPasswordModal()">취소</button>
+        </div>
+    </div>
+</div>

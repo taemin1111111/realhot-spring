@@ -136,4 +136,26 @@ public class CourseCommentService {
         String hashedPassword = hashPassword(password);
         return hashedPassword.equals(comment.getPasswdHash());
     }
+    
+    /**
+     * 댓글과 관련된 모든 데이터 삭제 (댓글, 대댓글, 리액션)
+     */
+    @Transactional
+    public boolean deleteCommentWithAllData(int commentId) {
+        try {
+            // 1. 해당 댓글의 모든 대댓글 삭제
+            courseCommentMapper.deleteRepliesByParentId(commentId);
+            
+            // 2. 해당 댓글과 관련된 모든 리액션 삭제
+            courseCommentMapper.deleteReactionsByCommentId(commentId);
+            
+            // 3. 해당 댓글 삭제
+            int result = courseCommentMapper.deleteCourseComment(commentId);
+            
+            return result > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

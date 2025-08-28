@@ -80,5 +80,12 @@
         SET dislike_count = #{dislikeCount}
         WHERE id = #{commentId}
     </update>
+    
+    <!-- 코스의 모든 댓글 리액션 삭제 -->
+    <delete id="deleteAllReactionsByCourseId">
+        DELETE r FROM course_comment_reaction r
+        INNER JOIN course_comment c ON r.comment_id = c.id
+        WHERE c.course_id = #{courseId}
+    </delete>
 
 </mapper>

@@ -174,4 +174,9 @@
         </if>
     </select>
 
+    <!-- 코스 삭제 (물리적 삭제) -->
+    <delete id="deleteCourse">
+        DELETE FROM course WHERE id = #{id}
+    </delete>
+
 </mapper>

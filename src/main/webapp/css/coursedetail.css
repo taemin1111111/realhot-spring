@@ -1,33 +1,226 @@
 @charset "UTF-8";
 
-/* 프리텐다드 폰트 추가 */
-@font-face {
-    font-family: 'Pretendard';
-    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
-    font-weight: 400;
-    font-display: swap;
+/* 제목과 삭제 버튼 컨테이너 */
+.course-detail-title-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    position: relative;
 }
 
-@font-face {
-    font-family: 'Pretendard';
-    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Medium.woff') format('woff');
+/* 코스 상세 메뉴 버튼 */
+.course-detail-menu {
+    position: relative;
+    z-index: 10;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: 20px;
+}
+
+.course-detail-menu-dots {
+    font-size: 24px;
+    color: #666;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: block;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    line-height: 24px;
+}
+
+.course-detail-menu:hover .course-detail-menu-dots {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.course-detail-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 80px;
+    z-index: 1000;
+}
+
+.course-detail-menu-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    transition: background-color 0.2s ease;
+}
+
+.course-detail-menu-item:hover {
+    background-color: #f8f9fa;
+    color: #dc3545;
+}
+
+/* 댓글 메뉴 스타일 */
+.comment-menu {
+    position: relative;
+    z-index: 10;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: 10px;
+}
+
+.comment-menu-dots {
+    font-size: 18px;
+    color: #666;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: block;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    line-height: 16px;
+}
+
+.comment-menu:hover .comment-menu-dots {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.comment-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    min-width: 60px;
+    z-index: 1000;
+}
+
+.comment-menu-item {
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #333;
+    transition: background-color 0.2s ease;
+}
+
+.comment-menu-item:hover {
+    background-color: #f8f9fa;
+    color: #dc3545;
+}
+
+/* 토스트 메시지 */
+.toast-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10000;
+    pointer-events: none;
+}
+
+.toast-message {
+    background: #dc3545;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    font-size: 14px;
     font-weight: 500;
-    font-display: swap;
+    text-align: center;
+    animation: toastSlideIn 0.3s ease-out;
 }
 
-@font-face {
-    font-family: 'Pretendard';
-    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-SemiBold.woff') format('woff');
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 비밀번호 확인 모달 */
+.password-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+.password-modal-title {
+    font-size: 18px;
     font-weight: 600;
-    font-display: swap;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
-@font-face {
-    font-family: 'Pretendard';
-    src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Bold.woff') format('woff');
-    font-weight: 700;
-    font-display: swap;
+.password-modal-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
 }
+
+.password-modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.password-modal-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.password-modal-btn.confirm {
+    background: #dc3545;
+    color: white;
+}
+
+.password-modal-btn.confirm:hover {
+    background: #c82333;
+}
+
+.password-modal-btn.cancel {
+    background: #6c757d;
+    color: white;
+}
+
+.password-modal-btn.cancel:hover {
+    background: #5a6268;
+}
+
+/* 프리텐다드 폰트는 all.css에서 이미 정의되어 있음 */
 
 /* 코스 디테일 페이지에서만 전체 화면 흰색 배경 적용 */
 body.course-detail-page {
@@ -66,9 +259,10 @@ body.course-detail-page {
     font-size: 32px;
     font-weight: 700;
     color: #000000;
-    margin-bottom: 20px;
     line-height: 1.3;
     text-align: left;
+    margin: 0;
+    flex: 1;
 }
 
 /* 작성자 정보 */
@@ -420,7 +614,9 @@ body.course-detail-page {
     margin-bottom: 0;
     border-top: none;
     padding-top: 0;
-    display: block;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .comment-display-nickname {
@@ -430,7 +626,7 @@ body.course-detail-page {
     border: none;
     background: transparent;
     line-height: 1.4;
-    display: block;
+    display: inline-block;
     margin-bottom: 4px;
 }
 

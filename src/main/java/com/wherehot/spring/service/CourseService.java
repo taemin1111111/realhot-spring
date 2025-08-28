@@ -4,10 +4,15 @@ import com.wherehot.spring.entity.Course;
 import com.wherehot.spring.entity.CourseStep;
 import com.wherehot.spring.mapper.CourseMapper;
 import com.wherehot.spring.mapper.CourseStepMapper;
+import com.wherehot.spring.mapper.CourseCommentMapper;
+import com.wherehot.spring.mapper.CourseCommentReactionMapper;
+import com.wherehot.spring.mapper.CourseReactionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.util.List;
 
 @Service
@@ -18,6 +23,18 @@ public class CourseService {
     
     @Autowired
     private CourseStepMapper courseStepMapper;
+    
+    @Autowired
+    private CourseCommentMapper courseCommentMapper;
+    
+    @Autowired
+    private CourseCommentReactionMapper courseCommentReactionMapper;
+    
+    @Autowired
+    private CourseReactionMapper courseReactionMapper;
+    
+    @Value("${file.upload.path:uploads/course}")
+    private String uploadPath;
     
     // 페이징 크기
     private static final int PAGE_SIZE = 12;
@@ -137,6 +154,58 @@ public class CourseService {
             courseMapper.incrementDislikeCount(courseId);
         } else {
             courseMapper.decrementDislikeCount(courseId);
+        }
+    }
+    
+    // 코스 삭제
+    @Transactional
+    public void deleteCourse(int courseId) {
+        // 코스 정보 조회 (파일 경로 확인용)
+        Course course = courseMapper.getCourseById(courseId);
+        if (course != null) {
+            // 코스의 모든 스텝 조회
+            List<CourseStep> steps = courseStepMapper.getCourseStepsByCourseId(courseId);
+            
+            // 각 스텝의 사진 파일 삭제
+            for (CourseStep step : steps) {
+                if (step.getPhotoUrl() != null && !step.getPhotoUrl().isEmpty()) {
+                    deletePhotoFile(step.getPhotoUrl());
+                }
+            }
+        }
+        
+        // 코스의 모든 리액션 삭제
+        courseReactionMapper.deleteAllReactionsByCourseId(courseId);
+        
+        // 코스의 모든 댓글 리액션 삭제
+        courseCommentReactionMapper.deleteAllReactionsByCourseId(courseId);
+        
+        // 코스의 모든 댓글 삭제
+        courseCommentMapper.deleteAllCommentsByCourseId(courseId);
+        
+        // 코스 스텝들 삭제
+        courseStepMapper.deleteAllCourseStepsByCourseId(courseId);
+        
+        // 코스 삭제 (물리적 삭제)
+        courseMapper.deleteCourse(courseId);
+    }
+    
+    // 사진 파일 삭제
+    private void deletePhotoFile(String photoUrl) {
+        try {
+            // URL에서 파일 경로 추출
+            String fileName = photoUrl.substring(photoUrl.lastIndexOf('/') + 1);
+            String filePath = uploadPath + File.separator + fileName;
+            
+            File file = new File(filePath);
+            if (file.exists()) {
+                boolean deleted = file.delete();
+                if (!deleted) {
+                    System.err.println("파일 삭제 실패: " + filePath);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("파일 삭제 중 오류 발생: " + e.getMessage());
         }
     }
 }

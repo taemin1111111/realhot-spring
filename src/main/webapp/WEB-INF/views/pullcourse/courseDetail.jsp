@@ -18,15 +18,6 @@ let COURSE_ID = parseInt('${course.id}');
 if (isNaN(COURSE_ID)) {
     COURSE_ID = 0;
 }
-console.log('=== COURSE ID 설정 시작 ===');
-console.log('JSP에서 전달받은 Course ID:', COURSE_ID);
-console.log('JSP course.id 값:', '${course.id}');
-console.log('JSP course.title 값:', '${course.title}');
-console.log('=== COURSE ID 설정 완료 ===');
-console.log('Course ID type:', typeof COURSE_ID);
-console.log('Raw course.id value:', '${course.id}');
-console.log('Course title:', '${course.title}');
-console.log('Course summary:', '${course.summary}');
 
 // fetchWithAuth 함수가 없으면 정의
 if (typeof window.fetchWithAuth === 'undefined') {
@@ -111,7 +102,7 @@ if (typeof window.fetchWithAuth === 'undefined') {
                 <span class="course-detail-time" id="courseCreatedTime" data-created-at="${course.createdAt}">
                     계산중...
                 </span>
-                <span class="course-detail-view-count">👁️ ${course.viewCount}</span>
+                <span class="course-detail-view-count" style="color: #6c757d; filter: grayscale(100%); font-size: 15px;">👁️ ${course.viewCount}</span>
             </div>
         </div>
         
@@ -133,19 +124,22 @@ if (typeof window.fetchWithAuth === 'undefined') {
                         </span>
                     </div>
                     
-                    <!-- 스텝 사진 -->
-                    <c:if test="${not empty step.photoUrl}">
-                        <div class="course-detail-step-photo">
-                            <img src="<%=root%>${step.photoUrl}" alt="스텝 ${step.stepNo} 사진" />
-                        </div>
-                    </c:if>
-                    
-                                                              <!-- 스텝 설명 -->
-                     <c:if test="${not empty step.description}">
-                         <div class="course-detail-step-description">
-                             ${step.description}
-                         </div>
-                     </c:if>
+                    <!-- 사진과 내용을 하나의 테두리로 묶기 -->
+                    <div class="course-detail-step-content-wrapper">
+                        <!-- 스텝 사진 -->
+                        <c:if test="${not empty step.photoUrl}">
+                            <div class="course-detail-step-photo">
+                                <img src="<%=root%>${step.photoUrl}" alt="스텝 ${step.stepNo} 사진" />
+                            </div>
+                        </c:if>
+                        
+                        <!-- 스텝 설명 -->
+                        <c:if test="${not empty step.description}">
+                            <div class="course-detail-step-description">
+                                ${step.description}
+                            </div>
+                        </c:if>
+                    </div>
                  </div>
                  
                  <!-- 화살표 (마지막 스텝이 아닌 경우) -->
@@ -156,9 +150,6 @@ if (typeof window.fetchWithAuth === 'undefined') {
                  </c:if>
             </c:forEach>
         </div>
-        
-        <!-- 구분선 -->
-        <div class="course-detail-divider"></div>
         
         <!-- 코스 요약 -->
         <div class="course-detail-summary">
@@ -183,9 +174,6 @@ if (typeof window.fetchWithAuth === 'undefined') {
         <div class="comment-count-container">
             <div class="comment-count-box">
                 <span class="comment-count-text">댓글 <span id="comment-count-display">0</span></span>
-                <button class="comment-refresh-btn" onclick="loadComments('latest')">
-                    <span class="refresh-icon">🔄</span>
-                </button>
             </div>
         </div>
         
@@ -214,38 +202,12 @@ if (typeof window.fetchWithAuth === 'undefined') {
             </div>
         </div>
         
-        <!-- 댓글 목록 -->
-        <div class="course-detail-comments">
-            <!-- 디버깅 정보 -->
-            <div style="background: #f8f9fa; padding: 16px 0; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; font-family: 'Pretendard', sans-serif;">
-                <div style="margin-bottom: 8px;">
-                    <span style="font-weight: 600; color: #333333; font-size: 14px;">디버깅 정보</span>
-                </div>
-                <div style="color: #333333; line-height: 1.5; margin-bottom: 8px; font-size: 14px;">
-                    Course ID: ${course.id}<br>
-                    Course Title: ${course.title}<br>
-                    Course Summary: ${course.summary}<br>
-                    Course Nickname: ${course.nickname}<br>
-                    Course Object: ${course}<br>
-                    Raw course.id: '${course.id}'<br>
-                    Raw course.title: '${course.title}'
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="color: #999999;">디버그 모드</span>
-                        <button style="background: none; border: none; color: #666666; cursor: pointer; font-size: 14px; padding: 0;">💬 대댓글</button>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button style="background: none; border: none; cursor: pointer; font-size: 14px; color: #666666; padding: 4px 8px; border-radius: 4px; transition: all 0.2s;">👍 <span>0</span></button>
-                        <button style="background: none; border: none; cursor: pointer; font-size: 14px; color: #666666; padding: 4px 8px; border-radius: 4px; transition: all 0.2s;">👎 <span>0</span></button>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="commentsList" class="comments-list">
-                <!-- 댓글들이 여기에 동적으로 로드됩니다 -->
-            </div>
-        </div>
+                 <!-- 댓글 목록 -->
+         <div class="course-detail-comments">
+             <div id="commentsList" class="comments-list">
+                 <!-- 댓글들이 여기에 동적으로 로드됩니다 -->
+             </div>
+         </div>
     </div>
 </div>
 
@@ -253,10 +215,9 @@ if (typeof window.fetchWithAuth === 'undefined') {
 // 로그인 상태 확인 함수
 function isLoggedIn() {
     const token = localStorage.getItem('accessToken');
-    if (!token) {
-        console.log('토큰이 없습니다');
-        return false;
-    }
+            if (!token) {
+            return false;
+        }
     
     try {
         // Base64 디코딩 시 한글 인코딩 문제 해결
@@ -269,7 +230,6 @@ function isLoggedIn() {
         const payload = JSON.parse(jsonPayload);
         const currentTime = Date.now() / 1000;
         const isValid = payload.exp > currentTime;
-        console.log('토큰 유효성 확인:', { exp: payload.exp, current: currentTime, isValid });
         return isValid;
     } catch (error) {
         console.error('토큰 파싱 오류:', error);
@@ -289,10 +249,17 @@ async function loadComments(sort = 'latest') {
             return;
         }
         
+        // JWT 토큰 가져오기
+        const token = localStorage.getItem('accessToken');
+        
         const url = '<%=root%>/course/' + COURSE_ID + '/comments?sort=' + sort;
         console.log('요청 URL:', url);
         
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': token ? 'Bearer ' + token : ''
+            }
+        });
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -303,7 +270,7 @@ async function loadComments(sort = 'latest') {
         
         if (data.success) {
             console.log('댓글 데이터:', data.comments);
-            displayComments(data.comments);
+            displayComments(data.comments, sort);
             updateSortButtons(sort);
         } else {
             console.error('댓글 로드 실패:', data.message);
@@ -316,8 +283,8 @@ async function loadComments(sort = 'latest') {
 }
 
 // 댓글 표시
-function displayComments(comments) {
-    console.log('displayComments 호출됨, comments:', comments);
+function displayComments(comments, sortType = 'latest') {
+    console.log('displayComments 호출됨, comments:', comments, 'sortType:', sortType);
     const commentsList = document.getElementById('commentsList');
     
     if (!comments || comments.length === 0) {
@@ -327,16 +294,38 @@ function displayComments(comments) {
         return;
     }
     
-    console.log('댓글 개수:', comments.length);
+    // 정렬 처리
+    let sortedComments = [...comments]; // 원본 배열 복사
+    
+    if (sortType === 'latest') {
+        // 최신순: createdAt 기준으로 내림차순 정렬
+        sortedComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        console.log('최신순 정렬 완료');
+    } else if (sortType === 'popular') {
+        // 인기순: 좋아요 수 기준으로 내림차순 정렬
+        sortedComments.sort((a, b) => {
+            const aLikes = a.likeCount || 0;
+            const bLikes = b.likeCount || 0;
+            if (aLikes !== bLikes) {
+                return bLikes - aLikes; // 좋아요 수가 다르면 좋아요 수로 정렬
+            } else {
+                // 좋아요 수가 같으면 최신순으로 정렬
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            }
+        });
+        console.log('인기순 정렬 완료');
+    }
+    
+    console.log('정렬된 댓글 개수:', sortedComments.length);
     let html = '';
-    comments.forEach((comment, index) => {
+    sortedComments.forEach((comment, index) => {
         console.log(`댓글 ${index + 1}:`, comment);
         html += createCommentHTML(comment);
     });
     
     console.log('생성된 HTML:', html);
     commentsList.innerHTML = html;
-    updateCommentCount(comments.length);
+    updateCommentCount(sortedComments.length);
 }
 
 // 댓글 갯수 업데이트 (부모 댓글 개수만)
@@ -362,24 +351,24 @@ function createCommentHTML(comment) {
     
     const html = '<div class="comment-item ' + (isReply ? 'comment-reply' : '') + '" data-comment-id="' + comment.id + '">' +
         '<div class="comment-header">' +
-            '<span class="comment-nickname">' + (comment.nickname || '') + '</span>' +
+            '<span class="comment-display-nickname">' + (comment.nickname || '') + '</span>' +
         '</div>' +
-        '<div class="comment-content">' +
-            (comment.content || '') +
-        '</div>' +
+                    '<div class="comment-display-content">' +
+                (comment.content || '') +
+            '</div>' +
         '<div class="comment-footer">' +
             '<div class="comment-info">' +
                 '<span class="comment-time">' + timeAgo + '</span>' +
                 replyButtonHtml +
             '</div>' +
-            '<div class="comment-reactions">' +
-                '<button class="like-btn" onclick="likeComment(' + comment.id + ')">' +
-                    '👍 <span class="like-count">' + (comment.likeCount || 0) + '</span>' +
-                '</button>' +
-                '<button class="dislike-btn" onclick="dislikeComment(' + comment.id + ')">' +
-                    '👎 <span class="dislike-count">' + (comment.dislikeCount || 0) + '</span>' +
-                '</button>' +
-            '</div>' +
+                         '<div class="comment-reactions">' +
+                 '<button class="comment-like-btn' + (comment.userReaction === 'LIKE' ? ' active' : '') + '" onclick="likeComment(' + comment.id + ')">' +
+                     '👍 <span class="like-count">' + (comment.likeCount || 0) + '</span>' +
+                 '</button>' +
+                 '<button class="comment-dislike-btn' + (comment.userReaction === 'DISLIKE' ? ' active' : '') + '" onclick="dislikeComment(' + comment.id + ')">' +
+                     '👎 <span class="dislike-count">' + (comment.dislikeCount || 0) + '</span>' +
+                 '</button>' +
+             '</div>' +
         '</div>' +
         '<div id="replies-' + comment.id + '" class="replies-container" style="display: none;"></div>' +
     '</div>';
@@ -395,23 +384,23 @@ function createReplyHTML(reply) {
     
     const html = '<div class="comment-item comment-reply" data-comment-id="' + reply.id + '">' +
         '<div class="comment-header">' +
-            '<span class="comment-nickname">' + (reply.nickname || '') + '</span>' +
+            '<span class="comment-display-nickname">' + (reply.nickname || '') + '</span>' +
         '</div>' +
-        '<div class="comment-content">' +
-            (reply.content || '') +
-        '</div>' +
+                    '<div class="comment-display-content">' +
+                (reply.content || '') +
+            '</div>' +
         '<div class="comment-footer">' +
             '<div class="comment-info">' +
                 '<span class="comment-time">' + timeAgo + '</span>' +
             '</div>' +
-            '<div class="comment-reactions">' +
-                '<button class="like-btn" onclick="likeComment(' + reply.id + ')">' +
-                    '👍 <span class="like-count">' + (reply.likeCount || 0) + '</span>' +
-                '</button>' +
-                '<button class="dislike-btn" onclick="dislikeComment(' + reply.id + ')">' +
-                    '👎 <span class="dislike-count">' + (reply.dislikeCount || 0) + '</span>' +
-                '</button>' +
-            '</div>' +
+                         '<div class="comment-reactions">' +
+                 '<button class="comment-like-btn' + (reply.userReaction === 'LIKE' ? ' active' : '') + '" onclick="likeComment(' + reply.id + ')">' +
+                     '👍 <span class="like-count">' + (reply.likeCount || 0) + '</span>' +
+                 '</button>' +
+                 '<button class="comment-dislike-btn' + (reply.userReaction === 'DISLIKE' ? ' active' : '') + '" onclick="dislikeComment(' + reply.id + ')">' +
+                     '👎 <span class="dislike-count">' + (reply.dislikeCount || 0) + '</span>' +
+                 '</button>' +
+             '</div>' +
         '</div>' +
     '</div>';
     
@@ -448,7 +437,8 @@ function updateSortButtons(activeSort) {
     const sortButtons = document.querySelectorAll('.sort-btn');
     sortButtons.forEach(btn => {
         btn.classList.remove('active');
-        if (btn.textContent.includes(activeSort === 'latest' ? '최신순' : '인기순')) {
+        if ((activeSort === 'latest' && btn.textContent.includes('최신순')) || 
+            (activeSort === 'popular' && btn.textContent.includes('인기순'))) {
             btn.classList.add('active');
         }
     });
@@ -465,7 +455,14 @@ async function toggleRepliesAndShowForm(parentId) {
     if (repliesContainer.style.display === 'none') {
         // 답글 로드 및 표시
         try {
-            const response = await fetch('<%=root%>/course/' + COURSE_ID + '/replies?parentId=' + parentId);
+            // JWT 토큰 가져오기
+            const token = localStorage.getItem('accessToken');
+            
+            const response = await fetch('<%=root%>/course/' + COURSE_ID + '/replies?parentId=' + parentId, {
+                headers: {
+                    'Authorization': token ? 'Bearer ' + token : ''
+                }
+            });
             const data = await response.json();
             
             let repliesHtml = '';
@@ -658,16 +655,86 @@ function cancelReplyForm() {
     }
 }
 
-// 댓글 좋아요 (구현 예정)
-function likeComment(commentId) {
-    console.log('댓글 좋아요:', commentId);
-    // TODO: 댓글 좋아요 기능 구현
+// 댓글 좋아요/싫어요 토글
+async function toggleCommentReaction(commentId, reactionType) {
+    console.log('댓글 리액션 토글:', { commentId, reactionType });
+    
+    try {
+        // JWT 토큰 가져오기
+        const token = localStorage.getItem('accessToken');
+        
+        const response = await fetch('<%=root%>/course/' + COURSE_ID + '/comment/' + commentId + '/reaction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': token ? 'Bearer ' + token : ''
+            },
+            body: 'reactionType=' + reactionType
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // 해당 댓글의 좋아요/싫어요 수 업데이트
+            const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+            if (commentElement) {
+                const likeCountElement = commentElement.querySelector('.like-count');
+                const dislikeCountElement = commentElement.querySelector('.dislike-count');
+                
+                if (likeCountElement) {
+                    likeCountElement.textContent = data.likeCount;
+                }
+                if (dislikeCountElement) {
+                    dislikeCountElement.textContent = data.dislikeCount;
+                }
+                
+                                 // 버튼 상태 업데이트
+                 const likeBtn = commentElement.querySelector('.comment-like-btn');
+                 const dislikeBtn = commentElement.querySelector('.comment-dislike-btn');
+                 
+                 // 모든 버튼에서 active 클래스 제거
+                 if (likeBtn) likeBtn.classList.remove('active');
+                 if (dislikeBtn) dislikeBtn.classList.remove('active');
+                 
+                                 // 현재 리액션에 따라 active 클래스 추가
+                if (data.currentReaction === 'LIKE' && likeBtn) {
+                    likeBtn.classList.add('active');
+                } else if (data.currentReaction === 'DISLIKE' && dislikeBtn) {
+                    dislikeBtn.classList.add('active');
+                }
+                
+                console.log('댓글 리액션 업데이트 완료:', {
+                    commentId: commentId,
+                    likeCount: data.likeCount,
+                    dislikeCount: data.dislikeCount,
+                    currentReaction: data.currentReaction
+                });
+            }
+            
+            console.log('댓글 리액션 처리 성공:', data.action);
+            
+            // 댓글 목록 새로고침 (최신 상태 반영)
+            loadComments('latest');
+            
+        } else {
+            console.error('댓글 리액션 처리 실패:', data.message);
+            showCourseMessage(data.message || '리액션 처리 중 오류가 발생했습니다.', 'error');
+        }
+        
+    } catch (error) {
+        console.error('댓글 리액션 처리 오류:', error);
+        showCourseMessage('리액션 처리 중 오류가 발생했습니다.', 'error');
+    }
 }
 
-// 댓글 싫어요 (구현 예정)
+// 댓글 좋아요
+function likeComment(commentId) {
+    toggleCommentReaction(commentId, 'LIKE');
+}
+
+// 댓글 싫어요
 function dislikeComment(commentId) {
-    console.log('댓글 싫어요:', commentId);
-    // TODO: 댓글 싫어요 기능 구현
+    toggleCommentReaction(commentId, 'DISLIKE');
 }
 
 // 코스 상세 전용 토스트 메시지 표시 함수
@@ -701,16 +768,16 @@ function showCourseMessage(message, type = 'info') {
         min-width: 300px;
     `;
     
-    // 타입별 색상 설정
+    // 타입별 색상 설정 (투명도 추가)
     if (type === 'error') {
-        toast.style.backgroundColor = '#dc3545';
+        toast.style.backgroundColor = 'rgba(220, 53, 69, 0.9)';
     } else if (type === 'warning') {
-        toast.style.backgroundColor = '#dc3545';
+        toast.style.backgroundColor = 'rgba(220, 53, 69, 0.9)';
         toast.style.color = 'white';
     } else if (type === 'success') {
-        toast.style.backgroundColor = '#28a745';
+        toast.style.backgroundColor = 'rgba(40, 167, 69, 0.9)';
     } else {
-        toast.style.backgroundColor = '#17a2b8';
+        toast.style.backgroundColor = 'rgba(23, 162, 184, 0.9)';
     }
     
     // 코스 상세 전용 애니메이션 CSS 추가
@@ -745,7 +812,7 @@ function showCourseMessage(message, type = 'info') {
     // DOM에 추가
     document.body.appendChild(toast);
     
-    // 3초 후 자동 제거
+    // 2.5초 후 자동 제거
     setTimeout(() => {
         toast.style.animation = 'courseSlideOut 0.3s ease-in';
         setTimeout(() => {
@@ -753,7 +820,7 @@ function showCourseMessage(message, type = 'info') {
                 toast.remove();
             }
         }, 300);
-    }, 3000);
+    }, 2500);
 }
 
 // 좋아요/싫어요 토글
@@ -765,7 +832,7 @@ async function toggleReaction(courseId, reactionType) {
     console.log('로그인 상태:', loggedIn);
     
     if (!loggedIn) {
-        showCourseMessage('로그인 후 좋아요/싫어요를 사용할 수 있습니다.', 'warning');
+        showCourseMessage('게시글 좋아요/싫어요는 로그인후 사용 가능합니다', 'error');
         return;
     }
     
@@ -773,7 +840,7 @@ async function toggleReaction(courseId, reactionType) {
         // JWT 토큰 가져오기
         const token = localStorage.getItem('accessToken');
         if (!token) {
-            showCourseMessage('로그인 후 좋아요/싫어요를 사용할 수 있습니다.', 'warning');
+            showCourseMessage('게시글 좋아요/싫어요는 로그인후 사용 가능합니다', 'error');
             return;
         }
         
@@ -828,7 +895,7 @@ async function toggleReaction(courseId, reactionType) {
         } else {
             // 에러 메시지 표시
             if (data.requireLogin) {
-                showCourseMessage('로그인 후 좋아요/싫어요를 사용할 수 있습니다.', 'warning');
+                showCourseMessage('게시글 좋아요/싫어요는 로그인후 사용 가능합니다', 'error');
             } else {
                 showCourseMessage(data.message || '리액션 처리 중 오류가 발생했습니다.', 'error');
             }
@@ -945,28 +1012,18 @@ function checkLoginStatus() {
     }
 }
 
-// 로그인 상태에 따른 버튼 스타일 업데이트
+// 로그인 상태에 따른 버튼 스타일 업데이트 - 비활성화 제거
 function updateReactionButtonsStyle() {
     const likeBtn = document.getElementById('likeBtn');
     const dislikeBtn = document.getElementById('dislikeBtn');
     
-    if (!isLoggedIn()) {
-        // 비로그인 상태: 버튼 비활성화
-        likeBtn.disabled = true;
-        dislikeBtn.disabled = true;
-        
-        // 툴팁 추가
-        likeBtn.title = '로그인 후 사용 가능합니다';
-        dislikeBtn.title = '로그인 후 사용 가능합니다';
-    } else {
-        // 로그인 상태: 버튼 활성화
-        likeBtn.disabled = false;
-        dislikeBtn.disabled = false;
-        
-        // 툴팁 제거
-        likeBtn.title = '';
-        dislikeBtn.title = '';
-    }
+    // 로그인하지 않은 사용자도 버튼을 클릭할 수 있도록 비활성화 제거
+    likeBtn.disabled = false;
+    dislikeBtn.disabled = false;
+    
+    // 툴팁 제거
+    likeBtn.title = '';
+    dislikeBtn.title = '';
 }
 
 // 댓글 작성

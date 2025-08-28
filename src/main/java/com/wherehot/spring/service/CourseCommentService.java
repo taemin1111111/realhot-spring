@@ -31,6 +31,13 @@ public class CourseCommentService {
     }
     
     /**
+     * 코스의 부모 댓글만 조회 (현재 사용자의 리액션 상태 포함)
+     */
+    public List<CourseComment> getParentCommentsByCourseIdWithUserReaction(int courseId, String userKey) {
+        return courseCommentMapper.getParentCommentsByCourseIdWithUserReaction(courseId, userKey);
+    }
+    
+    /**
      * 댓글 등록
      */
     @Transactional
@@ -85,6 +92,13 @@ public class CourseCommentService {
      */
     public List<CourseComment> getRepliesByParentId(int parentId) {
         return courseCommentMapper.getRepliesByParentId(parentId);
+    }
+    
+    /**
+     * 부모 댓글의 대댓글 목록 조회 (현재 사용자의 리액션 상태 포함)
+     */
+    public List<CourseComment> getRepliesByParentIdWithUserReaction(int parentId, String userKey) {
+        return courseCommentMapper.getRepliesByParentIdWithUserReaction(parentId, userKey);
     }
     
     /**

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wherehot.spring.mapper.CourseCommentReactionMapper">
+
+    <!-- CourseCommentReaction ResultMap -->
+    <resultMap id="CourseCommentReactionResultMap" type="com.wherehot.spring.entity.CourseCommentReaction">
+        <result property="commentId" column="comment_id"/>
+        <result property="userKey" column="user_key"/>
+        <result property="reaction" column="reaction"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 댓글 리액션 추가 -->
+    <insert id="insertReaction" parameterType="com.wherehot.spring.entity.CourseCommentReaction">
+        INSERT INTO course_comment_reaction (
+            comment_id,
+            user_key,
+            reaction,
+            created_at
+        ) VALUES (
+            #{commentId},
+            #{userKey},
+            #{reaction},
+            #{createdAt}
+        )
+    </insert>
+
+    <!-- 댓글 리액션 수정 -->
+    <update id="updateReaction" parameterType="com.wherehot.spring.entity.CourseCommentReaction">
+        UPDATE course_comment_reaction
+        SET reaction = #{reaction},
+            created_at = #{createdAt}
+        WHERE comment_id = #{commentId} AND user_key = #{userKey}
+    </update>
+
+    <!-- 댓글 리액션 삭제 -->
+    <delete id="deleteReaction">
+        DELETE FROM course_comment_reaction
+        WHERE comment_id = #{commentId} AND user_key = #{userKey}
+    </delete>
+
+    <!-- 특정 사용자의 특정 댓글 리액션 조회 -->
+    <select id="getReactionByUserKey" resultMap="CourseCommentReactionResultMap">
+        SELECT *
+        FROM course_comment_reaction
+        WHERE comment_id = #{commentId} AND user_key = #{userKey}
+    </select>
+
+    <!-- 댓글의 모든 리액션 조회 -->
+    <select id="getReactionsByCommentId" resultMap="CourseCommentReactionResultMap">
+        SELECT *
+        FROM course_comment_reaction
+        WHERE comment_id = #{commentId}
+    </select>
+
+    <!-- 댓글의 좋아요 수 조회 -->
+    <select id="getLikeCount" resultType="int">
+        SELECT COUNT(*)
+        FROM course_comment_reaction
+        WHERE comment_id = #{commentId} AND reaction = 'LIKE'
+    </select>
+
+    <!-- 댓글의 싫어요 수 조회 -->
+    <select id="getDislikeCount" resultType="int">
+        SELECT COUNT(*)
+        FROM course_comment_reaction
+        WHERE comment_id = #{commentId} AND reaction = 'DISLIKE'
+    </select>
+
+    <!-- 댓글의 좋아요 수 업데이트 -->
+    <update id="updateLikeCount">
+        UPDATE course_comment
+        SET like_count = #{likeCount}
+        WHERE id = #{commentId}
+    </update>
+
+    <!-- 댓글의 싫어요 수 업데이트 -->
+    <update id="updateDislikeCount">
+        UPDATE course_comment
+        SET dislike_count = #{dislikeCount}
+        WHERE id = #{commentId}
+    </update>
+
+</mapper>

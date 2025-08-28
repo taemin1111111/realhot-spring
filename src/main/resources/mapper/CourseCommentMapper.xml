@@ -13,6 +13,7 @@
         <result property="content" column="content"/>
         <result property="likeCount" column="like_count"/>
         <result property="dislikeCount" column="dislike_count"/>
+        <result property="userReaction" column="userReaction"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
         <result property="isDeleted" column="is_deleted"/>
@@ -94,6 +95,28 @@
         FROM course_comment 
         WHERE parent_id = #{parentId} AND is_deleted = 0
         ORDER BY created_at ASC
+    </select>
+
+    <!-- 코스의 부모 댓글만 조회 (현재 사용자의 리액션 상태 포함) -->
+    <select id="getParentCommentsByCourseIdWithUserReaction" resultMap="CourseCommentResultMap">
+        SELECT c.id, c.course_id, c.parent_id, c.author_userid, c.nickname, c.passwd_hash, 
+               c.content, c.like_count, c.dislike_count, c.created_at, c.updated_at, c.is_deleted,
+               r.reaction as userReaction
+        FROM course_comment c
+        LEFT JOIN course_comment_reaction r ON c.id = r.comment_id AND r.user_key = #{userKey}
+        WHERE c.course_id = #{courseId} AND c.parent_id IS NULL AND c.is_deleted = 0
+        ORDER BY c.created_at DESC
+    </select>
+
+    <!-- 부모 댓글의 대댓글 목록 조회 (현재 사용자의 리액션 상태 포함) -->
+    <select id="getRepliesByParentIdWithUserReaction" resultMap="CourseCommentResultMap">
+        SELECT c.id, c.course_id, c.parent_id, c.author_userid, c.nickname, c.passwd_hash, 
+               c.content, c.like_count, c.dislike_count, c.created_at, c.updated_at, c.is_deleted,
+               r.reaction as userReaction
+        FROM course_comment c
+        LEFT JOIN course_comment_reaction r ON c.id = r.comment_id AND r.user_key = #{userKey}
+        WHERE c.parent_id = #{parentId} AND c.is_deleted = 0
+        ORDER BY c.created_at ASC
     </select>
 
 </mapper>

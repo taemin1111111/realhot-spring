@@ -117,6 +117,9 @@ body.course-detail-page {
     padding: 20px;
     background: transparent;
     text-align: left;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
 }
 
 .course-detail-step-header {
@@ -125,6 +128,10 @@ body.course-detail-page {
     gap: 12px;
     margin-bottom: 15px;
     text-align: left;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
+    flex-wrap: nowrap;
 }
 
 .course-detail-step-number {
@@ -145,6 +152,12 @@ body.course-detail-page {
     font-weight: 600;
     color: #333333;
     text-align: left;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    padding: 0;
+    box-sizing: border-box;
+    display: inline;
 }
 
 .course-detail-step-address {
@@ -173,10 +186,26 @@ body.course-detail-page {
 .course-detail-step-description {
     color: #333333;
     line-height: 1.6;
-    font-size: 18px;
-    margin: 20px 0;
+    font-size: 23px;
+    margin: 40px 0 20px 0;
     text-align: center;
-    font-weight: 500;
+    font-weight: 400;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+/* 사진과 내용을 하나의 테두리로 묶기 */
+.course-detail-step-content-wrapper {
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 15px 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
 }
 
 .course-detail-step-arrow {
@@ -193,6 +222,9 @@ body.course-detail-page {
     padding: 20px;
     background: transparent;
     text-align: left;
+    border-top: 2px solid #e0e0e0;
+    padding-top: 70px;
+    margin-top: 0;
 }
 
 .course-detail-summary h3 {
@@ -200,11 +232,11 @@ body.course-detail-page {
 }
 
 .course-detail-summary p {
-    color: #000000;
+    color: #333333;
     line-height: 1.6;
-    font-size: 18px;
+    font-size: 26px;
     text-align: center;
-    font-weight: 500;
+    font-weight: 400;
 }
 
 /* 좋아요/싫어요 버튼 */
@@ -263,27 +295,7 @@ body.course-detail-page {
     border-radius: 6px;
 }
 
-/* 비활성화된 버튼 스타일 */
-.course-detail-like-btn:disabled,
-.course-detail-dislike-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed !important;
-    pointer-events: none;
-}
-
-.course-detail-like-btn:disabled:hover,
-.course-detail-dislike-btn:disabled:hover {
-    color: inherit;
-    background-color: transparent;
-    transform: none;
-}
-
-.course-detail-like-btn:disabled.active,
-.course-detail-dislike-btn:disabled.active {
-    color: inherit;
-    background-color: transparent;
-    transform: none;
-}
+/* 비활성화된 버튼 스타일 제거 - 로그인하지 않은 사용자도 클릭 가능하게 함 */
 
 .course-detail-comment-count {
     color: #6c757d;
@@ -351,18 +363,15 @@ body.course-detail-page {
     background: transparent;
     border-radius: 0;
     padding: 0;
+    width: 100%;
 }
 
 .comment-item {
     padding: 16px 0;
-    border-bottom: none;
+    border-bottom: 1px solid #f0f0f0;
     background: transparent;
     position: relative;
-}
-
-/* 답글이 닫혀있을 때만 하단에 회색선 표시 */
-.comment-item:has(.reply-btn:not([data-expanded="true"])) {
-    border-bottom: 1px solid #f0f0f0;
+    width: 100%;
 }
 
 .comment-item:last-child {
@@ -383,35 +392,63 @@ body.course-detail-page {
     padding: 16px 0;
 }
 
+.comment-reply .comment-display-nickname {
+    font-size: 18px;
+    line-height: 1.4;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.comment-reply .comment-display-content {
+    font-size: 18px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.comment-reply .comment-time {
+    font-size: 16px;
+    line-height: 1;
+    display: inline-block;
+}
+
 .comment-reply:last-child {
     border-bottom: 1px solid #e0e0e0;
 }
 
 .comment-header {
-    margin-bottom: 8px;
-    border-top: 1px solid #e0e0e0;
-    padding-top: 8px;
+    margin-bottom: 0;
+    border-top: none;
+    padding-top: 0;
+    display: block;
 }
 
-.comment-nickname {
+.comment-display-nickname {
     font-weight: 600;
     color: #333333;
-    font-size: 14px;
+    font-size: 18px;
     border: none;
     background: transparent;
+    line-height: 1.4;
+    display: block;
+    margin-bottom: 4px;
 }
 
-.comment-content {
+.comment-display-content {
     color: #333333;
     line-height: 1.5;
-    margin-bottom: 8px;
-    font-size: 14px;
+    margin-bottom: 12px;
+    font-size: 18px;
     border: none;
     background: transparent;
+    width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: block;
 }
 
 /* 댓글 표시 부분의 내용만 테두리 제거 */
-.comment-item .comment-content {
+.comment-item .comment-display-content {
     border: none;
     background: transparent;
 }
@@ -421,17 +458,22 @@ body.course-detail-page {
     justify-content: space-between;
     align-items: center;
     font-size: 14px;
+    width: 100%;
+    margin-top: 8px;
 }
 
 .comment-info {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex: 1;
 }
 
 .comment-time {
     color: #999999;
-    font-size: 14px;
+    font-size: 16px;
+    line-height: 1;
+    display: inline-block;
 }
 
 .reply-btn {
@@ -444,6 +486,8 @@ body.course-detail-page {
     padding: 4px 8px;
     border-radius: 4px;
     transition: all 0.2s ease;
+    line-height: 1;
+    display: inline-block;
 }
 
 .reply-btn:hover {
@@ -495,17 +539,18 @@ body.course-detail-page {
     width: 150px;
     height: 40px;
     padding: 10px 12px;
-    border: none;
+    border: 1px solid #e0e0e0;
     border-radius: 4px;
     font-size: 13px;
     background: transparent;
+    transition: border-color 0.3s ease;
 }
 
 .reply-form-nickname:focus,
 .reply-form-password:focus {
     outline: none;
     background: transparent;
-    border: none;
+    border: 1px solid #007bff;
     box-shadow: none;
 }
 
@@ -520,7 +565,7 @@ body.course-detail-page {
     flex: 1;
     height: 80px;
     padding: 10px 12px;
-    border: none;
+    border: 1px solid #e0e0e0;
     border-radius: 4px;
     font-size: 13px;
     resize: none;
@@ -530,7 +575,7 @@ body.course-detail-page {
 
 .reply-form-content:focus {
     outline: none;
-    border: none;
+    border: 1px solid #007bff;
     box-shadow: none;
     background: transparent;
 }
@@ -578,27 +623,40 @@ body.course-detail-page {
 .comment-reactions {
     display: flex;
     gap: 8px;
+    flex-shrink: 0;
+    align-items: center;
 }
 
-.like-btn, .dislike-btn {
+/* 댓글 좋아요/싫어요 버튼 */
+.comment-like-btn, .comment-dislike-btn {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
     color: #666666;
     padding: 4px 8px;
     border-radius: 4px;
     transition: all 0.2s;
+    line-height: 1;
+    display: inline-block;
 }
 
-.like-btn:hover {
-    background: #f5f5f5;
-    color: #333333;
+.comment-like-btn.active {
+    color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
 }
 
-.dislike-btn:hover {
-    background: #f5f5f5;
-    color: #333333;
+.comment-dislike-btn.active {
+    color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.comment-like-btn:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.comment-dislike-btn:hover {
+    background-color: rgba(220, 53, 69, 0.05);
 }
 
 .no-comments {
@@ -624,27 +682,29 @@ body.course-detail-page {
     width: 200px;
     height: 45px;
     padding: 12px 15px;
-    border: none;
+    border: 1px solid #e0e0e0;
     border-radius: 4px;
     font-size: 14px;
     background: transparent;
+    transition: border-color 0.3s ease;
 }
 
 .comment-password {
     width: 200px;
     height: 45px;
     padding: 12px 15px;
-    border: none;
+    border: 1px solid #e0e0e0;
     border-radius: 4px;
     font-size: 14px;
     background: transparent;
+    transition: border-color 0.3s ease;
 }
 
 .comment-nickname:focus,
 .comment-password:focus {
     outline: none;
     background: transparent;
-    border: none;
+    border: 1px solid #007bff;
     box-shadow: none;
 }
 
@@ -696,11 +756,12 @@ body.course-detail-page {
 
 /* 댓글 목록 */
 .course-detail-comments {
-    padding: 20px;
+    padding: 0;
     background: transparent;
     border-radius: 0;
     border: none;
     text-align: left;
+    width: 100%;
 }
 
 .course-detail-comments h3 {
@@ -768,20 +829,8 @@ body.course-detail-page {
 }
 
 .comment-count-text {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 600;
     color: #333333;
 }
 
-.comment-refresh-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    margin: 0;
-}
-
-.refresh-icon {
-    font-size: 20px;
-    color: #000000;
-}

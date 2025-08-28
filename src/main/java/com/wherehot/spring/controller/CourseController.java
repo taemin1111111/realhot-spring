@@ -8,6 +8,7 @@ import com.wherehot.spring.entity.Region;
 import com.wherehot.spring.service.CourseService;
 import com.wherehot.spring.service.CourseReactionService;
 import com.wherehot.spring.service.CourseCommentService;
+import com.wherehot.spring.service.CourseCommentReactionService;
 import com.wherehot.spring.service.HotplaceService;
 import com.wherehot.spring.service.RegionService;
 import com.wherehot.spring.security.JwtUtils;
@@ -61,6 +62,9 @@ public class CourseController {
     @Autowired
     private CourseCommentService courseCommentService;
     
+    @Autowired
+    private CourseCommentReactionService courseCommentReactionService;
+    
     // IP 주소 가져오기
     private String getClientIpAddress(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
@@ -89,18 +93,16 @@ public class CourseController {
                     // 토큰에서 사용자 ID 추출
                     String userId = jwtUtils.getUseridFromToken(token);
                     if (userId != null && !userId.isEmpty()) {
-                        System.out.println("JWT 토큰에서 사용자 ID 추출: " + userId);
                         return userId;
                     }
                 }
             }
         } catch (Exception e) {
-            System.out.println("JWT 토큰 처리 중 오류: " + e.getMessage());
+            // JWT 토큰 처리 중 오류 무시
         }
         
         // 로그인되지 않은 경우 IP 주소 반환
         String ipAddress = getClientIpAddress(request);
-        System.out.println("IP 주소 사용: " + ipAddress);
         return ipAddress;
     }
     
@@ -138,7 +140,7 @@ public class CourseController {
                 }
             }
         } catch (Exception e) {
-            System.out.println("로그인 상태 확인 중 오류: " + e.getMessage());
+            // 로그인 상태 확인 중 오류 무시
         }
         
         return false;
@@ -202,17 +204,12 @@ public class CourseController {
         if (session.getAttribute(viewKey) == null) {
             courseService.incrementViewCount(id);
             session.setAttribute(viewKey, true);
-            System.out.println("조회수 증가: 코스 ID " + id + " (세션: " + session.getId() + ")");
-        } else {
-            System.out.println("조회수 증가 안함: 코스 ID " + id + " (이미 조회됨)");
         }
         
         // 데이터 조회
         Course course = courseService.getCourseByIdWithoutIncrement(id);
-        System.out.println("조회된 코스: " + (course != null ? "ID=" + course.getId() + ", 제목=" + course.getTitle() : "null"));
         
         if (course == null) {
-            System.out.println("코스 ID " + id + "에 해당하는 코스를 찾을 수 없습니다.");
             // 에러 페이지로 리다이렉트 또는 에러 처리
             return "redirect:/course";
         }
@@ -228,7 +225,6 @@ public class CourseController {
         // 현재 사용자의 리액션 상태 조회
         String currentReaction = courseReactionService.getCurrentReaction(id, userKey);
         
-        System.out.println("Model에 추가되는 course 객체: " + (course != null ? "ID=" + course.getId() + ", 제목=" + course.getTitle() : "null"));
         model.addAttribute("course", course);
         model.addAttribute("courseSteps", courseSteps);
         model.addAttribute("likeCount", reactionCounts.get("likeCount"));
@@ -239,6 +235,45 @@ public class CourseController {
         // 기존 JSP Include 방식 유지
         model.addAttribute("mainPage", "pullcourse/courseDetail.jsp");
         return "index";
+    }
+    
+    // 댓글 리액션 API (좋아요/싫어요)
+    @PostMapping("/{courseId}/comment/{commentId}/reaction")
+    @ResponseBody
+    public Map<String, Object> toggleCommentReaction(
+            @PathVariable int courseId,
+            @PathVariable int commentId,
+            @RequestParam String reactionType,
+            HttpServletRequest request) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 사용자 식별 (로그인 시 userid, 비로그인 시 IP)
+            String userKey = determineUserId(request);
+            
+            // 리액션 토글 처리
+            CourseCommentReactionService.ReactionResult result = 
+                courseCommentReactionService.toggleReaction(commentId, userKey, reactionType);
+            
+            if (result.isSuccess()) {
+                response.put("success", true);
+                response.put("action", result.getAction());
+                response.put("currentReaction", result.getCurrentReaction());
+                response.put("likeCount", result.getLikeCount());
+                response.put("dislikeCount", result.getDislikeCount());
+                response.put("message", result.getMessage());
+            } else {
+                response.put("success", false);
+                response.put("message", result.getMessage());
+            }
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "리액션 처리 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
     }
     
     // 코스 등록 페이지 (기존 JSP Include 방식 유지)
@@ -254,17 +289,11 @@ public class CourseController {
     @ResponseBody
     public String createCourse(MultipartHttpServletRequest request) {
         try {
-            System.out.println("=== 코스 등록 시작 ===");
-            
             // 코스 기본 정보 추출
             Course course = new Course();
             String title = request.getParameter("title");
             String summary = request.getParameter("summary");
             String nickname = request.getParameter("nickname");
-            
-            System.out.println("제목: " + title);
-            System.out.println("요약: " + summary);
-            System.out.println("닉네임: " + nickname);
             
             course.setTitle(title);
             course.setSummary(summary);
@@ -274,7 +303,6 @@ public class CourseController {
             // 사용자 ID 결정 (로그인된 사용자면 userid, 아니면 IP)
             String userId = determineUserId(request);
             course.setUserId(userId);
-            System.out.println("설정된 사용자 ID: " + userId);
             
             // 스텝 데이터와 파일 추출
             List<CourseStep> courseSteps = new ArrayList<>();
@@ -292,25 +320,8 @@ public class CourseController {
                 if (stepNoParam != null) {
                     String[] stepNos = stepNoParam.split(",");
                     stepCount = stepNos.length;
-                    System.out.println("steps[].stepNo로 찾은 스텝 개수: " + stepCount);
                 }
             }
-            
-            System.out.println("스텝 개수: " + stepCount);
-            
-            // 모든 파라미터 로깅
-            System.out.println("=== 모든 파라미터 ===");
-            request.getParameterMap().forEach((key, values) -> {
-                System.out.println(key + ": " + String.join(", ", values));
-            });
-            System.out.println("=== 파라미터 로깅 완료 ===");
-            
-            // 모든 파일 파라미터 로깅
-            System.out.println("=== 모든 파일 파라미터 ===");
-            request.getFileMap().forEach((key, file) -> {
-                System.out.println("파일 파라미터: " + key + " -> " + (file != null ? file.getOriginalFilename() : "null"));
-            });
-            System.out.println("=== 파일 파라미터 로깅 완료 ===");
             
 
             
@@ -321,17 +332,8 @@ public class CourseController {
             String[] descriptionParams = request.getParameterValues("steps[].description");
             
             if (stepNoParams != null && placeIdParams != null && stepNoParams.length > 0) {
-                System.out.println("steps[].stepNo로 찾은 스텝 개수: " + stepNoParams.length);
-                 
-                 System.out.println("분리된 스텝 데이터:");
-                 System.out.println("stepNoParams: " + String.join(", ", stepNoParams));
-                 System.out.println("placeIdParams: " + String.join(", ", placeIdParams));
-                 System.out.println("placeNameParams: " + String.join(", ", placeNameParams));
-                 System.out.println("descriptionParams: " + String.join(", ", descriptionParams));
-                 
                  // 배열 길이 확인 및 조정
                  int maxLength = Math.max(stepNoParams.length, placeIdParams.length);
-                 System.out.println("처리할 스텝 개수: " + maxLength);
                  
                  for (int i = 0; i < maxLength; i++) {
                      CourseStep step = new CourseStep();
@@ -348,13 +350,10 @@ public class CourseController {
                          String placeIdStr = placeIdParams[i].trim();
                          if (placeIdStr != null && !placeIdStr.isEmpty()) {
                              step.setPlaceId(Integer.parseInt(placeIdStr));
-                             System.out.println("스텝 " + (i+1) + "의 placeId: " + step.getPlaceId());
                          } else {
-                             System.out.println("스텝 " + (i+1) + "의 placeId가 비어있습니다.");
                              continue;
                          }
                      } else {
-                         System.out.println("스텝 " + (i+1) + "의 placeId가 없습니다.");
                          continue;
                      }
                      
@@ -368,29 +367,12 @@ public class CourseController {
                          step.setDescription(descriptionParams[i].trim());
                      }
                      
-                     System.out.println("스텝 " + (i+1) + " 정보: stepNo=" + step.getStepNo() + ", placeId=" + step.getPlaceId() + ", placeName=" + step.getPlaceName() + ", description=" + step.getDescription());
-                 
                      // 파일 처리 - MultipartFile 방식으로 복원
                      MultipartFile photoFile = null;
                      
-                     System.out.println("스텝 " + (i+1) + " 파일 처리 시작");
-                     
-                     // 모든 파일 파라미터 로깅
-                     System.out.println("=== 스텝 " + (i+1) + " 파일 파라미터 확인 ===");
-                     request.getFileMap().forEach((key, file) -> {
-                         System.out.println("파일 키: " + key + " -> " + (file != null ? file.getOriginalFilename() : "null"));
-                     });
-                     
-                     // getFiles()를 사용하여 모든 파일을 가져와서 순서대로 처리
-                     List<MultipartFile> allFiles = request.getFiles("steps[].photo");
-                     System.out.println("getFiles('steps[].photo') 결과: " + allFiles.size() + "개 파일");
-                     
-                     if (i < allFiles.size()) {
-                         photoFile = allFiles.get(i);
-                         System.out.println("스텝 " + (i+1) + " 파일 찾음: " + photoFile.getOriginalFilename());
-                     } else {
-                         System.out.println("스텝 " + (i+1) + " 파일 없음");
-                     }
+                     // 각 스텝별로 개별 파일명으로 파일 가져오기
+                     String photoParamName = "steps[" + i + "].photo";
+                     photoFile = request.getFile(photoParamName);
                      
                      System.out.println("파일 존재 여부: " + (photoFile != null));
                      if (photoFile != null) {
@@ -441,7 +423,6 @@ public class CourseController {
                          
                          // 파일 저장
                          File dest = new File(uploadDir + newFilename);
-                         System.out.println("저장할 파일 경로: " + dest.getAbsolutePath());
                          
                          try {
                              // 파일 스트림을 사용하여 안전하게 파일 저장
@@ -455,48 +436,30 @@ public class CourseController {
                                  }
                              }
                              
-                             System.out.println("파일 저장 성공: " + dest.getAbsolutePath());
-                             
                              // 데이터베이스에 저장할 경로 설정
                              step.setPhotoUrl("/uploads/course/" + newFilename);
-                             System.out.println("DB에 저장할 URL: " + step.getPhotoUrl());
                          } catch (IOException e) {
-                             System.out.println("파일 저장 실패: " + e.getMessage());
                              e.printStackTrace();
-                             System.out.println("파일 크기: " + photoFile.getSize());
-                             System.out.println("파일명: " + photoFile.getOriginalFilename());
-                             System.out.println("업로드 디렉토리 쓰기 권한 확인 필요");
                              // 파일 저장 실패해도 스텝은 계속 진행
                          }
                      } catch (Exception e) {
-                         System.out.println("경로 설정 실패: " + e.getMessage());
                          e.printStackTrace();
                      }
-                 } else {
-                     System.out.println("스텝 " + (i+1) + " 파일 없음");
                  }
                  
                  courseSteps.add(step);
-                 System.out.println("스텝 " + (i+1) + " 추가 완료, 현재 courseSteps 크기: " + courseSteps.size());
                  }
              }
             
-            System.out.println("최종 courseSteps 크기: " + courseSteps.size());
-            
             // 코스 등록
-            System.out.println("코스 등록 서비스 호출 시작");
             int courseId = courseService.createCourse(course, courseSteps);
-            System.out.println("코스 등록 결과 - courseId: " + courseId);
             
             if (courseId > 0) {
-                System.out.println("=== 코스 등록 성공 ===");
                 return "success";
             } else {
-                System.out.println("=== 코스 등록 실패 (courseId <= 0) ===");
                 return "error";
             }
         } catch (Exception e) {
-            System.out.println("=== 코스 등록 예외 발생 ===");
             e.printStackTrace();
             return "error";
         }
@@ -648,11 +611,15 @@ public class CourseController {
     @GetMapping("/{courseId}/comments")
     @ResponseBody
     public Map<String, Object> getComments(@PathVariable int courseId,
-                                          @RequestParam(defaultValue = "latest") String sort) {
+                                          @RequestParam(defaultValue = "latest") String sort,
+                                          HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            List<CourseComment> comments = courseCommentService.getParentCommentsByCourseId(courseId);
+            // 사용자 식별 (로그인 시 userid, 비로그인 시 IP)
+            String userKey = determineUserId(request);
+            
+            List<CourseComment> comments = courseCommentService.getParentCommentsByCourseIdWithUserReaction(courseId, userKey);
             
             // 각 부모 댓글에 대댓글 갯수 추가
             for (CourseComment comment : comments) {
@@ -689,11 +656,15 @@ public class CourseController {
     @GetMapping("/{courseId}/replies")
     @ResponseBody
     public Map<String, Object> getReplies(@PathVariable int courseId,
-                                         @RequestParam int parentId) {
+                                         @RequestParam int parentId,
+                                         HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            List<CourseComment> replies = courseCommentService.getRepliesByParentId(parentId);
+            // 사용자 식별 (로그인 시 userid, 비로그인 시 IP)
+            String userKey = determineUserId(request);
+            
+            List<CourseComment> replies = courseCommentService.getRepliesByParentIdWithUserReaction(parentId, userKey);
             
             // 대댓글에 replyCount 설정
             for (CourseComment reply : replies) {

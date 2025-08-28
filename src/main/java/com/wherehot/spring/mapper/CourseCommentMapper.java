@@ -35,4 +35,10 @@ public interface CourseCommentMapper {
     
     // 부모 댓글의 대댓글 목록 조회
     List<CourseComment> getRepliesByParentId(@Param("parentId") int parentId);
+    
+    // 코스의 부모 댓글만 조회 (현재 사용자의 리액션 상태 포함)
+    List<CourseComment> getParentCommentsByCourseIdWithUserReaction(@Param("courseId") int courseId, @Param("userKey") String userKey);
+    
+    // 부모 댓글의 대댓글 목록 조회 (현재 사용자의 리액션 상태 포함)
+    List<CourseComment> getRepliesByParentIdWithUserReaction(@Param("parentId") int parentId, @Param("userKey") String userKey);
 }

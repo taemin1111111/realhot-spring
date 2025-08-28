@@ -22,6 +22,7 @@ public class CourseComment {
     private Integer likeCount = 0;
     private Integer dislikeCount = 0;
     private Integer replyCount = 0; // 대댓글 갯수 (DB에 저장되지 않음, 조회 시 계산)
+    private String userReaction; // 현재 사용자의 리액션 상태 (DB에 저장되지 않음, 조회 시 설정)
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isDeleted = false;
@@ -117,6 +118,14 @@ public class CourseComment {
     
     public void setReplyCount(Integer replyCount) {
         this.replyCount = replyCount;
+    }
+    
+    public String getUserReaction() {
+        return userReaction;
+    }
+    
+    public void setUserReaction(String userReaction) {
+        this.userReaction = userReaction;
     }
     
     public LocalDateTime getCreatedAt() {

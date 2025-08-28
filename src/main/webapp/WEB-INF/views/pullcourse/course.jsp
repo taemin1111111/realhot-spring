@@ -486,7 +486,6 @@ function getUserInfo() {
         }).join(''));
         
         const payload = JSON.parse(jsonPayload);
-        console.log('JWT 토큰에서 추출한 사용자 정보:', payload);
         
         return {
             userid: payload.sub,
@@ -494,13 +493,11 @@ function getUserInfo() {
             provider: payload.provider || 'site'
         };
     } catch (error) {
-        console.error('Token parsing error:', error);
         // localStorage에서 백업 정보 확인
         const backupInfo = localStorage.getItem('userInfo');
         if (backupInfo) {
             try {
                 const parsed = JSON.parse(backupInfo);
-                console.log('백업 사용자 정보 사용:', parsed);
                 return parsed;
             } catch (e) {
                 console.error('백업 정보 파싱 오류:', e);
@@ -1116,16 +1113,16 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
              originalIndex: step.originalIndex
          });
          
-         // 서버가 기대하는 형태로 FormData 추가 (steps[].stepNo 형태)
-         formDataToSend.append(`steps[].stepNo`, step.stepNo);
-         formDataToSend.append(`steps[].placeName`, step.placeName);
-         formDataToSend.append(`steps[].placeId`, step.placeId);
-         formDataToSend.append(`steps[].description`, step.description);
+         // 서버가 기대하는 형태로 FormData 추가 (steps[인덱스].필드명 형태)
+         formDataToSend.append(`steps[${validIndex}].stepNo`, step.stepNo);
+         formDataToSend.append(`steps[${validIndex}].placeName`, step.placeName);
+         formDataToSend.append(`steps[${validIndex}].placeId`, step.placeId);
+         formDataToSend.append(`steps[${validIndex}].description`, step.description);
          
-         // 파일이 선택된 경우에만 추가 - steps[].photo 형태로 순서대로 추가
+         // 파일이 선택된 경우에만 추가 - steps[인덱스].photo 형태로 추가
          if (fileInput && fileInput.files.length > 0) {
              console.log(`스텝 ${validIndex + 1} 파일 추가:`, fileInput.files[0].name, '크기:', fileInput.files[0].size);
-             formDataToSend.append(`steps[].photo`, fileInput.files[0]);
+             formDataToSend.append(`steps[${validIndex}].photo`, fileInput.files[0]);
          } else {
              console.log(`스텝 ${validIndex + 1} 파일 없음`);
          }

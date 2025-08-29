@@ -306,7 +306,7 @@
                 </div>
                 <div class="course-hunting-form-group">
                     <label>비밀번호</label>
-                    <input type="password" id="coursePassword" name="passwd_hash" 
+                    <input type="password" id="coursePassword" name="password" 
                            maxlength="4" pattern="[0-9]{4}" placeholder="숫자 4자리" 
                            title="숫자 4자리를 입력해주세요"
                            oninput="validatePassword(this)" onkeypress="return onlyNumbers(event)">
@@ -548,6 +548,26 @@ function validatePassword(input) {
 // 코스 공유하기 모달 표시
 function showCreateForm() {
     document.getElementById('createModal').style.display = 'block';
+    
+    // 모달 밖 클릭 시 닫히지 않도록 이벤트 처리
+    const modal = document.getElementById('createModal');
+    const modalContent = document.querySelector('.course-hunting-modal-content');
+    
+    // 모달 배경 클릭 시 닫히지 않도록 방지
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    };
+    
+    // 모달 내용 영역 클릭 시 이벤트 전파 방지
+    if (modalContent) {
+        modalContent.onclick = function(e) {
+            e.stopPropagation();
+        };
+    }
     
     // 로그인 상태 확인 및 작성자 필드 설정
     const userInfo = getUserInfo();
@@ -1040,7 +1060,7 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
         title: document.getElementById('courseTitle').value,
         summary: document.getElementById('courseSummary').value,
         nickname: document.getElementById('courseNickname').value,
-        passwd_hash: document.getElementById('coursePassword').value,
+        password: document.getElementById('coursePassword').value,
         steps: []
     };
     
@@ -1103,7 +1123,7 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
     formDataToSend.append('title', formData.title);
     formDataToSend.append('summary', formData.summary);
     formDataToSend.append('nickname', formData.nickname);
-    formDataToSend.append('passwd_hash', formData.passwd_hash);
+    formDataToSend.append('password', formData.password);
     
     // userId 필드 추가 (로그인된 사용자면 userid, 아니면 "anonymous")
     const userInfo = getUserInfo();
@@ -1114,7 +1134,7 @@ document.getElementById('courseForm').addEventListener('submit', function(e) {
         title: formData.title,
         summary: formData.summary,
         nickname: formData.nickname,
-        passwd_hash: formData.passwd_hash,
+        password: formData.password,
         userId: userId,
         userInfo: userInfo
     });

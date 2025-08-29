@@ -440,7 +440,7 @@ function createCommentHTML(comment) {
         replyButtonHtml = '<button class="reply-btn" data-expanded="false" onclick="toggleRepliesAndShowForm(' + comment.id + ')">답글 ' + replyCount + '개</button>';
     }
     
-    const html = '<div class="comment-item ' + (isReply ? 'comment-reply' : '') + '" data-comment-id="' + comment.id + '">' +
+    const html = '<div class="comment-item ' + (isReply ? 'comment-reply' : '') + '" data-comment-id="' + comment.id + '" data-author-userid="' + (comment.authorUserid || '') + '">' +
         '<div class="comment-header">' +
             '<span class="comment-display-nickname">' + (comment.nickname || '') + '</span>' +
             '<div class="comment-menu" onclick="showCommentDeleteMenu(' + comment.id + ', \'' + (comment.nickname || '') + '\')">' +
@@ -479,7 +479,7 @@ function createReplyHTML(reply) {
     console.log('createReplyHTML 호출됨, reply:', reply);
     const timeAgo = getTimeAgo(reply.createdAt);
     
-    const html = '<div class="comment-item comment-reply" data-comment-id="' + reply.id + '">' +
+    const html = '<div class="comment-item comment-reply" data-comment-id="' + reply.id + '" data-author-userid="' + (reply.authorUserid || '') + '">' +
         '<div class="comment-header">' +
             '<span class="comment-display-nickname">' + (reply.nickname || '') + '</span>' +
             '<div class="comment-menu" onclick="showCommentDeleteMenu(' + reply.id + ', \'' + (reply.nickname || '') + '\')">' +
@@ -1465,12 +1465,16 @@ function showCommentDeleteMenu(commentId, nickname) {
 
 // 댓글 삭제 처리
 function deleteComment(commentId, nickname) {
-    // 비밀번호 확인 모달 표시
-    showCommentPasswordModal(commentId, nickname);
+    // 댓글의 author_userid 정보를 가져와서 anonymous인지 확인
+    const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+    const authorUserid = commentElement ? commentElement.getAttribute('data-author-userid') : null;
+    
+    // 비밀번호 확인 모달 표시 (author_userid 정보도 함께 전달)
+    showCommentPasswordModal(commentId, nickname, authorUserid);
 }
 
 // 댓글 비밀번호 확인 모달 표시
-function showCommentPasswordModal(commentId, nickname) {
+function showCommentPasswordModal(commentId, nickname, authorUserid) {
     const modal = document.getElementById('commentPasswordModal');
     const title = document.getElementById('commentPasswordModalTitle');
     const input = document.getElementById('commentPasswordModalInput');
@@ -1478,8 +1482,11 @@ function showCommentPasswordModal(commentId, nickname) {
     // 로그인 상태 확인
     const loggedIn = isLoggedIn();
     
+    // author_userid가 anonymous인 경우 비밀번호 입력 필요
+    const isAnonymousComment = authorUserid === 'anonymous';
+    
     // 모달 제목 설정
-    if (loggedIn) {
+    if (loggedIn && !isAnonymousComment) {
         title.textContent = '댓글을 삭제하시겠습니까?';
         input.style.display = 'none'; // 비밀번호 입력 필드 숨기기
     } else {
@@ -1490,12 +1497,13 @@ function showCommentPasswordModal(commentId, nickname) {
     // 모달에 데이터 저장
     modal.dataset.commentId = commentId;
     modal.dataset.nickname = nickname;
+    modal.dataset.authorUserid = authorUserid;
     
     // 입력 필드 초기화
     input.value = '';
     
-    // 로그인한 사용자가 아닌 경우에만 포커스 설정
-    if (!loggedIn) {
+    // 비밀번호 입력이 필요한 경우에만 포커스 설정
+    if (isAnonymousComment || !loggedIn) {
         input.focus();
     }
     
@@ -1515,13 +1523,17 @@ function confirmCommentDelete() {
     const input = document.getElementById('commentPasswordModalInput');
     const commentId = modal.dataset.commentId;
     const nickname = modal.dataset.nickname;
+    const authorUserid = modal.dataset.authorUserid;
     const password = input.value;
     
     // 로그인 상태 확인
     const loggedIn = isLoggedIn();
     
-    // 비로그인 사용자의 경우에만 비밀번호 검증
-    if (!loggedIn) {
+    // author_userid가 anonymous인 경우 비밀번호 입력 필요
+    const isAnonymousComment = authorUserid === 'anonymous';
+    
+    // 비밀번호 입력이 필요한 경우 비밀번호 검증
+    if (isAnonymousComment || !loggedIn) {
         if (!password || password.length !== 4 || !/^\d{4}$/.test(password)) {
             alert('비밀번호는 숫자 4자리로 입력해주세요.');
             input.focus();
@@ -1535,11 +1547,12 @@ function confirmCommentDelete() {
     // 삭제 요청 데이터 준비
     const requestData = {
         commentId: commentId,
-        nickname: nickname
+        nickname: nickname,
+        authorUserid: authorUserid
     };
     
-    // 비로그인 사용자의 경우에만 비밀번호 포함
-    if (!loggedIn) {
+    // 비밀번호 입력이 필요한 경우에만 비밀번호 포함
+    if (isAnonymousComment || !loggedIn) {
         requestData.password = password;
     }
     

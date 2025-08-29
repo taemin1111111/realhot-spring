@@ -35,8 +35,8 @@
                         썰 게시판
                     </a>
                     <ul class="dropdown-menu text-start">
-                        <li><a class="dropdown-item" href="<%=root%>/?main=community/cumain.jsp">커뮤니티 메인</a></li>
-                        <li><a class="dropdown-item" href="<%=root%>/?main=community/cumain.jsp">카테고리별 썰</a></li>
+                        <li><a class="dropdown-item" href="<%=root%>/hpost">썰게시판 메인</a></li>
+                        <li><a class="dropdown-item" href="<%=root%>/hpost">카테고리별 썰</a></li>
                     </ul>
                 </li>
 

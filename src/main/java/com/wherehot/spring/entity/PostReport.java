@@ -3,52 +3,46 @@ package com.wherehot.spring.entity;
 import java.time.LocalDateTime;
 
 /**
- * 게시글 신고 엔티티 - Model1 DTO와 일치하도록 수정
+ * 게시글 신고 엔티티
+ * hottalk_report 테이블과 매핑
  */
 public class PostReport {
     
-    private int id;
-    private int post_id;
+    private Integer id;
+    private Integer postId;
+    private String userKey;
     private String reason;
     private String content;
     private LocalDateTime reportTime;
-    private String user_id;
     
-    // 기본 생성자
-    public PostReport() {}
-    
-    // 전체 매개변수 생성자
-    public PostReport(int id, int post_id, String reason, String content, LocalDateTime reportTime) {
-        this.id = id;
-        this.post_id = post_id;
-        this.reason = reason;
-        this.content = content;
-        this.reportTime = reportTime;
+    // 생성자
+    public PostReport() {
+        this.reportTime = LocalDateTime.now();
     }
     
-    // content 포함 생성자 (신고 추가용)
-    public PostReport(int post_id, String user_id, String reason, String content) {
-        this.post_id = post_id;
-        this.user_id = user_id;
-        this.reason = reason;
-        this.content = content;
-    }
-    
-    // Getter와 Setter 메서드들
-    public int getId() {
+    // Getter & Setter
+    public Integer getId() {
         return id;
     }
     
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
     
-    public int getPost_id() {
-        return post_id;
+    public Integer getPostId() {
+        return postId;
     }
     
-    public void setPost_id(int post_id) {
-        this.post_id = post_id;
+    public void setPostId(Integer postId) {
+        this.postId = postId;
+    }
+    
+    public String getUserKey() {
+        return userKey;
+    }
+    
+    public void setUserKey(String userKey) {
+        this.userKey = userKey;
     }
     
     public String getReason() {
@@ -73,12 +67,5 @@ public class PostReport {
     
     public void setReportTime(LocalDateTime reportTime) {
         this.reportTime = reportTime;
-    }
-
-    public String getUser_id() {
-        return user_id;
-    }
-    public void setUser_id(String user_id) {
-        this.user_id = user_id;
     }
 }

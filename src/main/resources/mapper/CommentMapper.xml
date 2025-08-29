@@ -1,176 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.wherehot.spring.mapper.CommentMapper">
 
-    <!-- Comment ResultMap -->
+    <!-- 결과 매핑 -->
     <resultMap id="CommentResultMap" type="com.wherehot.spring.entity.Comment">
         <id property="id" column="id"/>
         <result property="postId" column="post_id"/>
-        <result property="authorId" column="author_id"/>
-        <result property="authorNickname" column="author_nickname"/>
+        <result property="userid" column="userid"/>
+        <result property="userip" column="userip"/>
         <result property="content" column="content"/>
-        <result property="parentCommentId" column="parent_comment_id"/>
-        <result property="likeCount" column="like_count"/>
-        <result property="dislikeCount" column="dislike_count"/>
-        <result property="status" column="status"/>
         <result property="createdAt" column="created_at"/>
-        <result property="updatedAt" column="updated_at"/>
+        <result property="nickname" column="nickname"/>
+        <result property="passwd" column="passwd"/>
+        <result property="likes" column="likes"/>
+        <result property="dislikes" column="dislikes"/>
+        <result property="isDeleted" column="is_deleted"/>
     </resultMap>
 
     <!-- 게시글별 댓글 조회 -->
-    <select id="findByPostId" parameterType="int" resultMap="CommentResultMap">
-        SELECT c.*, m.nickname as author_nickname
-        FROM hottalk_comment c
-        LEFT JOIN member m ON c.author_id = m.userid
-        WHERE c.post_id = #{postId}
-        AND c.status != 'DELETED'
-        ORDER BY c.parent_comment_id ASC, c.created_at ASC
-    </select>
-
-    <!-- 게시글별 댓글 조회 (페이징) -->
-    <select id="findByPostIdWithPaging" resultMap="CommentResultMap">
-        SELECT c.*, m.nickname as author_nickname
-        FROM hottalk_comment c
-        LEFT JOIN member m ON c.author_id = m.userid
-        WHERE c.post_id = #{postId}
-        AND c.status != 'DELETED'
-        ORDER BY c.parent_comment_id ASC, c.created_at ASC
-        LIMIT #{offset}, #{limit}
-    </select>
-
-    <!-- ID로 댓글 조회 -->
-    <select id="findById" parameterType="int" resultMap="CommentResultMap">
-        SELECT c.*, m.nickname as author_nickname
-        FROM hottalk_comment c
-        LEFT JOIN member m ON c.author_id = m.userid
-        WHERE c.id = #{id}
-    </select>
-
-    <!-- 작성자별 댓글 조회 -->
-    <select id="findByAuthorId" resultMap="CommentResultMap">
-        SELECT c.*, m.nickname as author_nickname
-        FROM hottalk_comment c
-        LEFT JOIN member m ON c.author_id = m.userid
-        WHERE c.author_id = #{authorId}
-        AND c.status != 'DELETED'
-        ORDER BY c.created_at DESC
-        LIMIT #{offset}, #{limit}
-    </select>
-
-    <!-- 부모 댓글의 답글 조회 -->
-    <select id="findRepliesByParent" parameterType="int" resultMap="CommentResultMap">
-        SELECT c.*, m.nickname as author_nickname
-        FROM hottalk_comment c
-        LEFT JOIN member m ON c.author_id = m.userid
-        WHERE c.parent_comment_id = #{parentCommentId}
-        AND c.status != 'DELETED'
-        ORDER BY c.created_at ASC
-    </select>
-
-    <!-- 최신 댓글 조회 -->
-    <select id="findRecentComments" parameterType="int" resultMap="CommentResultMap">
-        SELECT c.*, m.nickname as author_nickname
-        FROM hottalk_comment c
-        LEFT JOIN member m ON c.author_id = m.userid
-        WHERE c.status = 'ACTIVE'
-        ORDER BY c.created_at DESC
-        LIMIT #{limit}
+    <select id="getCommentsByPostId" resultMap="CommentResultMap">
+        SELECT id, post_id, userid, userip, content, created_at, nickname, passwd, likes, dislikes, is_deleted
+        FROM hottalk_comment 
+        WHERE post_id = #{postId} AND is_deleted = 0
+        ORDER BY created_at ASC
     </select>
 
     <!-- 댓글 등록 -->
     <insert id="insertComment" parameterType="com.wherehot.spring.entity.Comment" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO hottalk_comment (
-            post_id,
-            author_id,
-            content,
-            parent_comment_id,
-            like_count,
-            dislike_count,
-            status,
-            created_at,
-            updated_at
+            post_id, userid, userip, content, created_at, nickname, passwd, likes, dislikes, is_deleted
         ) VALUES (
-            #{postId},
-            #{authorId},
-            #{content},
-            #{parentCommentId},
-            #{likeCount, jdbcType=INTEGER},
-            #{dislikeCount, jdbcType=INTEGER},
-            #{status},
-            #{createdAt},
-            #{updatedAt}
+            #{postId}, #{userid}, #{userip}, #{content}, NOW(), #{nickname}, #{passwd}, #{likes}, #{dislikes}, #{isDeleted}
         )
     </insert>
 
     <!-- 댓글 수정 -->
     <update id="updateComment" parameterType="com.wherehot.spring.entity.Comment">
-        UPDATE hottalk_comment
+        UPDATE hottalk_comment 
         SET 
             content = #{content},
-            updated_at = #{updatedAt}
+            nickname = #{nickname},
+            passwd = #{passwd}
         WHERE id = #{id}
     </update>
 
-    <!-- 댓글 삭제 (완전 삭제) -->
-    <delete id="deleteComment" parameterType="int">
-        DELETE FROM hottalk_comment WHERE id = #{id}
-    </delete>
-
-    <!-- 좋아요 수 업데이트 -->
-    <update id="updateLikeCount">
-        UPDATE hottalk_comment
-        SET like_count = #{likeCount}
+    <!-- 댓글 삭제 -->
+    <update id="deleteComment">
+        UPDATE hottalk_comment 
+        SET is_deleted = 1
         WHERE id = #{id}
     </update>
 
-    <!-- 싫어요 수 업데이트 -->
-    <update id="updateDislikeCount">
-        UPDATE hottalk_comment
-        SET dislike_count = #{dislikeCount}
-        WHERE id = #{id}
-    </update>
-
-    <!-- 댓글 상태 변경 -->
-    <update id="updateCommentStatus">
-        UPDATE hottalk_comment
-        SET status = #{status}
-        WHERE id = #{id}
-    </update>
-
-    <!-- 게시글별 댓글 수 조회 -->
-    <select id="countByPostId" parameterType="int" resultType="int">
+    <!-- 댓글 수 조회 -->
+    <select id="getCommentCountByPostId" resultType="int">
         SELECT COUNT(*)
-        FROM hottalk_comment
-        WHERE post_id = #{postId}
-        AND status != 'DELETED'
-    </select>
-
-    <!-- 작성자별 댓글 수 조회 -->
-    <select id="countByAuthorId" parameterType="string" resultType="int">
-        SELECT COUNT(*)
-        FROM hottalk_comment
-        WHERE author_id = #{authorId}
-        AND status != 'DELETED'
-    </select>
-
-    <!-- 부모 댓글의 답글 수 조회 -->
-    <select id="countRepliesByParent" parameterType="int" resultType="int">
-        SELECT COUNT(*)
-        FROM hottalk_comment
-        WHERE parent_comment_id = #{parentCommentId}
-        AND status != 'DELETED'
-    </select>
-
-    <!-- 전체 댓글 수 조회 -->
-    <select id="countAll" resultType="int">
-        SELECT COUNT(*) FROM hottalk_comment
-    </select>
-
-    <!-- 활성 댓글 수 조회 -->
-    <select id="countActive" resultType="int">
-        SELECT COUNT(*)
-        FROM hottalk_comment
-        WHERE status = 'ACTIVE'
+        FROM hottalk_comment 
+        WHERE post_id = #{postId} AND is_deleted = 0
     </select>
 
 </mapper>

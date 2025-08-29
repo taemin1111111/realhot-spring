@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 @Controller
 @RequestMapping("/course")
@@ -69,6 +71,24 @@ public class CourseController {
     
     @Autowired
     private CourseReportService courseReportService;
+    
+    // SHA-256 해시 함수
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes("UTF-8"));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
     
     // IP 주소 가져오기
     private String getClientIpAddress(HttpServletRequest request) {
@@ -327,13 +347,18 @@ public class CourseController {
             String title = request.getParameter("title");
             String summary = request.getParameter("summary");
             String nickname = request.getParameter("nickname");
-            String passwdHash = request.getParameter("passwd_hash");
+            String password = request.getParameter("password");
             String userId = request.getParameter("userId");
             
             course.setTitle(title);
             course.setSummary(summary);
             course.setNickname(nickname);
-            course.setPasswdHash(passwdHash);
+            
+            // 비밀번호 해시화
+            if (password != null && !password.trim().isEmpty()) {
+                String hashedPassword = hashPassword(password);
+                course.setPasswdHash(hashedPassword);
+            }
             
             // userId 처리: 클라이언트에서 전송한 값이 있으면 사용, 없으면 IP 주소 사용
             if (userId != null && !userId.trim().isEmpty() && !"anonymous".equals(userId.trim())) {
@@ -674,7 +699,9 @@ public class CourseController {
                     response.put("message", "비밀번호는 숫자 4자리로 입력해주세요.");
                     return response;
                 }
-                comment.setPasswdHash(password);
+                // 비밀번호 해시화
+                String hashedPassword = hashPassword(password);
+                comment.setPasswdHash(hashedPassword);
             }
             
             // 댓글 등록
@@ -837,8 +864,9 @@ public class CourseController {
                 return response;
             }
             
-            // 비밀번호 확인
-            if (!password.equals(course.getPasswdHash())) {
+            // 비밀번호 확인 (서버 해시화 방식만 사용)
+            String hashedPassword = hashPassword(password);
+            if (!hashedPassword.equals(course.getPasswdHash())) {
                 response.put("success", false);
                 response.put("message", "비밀번호가 일치하지 않습니다.");
                 return response;
@@ -888,6 +916,7 @@ public class CourseController {
             String commentIdStr = (String) requestData.get("commentId");
             String nickname = (String) requestData.get("nickname");
             String password = (String) requestData.get("password");
+            String authorUserid = (String) requestData.get("authorUserid");
             
             int commentId;
             try {
@@ -912,37 +941,44 @@ public class CourseController {
                 return response;
             }
             
-            // 닉네임 확인
-            if (!nickname.equals(comment.getNickname())) {
-                response.put("success", false);
-                response.put("message", "댓글 작성자와 일치하지 않습니다.");
-                return response;
-            }
-            
-            // 로그인 상태 확인
-            boolean isLoggedIn = isUserLoggedIn(request);
-            String currentUserId = determineUserId(request);
-            
-            // 권한 확인
-            boolean hasPermission = false;
-            
-            if (isLoggedIn) {
-                // 로그인한 사용자인 경우: 본인이 작성한 댓글인지 확인
-                if (currentUserId.equals(comment.getAuthorUserid())) {
-                    hasPermission = true;
-                }
-            } else {
-                // 비로그인 사용자인 경우: 비밀번호 확인
-                if (password == null) {
-                    response.put("success", false);
-                    response.put("message", "비밀번호를 입력해주세요.");
-                    return response;
-                }
-                
-                if (comment.getPasswdHash() != null && password.equals(comment.getPasswdHash())) {
-                    hasPermission = true;
-                }
-            }
+                         // 닉네임 확인
+             if (!nickname.equals(comment.getNickname())) {
+                 response.put("success", false);
+                 response.put("message", "댓글 작성자와 일치하지 않습니다.");
+                 return response;
+             }
+             
+             // 로그인 상태 확인
+             boolean isLoggedIn = isUserLoggedIn(request);
+             String currentUserId = determineUserId(request);
+             
+             
+             
+             // 권한 확인
+             boolean hasPermission = false;
+             
+             // DB에서 조회한 authorUserid로 판단
+             if ("anonymous".equals(comment.getAuthorUserid())) {
+                 // anonymous 댓글인 경우: 비밀번호만 확인하면 삭제 가능
+                 if (password == null) {
+                     response.put("success", false);
+                     response.put("message", "비밀번호를 입력해주세요.");
+                     return response;
+                 }
+                 
+                                                     // 비밀번호 확인 (서버 해시화 방식만 사용)
+                   String hashedPassword = hashPassword(password);
+                   boolean passwordMatch = comment.getPasswdHash() != null && hashedPassword.equals(comment.getPasswdHash());
+                   
+                   if (passwordMatch) {
+                       hasPermission = true;
+                   }
+             } else {
+                 // 로그인한 사용자가 작성한 댓글인 경우: 작성자 본인인지 확인
+                 if (isLoggedIn && currentUserId.equals(comment.getAuthorUserid())) {
+                     hasPermission = true;
+                 }
+             }
             
             if (!hasPermission) {
                 response.put("success", false);

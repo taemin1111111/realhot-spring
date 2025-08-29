@@ -819,6 +819,12 @@ body:has(.course-hunting-container) {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(5px);
+    /* 모달 밖 클릭 시 닫히지 않도록 설정 */
+    pointer-events: none;
+}
+
+.course-hunting-modal-content {
+    pointer-events: auto;
 }
 
 .course-hunting-modal-content {

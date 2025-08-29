@@ -6,8 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+
 import java.util.List;
 
 @Service
@@ -42,11 +41,7 @@ public class CourseCommentService {
      */
     @Transactional
     public int createComment(CourseComment courseComment) {
-        // 비밀번호 해시화 (비로그인 사용자의 경우)
-        if (courseComment.getPasswdHash() != null && !courseComment.getPasswdHash().isEmpty()) {
-            courseComment.setPasswdHash(hashPassword(courseComment.getPasswdHash()));
-        }
-        
+        // 컨트롤러에서 이미 해시화된 비밀번호를 받으므로 추가 해시화하지 않음
         return courseCommentMapper.insertCourseComment(courseComment);
     }
     
@@ -101,41 +96,7 @@ public class CourseCommentService {
         return courseCommentMapper.getRepliesByParentIdWithUserReaction(parentId, userKey);
     }
     
-    /**
-     * 비밀번호 해시화 (SHA-256)
-     */
-    private String hashPassword(String password) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes());
-            StringBuilder hexString = new StringBuilder();
-            
-            for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) {
-                    hexString.append('0');
-                }
-                hexString.append(hex);
-            }
-            
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 알고리즘을 찾을 수 없습니다.", e);
-        }
-    }
-    
-    /**
-     * 비밀번호 검증 (비로그인 사용자용)
-     */
-    public boolean verifyPassword(int commentId, String password) {
-        CourseComment comment = getCommentById(commentId);
-        if (comment == null) {
-            return false;
-        }
-        
-        String hashedPassword = hashPassword(password);
-        return hashedPassword.equals(comment.getPasswdHash());
-    }
+
     
     /**
      * 댓글과 관련된 모든 데이터 삭제 (댓글, 대댓글, 리액션)

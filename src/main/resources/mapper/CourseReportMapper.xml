@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wherehot.spring.mapper.CourseReportMapper">
+
+    <!-- 신고 저장 -->
+    <insert id="insertReport" parameterType="com.wherehot.spring.entity.CourseReport" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO course_report (
+            course_id, user_key, reason, details, status, result, created_at, updated_at
+        ) VALUES (
+            #{courseId}, #{userKey}, #{reason}, #{details}, #{status}, #{result}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+    
+    <!-- 코스 ID와 사용자 키로 신고 조회 -->
+    <select id="selectReportByCourseIdAndUserKey" resultType="com.wherehot.spring.entity.CourseReport">
+        SELECT 
+            id, course_id, user_key, reason, details, status, result, created_at, updated_at
+        FROM course_report 
+        WHERE course_id = #{courseId} AND user_key = #{userKey}
+    </select>
+    
+    <!-- 코스 ID로 모든 신고 조회 -->
+    <select id="selectReportsByCourseId" resultType="com.wherehot.spring.entity.CourseReport">
+        SELECT 
+            id, course_id, user_key, reason, details, status, result, created_at, updated_at
+        FROM course_report 
+        WHERE course_id = #{courseId}
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 신고 상태 업데이트 -->
+    <update id="updateReportStatus">
+        UPDATE course_report 
+        SET status = #{status}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 신고 결과 업데이트 -->
+    <update id="updateReportResult">
+        UPDATE course_report 
+        SET result = #{result}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 모든 신고 조회 (관리자용) -->
+    <select id="selectAllReports" resultType="com.wherehot.spring.entity.CourseReport">
+        SELECT 
+            id, course_id, user_key, reason, details, status, result, created_at, updated_at
+        FROM course_report 
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 상태별 신고 조회 -->
+    <select id="selectReportsByStatus" resultType="com.wherehot.spring.entity.CourseReport">
+        SELECT 
+            id, course_id, user_key, reason, details, status, result, created_at, updated_at
+        FROM course_report 
+        WHERE status = #{status}
+        ORDER BY created_at DESC
+    </select>
+
+</mapper>

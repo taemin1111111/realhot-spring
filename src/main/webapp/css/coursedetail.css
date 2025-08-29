@@ -256,8 +256,8 @@ body.course-detail-page {
 
 /* 제목 */
 .course-detail-title {
-    font-size: 32px;
-    font-weight: 700;
+    font-size: 28px;
+    font-weight: 600;
     color: #000000;
     line-height: 1.3;
     text-align: left;
@@ -380,7 +380,7 @@ body.course-detail-page {
 .course-detail-step-description {
     color: #333333;
     line-height: 1.6;
-    font-size: 23px;
+    font-size: 18px;
     margin: 40px 0 20px 0;
     text-align: center;
     font-weight: 400;
@@ -428,7 +428,7 @@ body.course-detail-page {
 .course-detail-summary p {
     color: #333333;
     line-height: 1.6;
-    font-size: 26px;
+    font-size: 20px;
     text-align: center;
     font-weight: 400;
 }

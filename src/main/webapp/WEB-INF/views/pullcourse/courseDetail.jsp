@@ -97,6 +97,7 @@ if (typeof window.fetchWithAuth === 'undefined') {
             <div class="course-detail-menu" onclick="showDeleteMenu(${course.id}, '${course.authorUserid}', '${course.userId}')">
                 <span class="course-detail-menu-dots">⋯</span>
                 <div class="course-detail-menu-dropdown" id="deleteMenu_${course.id}" style="display: none;">
+                    <div class="course-detail-menu-item" onclick="reportCourse(${course.id})">신고</div>
                     <div class="course-detail-menu-item" onclick="deleteCourse(${course.id}, '${course.authorUserid}', '${course.userId}')">삭제</div>
                 </div>
             </div>
@@ -347,6 +348,75 @@ function displayComments(comments, sortType = 'latest') {
     console.log('생성된 HTML:', html);
     commentsList.innerHTML = html;
     updateCommentCount(sortedComments.length);
+    
+    // 답글 상태 복원
+    restoreReplyStates();
+}
+
+// 답글 상태 복원 함수
+async function restoreReplyStates() {
+    for (let parentId of expandedReplies) {
+        const repliesContainer = document.getElementById('replies-' + parentId);
+        const replyBtn = document.querySelector(`[data-comment-id="${parentId}"] .reply-btn`);
+        
+        if (repliesContainer && replyBtn) {
+            // 답글 로드 및 표시
+            try {
+                const token = localStorage.getItem('accessToken');
+                
+                const response = await fetch('<%=root%>/course/' + COURSE_ID + '/replies?parentId=' + parentId, {
+                    headers: {
+                        'Authorization': token ? 'Bearer ' + token : ''
+                    }
+                });
+                const data = await response.json();
+                
+                let repliesHtml = '';
+                if (data.success && data.comments) {
+                    data.comments.forEach(reply => {
+                        repliesHtml += createReplyHTML(reply);
+                    });
+                }
+                
+                // 답글 입력폼 추가
+                const loggedIn = isLoggedIn();
+                let formHtml = '<div class="reply-form-container">' +
+                    '<div class="reply-form-row">';
+                
+                if (loggedIn) {
+                    // 로그인한 사용자: 내용만 입력
+                    formHtml += '<div class="reply-form-right-section">' +
+                        '<textarea class="reply-form-content" id="replyContent-' + parentId + '" placeholder="답글을 입력하세요..."></textarea>' +
+                        '<button class="reply-form-submit-btn" onclick="submitReply(' + parentId + ')">답글 작성</button>' +
+                        '<button class="reply-form-cancel-btn" onclick="cancelReplyForm()">취소</button>' +
+                        '</div>';
+                } else {
+                    // 비로그인 사용자: 닉네임, 비밀번호, 내용 입력
+                    formHtml += '<div class="reply-form-left-column">' +
+                        '<input type="text" class="reply-form-nickname" id="replyNickname-' + parentId + '" placeholder="닉네임 (5자 이하)" maxlength="5">' +
+                        '<input type="password" class="reply-form-password" id="replyPassword-' + parentId + '" placeholder="비밀번호 (4자리)" maxlength="4">' +
+                        '</div>' +
+                        '<div class="reply-form-right-section">' +
+                        '<textarea class="reply-form-content" id="replyContent-' + parentId + '" placeholder="답글을 입력하세요..."></textarea>' +
+                        '<button class="reply-form-submit-btn" onclick="submitReply(' + parentId + ')">답글 작성</button>' +
+                        '<button class="reply-form-cancel-btn" onclick="cancelReplyForm()">취소</button>' +
+                        '</div>';
+                }
+                
+                formHtml += '</div></div>';
+                
+                repliesContainer.innerHTML = repliesHtml + formHtml;
+                repliesContainer.style.display = 'block';
+                replyBtn.textContent = '답글 접기';
+                replyBtn.setAttribute('data-expanded', 'true');
+                
+            } catch (error) {
+                console.error('답글 상태 복원 오류:', error);
+                // 오류 발생 시 해당 답글 상태 제거
+                expandedReplies.delete(parentId);
+            }
+        }
+    }
 }
 
 // 댓글 갯수 업데이트 (부모 댓글 개수만)
@@ -479,6 +549,9 @@ function updateSortButtons(activeSort) {
 
 
 
+// 답글 상태 추적을 위한 전역 변수
+let expandedReplies = new Set();
+
 // 답글 토글 및 폼 표시 기능
 async function toggleRepliesAndShowForm(parentId) {
     console.log('답글 토글 및 폼 표시:', parentId);
@@ -538,6 +611,9 @@ async function toggleRepliesAndShowForm(parentId) {
             replyBtn.textContent = '답글 접기';
             replyBtn.setAttribute('data-expanded', 'true');
             
+            // 답글 상태를 확장된 것으로 기록
+            expandedReplies.add(parentId);
+            
             // 포커스 설정
             const contentTextarea = document.getElementById('replyContent-' + parentId);
             if (contentTextarea) {
@@ -551,6 +627,9 @@ async function toggleRepliesAndShowForm(parentId) {
         repliesContainer.style.display = 'none';
         replyBtn.textContent = '답글 ' + (repliesContainer.querySelectorAll('.comment-reply').length) + '개';
         replyBtn.setAttribute('data-expanded', 'false');
+        
+        // 답글 상태를 접힌 것으로 기록
+        expandedReplies.delete(parentId);
     }
 }
 
@@ -706,56 +785,83 @@ async function toggleCommentReaction(commentId, reactionType) {
         });
         
         const data = await response.json();
+        console.log('서버 응답 데이터:', data);
         
         if (data.success) {
-            // 해당 댓글의 좋아요/싫어요 수 업데이트
-            const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+            // 해당 댓글의 좋아요/싫어요 수 업데이트 (댓글과 답글 모두 처리)
+            let commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+            
+            // 만약 찾지 못했다면, 더 구체적인 선택자로 시도
+            if (!commentElement) {
+                // 댓글과 답글 모두에서 찾기
+                const allComments = document.querySelectorAll('.comment-item');
+                for (let comment of allComments) {
+                    if (comment.getAttribute('data-comment-id') === commentId.toString()) {
+                        commentElement = comment;
+                        break;
+                    }
+                }
+            }
+            
+            console.log('찾은 댓글 요소:', commentElement);
+            console.log('현재 DOM의 모든 댓글 요소들:', document.querySelectorAll('.comment-item'));
+            
             if (commentElement) {
+                // 좋아요/싫어요 개수 업데이트
                 const likeCountElement = commentElement.querySelector('.like-count');
                 const dislikeCountElement = commentElement.querySelector('.dislike-count');
                 
+                console.log('찾은 요소들:', {
+                    likeCountElement: likeCountElement,
+                    dislikeCountElement: dislikeCountElement,
+                    dataLikeCount: data.likeCount,
+                    dataDislikeCount: data.dislikeCount
+                });
+                
                 if (likeCountElement) {
-                    likeCountElement.textContent = data.likeCount;
+                    likeCountElement.textContent = data.likeCount || 0;
+                    console.log('좋아요 개수 업데이트:', data.likeCount || 0);
                 }
                 if (dislikeCountElement) {
-                    dislikeCountElement.textContent = data.dislikeCount;
+                    dislikeCountElement.textContent = data.dislikeCount || 0;
+                    console.log('싫어요 개수 업데이트:', data.dislikeCount || 0);
                 }
                 
-                                 // 버튼 상태 업데이트
-                 const likeBtn = commentElement.querySelector('.comment-like-btn');
-                 const dislikeBtn = commentElement.querySelector('.comment-dislike-btn');
-                 
-                 // 모든 버튼에서 active 클래스 제거
-                 if (likeBtn) likeBtn.classList.remove('active');
-                 if (dislikeBtn) dislikeBtn.classList.remove('active');
-                 
-                                 // 현재 리액션에 따라 active 클래스 추가
+                // 버튼 상태 업데이트
+                const likeBtn = commentElement.querySelector('.comment-like-btn');
+                const dislikeBtn = commentElement.querySelector('.comment-dislike-btn');
+                
+                // 모든 버튼에서 active 클래스 제거
+                if (likeBtn) likeBtn.classList.remove('active');
+                if (dislikeBtn) dislikeBtn.classList.remove('active');
+                
+                // 현재 리액션에 따라 active 클래스 추가
                 if (data.currentReaction === 'LIKE' && likeBtn) {
                     likeBtn.classList.add('active');
                 } else if (data.currentReaction === 'DISLIKE' && dislikeBtn) {
                     dislikeBtn.classList.add('active');
                 }
                 
-                console.log('댓글 리액션 업데이트 완료:', {
+                console.log('댓글/답글 리액션 업데이트 완료:', {
                     commentId: commentId,
                     likeCount: data.likeCount,
                     dislikeCount: data.dislikeCount,
                     currentReaction: data.currentReaction
                 });
+            } else {
+                console.error('댓글 요소를 찾을 수 없음:', commentId);
+                console.error('현재 DOM의 모든 댓글 ID들:', Array.from(document.querySelectorAll('.comment-item')).map(el => el.getAttribute('data-comment-id')));
             }
             
-            console.log('댓글 리액션 처리 성공:', data.action);
-            
-            // 댓글 목록 새로고침 (최신 상태 반영)
-            loadComments('latest');
+            console.log('댓글/답글 리액션 처리 성공:', data.action);
             
         } else {
-            console.error('댓글 리액션 처리 실패:', data.message);
+            console.error('댓글/답글 리액션 처리 실패:', data.message);
             showCourseMessage(data.message || '리액션 처리 중 오류가 발생했습니다.', 'error');
         }
         
     } catch (error) {
-        console.error('댓글 리액션 처리 오류:', error);
+        console.error('댓글/답글 리액션 처리 오류:', error);
         showCourseMessage('리액션 처리 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -1065,12 +1171,35 @@ async function submitComment() {
         showCourseMessage('Course ID가 없습니다.', 'error');
         return;
     }
-    const nickname = document.getElementById('commentNickname').value.trim();
-    const password = document.getElementById('commentPassword').value;
-    const content = document.getElementById('commentContent').value.trim();
     
     // 로그인 상태 확인
     const loggedIn = isLoggedIn();
+    
+    let nickname = '';
+    const password = document.getElementById('commentPassword').value;
+    const content = document.getElementById('commentContent').value.trim();
+    
+    if (loggedIn) {
+        // 로그인한 사용자: 토큰에서 닉네임 추출
+        try {
+            const token = localStorage.getItem('accessToken');
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            
+            const payload = JSON.parse(jsonPayload);
+            nickname = payload.nickname || '';
+        } catch (error) {
+            console.error('토큰에서 닉네임 추출 실패:', error);
+            showCourseMessage('사용자 정보를 가져오는데 실패했습니다.', 'error');
+            return;
+        }
+    } else {
+        // 비로그인 사용자: 입력 필드에서 닉네임 가져오기
+        nickname = document.getElementById('commentNickname').value.trim();
+    }
     
     // 입력 검증
     if (!nickname || !content) {
@@ -1118,10 +1247,17 @@ async function submitComment() {
         if (result.success) {
             showCourseMessage('댓글이 등록되었습니다.', 'success');
             
-            // 입력 필드 초기화
-            document.getElementById('commentNickname').value = '';
-            document.getElementById('commentPassword').value = '';
-            document.getElementById('commentContent').value = '';
+            // 입력 필드 초기화 (로그인 상태에 따라 다르게 처리)
+            const loggedIn = isLoggedIn();
+            if (loggedIn) {
+                // 로그인한 사용자: 닉네임은 유지, 댓글 내용만 초기화
+                document.getElementById('commentContent').value = '';
+            } else {
+                // 비로그인 사용자: 모든 필드 초기화
+                document.getElementById('commentNickname').value = '';
+                document.getElementById('commentPassword').value = '';
+                document.getElementById('commentContent').value = '';
+            }
             
             // 댓글 목록 새로고침
             loadComments('latest');
@@ -1136,10 +1272,56 @@ async function submitComment() {
     }
 }
 
-// 페이지 로드 시 댓글 로드
+// 페이지 로드 시 댓글 로드 및 댓글 입력 필드 설정
 document.addEventListener('DOMContentLoaded', function() {
     loadComments('latest');
+    setupCommentForm();
 });
+
+// 댓글 입력 폼 설정
+function setupCommentForm() {
+    const loggedIn = isLoggedIn();
+    const nicknameField = document.getElementById('commentNickname');
+    const passwordField = document.getElementById('commentPassword');
+    
+    if (loggedIn) {
+        // 로그인한 사용자: 토큰에서 닉네임 추출하여 설정
+        try {
+            const token = localStorage.getItem('accessToken');
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            
+            const payload = JSON.parse(jsonPayload);
+            const nickname = payload.nickname || '';
+            
+            // 닉네임 필드 설정 및 비활성화
+            nicknameField.value = nickname;
+            nicknameField.readOnly = true;
+            nicknameField.style.backgroundColor = '#f8f9fa';
+            nicknameField.style.color = '#6c757d';
+            
+            // 비밀번호 필드 숨기기
+            passwordField.style.display = 'none';
+            passwordField.parentElement.style.display = 'none';
+            
+        } catch (error) {
+            console.error('토큰에서 닉네임 추출 실패:', error);
+            // 토큰 파싱 실패 시 일반 입력 필드로 유지
+            nicknameField.readOnly = false;
+            passwordField.style.display = 'block';
+        }
+    } else {
+        // 비로그인 사용자: 일반 입력 필드로 설정
+        nicknameField.readOnly = false;
+        nicknameField.style.backgroundColor = '';
+        nicknameField.style.color = '';
+        passwordField.style.display = 'block';
+        passwordField.parentElement.style.display = 'block';
+    }
+}
 
 // 삭제 메뉴 표시/숨김
 function showDeleteMenu(courseId, authorUserid, userId) {
@@ -1389,6 +1571,95 @@ function confirmCommentDelete() {
     });
 }
 
+// 코스 신고
+function reportCourse(courseId) {
+    // 로그인 상태 확인
+    const loggedIn = isLoggedIn();
+    
+    if (!loggedIn) {
+        // 로그인하지 않은 경우 빨간색 모달로 메시지 표시
+        showCourseMessage('신고는 로그인 후 이용 가능합니다.', 'error');
+        return;
+    }
+    
+    // 로그인한 경우 신고 모달 표시
+    showReportModal(courseId);
+}
+
+// 신고 모달 표시
+function showReportModal(courseId) {
+    const modal = document.getElementById('reportModal');
+    const title = document.getElementById('reportModalTitle');
+    const reasonSelect = document.getElementById('reportReasonSelect');
+    const detailsTextarea = document.getElementById('reportDetailsTextarea');
+    
+    // 모달 제목 설정
+    title.textContent = '코스 신고';
+    
+    // 모달에 데이터 저장
+    modal.dataset.courseId = courseId;
+    
+    // 입력 필드 초기화
+    reasonSelect.value = '';
+    detailsTextarea.value = '';
+    
+    // 모달 표시
+    modal.style.display = 'flex';
+}
+
+// 신고 모달 닫기
+function closeReportModal() {
+    const modal = document.getElementById('reportModal');
+    modal.style.display = 'none';
+}
+
+// 신고 확인
+function confirmReport() {
+    const modal = document.getElementById('reportModal');
+    const courseId = modal.dataset.courseId;
+    const reason = document.getElementById('reportReasonSelect').value;
+    const details = document.getElementById('reportDetailsTextarea').value;
+    
+    if (!reason) {
+        showCourseMessage('신고 사유를 선택해주세요.', 'warning');
+        return;
+    }
+    
+    // JWT 토큰 가져오기
+    const token = localStorage.getItem('accessToken');
+    
+    // 신고 요청
+    fetch('<%=root%>/course/report', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token ? 'Bearer ' + token : ''
+        },
+        body: JSON.stringify({
+            courseId: courseId,
+            reason: reason,
+            details: details
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showCourseMessage('신고가 접수되었습니다.', 'success');
+            closeReportModal();
+        } else {
+            if (data.requireLogin) {
+                showCourseMessage('신고는 로그인 후 이용 가능합니다.', 'error');
+            } else {
+                showCourseMessage(data.message || '신고 접수에 실패했습니다.', 'error');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('신고 오류:', error);
+        showCourseMessage('신고 중 오류가 발생했습니다.', 'error');
+    });
+}
+
 // 페이지 클릭 시 메뉴 닫기
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.course-detail-menu')) {
@@ -1427,6 +1698,32 @@ document.addEventListener('click', function(e) {
         <div class="password-modal-buttons">
             <button class="password-modal-btn confirm" onclick="confirmCommentDelete()">삭제</button>
             <button class="password-modal-btn cancel" onclick="closeCommentPasswordModal()">취소</button>
+        </div>
+    </div>
+</div>
+
+<!-- 코스 신고 모달 -->
+<div id="reportModal" class="password-modal">
+    <div class="password-modal-content">
+        <div class="password-modal-title" id="reportModalTitle">코스 신고</div>
+        <div style="margin-bottom: 15px;">
+            <label for="reportReasonSelect" style="display: block; margin-bottom: 5px; font-weight: 600;">신고 사유</label>
+            <select id="reportReasonSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                <option value="">신고 사유를 선택해주세요</option>
+                <option value="부적절한 내용">부적절한 내용</option>
+                <option value="스팸 또는 광고">스팸 또는 광고</option>
+                <option value="저작권 침해">저작권 침해</option>
+                <option value="개인정보 노출">개인정보 노출</option>
+                <option value="기타">기타</option>
+            </select>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label for="reportDetailsTextarea" style="display: block; margin-bottom: 5px; font-weight: 600;">상세 내용 (선택사항)</label>
+            <textarea id="reportDetailsTextarea" placeholder="신고 상세 내용을 입력해주세요..." style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; resize: vertical;"></textarea>
+        </div>
+        <div class="password-modal-buttons">
+            <button class="password-modal-btn confirm" onclick="confirmReport()">신고</button>
+            <button class="password-modal-btn cancel" onclick="closeReportModal()">취소</button>
         </div>
     </div>
 </div>

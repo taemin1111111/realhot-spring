@@ -3,12 +3,14 @@ package com.wherehot.spring.controller;
 import com.wherehot.spring.entity.Course;
 import com.wherehot.spring.entity.CourseStep;
 import com.wherehot.spring.entity.CourseComment;
+import com.wherehot.spring.entity.CourseReport;
 import com.wherehot.spring.entity.Hotplace;
 import com.wherehot.spring.entity.Region;
 import com.wherehot.spring.service.CourseService;
 import com.wherehot.spring.service.CourseReactionService;
 import com.wherehot.spring.service.CourseCommentService;
 import com.wherehot.spring.service.CourseCommentReactionService;
+import com.wherehot.spring.service.CourseReportService;
 import com.wherehot.spring.service.HotplaceService;
 import com.wherehot.spring.service.RegionService;
 import com.wherehot.spring.security.JwtUtils;
@@ -64,6 +66,9 @@ public class CourseController {
     
     @Autowired
     private CourseCommentReactionService courseCommentReactionService;
+    
+    @Autowired
+    private CourseReportService courseReportService;
     
     // IP 주소 가져오기
     private String getClientIpAddress(HttpServletRequest request) {
@@ -959,6 +964,92 @@ public class CourseController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "댓글 삭제 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return response;
+    }
+    
+    // 코스 신고 API
+    @PostMapping("/report")
+    @ResponseBody
+    public Map<String, Object> reportCourse(@RequestBody Map<String, Object> requestData, HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 로그인 상태 확인
+            if (!isUserLoggedIn(request)) {
+                response.put("success", false);
+                response.put("message", "신고는 로그인 후 이용 가능합니다.");
+                response.put("requireLogin", true);
+                return response;
+            }
+            
+            String courseIdStr = (String) requestData.get("courseId");
+            String reason = (String) requestData.get("reason");
+            String details = (String) requestData.get("details");
+            
+            if (courseIdStr == null || reason == null || reason.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "필수 정보가 누락되었습니다.");
+                return response;
+            }
+            
+            int courseId;
+            try {
+                courseId = Integer.parseInt(courseIdStr);
+            } catch (NumberFormatException e) {
+                response.put("success", false);
+                response.put("message", "유효하지 않은 코스 ID입니다.");
+                return response;
+            }
+            
+            // 코스 존재 여부 확인
+            Course course = courseService.getCourseById(courseId);
+            if (course == null) {
+                response.put("success", false);
+                response.put("message", "존재하지 않는 코스입니다.");
+                return response;
+            }
+            
+            // 사용자 ID 가져오기
+            String userId = determineUserId(request);
+            if (userId == null) {
+                response.put("success", false);
+                response.put("message", "사용자 정보를 가져올 수 없습니다.");
+                return response;
+            }
+            
+            // 중복 신고 확인
+            CourseReport existingReport = courseReportService.getReportByCourseIdAndUserKey(courseId, userId);
+            if (existingReport != null) {
+                response.put("success", false);
+                response.put("message", "이미 신고한 코스입니다.");
+                return response;
+            }
+            
+            // 신고 생성
+            CourseReport report = new CourseReport();
+            report.setCourseId(courseId);
+            report.setUserKey(userId);
+            report.setReason(reason.trim());
+            report.setDetails(details != null ? details.trim() : null);
+            report.setStatus("RECEIVED");
+            report.setResult("PENDING");
+            
+            boolean saveResult = courseReportService.saveReport(report);
+            
+            if (saveResult) {
+                response.put("success", true);
+                response.put("message", "신고가 접수되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("message", "신고 접수에 실패했습니다.");
+            }
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "신고 처리 중 오류가 발생했습니다: " + e.getMessage());
             e.printStackTrace();
         }
         

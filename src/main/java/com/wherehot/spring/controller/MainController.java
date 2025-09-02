@@ -43,9 +43,6 @@ public class MainController {
     private RegionService regionService;
     
     @Autowired
-    private PostService postService;
-
-    @Autowired
     private WishListService wishListService;
 
     @Autowired
@@ -127,9 +124,7 @@ public class MainController {
             List<Category> categoryList = categoryService.findAllCategories();
             model.addAttribute("categoryList", categoryList);
             
-            // 10. 헌팅썰 인기글 조회
-            List<Post> popularPosts = postService.findPopularPosts(5);
-            model.addAttribute("popularPosts", popularPosts);
+          
             
             // 11. 인증 정보
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

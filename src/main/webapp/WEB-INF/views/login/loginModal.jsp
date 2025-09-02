@@ -216,7 +216,9 @@ async function handleLogin(event) {
             // 토큰 유효성 검사 (JwtResponse.token 필드 사용)
             if (data.token && data.token.includes('.')) {
                 console.log('JWT 토큰 저장:', data.token.substring(0, 50) + '...');
-                saveToken(data.token, data.refreshToken); // 리프레시 토큰도 저장
+                
+                // 기존 방식으로 토큰 저장
+                saveToken(data.token, data.refreshToken);
                 
                 // 사용자 정보도 함께 저장 (즉시 UI 업데이트용)
                 const userInfo = {
@@ -247,12 +249,19 @@ async function handleLogin(event) {
             const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
             loginModal.hide();
             
-            // 즉시 title UI 업데이트 (서버 정보로)
-            updateTitleUI(data.nickname, data.provider);
+            // 즉시 title UI 업데이트
+            if (window.updateTitleUIFromSavedInfo) {
+                const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+                if (userInfo) {
+                    window.updateTitleUIFromSavedInfo(userInfo);
+                    console.log('로그인 후 즉시 UI 업데이트 완료');
+                }
+            }
             
-            // main.jsp의 인증 상태도 업데이트
-            if (typeof window.initAuthStatus === 'function') {
-                window.initAuthStatus();
+            // hpostdetail.jsp의 댓글 폼도 업데이트
+            if (window.updateCommentFormOnLoginChange) {
+                window.updateCommentFormOnLoginChange();
+                console.log('로그인 후 댓글 폼 업데이트 완료');
             }
             
         } else {
@@ -318,35 +327,8 @@ function showLogin() {
     document.getElementById("loginForm").style.display = "block";
 }
 
-// 타이틀 UI 업데이트 함수
-function updateTitleUI(nickname, provider) {
-    const loginSection = document.getElementById('login-section');
-    const userSection = document.getElementById('user-section');
-    const userNickname = document.getElementById('user-nickname');
-    const userIcon = document.getElementById('user-icon');
-    const adminMenu = document.getElementById('admin-menu');
-    
-    if (loginSection && userSection && userNickname) {
-        loginSection.style.display = 'none';
-        userSection.style.display = 'block';
-        userNickname.textContent = nickname;
-        
-        // 이모티콘 설정
-        if (userIcon) {
-            if (provider === 'admin' || nickname === 'admin') {
-                userIcon.textContent = '👑'; // 관리자는 왕관
-            } else {
-                userIcon.textContent = '👤'; // 일반 사용자는 사람
-            }
-        }
-        
-        if (adminMenu) {
-            adminMenu.style.display = (provider === 'admin' || nickname === 'admin') ? 'block' : 'none';
-        }
-        
-        console.log('타이틀 UI 업데이트 완료:', nickname);
-    }
-}
+// ✅ 더 이상 사용하지 않는 updateTitleUI 함수 제거
+// 새로운 아키텍처에서는 title.jsp의 updateTitleUIFromSavedInfo 함수를 사용
 
 // 모달이 닫힐 때 항상 로그인 폼으로 초기화
 const loginModalEl = document.getElementById('loginModal');

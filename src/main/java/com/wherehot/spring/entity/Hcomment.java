@@ -19,6 +19,9 @@ public class Hcomment {
     private Integer dislikes = 0;
     private LocalDateTime createdAt;
     
+    // 프론트엔드에서 사용할 사용자 리액션 상태 (DB에 저장되지 않음)
+    private String userReaction;
+    
     // 생성자
     public Hcomment() {
         this.createdAt = LocalDateTime.now();
@@ -105,5 +108,13 @@ public class Hcomment {
     
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+    
+    public String getUserReaction() {
+        return userReaction;
+    }
+    
+    public void setUserReaction(String userReaction) {
+        this.userReaction = userReaction;
     }
 }

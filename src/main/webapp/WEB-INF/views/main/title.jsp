@@ -35,8 +35,7 @@
                         썰 게시판
                     </a>
                     <ul class="dropdown-menu text-start">
-                        <li><a class="dropdown-item" href="<%=root%>/hpost">썰게시판 메인</a></li>
-                        <li><a class="dropdown-item" href="<%=root%>/hpost">카테고리별 썰</a></li>
+                        <li><a class="dropdown-item" href="<%=root%>/hpost">핫플썰</a></li>
                     </ul>
                 </li>
 
@@ -90,21 +89,63 @@
 <jsp:include page="../login/loginModal.jsp" />
 
 <script>
-// JWT 토큰 관리 함수들 (loginModal.jsp와 중복이지만 전역에서 사용)
-function getToken() {
-    return localStorage.getItem('accessToken');
+// AuthStore와 연동하는 UI 업데이트 함수들
+function updateTitleUI(userInfo) {
+    if (!userInfo) {
+        showLoggedOutUI();
+        return;
+    }
+    
+    const loginSection = document.getElementById('login-section');
+    const userSection = document.getElementById('user-section');
+    const userNickname = document.getElementById('user-nickname');
+    const userIcon = document.getElementById('user-icon');
+    const adminMenu = document.getElementById('admin-menu');
+    
+    if (loginSection && userSection && userNickname) {
+        loginSection.style.display = 'none';
+        userSection.style.display = 'block';
+        userNickname.textContent = userInfo.nickname || userInfo.userid;
+        
+        // 이모티콘 설정
+        if (userIcon) {
+            if (userInfo.provider === 'admin' || userInfo.userid === 'admin') {
+                userIcon.textContent = '👑'; // 관리자는 왕관
+            } else {
+                userIcon.textContent = '👤'; // 일반 사용자는 사람
+            }
+        }
+        
+        if (adminMenu) {
+            adminMenu.style.display = (userInfo.provider === 'admin' || userInfo.userid === 'admin') ? 'block' : 'none';
+        }
+        
+        console.log('로그인 UI 업데이트 완료:', userInfo.nickname || userInfo.userid);
+    }
 }
 
-function getRefreshToken() {
-    return localStorage.getItem('refreshToken');
+function showLoggedOutUI() {
+    const loginSection = document.getElementById('login-section');
+    const userSection = document.getElementById('user-section');
+    const adminMenu = document.getElementById('admin-menu');
+    
+    if (loginSection && userSection) {
+        loginSection.style.display = 'block';
+        userSection.style.display = 'none';
+        if (adminMenu) adminMenu.style.display = 'none';
+    }
 }
 
-function removeToken() {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userInfo'); // 사용자 정보도 함께 제거
-    location.reload();
-}
+// DOM 로드 시 초기 상태 확인 (coursedetail 방식)
+document.addEventListener('DOMContentLoaded', function() {
+    // 저장된 토큰으로 초기 상태 확인
+    const userInfo = getUserInfoFromToken();
+    if (userInfo) {
+        updateTitleUI(userInfo);
+    } else {
+        showLoggedOutUI();
+    }
+});
 
 // API 요청 시 자동 토큰 갱신 포함
 async function fetchWithAuth(url, options = {}) {
@@ -145,23 +186,12 @@ async function fetchWithAuth(url, options = {}) {
     return response;
 }
 
-// JWT 토큰에서 사용자 정보 추출 (model1과 동일한 구조)
+// 토큰에서 사용자 정보 가져오기 (coursedetail 방식)
 function getUserInfoFromToken() {
-    const token = getToken();
-    if (!token) {
-        console.log('토큰 없음');
-        return null;
-    }
-    
-    // 토큰 형식 검증
-    if (typeof token !== 'string' || token.split('.').length !== 3) {
-        console.error('잘못된 JWT 토큰 형식:', token);
-        removeToken();
-        return null;
-    }
+    const token = localStorage.getItem('accessToken');
+    if (!token) return null;
     
     try {
-        // Base64 디코딩 시 한글 인코딩 문제 해결
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
@@ -169,15 +199,13 @@ function getUserInfoFromToken() {
         }).join(''));
         
         const payload = JSON.parse(jsonPayload);
-        console.log('토큰 파싱 성공:', payload);
         return {
             userid: payload.sub,
             nickname: payload.nickname,
-            provider: payload.provider || 'site'  // model1과 동일: provider 필드 사용
+            provider: payload.provider || 'site'
         };
     } catch (error) {
-        console.error('Token parsing error:', error);
-        removeToken();
+        console.error('토큰 파싱 오류:', error);
         return null;
     }
 }
@@ -327,7 +355,18 @@ async function logout() {
     } catch (error) {
         console.error('Logout error:', error);
     } finally {
+        // 기존 방식으로 토큰 제거
         removeToken();
+        
+        // ✅ 즉시 로그아웃 UI 표시 (새로고침 없이)
+        showLoggedOutUI();
+        console.log('로그아웃 후 즉시 UI 업데이트 완료');
+        
+        // hpostdetail.jsp의 댓글 폼도 업데이트
+        if (window.updateCommentFormOnLoginChange) {
+            window.updateCommentFormOnLoginChange();
+            console.log('로그아웃 후 댓글 폼 업데이트 완료');
+        }
     }
 }
 
@@ -337,58 +376,9 @@ window.getUserInfoFromToken = getUserInfoFromToken;
 window.logout = logout;
 window.fetchWithAuth = fetchWithAuth;
 window.refreshAccessToken = refreshAccessToken;
+window.showLoggedOutUI = showLoggedOutUI;  // ✅ 로그아웃 UI 함수 노출
 
-// 페이지 로드 시 초기화
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('title.jsp 초기화 시작');
-    
-    // 즉시 클라이언트 토큰으로 UI 업데이트 (빠른 응답)
-    const userInfo = getUserInfoFromToken();
-    if (userInfo) {
-        updateTitleUIFromSavedInfo(userInfo);
-    }
-    
-    // 초기 인증 상태 설정 (서버 검증 포함)
-    updateAuthUI();
-    
-    // 토큰 자동 갱신 타이머 설정
-    setupTokenRefreshTimer();
-    
-    // 주기적으로 인증 상태 확인 (1분마다)
-    setInterval(() => {
-        const token = getToken();
-        if (token) {
-            try {
-                // Base64 디코딩 시 한글 인코딩 문제 해결
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                
-                const payload = JSON.parse(jsonPayload);
-                const currentTime = Date.now() / 1000;
-                if (payload.exp <= currentTime) {
-                    console.log('토큰이 만료되었습니다. 갱신 시도...');
-                    refreshAccessToken().then(success => {
-                        if (success) {
-                            updateAuthUI();
-                            setupTokenRefreshTimer();
-                        } else {
-                            console.log('토큰 갱신 실패. 로그아웃 처리...');
-                            removeToken();
-                            updateAuthUI();
-                        }
-                    });
-                }
-            } catch (error) {
-                console.error('토큰 검증 오류:', error);
-                removeToken();
-                updateAuthUI();
-            }
-        }
-    }, 60000); // 1분마다 체크
-});
+
 
 // 토큰 자동 갱신 타이머 설정
 function setupTokenRefreshTimer() {

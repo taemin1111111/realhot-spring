@@ -3,20 +3,21 @@ package com.wherehot.spring.entity;
 import java.time.LocalDateTime;
 
 /**
- * 게시글 신고 엔티티
+ * 핫토크 신고 엔티티
  * hottalk_report 테이블과 매핑
+ * MyBatis와 함께 사용하는 방식
  */
-public class PostReport {
+public class HpostReport {
     
-    private Integer id;
-    private Integer postId;
-    private String userKey;
-    private String reason;
-    private String content;
-    private LocalDateTime reportTime;
+    private Integer id;                    // 신고 번호 (PK, AI)
+    private String userId;                 // 사용자 ID (VARCHAR(50))
+    private Integer postId;                // 게시글 번호 (FK, NN)
+    private String reason;                 // 신고 사유 (VARCHAR(255))
+    private String content;                // 신고 내용 (TEXT)
+    private LocalDateTime reportTime;      // 신고 시간 (DATETIME, default CURRENT_TIMESTAMP)
     
     // 생성자
-    public PostReport() {
+    public HpostReport() {
         this.reportTime = LocalDateTime.now();
     }
     
@@ -29,20 +30,20 @@ public class PostReport {
         this.id = id;
     }
     
+    public String getUserId() {
+        return userId;
+    }
+    
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+    
     public Integer getPostId() {
         return postId;
     }
     
     public void setPostId(Integer postId) {
         this.postId = postId;
-    }
-    
-    public String getUserKey() {
-        return userKey;
-    }
-    
-    public void setUserKey(String userKey) {
-        this.userKey = userKey;
     }
     
     public String getReason() {

@@ -78,9 +78,9 @@ public class SecurityConfig {
                 .requestMatchers("/", "/main/**").permitAll()                     // 메인 페이지
                 .requestMatchers("/review/**").permitAll()                        // 리뷰 페이지
                 .requestMatchers("/clubmd/**", "/clubtable/**").permitAll()       // 클럽 관련
-                .requestMatchers("/community/**").permitAll()                     // 커뮤니티 (로그인 확인은 JSP에서 처리)
                 .requestMatchers("/notice/**").permitAll()                        // 공지사항
                 .requestMatchers("/login/**").permitAll()                         // 로그인/회원가입
+                .requestMatchers("/hpost/**").permitAll()                         // 핫플썰 게시판 관련 모든 경로 허용 (JWT 필터는 작동)
                 
                 // == API 경로들 ==
                 .requestMatchers("/api/auth/**").permitAll()                      // 인증 API
@@ -148,6 +148,8 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);
         source.registerCorsConfiguration("/oauth2/**", configuration);
+        source.registerCorsConfiguration("/hpost/**", configuration);
+        source.registerCorsConfiguration("/**", configuration); // 모든 경로에 CORS 설정 적용
         
         return source;
     }

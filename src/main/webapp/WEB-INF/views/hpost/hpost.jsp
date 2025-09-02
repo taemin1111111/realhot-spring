@@ -1,327 +1,193 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%
-    String root = request.getContextPath();
-%>
 
-<div class="container hpost-container">
-    <!-- 헤더 -->
+<!-- hpost.css 링크 -->
+<link rel="stylesheet" href="<c:url value='/css/hpost.css'/>">
+
+<!-- 메인 컨텐츠 -->
+<div class="container mt-5 hpost-container">
+    <!-- 핫플썰 제목 -->
+    <div class="hpost-title">
+        <h2>핫플썰</h2>
+    </div>
+    
+    <!-- 정렬 드롭다운과 글쓰기 버튼 -->
+    <div class="hpost-controls">
+        <div class="hpost-sort-dropdown">
+            <button class="btn btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-arrow-down-up"></i> ${sort == 'latest' || empty sort ? '최신순' : '인기순'}
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="<c:url value='/hpost?sort=latest'/>">최신순</a></li>
+                <li><a class="dropdown-item" href="<c:url value='/hpost?sort=popular'/>">인기순</a></li>
+            </ul>
+        </div>
+        <div class="hpost-write-btn">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#writePostModal">
+                <i class="bi bi-pencil"></i> 글쓰기
+            </button>
+        </div>
+    </div>
+    
+    <!-- 게시글 목록 헤더 -->
     <div class="hpost-header">
-        <h2 class="hpost-title">💬 썰게시판</h2>
-        <p class="hpost-subtitle">다양한 이야기들을 나누어보세요</p>
-    </div>
-
-    <!-- 정렬 및 카테고리 필터 -->
-    <div class="hpost-filters">
-        <div class="filter-group">
-            <select id="categoryFilter" class="form-select" onchange="filterByCategory()">
-                <option value="0">전체 카테고리</option>
-                <c:forEach var="category" items="${categories}">
-                    <option value="${category.id}" ${categoryId == category.id ? 'selected' : ''}>
-                        ${category.name}
-                    </option>
-                </c:forEach>
-            </select>
-        </div>
-        
-        <div class="filter-group">
-            <select id="sortFilter" class="form-select" onchange="changeSort()">
-                <option value="latest" ${sort == 'latest' ? 'selected' : ''}>최신순</option>
-                <option value="popular" ${sort == 'popular' ? 'selected' : ''}>인기순</option>
-            </select>
-        </div>
-        
-        <div class="filter-group">
-            <button class="btn btn-primary" onclick="goToWritePage()">글쓰기</button>
+        <div class="row">
+            <div class="col-2">닉네임</div>
+            <div class="col-6">제목</div>
+            <div class="col-1"><i class="bi bi-eye text-muted"></i></div>
+            <div class="col-1"><i class="bi bi-hand-thumbs-up text-primary"></i></div>
+            <div class="col-1"><i class="bi bi-hand-thumbs-down text-danger"></i></div>
+            <div class="col-1">작성일</div>
         </div>
     </div>
-
-    <!-- 게시글 목록 -->
-    <div class="hpost-list">
-        <c:if test="${empty hpostList}">
-            <div class="no-posts">
-                <p>아직 게시글이 없습니다.</p>
-                <button class="btn btn-primary" onclick="goToWritePage()">첫 게시글 작성하기</button>
-            </div>
-        </c:if>
-        
-        <c:forEach var="hpost" items="${hpostList}">
-            <div class="hpost-item" onclick="goToHpostDetail(${hpost.id})">
-                <div class="hpost-content">
-                    <h5 class="hpost-title">${hpost.title}</h5>
-                    <p class="hpost-summary">
-                        <c:choose>
-                            <c:when test="${fn:length(hpost.content) > 100}">
-                                ${fn:substring(hpost.content, 0, 100)}...
-                            </c:when>
-                            <c:otherwise>
-                                ${hpost.content}
-                            </c:otherwise>
-                        </c:choose>
-                    </p>
-                    
-                    <c:if test="${not empty hpost.photo1 || not empty hpost.photo2 || not empty hpost.photo3}">
-                        <div class="hpost-images">
-                            <c:if test="${not empty hpost.photo1}">
-                                <img src="<%=root%>/uploads/hpost/${hpost.photo1}" alt="이미지1" class="hpost-image">
-                            </c:if>
-                            <c:if test="${not empty hpost.photo2}">
-                                <img src="<%=root%>/uploads/hpost/${hpost.photo2}" alt="이미지2" class="hpost-image">
-                            </c:if>
-                            <c:if test="${not empty hpost.photo3}">
-                                <img src="<%=root%>/uploads/hpost/${hpost.photo3}" alt="이미지3" class="hpost-image">
-                            </c:if>
+    
+    <!-- 구분선 -->
+    <hr class="hpost-divider">
+    
+    <!-- 게시글 목록 영역 -->
+    <div class="hpost-content">
+        <c:choose>
+            <c:when test="${not empty hpostList}">
+                <c:forEach var="hpost" items="${hpostList}" varStatus="status">
+                    <div class="row hpost-item">
+                        <div class="col-2">${hpost.nickname}</div>
+                        <div class="col-6">
+                            <a href="<c:url value='/hpost/${hpost.id}'/>" class="hpost-title-link">${hpost.title}</a>
                         </div>
-                    </c:if>
-                </div>
-                
-                <div class="hpost-meta">
-                    <div class="hpost-author">
-                        <span class="author-name">👤 ${hpost.nickname}</span>
-                        <span class="post-date">📅 <fmt:formatDate value="${hpost.createdAt}" pattern="MM/dd"/></span>
+                        <div class="col-1">${hpost.views}</div>
+                        <div class="col-1">${hpost.likes}</div>
+                        <div class="col-1">${hpost.dislikes}</div>
+                        <div class="col-1 hpost-date">${hpost.formattedTime}</div>
                     </div>
-                    
-                    <div class="hpost-stats">
-                        <span class="view-count">👁️ ${hpost.views}</span>
-                        <span class="like-count">👍 ${hpost.likes}</span>
-                        <span class="dislike-count">👎 ${hpost.dislikes}</span>
-                        <span class="comment-count">💬 ${hpost.comments.size()}</span>
-                    </div>
+                    <hr class="hpost-item-divider">
+                </c:forEach>
+            </c:when>
+            <c:otherwise>
+                <div class="text-center py-5">
+                    <p>글 출력 예정중...</p>
+                    <p>이곳에 핫플썰 게시글 목록이 표시될 예정입니다.</p>
                 </div>
-            </div>
-        </c:forEach>
+            </c:otherwise>
+        </c:choose>
     </div>
+</div>
 
-    <!-- 페이징 -->
-    <c:if test="${totalCount > 0}">
-        <div class="pagination-container">
-            <nav aria-label="게시글 페이지네이션">
-                <ul class="pagination justify-content-center">
-                    <c:set var="totalPages" value="${(totalCount + 11) / 12}" />
-                    <c:set var="startPage" value="${Math.max(1, currentPage - 2)}" />
-                    <c:set var="endPage" value="${Math.min(totalPages, currentPage + 2)}" />
+<!-- 글쓰기 모달 -->
+<div class="modal fade" id="writePostModal" tabindex="-1" aria-labelledby="writePostModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="writePostModalLabel">핫플썰 글쓰기</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="writePostForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">제목</label>
+                        <input type="text" class="form-control" id="title" name="title" required maxlength="100">
+                    </div>
                     
-                    <!-- 이전 페이지 -->
-                    <c:if test="${currentPage > 1}">
-                        <li class="page-item">
-                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(${currentPage - 1})">이전</a>
-                        </li>
-                    </c:if>
+                    <div class="mb-3">
+                        <label for="nickname" class="form-label">닉네임</label>
+                        <input type="text" class="form-control" id="nickname" name="nickname" required maxlength="5">
+                        <div class="form-text">5글자 이하로 입력해주세요.</div>
+                    </div>
                     
-                    <!-- 페이지 번호 -->
-                    <c:forEach var="pageNum" begin="${startPage}" end="${endPage}">
-                        <li class="page-item ${pageNum == currentPage ? 'active' : ''}">
-                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(${pageNum})">${pageNum}</a>
-                        </li>
-                    </c:forEach>
+                    <div class="mb-3">
+                        <label for="passwd" class="form-label">글 비밀번호</label>
+                        <input type="password" class="form-control" id="passwd" name="passwd" required maxlength="4" pattern="[0-9]{4}">
+                        <div class="form-text">숫자 4자리로 입력해주세요.</div>
+                    </div>
                     
-                    <!-- 다음 페이지 -->
-                    <c:if test="${currentPage < totalPages}">
-                        <li class="page-item">
-                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(${currentPage + 1})">다음</a>
-                        </li>
-                    </c:if>
-                </ul>
-            </nav>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">내용</label>
+                        <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="photo1" class="form-label">사진 1</label>
+                        <input type="file" class="form-control" id="photo1" name="photo1" accept="image/*">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="photo2" class="form-label">사진 2</label>
+                        <input type="file" class="form-control" id="photo2" name="photo2" accept="image/*">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="photo3" class="form-label">사진 3</label>
+                        <input type="file" class="form-control" id="photo3" name="photo3" accept="image/*">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary" onclick="submitPost()">글쓰기</button>
+            </div>
         </div>
-    </c:if>
+    </div>
 </div>
 
 <script>
-    // 카테고리 필터링
-    function filterByCategory() {
-        const categoryId = document.getElementById('categoryFilter').value;
-        const sort = document.getElementById('sortFilter').value;
-        window.location.href = '<%=root%>/hpost?categoryId=' + categoryId + '&sort=' + sort;
+// 모달이 열릴 때 로그인 상태 확인 및 필드 설정
+document.getElementById('writePostModal').addEventListener('show.bs.modal', function () {
+    const userInfo = getUserInfoFromToken();
+    const nicknameField = document.getElementById('nickname');
+    
+    if (userInfo) {
+        // 로그인된 사용자
+        nicknameField.value = userInfo.nickname;
+        nicknameField.readOnly = true;
+    } else {
+        // 비로그인 사용자
+        nicknameField.value = '';
+        nicknameField.readOnly = false;
+    }
+});
+
+// 글쓰기 제출
+async function submitPost() {
+    const form = document.getElementById('writePostForm');
+    const formData = new FormData(form);
+    
+    // ✅ 로그인 상태 확인 및 토큰 설정
+    const userInfo = getUserInfoFromToken();
+    let headers = {};
+    
+    if (userInfo) {
+        // 로그인된 사용자: JWT 토큰을 헤더에 포함
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+            console.log('로그인된 사용자 - JWT 토큰 포함:', token.substring(0, 30) + '...');
+        }
+        
+        // 로그인된 사용자는 userid 필드 추가
+        formData.append('userid', userInfo.userid);
+        console.log('로그인된 사용자 ID 추가:', userInfo.userid);
+    } else {
+        // 비로그인 사용자: IP 주소 사용
+        console.log('비로그인 사용자 - IP 주소 사용');
     }
     
-    // 정렬 변경
-    function changeSort() {
-        const categoryId = document.getElementById('categoryFilter').value;
-        const sort = document.getElementById('sortFilter').value;
-        window.location.href = '<%=root%>/hpost?categoryId=' + categoryId + '&sort=' + sort;
+    try {
+        const response = await fetch('<c:url value="/hpost/write"/>', {
+            method: 'POST',
+            headers: headers,
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('글이 성공적으로 작성되었습니다.');
+            location.reload();
+        } else {
+            alert('글 작성에 실패했습니다: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('글 작성 중 오류가 발생했습니다.');
     }
-    
-    // 페이지 이동
-    function goToPage(page) {
-        const categoryId = document.getElementById('categoryFilter').value;
-        const sort = document.getElementById('sortFilter').value;
-        window.location.href = '<%=root%>/hpost?page=' + page + '&categoryId=' + categoryId + '&sort=' + sort;
-    }
-    
-    // 게시글 상세 페이지로 이동
-    function goToHpostDetail(hpostId) {
-        window.location.href = '<%=root%>/hpost/' + hpostId;
-    }
-    
-    // 글쓰기 페이지로 이동
-    function goToWritePage() {
-        window.location.href = '<%=root%>/hpost/write';
-    }
+}
 </script>
-
-<style>
-.hpost-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.hpost-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.hpost-title {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 10px;
-}
-
-.hpost-subtitle {
-    font-size: 1.1rem;
-    color: #666;
-}
-
-.hpost-filters {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 10px;
-}
-
-.filter-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.form-select {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: white;
-}
-
-.hpost-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.hpost-item {
-    background-color: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
-    padding: 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.hpost-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.hpost-content {
-    margin-bottom: 15px;
-}
-
-.hpost-content .hpost-title {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 10px;
-}
-
-.hpost-summary {
-    color: #666;
-    line-height: 1.6;
-    margin-bottom: 15px;
-}
-
-.hpost-images {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.hpost-image {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-}
-
-.hpost-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
-}
-
-.hpost-author {
-    display: flex;
-    gap: 15px;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.hpost-stats {
-    display: flex;
-    gap: 15px;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.no-posts {
-    text-align: center;
-    padding: 60px 20px;
-    color: #666;
-}
-
-.no-posts p {
-    font-size: 1.2rem;
-    margin-bottom: 20px;
-}
-
-.pagination-container {
-    margin-top: 40px;
-}
-
-.pagination .page-link {
-    color: #007bff;
-    border: 1px solid #dee2e6;
-}
-
-.pagination .page-item.active .page-link {
-    background-color: #007bff;
-    border-color: #007bff;
-}
-
-@media (max-width: 768px) {
-    .hpost-filters {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .hpost-meta {
-        flex-direction: column;
-        gap: 10px;
-        align-items: flex-start;
-    }
-    
-    .hpost-stats {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-}
-</style>

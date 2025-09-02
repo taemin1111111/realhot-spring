@@ -12,7 +12,6 @@ import java.util.List;
 public class Hpost {
     
     private Integer id;                    // 게시글 번호 (PK, AI)
-    private Integer categoryId;            // 카테고리 ID (NN)
     private String userid;                 // 사용자 ID (VARCHAR(50))
     private String userip;                 // IP 주소 (VARCHAR(100))
     private String nickname;               // 닉네임 (VARCHAR(100))
@@ -27,11 +26,11 @@ public class Hpost {
     private Integer dislikes = 0;          // 싫어요 (INT, default '0')
     private Integer reports = 0;           // 신고수 (INT, default '0')
     private LocalDateTime createdAt;       // 생성시간 (DATETIME, default CURRENT_TIMESTAMP)
+    private String formattedTime;          // 포맷팅된 시간 (몇분전, 몇시간전 등)
     
     // 연관관계 (MyBatis에서 별도 조회)
     private List<Hcomment> comments = new ArrayList<>();
-    private List<PostVote> votes = new ArrayList<>();
-    private List<PostReport> reports_list = new ArrayList<>();
+   
     
     // 생성자
     public Hpost() {
@@ -49,14 +48,6 @@ public class Hpost {
     
     public void setId(Integer id) {
         this.id = id;
-    }
-    
-    public Integer getCategoryId() {
-        return categoryId;
-    }
-    
-    public void setCategoryId(Integer categoryId) {
-        this.categoryId = categoryId;
     }
     
     public String getUserid() {
@@ -171,6 +162,14 @@ public class Hpost {
         this.reports = reports;
     }
     
+    public String getFormattedTime() {
+        return formattedTime;
+    }
+    
+    public void setFormattedTime(String formattedTime) {
+        this.formattedTime = formattedTime;
+    }
+    
     public List<Hcomment> getComments() {
         return comments;
     }
@@ -179,19 +178,5 @@ public class Hpost {
         this.comments = comments;
     }
     
-    public List<PostVote> getVotes() {
-        return votes;
-    }
-    
-    public void setVotes(List<PostVote> votes) {
-        this.votes = votes;
-    }
-    
-    public List<PostReport> getReports_list() {
-        return reports_list;
-    }
-    
-    public void setReports_list(List<PostReport> reports_list) {
-        this.reports_list = reports_list;
-    }
+   
 }

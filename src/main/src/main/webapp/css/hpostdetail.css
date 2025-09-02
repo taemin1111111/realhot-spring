@@ -1,0 +1,145 @@
+/* hpostdetail.css */
+
+/* 기존 스타일 ... */
+.hpost-detail-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+/* ================= 댓글 섹션 스타일 추가 ================= */
+
+/* 댓글 갯수 */
+.comment-count-container {
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.comment-count-box {
+    padding: 0 10px;
+}
+
+.comment-count-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #343a40;
+}
+
+/* 댓글 입력 폼 */
+.hpost-comment-form {
+    padding: 1.5rem 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.comment-input-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.comment-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 150px;
+}
+
+.comment-nickname, .comment-password {
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.comment-right-section {
+    flex-grow: 1;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.comment-content {
+    flex-grow: 1;
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    resize: vertical;
+    min-height: 60px;
+    font-size: 0.95rem;
+}
+
+.comment-submit-btn {
+    padding: 0 1rem;
+    border: none;
+    background-color: #343a40;
+    color: white;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.comment-submit-btn:hover {
+    background-color: #495057;
+}
+
+/* 댓글 목록 */
+.hpost-comments-list {
+    margin-top: 1.5rem;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.comment-item {
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.comment-display-nickname {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.comment-display-content {
+    margin-bottom: 0.75rem;
+    color: #495057;
+}
+
+.comment-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.comment-info .comment-time {
+    font-size: 0.8rem;
+    color: #868e96;
+}
+
+.comment-reactions .comment-like-btn {
+    background: none;
+    border: 1px solid #dee2e6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.no-comments {
+    text-align: center;
+    color: #868e96;
+    padding: 2rem 0;
+}

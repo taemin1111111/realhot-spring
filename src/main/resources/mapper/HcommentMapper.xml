@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wherehot.spring.mapper.HcommentMapper">
+
+    <resultMap id="HcommentResult" type="com.wherehot.spring.entity.Hcomment">
+        <id property="id" column="id"/>
+        <result property="postId" column="post_id"/>
+        <result property="nickname" column="nickname"/>
+        <result property="passwd" column="passwd"/>
+        <result property="idAddress" column="id_address"/>
+        <result property="content" column="content"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="likes" column="likes"/>
+        <result property="dislikes" column="dislikes"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="userReaction" column="userReaction"/>
+    </resultMap>
+
+    <select id="findByPostId" resultMap="HcommentResult">
+        SELECT * FROM hottalk_comment WHERE post_id = #{postId} ORDER BY created_at DESC
+    </select>
+    
+    <select id="findByPostIdWithUserReaction" resultMap="HcommentResult">
+        SELECT c.id, c.post_id, c.nickname, c.passwd, c.id_address, c.content, c.ip_address, c.likes, c.dislikes, c.created_at,
+               COALESCE(v.vote_type, 'none') as userReaction
+        FROM hottalk_comment c
+        LEFT JOIN hottalk_comment_vote v ON c.id = v.comment_id 
+            AND (v.user_id = #{userId} OR (v.user_id IS NULL AND v.ip_address = #{userId}))
+        WHERE c.post_id = #{postId}
+        ORDER BY c.created_at DESC
+    </select>
+
+    <select id="findById" resultMap="HcommentResult">
+        SELECT * FROM hottalk_comment WHERE id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="com.wherehot.spring.entity.Hcomment" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO hottalk_comment (post_id, nickname, passwd, id_address, content, ip_address, created_at)
+        VALUES (#{postId}, #{nickname}, #{passwd}, #{idAddress}, #{content}, #{ipAddress}, #{createdAt})
+    </insert>
+
+    <update id="updateLikes" parameterType="com.wherehot.spring.entity.Hcomment">
+        UPDATE hottalk_comment SET likes = #{likes}, dislikes = #{dislikes} WHERE id = #{id}
+    </update>
+
+    <!-- 댓글 좋아요 투표 관련 -->
+    <select id="findVoteByUserAndComment" resultType="com.wherehot.spring.entity.HcommentVote">
+        SELECT * FROM hottalk_comment_vote 
+        WHERE comment_id = #{commentId}
+        <choose>
+            <when test="userId != null">
+                AND user_id = #{userId}
+            </when>
+            <when test="ipAddress != null">
+                AND ip_address = #{ipAddress}
+            </when>
+        </choose>
+    </select>
+
+    <insert id="insertVote" parameterType="com.wherehot.spring.entity.HcommentVote">
+        INSERT INTO hottalk_comment_vote (comment_id, user_id, ip_address, vote_type, created_at)
+        VALUES (#{commentId}, #{userId}, #{ipAddress}, #{voteType}, NOW())
+    </insert>
+
+    <update id="updateVote" parameterType="com.wherehot.spring.entity.HcommentVote">
+        UPDATE hottalk_comment_vote SET vote_type = #{voteType} WHERE id = #{id}
+    </update>
+
+    <delete id="deleteVote">
+        DELETE FROM hottalk_comment_vote WHERE id = #{id}
+    </delete>
+
+    <select id="countLikesByComment" resultType="int">
+        SELECT COUNT(*) FROM hottalk_comment_vote WHERE comment_id = #{commentId} AND vote_type = 'like'
+    </select>
+    
+    <!-- 추가된 쿼리들 -->
+    <select id="countDislikesByComment" resultType="int">
+        SELECT COUNT(*) FROM hottalk_comment_vote WHERE comment_id = #{commentId} AND vote_type = 'dislike'
+    </select>
+    
+    <delete id="deleteComment">
+        DELETE FROM hottalk_comment WHERE id = #{id}
+    </delete>
+    
+    <select id="findByIdAndNickname" resultMap="HcommentResult">
+        SELECT * FROM hottalk_comment WHERE id = #{id} AND nickname = #{nickname}
+    </select>
+
+</mapper>

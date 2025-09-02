@@ -1,0 +1,927 @@
+/* hpostdetail.css - 핫플썰 상세 페이지 스타일 */
+
+/* 핫플썰 페이지 전체 배경을 흰색으로 */
+body {
+    background-color: #ffffff !important;
+}
+
+/* 핫플썰 페이지 전체 스타일 */
+.hpost-container {
+    background-color: #ffffff;
+    min-height: 100vh;
+    padding: 60px 0 20px 0;
+}
+
+/* 핫플썰 제목 */
+.hpost-title {
+    margin: 0 0 30px 0;
+}
+
+.hpost-title h2 {
+    color: #000000;
+    font-weight: bold;
+    font-size: 28px;
+    margin: 0;
+}
+
+/* 상세 페이지 스타일 */
+.hpost-detail {
+    background-color: #ffffff;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+.hpost-detail-header {
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.hpost-detail-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.hpost-detail-title {
+    color: #000000;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
+    flex: 1;
+}
+
+.hpost-detail-menu {
+    position: relative;
+    flex-shrink: 0;
+    margin-left: 15px;
+}
+
+.hpost-detail-menu-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.hpost-detail-menu-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.hpost-detail-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    min-width: 80px;
+    z-index: 1000;
+    margin-top: 5px;
+}
+
+.hpost-detail-menu-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    transition: background-color 0.2s ease;
+}
+
+.hpost-detail-menu-item:hover {
+    background-color: #f8f9fa;
+    color: #dc3545;
+}
+
+.hpost-detail-info {
+    color: #666666;
+    font-size: 14px;
+}
+
+.hpost-detail-nickname {
+    font-weight: normal;
+    color: #000000;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.hpost-detail-meta {
+    color: #666666;
+    font-size: 14px;
+}
+
+.hpost-detail-meta > span {
+    margin-right: 15px;
+}
+
+/* 구분선 */
+.hpost-detail-divider {
+    border: none;
+    border-top: 1px solid #a0a0a0;
+    margin: 20px 0;
+    height: 1px;
+}
+
+/* 사진 출력 */
+.hpost-detail-photos {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+/* 가로형 사진들을 위한 가로 배치 */
+.hpost-detail-photos.horizontal-layout {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.hpost-detail-photo {
+    max-width: 800px;
+    max-height: 600px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+}
+
+.hpost-detail-photo:hover {
+    transform: scale(1.02);
+}
+
+.hpost-detail-content {
+    color: #000000;
+    font-size: 18px;
+    line-height: 2.0;
+    margin: 100px 40px 50px 40px;
+    text-align: left;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.hpost-detail-actions {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.hpost-detail-actions .btn {
+    border: none;
+    background: none;
+    color: #000000;
+    padding: 12px 20px;
+    margin: 0 15px;
+    font-size: 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.hpost-detail-actions .btn:hover {
+    background: none;
+    color: #000000;
+}
+
+.hpost-detail-actions .badge {
+    background: none !important;
+    color: #000000 !important;
+    border: none;
+    padding: 0;
+    margin-left: 8px;
+    font-size: 22px;
+    font-weight: normal;
+}
+
+/* 댓글 섹션 */
+.hpost-comments-section {
+    margin-top: 30px;
+}
+
+/* 전체 컨테이너 배경 */
+.container.mt-5 {
+    background-color: #ffffff;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* 반응형 개선 */
+@media (max-width: 768px) {
+    .hpost-title h2 {
+        font-size: 24px;
+    }
+    
+    .hpost-detail-title {
+        font-size: 20px;
+    }
+    
+    .hpost-detail {
+        padding: 15px;
+    }
+    
+    .hpost-detail-photos {
+        gap: 12px;
+    }
+    
+    .hpost-detail-photo {
+        max-width: 100%;
+    }
+}
+
+/* 사진 모달 스타일 */
+.photo-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+}
+
+.photo-modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    text-align: center;
+}
+
+.photo-modal-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    color: #f1f1f1;
+    font-size: 35px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10000;
+}
+
+.photo-modal-close:hover {
+    color: #bbb;
+}
+
+.photo-modal-img {
+    max-width: 100%;
+    max-height: 90vh;
+    min-width: 600px;
+    min-height: 450px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.photo-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 16px 12px;
+    cursor: pointer;
+    font-size: 18px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.photo-nav-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.photo-nav-prev {
+    left: -60px;
+}
+
+.photo-nav-next {
+    right: -60px;
+}
+
+@media (max-width: 768px) {
+    .photo-nav-prev {
+        left: 10px;
+    }
+    
+    .photo-nav-next {
+        right: 10px;
+    }
+    
+    .photo-modal-close {
+        top: 10px;
+        right: 10px;
+    }
+}
+
+/* ================= 댓글 시스템 CSS ================= */
+
+/* 댓글 메뉴 스타일 */
+.hpost-comment-menu {
+    position: relative;
+    z-index: 10;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: 10px;
+}
+
+.hpost-comment-menu-dots {
+    font-size: 18px;
+    color: #666;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: block;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    line-height: 16px;
+}
+
+.hpost-comment-menu:hover .hpost-comment-menu-dots {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.hpost-comment-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    min-width: 60px;
+    z-index: 1000;
+}
+
+.hpost-comment-menu-item {
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #333;
+    transition: background-color 0.2s ease;
+}
+
+.hpost-comment-menu-item:hover {
+    background-color: #f8f9fa;
+    color: #dc3545;
+}
+
+/* 댓글 갯수 컨테이너 */
+.hpost-comment-count-container {
+    margin-bottom: 20px;
+}
+
+.hpost-comment-count-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+.hpost-comment-count-text {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333333;
+}
+
+/* 댓글 입력 폼 */
+.hpost-comment-form {
+    margin-bottom: 30px;
+    background: transparent;
+    padding: 20px;
+    border-radius: 8px;
+    border: none;
+}
+
+.hpost-comment-input-row {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.hpost-comment-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.hpost-comment-nickname {
+    width: 200px;
+    height: 45px;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.hpost-comment-password {
+    width: 200px;
+    height: 45px;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.hpost-comment-nickname:focus,
+.hpost-comment-password:focus {
+    outline: none;
+    border: 2px solid #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    background: #ffffff;
+}
+
+/* 숨겨진 필드들 */
+.hidden {
+    display: none !important;
+}
+
+/* 로그인 상태에서 숨겨진 필드들 */
+.hpost-comment-nickname.hidden,
+.hpost-comment-password.hidden {
+    display: none !important;
+}
+
+/* 비로그인 상태에서만 표시되는 필드들 */
+.hpost-comment-nickname:not(.hidden),
+.hpost-comment-password:not(.hidden) {
+    display: block;
+}
+
+.hpost-comment-right-section {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    flex: 1;
+}
+
+.hpost-comment-content {
+    flex: 1;
+    height: 100px;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 14px;
+    resize: none;
+    transition: all 0.3s ease;
+    background: #ffffff;
+    font-family: inherit;
+}
+
+.hpost-comment-content:focus {
+    outline: none;
+    border: 2px solid #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    background: #ffffff;
+}
+
+.hpost-comment-submit-btn {
+    background: #007bff;
+    border: none;
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    height: 45px;
+    min-width: 100px;
+}
+
+.hpost-comment-submit-btn:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.hpost-comment-submit-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+}
+
+/* 정렬 버튼 컨테이너 */
+.hpost-comments-sort-container {
+    margin-bottom: 20px;
+}
+
+.hpost-comments-sort-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.hpost-sort-btn {
+    padding: 8px 16px;
+    border: 1px solid #dee2e6;
+    background: white;
+    color: #6c757d;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.hpost-sort-btn:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+.hpost-sort-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+/* 댓글 목록 */
+.hpost-comments {
+    margin-top: 0;
+}
+
+.hpost-comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.hpost-comment-item {
+    padding: 16px 0;
+    border-bottom: 1px solid #f0f0f0;
+    background: transparent;
+    position: relative;
+    width: 100%;
+}
+
+.hpost-comment-item:last-child {
+    border-bottom: none;
+}
+
+.hpost-comment-header {
+    margin-bottom: 0;
+    border-top: none;
+    padding-top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hpost-comment-display-nickname {
+    font-weight: 600;
+    color: #333333;
+    font-size: 18px;
+    border: none;
+    background: transparent;
+    line-height: 1.4;
+    display: inline-block;
+    margin-bottom: 4px;
+}
+
+.hpost-comment-display-content {
+    color: #333333;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    font-size: 18px;
+    border: none;
+    background: transparent;
+    width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: block;
+}
+
+.hpost-comment-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.hpost-comment-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.hpost-comment-time {
+    color: #999999;
+    font-size: 16px;
+    line-height: 1;
+    display: inline-block;
+}
+
+.hpost-comment-reactions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+/* 댓글 좋아요/싫어요 버튼 */
+.hpost-comment-like-btn, .hpost-comment-dislike-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #666666;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    line-height: 1;
+    display: inline-block;
+}
+
+.hpost-comment-like-btn.active {
+    color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.hpost-comment-dislike-btn.active {
+    color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.hpost-comment-like-btn:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.hpost-comment-dislike-btn:hover {
+    background-color: rgba(220, 53, 69, 0.05);
+}
+
+/* 댓글이 없을 때 */
+.no-comments {
+    text-align: center;
+    color: #6c757d;
+    padding: 40px;
+    font-size: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px dashed #dee2e6;
+}
+
+/* 댓글 작성 폼 상태별 스타일 */
+/* 로그인 상태일 때 */
+.hpost-comment-form.logged-in {
+    background: transparent;
+    border: none;
+}
+
+.hpost-comment-form.logged-in .hpost-comment-submit-btn {
+    background: #007bff;
+}
+
+.hpost-comment-form.logged-in .hpost-comment-submit-btn:hover {
+    background: #0056b3;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+/* 비로그인 상태일 때 */
+.hpost-comment-form.not-logged-in {
+    background: transparent;
+    border: none;
+}
+
+.hpost-comment-form.not-logged-in .hpost-comment-submit-btn {
+    background: #007bff;
+    color: #ffffff;
+}
+
+.hpost-comment-form.not-logged-in .hpost-comment-submit-btn:hover {
+    background: #0056b3;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .hpost-comment-input-row {
+        flex-direction: column;
+    }
+    
+    .hpost-comment-left-column {
+        flex-direction: row;
+        gap: 10px;
+    }
+    
+    .hpost-comment-nickname,
+    .hpost-comment-password {
+        width: 150px;
+    }
+    
+    .hpost-comment-right-section {
+        flex-direction: column;
+    }
+    
+    .hpost-comment-submit-btn {
+        width: 100%;
+    }
+    
+    .hpost-comment-form {
+        padding: 15px;
+    }
+}
+
+/* 댓글 작성 폼 애니메이션 */
+.hpost-comment-form {
+    transition: none;
+}
+
+.hpost-comment-form:hover {
+    box-shadow: none;
+}
+
+/* 입력 필드 포커스 효과 */
+.hpost-comment-nickname:focus,
+.hpost-comment-password:focus,
+.hpost-comment-content:focus {
+    transform: none;
+}
+
+/* 버튼 호버 효과 */
+.hpost-comment-submit-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.hpost-comment-submit-btn::before {
+    display: none;
+}
+
+.hpost-comment-submit-btn:hover::before {
+    display: none;
+}
+
+/* ================= 댓글 비밀번호 모달 CSS ================= */
+
+/* 댓글 비밀번호 모달 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1050; /* Bootstrap 모달보다 낮게 설정 */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.modal-buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.modal-buttons .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+#commentPasswordModalInput {
+    width: 100%;
+    padding: 8px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 16px;
+}
+
+/* Bootstrap 모달과의 충돌 방지 */
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+
+#loginModal {
+    z-index: 1055 !important;
+}
+
+#loginModal .modal-dialog {
+    z-index: 1056 !important;
+}
+
+/* ================= 게시물 좋아요/싫어요 버튼 스타일 ================= */
+
+.hpost-detail-like-btn,
+.hpost-detail-dislike-btn {
+    background: none;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    padding: 8px 16px;
+    margin: 0 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 80px;
+    justify-content: center;
+}
+
+.hpost-detail-like-btn:hover,
+.hpost-detail-dislike-btn:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+.hpost-detail-like-btn.active {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.hpost-detail-dislike-btn.active {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.hpost-detail-like-btn.active:hover,
+.hpost-detail-dislike-btn.active:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 좋아요/싫어요 개수 표시 - 크기 키우기 */
+.hpost-detail-like-btn .badge,
+.hpost-detail-dislike-btn .badge {
+    background-color: transparent;
+    color: inherit;
+    padding: 0;
+    border-radius: 0;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: auto;
+    text-align: center;
+    margin: 0;
+}
+
+.hpost-detail-like-btn.active .badge,
+.hpost-detail-dislike-btn.active .badge {
+    background-color: transparent;
+    color: inherit;
+}
+
+

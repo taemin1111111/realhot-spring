@@ -1,0 +1,207 @@
+/* hpost.css - 핫플썰 목록 페이지 스타일 */
+
+/* 핫플썰 목록 페이지 전체 배경을 흰색으로 */
+body {
+    background-color: #ffffff !important;
+}
+
+/* 핫플썰 목록 페이지 전체 스타일 */
+.hpost-container {
+    background-color: #ffffff;
+    min-height: 100vh;
+    padding: 60px 0 20px 0;
+}
+
+/* 핫플썰 제목 */
+.hpost-title {
+    margin: 0 0 30px 0;
+}
+
+.hpost-title h2 {
+    color: #000000;
+    font-weight: bold;
+    font-size: 28px;
+    margin: 0;
+}
+
+/* 정렬 드롭다운과 글쓰기 버튼 컨트롤 영역 */
+.hpost-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* 정렬 드롭다운 */
+.hpost-sort-dropdown {
+    text-align: left;
+}
+
+.hpost-sort-dropdown .btn {
+    color: #666666;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 0;
+    border: none;
+    background: none;
+}
+
+.hpost-sort-dropdown .btn:hover {
+    color: #000000;
+}
+
+.hpost-sort-dropdown .dropdown-menu {
+    min-width: 100px;
+    font-size: 14px;
+}
+
+.hpost-sort-dropdown .dropdown-item {
+    padding: 6px 12px;
+}
+
+.hpost-sort-dropdown .dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* 글쓰기 버튼 */
+.hpost-write-btn .btn {
+    font-size: 14px;
+    padding: 8px 16px;
+    border-radius: 6px;
+}
+
+/* 게시글 목록 헤더 */
+.hpost-header {
+    margin: 20px 0 5px 0;
+}
+
+.hpost-header .row {
+    color: #000000;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.hpost-header .row > div {
+    text-align: center;
+    padding: 12px 5px;
+    color: #000000;
+    font-weight: bold;
+}
+
+/* 구분선 */
+.hpost-divider {
+    border: none;
+    border-top: 1px solid #a0a0a0;
+    margin: 0 0 5px 0;
+    height: 1px;
+}
+
+/* 게시글 목록 영역 */
+.hpost-content {
+    min-height: 300px;
+}
+
+/* 게시글 아이템 */
+.hpost-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.hpost-item > div {
+    text-align: center;
+    padding: 6px 5px;
+    color: #000000;
+}
+
+/* 제목 링크 스타일 */
+.hpost-title-link {
+    color: #000000;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.hpost-title-link:hover {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+/* 작성일 회색 스타일 */
+.hpost-date {
+    color: #666666 !important;
+    font-size: 14px;
+}
+
+/* 게시글 아이템 구분선 */
+.hpost-item-divider {
+    border: none;
+    border-top: 1px solid #f0f0f0;
+    margin: 0;
+    height: 1px;
+}
+
+.hpost-content .text-center {
+    color: #666666;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+.hpost-content .text-center p {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+/* 전체 컨테이너 배경 */
+.container.mt-5 {
+    background-color: #ffffff;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* 반응형 개선 */
+@media (max-width: 768px) {
+    .hpost-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .hpost-header .row > div {
+        font-size: 14px;
+        padding: 8px 2px;
+    }
+    
+    .hpost-title h2 {
+        font-size: 24px;
+    }
+    
+    .hpost-item > div {
+        font-size: 14px;
+        padding: 4px 2px;
+    }
+}
+
+/* 모달 backdrop 번쩍거리는 효과 제거 */
+.modal-backdrop {
+    transition: none !important;
+}
+
+.modal-backdrop.show {
+    transition: none !important;
+}
+
+.modal-backdrop.fade {
+    transition: none !important;
+}
+
+/* 모달 자체의 애니메이션도 부드럽게 */
+.modal.fade .modal-dialog {
+    transition: transform 0.15s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}

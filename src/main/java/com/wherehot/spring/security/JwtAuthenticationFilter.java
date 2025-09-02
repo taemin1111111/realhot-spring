@@ -37,6 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         try {
             String jwt = parseJwt(request);
+            logger.info("JWT 인증 필터 - 요청 경로: {}, JWT 토큰: {}", request.getRequestURI(), jwt != null ? "있음" : "없음");
             
             if (jwt != null && jwtUtils.validateToken(jwt)) {
                 // 블랙리스트 확인
@@ -48,6 +49,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 
                 String userid = jwtUtils.getUseridFromToken(jwt);
                 String provider = jwtUtils.getClaimsFromToken(jwt).get("provider", String.class);
+                
+                logger.info("JWT 인증 성공 - 사용자 ID: {}, 제공자: {}", userid, provider);
                 
                 // 권한 설정
                 SimpleGrantedAuthority authority;
@@ -62,10 +65,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                logger.info("SecurityContext에 인증 정보 설정 완료: {}", userid);
                 
                 // 사용자 정보를 request attribute에 추가
                 request.setAttribute("userid", userid);
                 request.setAttribute("provider", provider);
+            } else {
+                logger.info("JWT 토큰이 없거나 유효하지 않음");
             }
         } catch (Exception e) {
             logger.error("Cannot set user authentication: {}", e.getMessage());

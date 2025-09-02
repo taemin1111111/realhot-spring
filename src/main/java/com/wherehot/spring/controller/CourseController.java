@@ -17,6 +17,8 @@ import com.wherehot.spring.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -107,85 +109,22 @@ public class CourseController {
     
     // 사용자 ID 결정 (로그인된 사용자면 userid, 아니면 IP)
     private String determineUserId(HttpServletRequest request) {
-        try {
-            // Authorization 헤더에서 JWT 토큰 추출
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
-                
-                // JWT 토큰 유효성 검증
-                if (jwtUtils.validateToken(token)) {
-                    // 토큰에서 사용자 ID 추출
-                    String userId = jwtUtils.getUseridFromToken(token);
-                    if (userId != null && !userId.isEmpty()) {
-                        return userId;
-                    }
-                }
-            }
-            
-            // 쿠키에서 토큰 확인
-            Cookie[] cookies = request.getCookies();
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if ("jwt_token".equals(cookie.getName())) {
-                        String token = cookie.getValue();
-                        if (jwtUtils.validateToken(token)) {
-                            String userId = jwtUtils.getUseridFromToken(token);
-                            if (userId != null && !userId.isEmpty()) {
-                                return userId;
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // JWT 토큰 처리 중 오류 무시
-            e.printStackTrace();
+        // Spring Security의 Authentication 객체에서 사용자 정보 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // 인증된 사용자인지, 그리고 익명 사용자가 아닌지 확인
+        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
+            return authentication.getName();
         }
-        
-        // 로그인되지 않은 경우 IP 주소 반환
-        String ipAddress = getClientIpAddress(request);
-        return ipAddress;
+
+        // 인증되지 않은 사용자의 경우 IP 주소 반환
+        return getClientIpAddress(request);
     }
     
     // 사용자 로그인 상태 확인
     private boolean isUserLoggedIn(HttpServletRequest request) {
-        try {
-            // Authorization 헤더에서 JWT 토큰 추출
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
-                
-                // JWT 토큰 유효성 검증
-                if (jwtUtils.validateToken(token)) {
-                    // 토큰에서 사용자 ID 추출
-                    String userId = jwtUtils.getUseridFromToken(token);
-                    if (userId != null && !userId.isEmpty()) {
-                        return true;
-                    }
-                }
-            }
-            
-            // 쿠키에서 토큰 확인
-            Cookie[] cookies = request.getCookies();
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    if ("jwt_token".equals(cookie.getName())) {
-                        String token = cookie.getValue();
-                        if (jwtUtils.validateToken(token)) {
-                            String userId = jwtUtils.getUseridFromToken(token);
-                            if (userId != null && !userId.isEmpty()) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // 로그인 상태 확인 중 오류 무시
-        }
-        
-        return false;
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal());
     }
     
     // 코스 목록 페이지 (기존 JSP Include 방식 유지)

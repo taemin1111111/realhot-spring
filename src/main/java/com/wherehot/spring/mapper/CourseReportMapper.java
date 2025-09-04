@@ -43,4 +43,9 @@ public interface CourseReportMapper {
      * 상태별 신고 조회
      */
     List<CourseReport> selectReportsByStatus(@Param("status") String status);
+    
+    /**
+     * 코스 ID로 모든 신고 삭제
+     */
+    int deleteReportsByCourseId(@Param("courseId") int courseId);
 }

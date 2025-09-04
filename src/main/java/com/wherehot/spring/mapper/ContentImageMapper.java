@@ -13,9 +13,9 @@ import java.util.List;
 public interface ContentImageMapper {
     
     /**
-     * 특정 핫플레이스의 모든 이미지 조회 (순서대로)
+     * 특정 콘텐츠의 모든 이미지 조회 (순서대로)
      */
-    List<ContentImage> getImagesByHotplaceId(@Param("hotplaceId") int hotplaceId);
+    List<ContentImage> getImagesByContentId(@Param("contentId") int contentId);
     
     /**
      * 이미지 ID로 단일 이미지 조회
@@ -38,29 +38,29 @@ public interface ContentImageMapper {
     boolean deleteImage(@Param("imageId") int imageId);
     
     /**
-     * 특정 핫플레이스의 최대 이미지 순서 조회
+     * 특정 콘텐츠의 최대 이미지 순서 조회
      */
-    Integer getMaxImageOrder(@Param("hotplaceId") int hotplaceId);
+    Integer getMaxImageOrder(@Param("contentId") int contentId);
     
     /**
      * 대표 이미지 설정 (해당 이미지를 1번으로, 기존 1번 이미지들을 뒤로 밀기)
      */
-    boolean setAsMainImage(@Param("imageId") int imageId, @Param("placeId") int placeId);
+    boolean setAsMainImage(@Param("imageId") int imageId, @Param("contentId") int contentId);
     
     /**
      * 이미지 순서 재정렬 (삭제 후 순서 정리)
      */
-    boolean reorderImages(@Param("hotplaceId") int hotplaceId);
+    boolean reorderImages(@Param("contentId") int contentId);
     
     /**
-     * 특정 핫플레이스의 총 이미지 수 조회
+     * 특정 콘텐츠의 총 이미지 수 조회
      */
-    int getImageCount(@Param("hotplaceId") int hotplaceId);
+    int getImageCount(@Param("contentId") int contentId);
     
     /**
      * 특정 순서의 이미지 조회
      */
-    ContentImage getImageByOrder(@Param("hotplaceId") int hotplaceId, @Param("imageOrder") int imageOrder);
+    ContentImage getImageByOrder(@Param("contentId") int contentId, @Param("imageOrder") int imageOrder);
     
     /**
      * 이미지 순서 변경
@@ -68,7 +68,7 @@ public interface ContentImageMapper {
     boolean updateImageOrder(@Param("imageId") int imageId, @Param("newOrder") int newOrder);
     
     /**
-     * 특정 핫플레이스의 모든 이미지 삭제
+     * 특정 콘텐츠의 모든 이미지 삭제
      */
-    boolean deleteAllImagesByHotplace(@Param("hotplaceId") int hotplaceId);
+    boolean deleteAllImagesByContent(@Param("contentId") int contentId);
 }

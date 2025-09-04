@@ -80,6 +80,7 @@
     border-bottom: 1px solid #f0f0f0;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    position: relative;
 }
 
 .notification-item:hover {
@@ -89,6 +90,11 @@
 .notification-item.unread {
     background-color: #e3f2fd;
     border-left: 3px solid #2196f3;
+}
+
+.notification-item.unread.warning {
+    background-color: #ffebee;
+    border-left: 3px solid #f44336;
 }
 
 .notification-item:last-child {
@@ -106,11 +112,113 @@
     color: #666;
 }
 
+.notification-delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.notification-delete-btn:hover {
+    color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
 .notification-empty {
     padding: 24px 16px;
     text-align: center;
     color: #666;
     font-size: 14px;
+}
+
+/* 알림 모달 스타일 */
+.notification-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.notification-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #eee;
+}
+
+.notification-modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.notification-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.notification-modal-close:hover {
+    color: #333;
+    background-color: #f5f5f5;
+}
+
+.notification-modal-body {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.notification-modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+}
+
+.notification-modal-time {
+    font-size: 14px;
+    color: #666;
+}
+
+.notification-modal-actions {
+    display: flex;
+    gap: 8px;
 }
 
 /* 반응형 디자인 */
@@ -195,7 +303,10 @@
                         <div id="notification-dropdown" class="notification-dropdown" style="display: none;">
                             <div class="notification-header">
                                 <span>알림</span>
-                                <button class="btn btn-sm btn-outline-secondary" onclick="markAllAsRead()">모두 읽음</button>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-danger me-2" onclick="deleteAllNotifications()">일괄삭제</button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="markAllAsRead()">모두 읽음</button>
+                                </div>
                             </div>
                             <div id="notification-list" class="notification-list">
                                 <!-- 알림 목록이 여기에 동적으로 로드됩니다 -->
@@ -212,7 +323,6 @@
                         <li id="mypage-menu"><a class="dropdown-item" href="<%=root%>/mypage">마이페이지</a></li>
                                         <li id="admin-menu1" style="display: none;"><a class="dropdown-item" href="#" onclick="goToAdminPage('/admin/hpost'); return false;">핫플썰 관리</a></li>
                 <li id="admin-menu2" style="display: none;"><a class="dropdown-item" href="#" onclick="goToAdminPage('/admin/course'); return false;">코스 관리</a></li>
-                <li id="admin-menu3" style="display: none;"><a class="dropdown-item" href="#" onclick="goToAdminPage('/admin/md'); return false;">MD 관리</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="#" onclick="logout()">로그아웃</a></li>
                     </ul>
@@ -287,7 +397,7 @@ function updateTitleUI(userInfo) {
         // 이모티콘 설정
         if (userIcon) {
             try {
-                if (userInfo.provider === 'admin' || userInfo.userid === 'admin') {
+                if (userInfo.provider === 'admin') {
                     userIcon.textContent = '👑'; // 관리자는 왕관
                 } else {
                     userIcon.textContent = '👤'; // 일반 사용자는 사람
@@ -301,7 +411,7 @@ function updateTitleUI(userInfo) {
         const notificationContainer = document.getElementById('notification-container');
         if (notificationContainer) {
             try {
-                if (userInfo.provider === 'admin' || userInfo.userid === 'admin') {
+                if (userInfo.provider === 'admin') {
                     notificationContainer.style.display = 'none'; // 관리자는 알림 벨 숨김
                 } else {
                     notificationContainer.style.display = 'inline-block'; // 일반 사용자는 알림 벨 표시
@@ -314,27 +424,19 @@ function updateTitleUI(userInfo) {
         // 관리자 메뉴들 표시
         const adminMenu1 = document.getElementById('admin-menu1');
         const adminMenu2 = document.getElementById('admin-menu2');
-        const adminMenu3 = document.getElementById('admin-menu3');
         
         if (adminMenu1 && adminMenu1.style) {
             try {
-                adminMenu1.style.display = (userInfo.provider === 'admin' || userInfo.userid === 'admin') ? 'block' : 'none';
+                adminMenu1.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
             } catch (e) {
                 console.warn('adminMenu1 스타일 변경 실패:', e);
             }
         }
         if (adminMenu2 && adminMenu2.style) {
             try {
-                adminMenu2.style.display = (userInfo.provider === 'admin' || userInfo.userid === 'admin') ? 'block' : 'none';
+                adminMenu2.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
             } catch (e) {
                 console.warn('adminMenu2 스타일 변경 실패:', e);
-            }
-        }
-        if (adminMenu3 && adminMenu3.style) {
-            try {
-                adminMenu3.style.display = (userInfo.provider === 'admin' || userInfo.userid === 'admin') ? 'block' : 'none';
-            } catch (e) {
-                console.warn('adminMenu3 스타일 변경 실패:', e);
             }
         }
         
@@ -342,7 +444,7 @@ function updateTitleUI(userInfo) {
         const mypageMenu = document.getElementById('mypage-menu');
         if (mypageMenu && mypageMenu.style) {
             try {
-                mypageMenu.style.display = (userInfo.provider === 'admin' || userInfo.userid === 'admin') ? 'none' : 'block';
+                mypageMenu.style.display = (userInfo.provider === 'admin') ? 'none' : 'block';
             } catch (e) {
                 console.warn('mypageMenu 스타일 변경 실패:', e);
             }
@@ -370,7 +472,6 @@ function showLoggedOutUI() {
         const userSection = document.getElementById('user-section');
         const adminMenu1 = document.getElementById('admin-menu1');
         const adminMenu2 = document.getElementById('admin-menu2');
-        const adminMenu3 = document.getElementById('admin-menu3');
         const mypageMenu = document.getElementById('mypage-menu');
         
         console.log('showLoggedOutUI 실행 - DOM 요소들:', {
@@ -634,7 +735,7 @@ function updateTitleUIFromSavedInfo(userInfo) {
         // 이모티콘 설정
         if (userIcon) {
             try {
-                if (userInfo.provider === 'admin' || userInfo.userid === 'admin') {
+                if (userInfo.provider === 'admin') {
                     userIcon.textContent = '👑'; // 관리자는 왕관
                 } else {
                     userIcon.textContent = '👤'; // 일반 사용자는 사람
@@ -648,7 +749,7 @@ function updateTitleUIFromSavedInfo(userInfo) {
         const notificationContainer = document.getElementById('notification-container');
         if (notificationContainer) {
             try {
-                if (userInfo.provider === 'admin' || userInfo.userid === 'admin') {
+                if (userInfo.provider === 'admin') {
                     notificationContainer.style.display = 'none'; // 관리자는 알림 벨 숨김
                 } else {
                     notificationContainer.style.display = 'inline-block'; // 일반 사용자는 알림 벨 표시
@@ -659,10 +760,9 @@ function updateTitleUIFromSavedInfo(userInfo) {
         }
         
         // 🔐 관리자 메뉴 처리 (즉시)
-        if (userInfo.provider === 'admin' || userInfo.userid === 'admin') {
+        if (userInfo.provider === 'admin') {
             const adminMenu1 = document.getElementById('admin-menu1');
             const adminMenu2 = document.getElementById('admin-menu2');
-            const adminMenu3 = document.getElementById('admin-menu3');
             if (adminMenu1) adminMenu1.style.display = 'block';
             if (adminMenu2) adminMenu2.style.display = 'block';
             if (adminMenu3) adminMenu3.style.display = 'block';
@@ -670,7 +770,6 @@ function updateTitleUIFromSavedInfo(userInfo) {
         } else {
             const adminMenu1 = document.getElementById('admin-menu1');
             const adminMenu2 = document.getElementById('admin-menu2');
-            const adminMenu3 = document.getElementById('admin-menu3');
             if (adminMenu1) adminMenu1.style.display = 'none';
             if (adminMenu2) adminMenu2.style.display = 'none';
             if (adminMenu3) adminMenu3.style.display = 'none';
@@ -680,7 +779,7 @@ function updateTitleUIFromSavedInfo(userInfo) {
         // 🔐 마이페이지 메뉴 처리 (즉시)
         const mypageMenu = document.getElementById('mypage-menu');
         if (mypageMenu) {
-            if (userInfo.provider === 'admin' || userInfo.userid === 'admin') {
+            if (userInfo.provider === 'admin') {
                 // 관리자는 마이페이지 메뉴 숨기기
                 mypageMenu.style.display = 'none';
                 console.log('updateTitleUIFromSavedInfo: 관리자 - 마이페이지 메뉴 숨김');
@@ -730,7 +829,7 @@ async function updateAuthUI() {
                 
                 // 이모티콘 설정
                 if (userIcon) {
-                    if (payload.provider === 'admin' || payload.sub === 'admin') {
+                    if (payload.provider === 'admin') {
                         userIcon.textContent = '👑'; // 관리자는 왕관
                     } else {
                         userIcon.textContent = '👤'; // 일반 사용자는 사람
@@ -741,7 +840,7 @@ async function updateAuthUI() {
                 const notificationContainer = document.getElementById('notification-container');
                 if (notificationContainer) {
                     try {
-                        if (payload.provider === 'admin' || payload.sub === 'admin') {
+                        if (payload.provider === 'admin') {
                             notificationContainer.style.display = 'none'; // 관리자는 알림 벨 숨김
                         } else {
                             notificationContainer.style.display = 'inline-block'; // 일반 사용자는 알림 벨 표시
@@ -757,10 +856,9 @@ async function updateAuthUI() {
                 updateNotificationBadge();
                 
                 // 🔐 클라이언트 토큰 정보로 관리자 메뉴 표시 (즉시)
-                if (payload.provider === 'admin' || payload.sub === 'admin') {
+                if (payload.provider === 'admin') {
                     const adminMenu1 = document.getElementById('admin-menu1');
                     const adminMenu2 = document.getElementById('admin-menu2');
-                    const adminMenu3 = document.getElementById('admin-menu3');
                     if (adminMenu1) adminMenu1.style.display = 'block';
                     if (adminMenu2) adminMenu2.style.display = 'block';
                     if (adminMenu3) adminMenu3.style.display = 'block';
@@ -768,7 +866,6 @@ async function updateAuthUI() {
                 } else {
                     const adminMenu1 = document.getElementById('admin-menu1');
                     const adminMenu2 = document.getElementById('admin-menu2');
-                    const adminMenu3 = document.getElementById('admin-menu3');
                     if (adminMenu1) adminMenu1.style.display = 'none';
                     if (adminMenu2) adminMenu2.style.display = 'none';
                     if (adminMenu3) adminMenu3.style.display = 'none';
@@ -820,10 +917,8 @@ function showLoggedOutUI() {
     // 개별 관리자 메뉴들 숨기기
     const adminMenu1 = document.getElementById('admin-menu1');
     const adminMenu2 = document.getElementById('admin-menu2');
-    const adminMenu3 = document.getElementById('admin-menu3');
     if (adminMenu1) adminMenu1.style.display = 'none';
     if (adminMenu2) adminMenu2.style.display = 'none';
-    if (adminMenu3) adminMenu3.style.display = 'none';
 }
 
 // 로그아웃 함수
@@ -1016,59 +1111,77 @@ function toggleNotifications() {
 // 알림 목록 로드
 async function loadNotifications() {
     const notificationList = document.getElementById('notification-list');
-    if (!notificationList) return;
+    if (!notificationList) {
+        console.error('notification-list 요소를 찾을 수 없습니다.');
+        return;
+    }
+    
+    console.log('알림 목록 로드 시작...');
     
     try {
-        const response = await fetchWithAuth('/api/notifications');
+        const response = await fetchWithAuth('<%=root%>/api/notifications');
+        console.log('알림 API 응답 상태:', response.status);
+        
         if (response.ok) {
             const notifications = await response.json();
+            console.log('받은 알림 데이터:', notifications);
             displayNotifications(notifications);
         } else {
             console.error('알림 로드 실패:', response.status);
-            notificationList.innerHTML = '<div class="notification-empty">알림을 불러올 수 없습니다.</div>';
+            notificationList.innerHTML = '<div class="notification-empty">알림을 불러올 수 없습니다. (상태: ' + response.status + ')</div>';
         }
     } catch (error) {
         console.error('알림 로드 오류:', error);
-        notificationList.innerHTML = '<div class="notification-empty">알림을 불러올 수 없습니다.</div>';
+        notificationList.innerHTML = '<div class="notification-empty">알림을 불러올 수 없습니다. (오류: ' + error.message + ')</div>';
     }
 }
 
 // 알림 표시
 function displayNotifications(notifications) {
     const notificationList = document.getElementById('notification-list');
-    if (!notificationList) return;
+    if (!notificationList) {
+        console.error('notification-list 요소를 찾을 수 없습니다.');
+        return;
+    }
+    
+    console.log('알림 표시 함수 호출, 알림 개수:', notifications.length);
     
     if (notifications.length === 0) {
+        console.log('알림이 없어서 빈 메시지 표시');
         notificationList.innerHTML = '<div class="notification-empty">새로운 알림이 없습니다.</div>';
         return;
     }
     
     let html = '';
-    notifications.forEach(notification => {
+    notifications.forEach((notification, index) => {
+        console.log('알림 ' + (index + 1) + ':', notification);
         const timeAgo = getTimeAgo(notification.createdAt);
         const unreadClass = notification.isRead ? '' : 'unread';
         
-        html += `
-            <div class="notification-item ${unreadClass}" onclick="markNotificationAsRead(${notification.notificationId})">
-                <div class="notification-message">${notification.message}</div>
-                <div class="notification-time">${timeAgo}</div>
-            </div>
-        `;
+        // 알림 유형에 따른 클래스 추가
+        const typeClass = notification.type === 'WARNING' ? ' warning' : '';
+        
+        html += '<div class="notification-item ' + unreadClass + typeClass + '" onclick="openNotificationModal(' + notification.notificationId + ', \'' + escapeHtml(notification.message) + '\', \'' + notification.createdAt + '\', \'' + notification.type + '\')">' +
+                '<button class="notification-delete-btn" onclick="deleteNotification(' + notification.notificationId + ', event)" title="삭제">×</button>' +
+                '<div class="notification-message">' + notification.message + '</div>' +
+                '<div class="notification-time">' + timeAgo + '</div>' +
+                '</div>';
     });
     
+    console.log('생성된 HTML:', html);
     notificationList.innerHTML = html;
 }
 
 // 알림을 읽음으로 표시
 async function markNotificationAsRead(notificationId) {
     try {
-        const response = await fetchWithAuth(`/api/notifications/${notificationId}/read`, {
+        const response = await fetchWithAuth('<%=root%>/api/notifications/' + notificationId + '/read', {
             method: 'PUT'
         });
         
         if (response.ok) {
             // UI에서 읽음 표시 제거
-            const notificationItem = document.querySelector(`[onclick="markNotificationAsRead(${notificationId})"]`);
+            const notificationItem = document.querySelector('[onclick="markNotificationAsRead(' + notificationId + ')"]');
             if (notificationItem) {
                 notificationItem.classList.remove('unread');
             }
@@ -1084,7 +1197,7 @@ async function markNotificationAsRead(notificationId) {
 // 모든 알림을 읽음으로 표시
 async function markAllAsRead() {
     try {
-        const response = await fetchWithAuth('/api/notifications/mark-all-read', {
+        const response = await fetchWithAuth('<%=root%>/api/notifications/mark-all-read', {
             method: 'PUT'
         });
         
@@ -1106,16 +1219,28 @@ async function markAllAsRead() {
 // 알림 개수 업데이트
 async function updateNotificationBadge() {
     const badge = document.getElementById('notification-badge');
-    if (!badge) return;
+    if (!badge) {
+        console.error('notification-badge 요소를 찾을 수 없습니다.');
+        return;
+    }
+    
+    console.log('알림 개수 업데이트 시작...');
     
     try {
-        const response = await fetchWithAuth('/api/notifications/unread-count');
+        const response = await fetchWithAuth('<%=root%>/api/notifications/unread-count');
+        console.log('알림 개수 API 응답 상태:', response.status);
+        
         if (response.ok) {
             const data = await response.json();
             const count = data.count || 0;
+            console.log('받은 알림 개수:', count);
             
             // 항상 배지 표시 (0개여도 +0으로 표시)
             badge.textContent = '+' + count;
+            badge.style.display = 'flex';
+        } else {
+            console.error('알림 개수 API 실패:', response.status);
+            badge.textContent = '+0';
             badge.style.display = 'flex';
         }
     } catch (error) {
@@ -1128,21 +1253,23 @@ async function updateNotificationBadge() {
 
 // 시간 표시 함수
 function getTimeAgo(dateString) {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInSeconds = Math.floor((now - date) / 1000);
+    if (!dateString) return '방금전';
     
-    if (diffInSeconds < 60) {
-        return '방금 전';
-    } else if (diffInSeconds < 3600) {
-        const minutes = Math.floor(diffInSeconds / 60);
-        return `${minutes}분 전`;
-    } else if (diffInSeconds < 86400) {
-        const hours = Math.floor(diffInSeconds / 3600);
-        return `${hours}시간 전`;
+    const createdDate = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - createdDate;
+    
+    if (diffMs < 60000) { // 1분 미만
+        return '방금전';
+    } else if (diffMs < 3600000) { // 1시간 미만
+        const minutes = Math.floor(diffMs / 60000);
+        return minutes + '분전';
+    } else if (diffMs < 86400000) { // 24시간 미만
+        const hours = Math.floor(diffMs / 3600000);
+        return hours + '시간전';
     } else {
-        const days = Math.floor(diffInSeconds / 86400);
-        return `${days}일 전`;
+        const days = Math.floor(diffMs / 86400000);
+        return days + '일전';
     }
 }
 
@@ -1170,11 +1297,262 @@ function initializeNotifications() {
     }
 }
 
+// 개별 알림 삭제
+async function deleteNotification(notificationId, event) {
+    // 이벤트 전파 방지 (알림 클릭 이벤트와 충돌 방지)
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    if (!confirm('이 알림을 삭제하시겠습니까?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetchWithAuth('<%=root%>/api/notifications/' + notificationId, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            // UI에서 해당 알림 제거
+            const notificationItem = document.querySelector('[onclick*="markNotificationAsRead(' + notificationId + ')"]');
+            if (notificationItem) {
+                notificationItem.remove();
+            }
+            
+            // 알림 개수 업데이트
+            updateNotificationBadge();
+            
+            console.log('알림 삭제 성공:', notificationId);
+        } else {
+            console.error('알림 삭제 실패:', response.status);
+            alert('알림 삭제에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('알림 삭제 오류:', error);
+        alert('알림 삭제 중 오류가 발생했습니다.');
+    }
+}
+
+// 모든 알림 삭제
+async function deleteAllNotifications() {
+    if (!confirm('모든 알림을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+        return;
+    }
+    
+    try {
+        // 먼저 현재 사용자의 모든 알림을 가져와서 ID 수집
+        const response = await fetchWithAuth('<%=root%>/api/notifications');
+        if (!response.ok) {
+            alert('알림 목록을 가져올 수 없습니다.');
+            return;
+        }
+        
+        const notifications = await response.json();
+        console.log('현재 알림 목록:', notifications);
+        
+        if (notifications.length === 0) {
+            alert('삭제할 알림이 없습니다.');
+            return;
+        }
+        
+        // 모든 알림 ID 수집
+        const notificationIds = notifications.map(notification => notification.notificationId);
+        console.log('삭제할 알림 ID들:', notificationIds);
+        
+        // 모든 알림 삭제 요청
+        const deletePromises = notificationIds.map(id => 
+            fetchWithAuth('<%=root%>/api/notifications/' + id, {
+                method: 'DELETE'
+            })
+        );
+        
+        const results = await Promise.all(deletePromises);
+        const successCount = results.filter(response => response.ok).length;
+        
+        console.log('삭제 결과:', results);
+        console.log('성공한 삭제 개수:', successCount);
+        
+        if (successCount > 0) {
+            // UI에서 모든 알림 제거
+            const notificationList = document.getElementById('notification-list');
+            if (notificationList) {
+                notificationList.innerHTML = '<div class="notification-empty">새로운 알림이 없습니다.</div>';
+            }
+            
+            // 알림 개수 업데이트
+            updateNotificationBadge();
+            
+            console.log('일괄 삭제 완료:', successCount + '개 알림 삭제');
+            alert(successCount + '개의 알림이 삭제되었습니다.');
+        } else {
+            alert('알림 삭제에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('일괄 삭제 오류:', error);
+        alert('알림 삭제 중 오류가 발생했습니다: ' + error.message);
+    }
+}
+
+// HTML 이스케이프 함수
+function escapeHtml(text) {
+    if (!text) return '';
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/\n/g, '<br>');
+}
+
+// 알림 모달 열기
+function openNotificationModal(notificationId, message, createdAt, type) {
+    // 기존 모달이 있으면 제거
+    const existingModal = document.getElementById('notificationModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    const timeAgo = getTimeAgo(createdAt);
+    const typeText = type === 'WARNING' ? '경고' : '알림';
+    const typeColor = type === 'WARNING' ? '#f44336' : '#2196f3';
+    
+    const modal = document.createElement('div');
+    modal.id = 'notificationModal';
+    modal.className = 'notification-modal';
+    
+    // 안전한 방식으로 모달 내용 생성
+    const modalContent = document.createElement('div');
+    modalContent.className = 'notification-modal-content';
+    
+    // 헤더 생성
+    const header = document.createElement('div');
+    header.className = 'notification-modal-header';
+    
+    const title = document.createElement('h3');
+    title.className = 'notification-modal-title';
+    title.style.color = typeColor;
+    title.textContent = typeText;
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'notification-modal-close';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.onclick = closeNotificationModal;
+    
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    
+    // 본문 생성
+    const body = document.createElement('div');
+    body.className = 'notification-modal-body';
+    body.innerHTML = escapeHtml(message);
+    
+    // 푸터 생성
+    const footer = document.createElement('div');
+    footer.className = 'notification-modal-footer';
+    
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'notification-modal-time';
+    timeDiv.textContent = timeAgo;
+    
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'notification-modal-actions';
+    
+    const closeActionBtn = document.createElement('button');
+    closeActionBtn.className = 'btn btn-outline-secondary';
+    closeActionBtn.textContent = '닫기';
+    closeActionBtn.onclick = closeNotificationModal;
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn btn-outline-danger';
+    deleteBtn.textContent = '삭제';
+    deleteBtn.onclick = function() { deleteNotificationFromModal(notificationId); };
+    
+    actionsDiv.appendChild(closeActionBtn);
+    actionsDiv.appendChild(deleteBtn);
+    
+    footer.appendChild(timeDiv);
+    footer.appendChild(actionsDiv);
+    
+    // 모달 구성
+    modalContent.appendChild(header);
+    modalContent.appendChild(body);
+    modalContent.appendChild(footer);
+    modal.appendChild(modalContent);
+    
+    document.body.appendChild(modal);
+    
+    // 모달 외부 클릭 시 닫기
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeNotificationModal();
+        }
+    });
+    
+    // ESC 키로 닫기
+    const escapeHandler = function(e) {
+        if (e.key === 'Escape') {
+            closeNotificationModal();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+    
+    // 알림을 읽음으로 표시
+    markNotificationAsRead(notificationId);
+}
+
+// 알림 모달 닫기
+function closeNotificationModal() {
+    const modal = document.getElementById('notificationModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// 모달에서 알림 삭제
+async function deleteNotificationFromModal(notificationId) {
+    if (!confirm('이 알림을 삭제하시겠습니까?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetchWithAuth('<%=root%>/api/notifications/' + notificationId, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            // 모달 닫기
+            closeNotificationModal();
+            
+            // 알림 목록 새로고침
+            loadNotifications();
+            
+            // 알림 개수 업데이트
+            updateNotificationBadge();
+            
+            console.log('알림 삭제 성공:', notificationId);
+        } else {
+            console.error('알림 삭제 실패:', response.status);
+            alert('알림 삭제에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('알림 삭제 오류:', error);
+        alert('알림 삭제 중 오류가 발생했습니다.');
+    }
+}
+
 // 전역 함수로 노출
 window.toggleNotifications = toggleNotifications;
 window.markNotificationAsRead = markNotificationAsRead;
 window.markAllAsRead = markAllAsRead;
 window.updateNotificationBadge = updateNotificationBadge;
 window.initializeNotifications = initializeNotifications;
+window.deleteNotification = deleteNotification;
+window.deleteAllNotifications = deleteAllNotifications;
+window.openNotificationModal = openNotificationModal;
+window.closeNotificationModal = closeNotificationModal;
+window.deleteNotificationFromModal = deleteNotificationFromModal;
 
 </script>

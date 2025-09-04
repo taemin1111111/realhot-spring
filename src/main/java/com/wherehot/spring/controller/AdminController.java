@@ -1,10 +1,13 @@
 package com.wherehot.spring.controller;
 
 import com.wherehot.spring.entity.Hpost;
+import com.wherehot.spring.entity.Course;
+import com.wherehot.spring.entity.CourseStep;
 import com.wherehot.spring.entity.Notification;
 import com.wherehot.spring.entity.Member;
 import com.wherehot.spring.service.AdminService;
 import com.wherehot.spring.service.HpostService;
+import com.wherehot.spring.service.CourseService;
 import com.wherehot.spring.service.NotificationService;
 import com.wherehot.spring.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +37,9 @@ public class AdminController {
     private HpostService hpostService;
     
     @Autowired
+    private CourseService courseService;
+    
+    @Autowired
     private NotificationService notificationService;
     
     @Autowired
@@ -58,6 +64,82 @@ public class AdminController {
     public String courseAdmin(Model model) {
         model.addAttribute("mainPage", "adminpage/courseadmin.jsp");
         return "index";
+    }
+    
+    /**
+     * 신고된 코스 목록 조회 (신고 개수 순)
+     */
+    @GetMapping("/course/reports/count")
+    @ResponseBody
+    public List<Map<String, Object>> getReportedCoursesByCount() {
+        return adminService.getReportedCoursesByReportCount();
+    }
+    
+    /**
+     * 신고된 코스 목록 조회 (최신 신고 순)
+     */
+    @GetMapping("/course/reports/latest")
+    @ResponseBody
+    public List<Map<String, Object>> getReportedCoursesByLatest() {
+        return adminService.getReportedCoursesByLatestReport();
+    }
+    
+    /**
+     * 특정 코스의 신고 상세 정보 조회
+     */
+    @GetMapping("/course/reports/details")
+    @ResponseBody
+    public List<Map<String, Object>> getCourseReportDetails(@RequestParam int courseId) {
+        if (courseId <= 0) {
+            throw new IllegalArgumentException("유효하지 않은 코스 ID입니다: " + courseId);
+        }
+        return adminService.getCourseReportDetailsByCourseId(courseId);
+    }
+    
+    /**
+     * 관리자용 코스 삭제 (비밀번호 불필요)
+     */
+    @DeleteMapping("/course/{id}/delete")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteCourseByAdmin(@PathVariable int id) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // 코스 조회
+            Course course = courseService.getCourseById(id);
+            if (course == null) {
+                response.put("success", false);
+                response.put("message", "코스를 찾을 수 없습니다.");
+                return ResponseEntity.notFound().build();
+            }
+            
+            // 알림 전송 (삭제 전에 실행)
+            sendCourseDeleteNotifications(course);
+            
+            // 신고 데이터 삭제 (알림 전송 후)
+            adminService.deleteCourseReportsByCourseId(id);
+            
+            // 코스 삭제 (연관된 데이터도 함께 삭제)
+            boolean deleteResult = adminService.deleteCourseWithAllRelatedData(id);
+            
+            if (deleteResult) {
+                // 파일 삭제
+                deleteCourseFiles(course);
+                
+                response.put("success", true);
+                response.put("message", "코스가 삭제되었습니다.");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "코스 삭제에 실패했습니다.");
+                return ResponseEntity.internalServerError().body(response);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "코스 삭제 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(response);
+        }
     }
     
     /**
@@ -240,5 +322,83 @@ public class AdminController {
         }
     }
     
+    /**
+     * 코스 삭제 시 알림 전송
+     */
+    private void sendCourseDeleteNotifications(Course course) {
+        try {
+            // 1. 코스 작성자에게 정책위반 삭제 알림
+            if (course.getUserId() != null && !course.getUserId().trim().isEmpty()) {
+                // member 테이블에서 userid로 사용자 정보 조회
+                Member authorMember = memberService.findByUserid(course.getUserId());
+                if (authorMember != null && authorMember.getNickname() != null) {
+                    Notification authorNotification = new Notification();
+                    authorNotification.setUserid(course.getUserId()); // 실제 userid 사용
+                    authorNotification.setMessage(authorMember.getNickname() + "님, 귀하가 작성하신 코스 \"" + course.getTitle() + "\"이 정책위반 사항으로 삭제되었습니다.");
+                    authorNotification.setType("WARNING");
+                    notificationService.createNotification(authorNotification);
+                }
+            }
+            
+            // 2. 신고자들에게 삭제 완료 알림
+            List<Map<String, Object>> reportDetails = adminService.getCourseReportDetailsByCourseId(course.getId());
+            System.out.println("=== 코스 신고자 알림 디버깅 ===");
+            System.out.println("코스 ID: " + course.getId());
+            System.out.println("신고자 수: " + reportDetails.size());
+            System.out.println("신고자 데이터: " + reportDetails);
+            
+            for (Map<String, Object> report : reportDetails) {
+                String reporterUserid = (String) report.get("user_key"); // course_report의 user_key
+                System.out.println("신고자 userid: " + reporterUserid);
+                
+                if (reporterUserid != null && !reporterUserid.trim().isEmpty()) {
+                    // member 테이블에서 userid로 사용자 정보 조회
+                    Member reporterMember = memberService.findByUserid(reporterUserid);
+                    System.out.println("신고자 member 조회 결과: " + (reporterMember != null ? "존재함" : "없음"));
+                    
+                    if (reporterMember != null && reporterMember.getNickname() != null) {
+                        System.out.println("신고자 닉네임: " + reporterMember.getNickname());
+                        Notification reporterNotification = new Notification();
+                        reporterNotification.setUserid(reporterUserid); // 실제 userid 사용
+                        reporterNotification.setMessage(reporterMember.getNickname() + "님, 신고하신 코스 \"" + course.getTitle() + "\"이 정책위반 사항으로 삭제되었습니다.");
+                        reporterNotification.setType("INFO");
+                        notificationService.createNotification(reporterNotification);
+                        System.out.println("신고자 알림 생성 완료: " + reporterUserid);
+                    } else {
+                        System.out.println("신고자 알림 생성 실패 - member 없음 또는 닉네임 없음");
+                    }
+                } else {
+                    System.out.println("신고자 userid가 null이거나 비어있음");
+                }
+            }
+            
+        } catch (Exception e) {
+            System.err.println("코스 알림 전송 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
     
+    /**
+     * 코스 관련 파일 삭제
+     */
+    private void deleteCourseFiles(Course course) {
+        try {
+            if (uploadPath != null && !uploadPath.isEmpty()) {
+                // 코스 스텝의 이미지 파일들 삭제
+                List<CourseStep> courseSteps = courseService.getCourseSteps(course.getId());
+                for (CourseStep step : courseSteps) {
+                    if (step.getPhotoUrl() != null && !step.getPhotoUrl().trim().isEmpty()) {
+                        File imageFile = new File(uploadPath + "/course/" + step.getPhotoUrl());
+                        if (imageFile.exists()) {
+                            imageFile.delete();
+                            System.out.println("코스 이미지 파일 삭제 완료: " + step.getPhotoUrl());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("코스 파일 삭제 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

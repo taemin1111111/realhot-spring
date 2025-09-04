@@ -58,5 +58,11 @@
         WHERE status = #{status}
         ORDER BY created_at DESC
     </select>
+    
+    <!-- 코스 ID로 모든 신고 삭제 -->
+    <delete id="deleteReportsByCourseId">
+        DELETE FROM course_report 
+        WHERE course_id = #{courseId}
+    </delete>
 
 </mapper>

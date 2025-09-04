@@ -190,10 +190,8 @@ public class AuthController {
                     System.out.println("check-admin: member found - userid=" + userid + 
                                     ", provider=" + provider + ", status=" + status);
                     
-                    // 관리자 권한 확인: userid가 admin이거나 provider가 admin이거나 status가 A(정상)인 경우
-                    boolean isAdmin = "admin".equals(userid) || 
-                                    "admin".equals(provider) || 
-                                    ("admin".equals(userid) && "A".equals(status));
+                    // 관리자 권한 확인: provider가 admin인 경우만 (JWT Filter와 일관성 유지)
+                    boolean isAdmin = "admin".equals(provider);
                     
                     System.out.println("check-admin: isAdmin = " + isAdmin);
                     

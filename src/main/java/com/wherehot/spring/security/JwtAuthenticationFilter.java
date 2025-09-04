@@ -58,9 +58,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 권한 설정
                 SimpleGrantedAuthority authority;
                 if ("admin".equals(provider)) {
-                    authority = new SimpleGrantedAuthority("ROLE_ADMIN");
+                    authority = new SimpleGrantedAuthority("ADMIN");
                 } else {
-                    authority = new SimpleGrantedAuthority("ROLE_USER");
+                    authority = new SimpleGrantedAuthority("USER");
                 }
                 
                 UsernamePasswordAuthenticationToken authentication = 

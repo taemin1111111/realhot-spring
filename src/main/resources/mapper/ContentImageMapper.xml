@@ -6,33 +6,32 @@
     <!-- 결과 매핑 -->
     <resultMap id="ContentImageResultMap" type="com.wherehot.spring.entity.ContentImage">
         <id property="id" column="id"/>
-        <result property="hotplaceId" column="hotplace_id"/>
+        <result property="contentId" column="content_id"/>
         <result property="imagePath" column="image_path"/>
         <result property="imageOrder" column="image_order"/>
+        <result property="caption" column="caption"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
 
-    <!-- 특정 핫플레이스의 모든 이미지 조회 (순서대로) -->
-    <select id="getImagesByHotplaceId" parameterType="int" resultMap="ContentImageResultMap">
-        SELECT id, hotplace_id, 'hotplace' as content_type, image_path, 
-               image_order, created_at, created_at as updated_at
+    <!-- 특정 콘텐츠의 모든 이미지 조회 (순서대로) -->
+    <select id="getImagesByContentId" parameterType="int" resultMap="ContentImageResultMap">
+        SELECT id, content_id, image_path, image_order, caption, created_at
         FROM content_images 
-        WHERE hotplace_id = #{hotplaceId}
+        WHERE content_id = #{contentId}
         ORDER BY image_order ASC, created_at ASC
     </select>
 
     <!-- 이미지 ID로 단일 이미지 조회 -->
     <select id="getImageById" parameterType="int" resultMap="ContentImageResultMap">
-        SELECT id, hotplace_id, 'hotplace' as content_type, image_path, 
-               image_order, created_at, created_at as updated_at
+        SELECT id, content_id, image_path, image_order, caption, created_at
         FROM content_images 
         WHERE id = #{imageId}
     </select>
 
     <!-- 이미지 정보 저장 -->
     <insert id="insertImage" parameterType="com.wherehot.spring.entity.ContentImage" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO content_images (hotplace_id, image_path, image_order, created_at)
-        VALUES (#{hotplaceId}, #{imagePath}, #{imageOrder}, NOW())
+        INSERT INTO content_images (content_id, image_path, image_order, caption, created_at)
+        VALUES (#{contentId}, #{imagePath}, #{imageOrder}, #{caption}, NOW())
     </insert>
 
     <!-- 이미지 정보 수정 -->
@@ -40,7 +39,8 @@
         UPDATE content_images 
         SET 
             image_path = #{imagePath},
-            image_order = #{imageOrder}
+            image_order = #{imageOrder},
+            caption = #{caption}
         WHERE id = #{id}
     </update>
 
@@ -49,11 +49,11 @@
         DELETE FROM content_images WHERE id = #{imageId}
     </delete>
 
-    <!-- 특정 핫플레이스의 최대 이미지 순서 조회 -->
+    <!-- 특정 콘텐츠의 최대 이미지 순서 조회 -->
     <select id="getMaxImageOrder" parameterType="int" resultType="Integer">
         SELECT MAX(image_order) 
         FROM content_images 
-        WHERE hotplace_id = #{hotplaceId}
+        WHERE content_id = #{contentId}
     </select>
 
     <!-- 대표 이미지 설정 -->
@@ -62,13 +62,13 @@
         UPDATE content_images 
         SET image_order = CASE 
             WHEN id = #{imageId} THEN 1
-            WHEN image_order = 1 AND hotplace_id = #{placeId} AND id != #{imageId} THEN (
+            WHEN image_order = 1 AND content_id = #{contentId} AND id != #{imageId} THEN (
                 SELECT COALESCE(MAX(temp.image_order), 1) + 1 
-                FROM (SELECT image_order FROM content_images WHERE hotplace_id = #{placeId}) temp
+                FROM (SELECT image_order FROM content_images WHERE content_id = #{contentId}) temp
             )
             ELSE image_order 
         END
-        WHERE hotplace_id = #{placeId}
+        WHERE content_id = #{contentId}
         ]]>
     </update>
 
@@ -79,26 +79,25 @@
         SET image_order = (
             SELECT COUNT(*) 
             FROM (SELECT * FROM content_images) c2 
-            WHERE c2.hotplace_id = #{hotplaceId} 
+            WHERE c2.content_id = #{contentId} 
             AND c2.created_at <= c1.created_at
         )
-        WHERE hotplace_id = #{hotplaceId}
+        WHERE content_id = #{contentId}
         ]]>
     </update>
 
-    <!-- 특정 핫플레이스의 총 이미지 수 조회 -->
+    <!-- 특정 콘텐츠의 총 이미지 수 조회 -->
     <select id="getImageCount" parameterType="int" resultType="int">
         SELECT COUNT(*) 
         FROM content_images 
-        WHERE hotplace_id = #{hotplaceId}
+        WHERE content_id = #{contentId}
     </select>
 
     <!-- 특정 순서의 이미지 조회 -->
     <select id="getImageByOrder" resultMap="ContentImageResultMap">
-        SELECT id, hotplace_id, 'hotplace' as content_type, image_path, 
-               image_order, created_at, created_at as updated_at
+        SELECT id, content_id, image_path, image_order, caption, created_at
         FROM content_images 
-        WHERE hotplace_id = #{hotplaceId} AND image_order = #{imageOrder}
+        WHERE content_id = #{contentId} AND image_order = #{imageOrder}
         LIMIT 1
     </select>
 
@@ -109,10 +108,10 @@
         WHERE id = #{imageId}
     </update>
 
-    <!-- 특정 핫플레이스의 모든 이미지 삭제 -->
-    <delete id="deleteAllImagesByHotplace" parameterType="int">
+    <!-- 특정 콘텐츠의 모든 이미지 삭제 -->
+    <delete id="deleteAllImagesByContent" parameterType="int">
         DELETE FROM content_images 
-        WHERE hotplace_id = #{hotplaceId}
+        WHERE content_id = #{contentId}
     </delete>
 
 </mapper>

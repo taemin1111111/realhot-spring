@@ -31,4 +31,26 @@ public interface AdminMapper {
      * 게시물별 신고 개수 조회
      */
     int getReportCountByPostId(@Param("postId") int postId);
+    
+    // ========== 코스 관련 관리자 기능 ==========
+    
+    /**
+     * 신고된 코스 목록 조회 (신고 개수 순)
+     */
+    List<Map<String, Object>> getReportedCoursesByReportCount();
+    
+    /**
+     * 신고된 코스 목록 조회 (최신 신고 순)
+     */
+    List<Map<String, Object>> getReportedCoursesByLatestReport();
+    
+    /**
+     * 특정 코스의 신고 상세 정보 조회
+     */
+    List<Map<String, Object>> getCourseReportDetailsByCourseId(@Param("courseId") int courseId);
+    
+    /**
+     * 코스별 신고 개수 조회
+     */
+    int getCourseReportCountByCourseId(@Param("courseId") int courseId);
 }

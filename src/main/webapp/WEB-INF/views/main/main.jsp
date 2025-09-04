@@ -148,7 +148,22 @@
   
   // JWT 토큰 관리 함수들
   function getToken() {
-      return localStorage.getItem('accessToken');
+      // localStorage에서 먼저 확인
+      let token = localStorage.getItem('accessToken');
+      if (token) {
+          return token;
+      }
+      
+      // localStorage에 없으면 쿠키에서 확인
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+          const [name, value] = cookie.trim().split('=');
+          if (name === 'accessToken' && value) {
+              return value;
+          }
+      }
+      
+      return null;
   }
   
   function saveToken(token, refreshToken) {
@@ -188,11 +203,84 @@
       console.log('JWT 토큰을 localStorage와 쿠키에서 삭제 완료');
   }
   
-
+  // API 요청 시 JWT 토큰을 헤더에 포함하는 함수
+  async function fetchWithAuth(url, options = {}) {
+    const token = getToken();
+    console.log('fetchWithAuth - URL:', url);
+    console.log('fetchWithAuth - Token:', token ? token.substring(0, 20) + '...' : 'null');
+    
+    const defaultOptions = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...options.headers
+      }
+    };
+    
+    console.log('fetchWithAuth - Headers:', defaultOptions.headers);
+    
+    let response = await fetch(url, { ...defaultOptions, ...options });
+    
+    // 401 에러 시 토큰 갱신 시도
+    if (response.status === 401) {
+      console.log('토큰 만료, 갱신 시도...');
+      const refreshSuccess = await refreshAccessToken();
+      
+      if (refreshSuccess) {
+        const newToken = getToken();
+        const retryOptions = {
+          ...defaultOptions,
+          headers: {
+            ...defaultOptions.headers,
+            'Authorization': `Bearer ${newToken}`
+          }
+        };
+        response = await fetch(url, { ...retryOptions, ...options });
+      } else {
+        removeToken();
+        return response;
+      }
+    }
+    
+    return response;
+  }
+  
+  // 토큰 갱신 함수
+  async function refreshAccessToken() {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) {
+      return false;
+    }
+    
+    try {
+      const response = await fetch(root + '/api/auth/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ refreshToken: refreshToken })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.accessToken) {
+          saveToken(data.accessToken, data.refreshToken);
+          return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error('토큰 갱신 실패:', error);
+      return false;
+    }
+  }
+  
+  // 전역 함수로 설정
+  window.fetchWithAuth = fetchWithAuth;
   
   // JWT 토큰에서 로그인 정보 확인 (title.jsp와 일관성 유지)
   function initAuthStatus() {
-    const token = localStorage.getItem('accessToken');
+    const token = getToken(); // localStorage와 쿠키 모두 확인
     if (token && typeof token === 'string' && token.split('.').length === 3) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
@@ -205,21 +293,16 @@
           
           // 관리자 확인을 위한 서버 API 호출 (자동 토큰 갱신 포함)
           let adminCheckPromise;
-          if (typeof window.fetchWithAuth === 'function') {
-            adminCheckPromise = window.fetchWithAuth(root + '/api/auth/check-admin');
-          } else {
-            adminCheckPromise = fetch(root + '/api/auth/check-admin', {
-              method: 'GET',
-              headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-              }
-            });
-          }
+          // fetchWithAuth 함수를 직접 사용 (핫플썰 관리 페이지와 동일한 방식)
+          adminCheckPromise = fetchWithAuth(root + '/api/auth/check-admin');
           
           adminCheckPromise
-          .then(response => response.json())
+          .then(response => {
+            console.log('관리자 확인 API 응답 상태:', response.status);
+            return response.json();
+          })
           .then(data => {
+            console.log('관리자 확인 API 응답 데이터:', data);
             if (data.isAdmin) {
               isAdmin = true;
               console.log('관리자 권한 확인됨:', data);
@@ -228,9 +311,13 @@
               updateAdminUI();
             } else {
               console.log('일반 사용자:', data);
+              isAdmin = false;
             }
           })
-          .catch(error => console.log('관리자 확인 실패:', error));
+          .catch(error => {
+            console.error('관리자 확인 실패:', error);
+            isAdmin = false;
+          });
         } else {
           // 토큰 만료 시 정리
           localStorage.removeItem('accessToken');
@@ -259,7 +346,7 @@
   // 관리자 UI 업데이트 함수
   function updateAdminUI() {
     // InfoWindow에서 관리자 버튼들이 제대로 표시되도록 설정
-    console.log('관리자 UI 활성화');
+    console.log('관리자 UI 활성화, isAdmin:', isAdmin);
     
     // 기존 InfoWindow들을 재설정하여 관리자 버튼이 나타나도록 함
     hotplaceMarkers.forEach(function(marker, idx) {
@@ -269,6 +356,34 @@
           // InfoWindow 내용 업데이트
           const newInfoContent = generateInfoWindowContent(place);
           hotplaceInfoWindows[idx].setContent(newInfoContent);
+          
+          // InfoWindow가 열려있다면 관리자 버튼들 추가
+          setTimeout(function() {
+            const iw = hotplaceInfoWindows[idx].getContent();
+            if (iw && isAdmin) {
+              // 기존 관리자 버튼들 제거
+              const existingAddBtn = iw.querySelector('.admin-add-btn');
+              const existingEditBtn = iw.querySelector('.admin-edit-btn');
+              if (existingAddBtn) existingAddBtn.remove();
+              if (existingEditBtn) existingEditBtn.remove();
+              
+              // + 버튼 (이미지 추가)
+              var addBtn = document.createElement('button');
+              addBtn.className = 'admin-add-btn';
+              addBtn.onclick = function() { openImageUploadModal(place.id); };
+              addBtn.style.cssText = 'position:absolute; top:12px; right:50px; background:#1275E0; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:18px; font-weight:bold; box-shadow:0 2px 8px rgba(0,0,0,0.3); z-index:10;';
+              addBtn.innerHTML = '+';
+              iw.appendChild(addBtn);
+              
+              // 수정 버튼 (이미지 관리)
+              var editBtn = document.createElement('button');
+              editBtn.className = 'admin-edit-btn';
+              editBtn.onclick = function() { openImageManageModal(place.id); };
+              editBtn.style.cssText = 'position:absolute; top:12px; right:88px; background:#ff6b35; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:14px; font-weight:bold; box-shadow:0 2px 8px rgba(0,0,0,0.3); z-index:10;';
+              editBtn.innerHTML = '✏️';
+              iw.appendChild(editBtn);
+            }
+          }, 100);
         }
       }
     });

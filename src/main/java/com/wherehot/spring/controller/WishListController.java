@@ -160,7 +160,7 @@ public class WishListController {
         try {
             // 본인 또는 관리자만 삭제 가능
             if (userDetails == null || (!userDetails.getUsername().equals(userId) 
-                && !userDetails.getAuthorities().stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN")))) {
+                && !userDetails.getAuthorities().stream().anyMatch(auth -> auth.getAuthority().equals("ADMIN")))) {
                 return ResponseEntity.status(403).build(); // Forbidden
             }
             

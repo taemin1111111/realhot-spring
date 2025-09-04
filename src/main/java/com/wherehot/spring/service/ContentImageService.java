@@ -12,9 +12,9 @@ import java.util.Map;
 public interface ContentImageService {
     
     /**
-     * 특정 핫플레이스의 모든 이미지 조회
+     * 특정 콘텐츠의 모든 이미지 조회
      */
-    List<ContentImage> getImagesByHotplaceId(int hotplaceId);
+    List<ContentImage> getImagesByContentId(int contentId);
     
     /**
      * 이미지 ID로 단일 이미지 조회
@@ -34,22 +34,22 @@ public interface ContentImageService {
     /**
      * 대표 이미지 설정
      */
-    Map<String, Object> setMainImage(int imageId, int placeId);
+    Map<String, Object> setMainImage(int imageId, int contentId);
     
     /**
      * 다음 이미지 순서 번호 조회
      */
-    int getNextImageOrder(int hotplaceId);
+    int getNextImageOrder(int contentId);
     
     /**
      * 이미지 순서 재정렬
      */
-    boolean reorderImagesAfterDelete(int hotplaceId);
+    boolean reorderImagesAfterDelete(int contentId);
     
     /**
-     * 특정 핫플레이스의 대표 이미지 조회
+     * 특정 콘텐츠의 대표 이미지 조회
      */
-    ContentImage getMainImage(int hotplaceId);
+    ContentImage getMainImage(int contentId);
     
     /**
      * 이미지 경로 유효성 검증

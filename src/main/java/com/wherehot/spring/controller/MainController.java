@@ -28,6 +28,8 @@ import com.wherehot.spring.entity.Category;
 import com.wherehot.spring.entity.Region;
 import com.wherehot.spring.entity.WishList;
 import com.wherehot.spring.entity.ContentImage;
+import org.springframework.web.multipart.MultipartFile;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class MainController {
@@ -227,21 +229,74 @@ public class MainController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            List<ContentImage> images = contentImageService.getImagesByHotplaceId(placeId);
-            List<String> imageUrls = new ArrayList<>();
+            logger.info("Getting images for placeId: {}", placeId);
+            List<ContentImage> images = contentImageService.getImagesByContentId(placeId);
+            logger.info("Found {} images for placeId: {}", images.size(), placeId);
+            
+            List<Map<String, Object>> imageData = new ArrayList<>();
             
             for (ContentImage image : images) {
-                imageUrls.add(image.getImagePath());
+                Map<String, Object> imageInfo = new HashMap<>();
+                imageInfo.put("imagePath", image.getImagePath());
+                imageInfo.put("id", image.getId());
+                imageInfo.put("order", image.getImageOrder());
+                imageData.add(imageInfo);
+                logger.info("Image: id={}, path={}, order={}", image.getId(), image.getImagePath(), image.getImageOrder());
             }
             
-            response.put("result", true);
-            response.put("images", imageUrls);
+            response.put("success", true);
+            response.put("images", imageData);
+            response.put("count", images.size());
             return org.springframework.http.ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            logger.error("Place images error: ", e);
-            response.put("result", false);
-            response.put("error", "이미지 조회 중 오류가 발생했습니다.");
+            logger.error("Place images error for placeId {}: ", placeId, e);
+            response.put("success", false);
+            response.put("error", "이미지 조회 중 오류가 발생했습니다: " + e.getMessage());
+            return org.springframework.http.ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    // 핫플레이스 이미지 업로드 API (관리자 전용)
+    @PostMapping("/api/main/upload-images")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> uploadPlaceImages(
+            @RequestParam("place_id") int placeId,
+            @RequestParam("images") MultipartFile[] images,
+            HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 관리자 권한 확인
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals("ADMIN"))) {
+                response.put("success", false);
+                response.put("error", "관리자 권한이 필요합니다.");
+                return org.springframework.http.ResponseEntity.status(403).body(response);
+            }
+            
+            // 웹앱 경로 설정
+            String webappPath = request.getSession().getServletContext().getRealPath("/");
+            
+            // 이미지 업로드 처리
+            Map<String, Object> uploadResult = contentImageService.uploadImages(placeId, images, webappPath);
+            
+            if ((Boolean) uploadResult.get("success")) {
+                response.put("success", true);
+                response.put("message", uploadResult.get("message"));
+                response.put("uploadedPaths", uploadResult.get("uploadedPaths"));
+                return org.springframework.http.ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("error", uploadResult.get("message"));
+                return org.springframework.http.ResponseEntity.badRequest().body(response);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Image upload error for placeId: {}, images: {}", placeId, images != null ? images.length : 0, e);
+            response.put("success", false);
+            response.put("error", "이미지 업로드 중 오류가 발생했습니다: " + e.getMessage());
             return org.springframework.http.ResponseEntity.internalServerError().body(response);
         }
     }
@@ -338,4 +393,5 @@ public class MainController {
             return org.springframework.http.ResponseEntity.internalServerError().body(response);
         }
     }
+    
 }

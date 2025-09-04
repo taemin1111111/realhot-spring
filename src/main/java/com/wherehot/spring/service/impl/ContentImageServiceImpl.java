@@ -35,11 +35,11 @@ public class ContentImageServiceImpl implements ContentImageService {
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
     
     @Override
-    public List<ContentImage> getImagesByHotplaceId(int hotplaceId) {
+    public List<ContentImage> getImagesByContentId(int contentId) {
         try {
-            return contentImageMapper.getImagesByHotplaceId(hotplaceId);
+            return contentImageMapper.getImagesByContentId(contentId);
         } catch (Exception e) {
-            throw new RuntimeException("핫플레이스 이미지 조회 중 오류가 발생했습니다: " + e.getMessage(), e);
+            throw new RuntimeException("콘텐츠 이미지 조회 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
     }
     
@@ -89,9 +89,11 @@ public class ContentImageServiceImpl implements ContentImageService {
                 
                 // DB에 이미지 정보 저장
                 ContentImage contentImage = new ContentImage();
-                contentImage.setHotplaceId(placeId);
+                contentImage.setContentId(placeId);
                 contentImage.setImagePath("/uploads/places/" + placeId + "/" + newFilename);
                 contentImage.setImageOrder(getNextImageOrder(placeId));
+                contentImage.setCaption(originalFilename); // 파일명을 caption으로 사용
+                contentImage.setCreatedAt(java.time.LocalDateTime.now());
                 
                 contentImageMapper.insertImage(contentImage);
                 uploadedPaths.add(contentImage.getImagePath());
@@ -149,11 +151,11 @@ public class ContentImageServiceImpl implements ContentImageService {
             }
             
             // 이미지 순서 재정렬
-            boolean reordered = reorderImagesAfterDelete(image.getHotplaceId());
+            boolean reordered = reorderImagesAfterDelete(image.getContentId());
             
             if (!reordered) {
                 // 롤백은 하지 않고 경고만 로그
-                System.err.println("이미지 순서 재정렬 실패 - 장소 ID: " + image.getHotplaceId());
+                System.err.println("이미지 순서 재정렬 실패 - 콘텐츠 ID: " + image.getContentId());
             }
             
             result.put("success", true);
@@ -168,21 +170,21 @@ public class ContentImageServiceImpl implements ContentImageService {
     }
     
     @Override
-    public Map<String, Object> setMainImage(int imageId, int placeId) {
+    public Map<String, Object> setMainImage(int imageId, int contentId) {
         Map<String, Object> result = new HashMap<>();
         
         try {
             // 이미지 존재 여부 확인
             ContentImage image = contentImageMapper.getImageById(imageId);
             
-            if (image == null || image.getHotplaceId() != placeId) {
+            if (image == null || image.getContentId() != contentId) {
                 result.put("success", false);
-                result.put("message", "해당 이미지를 찾을 수 없거나 장소 정보가 일치하지 않습니다.");
+                result.put("message", "해당 이미지를 찾을 수 없거나 콘텐츠 정보가 일치하지 않습니다.");
                 return result;
             }
             
             // 대표 이미지 설정 (순서를 1로 변경하고 기존 1번을 뒤로 밀기)
-            boolean success = contentImageMapper.setAsMainImage(imageId, placeId);
+            boolean success = contentImageMapper.setAsMainImage(imageId, contentId);
             
             if (success) {
                 result.put("success", true);
@@ -201,9 +203,9 @@ public class ContentImageServiceImpl implements ContentImageService {
     }
     
     @Override
-    public int getNextImageOrder(int hotplaceId) {
+    public int getNextImageOrder(int contentId) {
         try {
-            Integer maxOrder = contentImageMapper.getMaxImageOrder(hotplaceId);
+            Integer maxOrder = contentImageMapper.getMaxImageOrder(contentId);
             return (maxOrder != null) ? maxOrder + 1 : 1;
         } catch (Exception e) {
             return 1; // 오류 시 기본값
@@ -211,18 +213,18 @@ public class ContentImageServiceImpl implements ContentImageService {
     }
     
     @Override
-    public boolean reorderImagesAfterDelete(int hotplaceId) {
+    public boolean reorderImagesAfterDelete(int contentId) {
         try {
-            return contentImageMapper.reorderImages(hotplaceId);
+            return contentImageMapper.reorderImages(contentId);
         } catch (Exception e) {
             return false;
         }
     }
     
     @Override
-    public ContentImage getMainImage(int hotplaceId) {
+    public ContentImage getMainImage(int contentId) {
         try {
-            List<ContentImage> images = contentImageMapper.getImagesByHotplaceId(hotplaceId);
+            List<ContentImage> images = contentImageMapper.getImagesByContentId(contentId);
             return images.isEmpty() ? null : images.get(0); // 첫 번째 이미지가 대표 이미지
         } catch (Exception e) {
             return null;

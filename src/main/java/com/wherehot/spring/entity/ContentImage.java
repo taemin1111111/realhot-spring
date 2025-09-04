@@ -8,20 +8,22 @@ import java.time.LocalDateTime;
 public class ContentImage {
     
     private int id;
-    private int hotplaceId;
+    private int contentId;
     private String imagePath;
     private int imageOrder;
+    private String caption;
     private LocalDateTime createdAt;
     
     // 기본 생성자
     public ContentImage() {}
     
     // 전체 매개변수 생성자
-    public ContentImage(int id, int hotplaceId, String imagePath, int imageOrder, LocalDateTime createdAt) {
+    public ContentImage(int id, int contentId, String imagePath, int imageOrder, String caption, LocalDateTime createdAt) {
         this.id = id;
-        this.hotplaceId = hotplaceId;
+        this.contentId = contentId;
         this.imagePath = imagePath;
         this.imageOrder = imageOrder;
+        this.caption = caption;
         this.createdAt = createdAt;
     }
     
@@ -34,12 +36,12 @@ public class ContentImage {
         this.id = id;
     }
     
-    public int getHotplaceId() {
-        return hotplaceId;
+    public int getContentId() {
+        return contentId;
     }
     
-    public void setHotplaceId(int hotplaceId) {
-        this.hotplaceId = hotplaceId;
+    public void setContentId(int contentId) {
+        this.contentId = contentId;
     }
     
     public String getImagePath() {
@@ -56,6 +58,14 @@ public class ContentImage {
     
     public void setImageOrder(int imageOrder) {
         this.imageOrder = imageOrder;
+    }
+    
+    public String getCaption() {
+        return caption;
+    }
+    
+    public void setCaption(String caption) {
+        this.caption = caption;
     }
     
     public LocalDateTime getCreatedAt() {

@@ -626,3 +626,304 @@
     font-weight: bold; 
 }
 
+/* ===== COURSE ADMIN PAGE STYLES ===== */
+
+/* 코스 신고 아이템 카드 */
+.admin-report-item {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.admin-report-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #d1d5db;
+}
+
+/* 코스 신고 헤더 */
+.admin-report-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.admin-report-title {
+    flex: 1;
+}
+
+.admin-report-title h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+
+.admin-report-count {
+    display: inline-block;
+    background: #fef2f2;
+    color: #dc2626;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #fecaca;
+}
+
+/* 코스 신고 액션 버튼 */
+.admin-report-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.admin-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.admin-btn i {
+    font-size: 14px;
+}
+
+.admin-btn-info {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+}
+
+.admin-btn-info:hover {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+.admin-btn-danger {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.admin-btn-danger:hover {
+    background: #dc2626;
+    color: white;
+    border-color: #dc2626;
+}
+
+.admin-btn-secondary {
+    background: #f9fafb;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+}
+
+.admin-btn-secondary:hover {
+    background: #6b7280;
+    color: white;
+    border-color: #6b7280;
+}
+
+/* 코스 신고 콘텐츠 */
+.admin-report-content {
+    padding: 20px 24px;
+}
+
+.admin-report-info {
+    margin-bottom: 16px;
+}
+
+.admin-report-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #6b7280;
+    flex-wrap: wrap;
+}
+
+.admin-report-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.admin-report-meta i {
+    font-size: 14px;
+    color: #9ca3af;
+}
+
+.admin-report-summary {
+    color: #4b5563;
+    line-height: 1.6;
+    font-size: 14px;
+    background: #f9fafb;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #f3f4f6;
+}
+
+.admin-report-details {
+    border-top: 1px solid #f3f4f6;
+    padding-top: 16px;
+}
+
+.admin-report-latest {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.admin-report-latest strong {
+    color: #374151;
+    font-weight: 600;
+}
+
+/* 코스 신고 상세 모달 */
+.admin-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.admin-modal-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.admin-modal-header {
+    padding: 24px 24px 0 24px;
+    border-bottom: 1px solid #f3f4f6;
+    margin-bottom: 20px;
+}
+
+.admin-modal-header h5 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 8px 0;
+}
+
+.admin-modal-body {
+    padding: 0 24px;
+}
+
+.admin-report-detail-item {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.admin-report-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-report-detail-reporter {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.admin-report-detail-time {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.admin-report-detail-reason,
+.admin-report-detail-content {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.admin-report-detail-reason strong,
+.admin-report-detail-content strong {
+    color: #374151;
+    font-weight: 600;
+}
+
+.admin-modal-footer {
+    padding: 20px 24px 24px 24px;
+    border-top: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .admin-report-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .admin-report-actions {
+        justify-content: center;
+    }
+    
+    .admin-report-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .admin-modal {
+        padding: 10px;
+    }
+    
+    .admin-modal-content {
+        max-height: 90vh;
+    }
+    
+    .admin-modal-header,
+    .admin-modal-body,
+    .admin-modal-footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    
+    .admin-modal-footer {
+        flex-direction: column;
+    }
+    
+    .admin-btn {
+        justify-content: center;
+    }
+}
+

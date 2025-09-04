@@ -39,6 +39,10 @@
     Map<String, Integer> dongToRegionIdMapping = (Map<String, Integer>) request.getAttribute("dongToRegionIdMapping");
     if (dongToRegionIdMapping == null) dongToRegionIdMapping = new HashMap<>();
     
+    // 선택된 장소 정보 (placeId 파라미터로 전달된 경우)
+    Object selectedPlace = request.getAttribute("selectedPlace");
+    Integer placeId = (Integer) request.getAttribute("placeId");
+    
     // JWT 토큰 기반 인증으로 완전히 변경 - 서버 사이드에서는 세션 체크 안함
     // 로그인 상태는 클라이언트 JavaScript에서 JWT 토큰으로 확인
 %>
@@ -125,10 +129,10 @@
     </div>
   </div>
   
-  <!-- 헌팅썰 인기글 섹션 -->
+  <!-- 핫플썰 인기글 섹션 -->
   <div class="row mt-5">
     <div class="col-12">
-      <jsp:include page="hunting_popular.jsp" />
+      <jsp:include page="hotplace_popular.jsp" />
     </div>
   </div>
 </div>
@@ -141,6 +145,50 @@
   var isLoggedIn = false; // JavaScript에서 JWT 토큰으로 확인
   var loginUserId = '';   // JavaScript에서 JWT 토큰으로 확인  
   var isAdmin = false;    // JavaScript에서 서버 API 호출로 확인
+  
+  // JWT 토큰 관리 함수들
+  function getToken() {
+      return localStorage.getItem('accessToken');
+  }
+  
+  function saveToken(token, refreshToken) {
+      // localStorage에 저장
+      localStorage.setItem('accessToken', token);
+      if (refreshToken) {
+          localStorage.setItem('refreshToken', refreshToken);
+      }
+      
+      // 쿠키에도 저장 (브라우저 직접 접근 시 인증을 위해)
+      const expires = new Date();
+      expires.setTime(expires.getTime() + (24 * 60 * 60 * 1000)); // 24시간
+      
+      // accessToken 쿠키 설정
+      document.cookie = `accessToken=${token}; expires=${expires.toUTCString()}; path=/; SameSite=Strict`;
+      
+      if (refreshToken) {
+          // refreshToken 쿠키 설정 (7일)
+          const refreshExpires = new Date();
+          refreshExpires.setTime(refreshExpires.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7일
+          document.cookie = `refreshToken=${refreshToken}; expires=${refreshExpires.toUTCString()}; path=/; SameSite=Strict`;
+      }
+      
+      console.log('JWT 토큰을 localStorage와 쿠키에 저장 완료');
+  }
+  
+  function removeToken() {
+      // localStorage에서 삭제
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userInfo');
+      
+      // 쿠키에서도 삭제
+      document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      
+      console.log('JWT 토큰을 localStorage와 쿠키에서 삭제 완료');
+  }
+  
+
   
   // JWT 토큰에서 로그인 정보 확인 (title.jsp와 일관성 유지)
   function initAuthStatus() {
@@ -280,22 +328,21 @@
     Object obj = hotplaceList.get(i);
     if (obj instanceof com.wherehot.spring.entity.Hotplace) {
       com.wherehot.spring.entity.Hotplace hotplace = (com.wherehot.spring.entity.Hotplace) obj;
-      // 장르 정보는 별도로 조회하도록 변경 (Hotplace Entity에서 제거됨)
-  %>{id:<%=hotplace.getId()%>, name:'<%=hotplace.getName().replace("'", "\\'")%>', categoryId:<%=hotplace.getCategoryId()%>, address:'<%=hotplace.getAddress().replace("'", "\\'")%>', lat:<%=hotplace.getLat()%>, lng:<%=hotplace.getLng()%>, regionId:<%=hotplace.getRegionId()%>}<% if (i < hotplaceList.size() - 1) { %>,<% } } }%>];
-  
-  var rootPath = '<%=root%>';
-  var sigunguCenters = [<% for (int i = 0; i < sigunguCenterList.size(); i++) { Map<String, Object> row = sigunguCenterList.get(i); %>{sido:'<%=row.get("sido")%>', sigungu:'<%=row.get("sigungu")%>', lat:<%=row.get("lat")%>, lng:<%=row.get("lng")%>}<% if (i < sigunguCenterList.size() - 1) { %>,<% } %><% } %>];
-  var sigunguCategoryCounts = [<% for (int i = 0; i < sigunguCategoryCountList.size(); i++) { Map<String, Object> row = sigunguCategoryCountList.get(i); %>{sigungu:'<%=row.get("sigungu")%>', lat:<%=row.get("lat")%>, lng:<%=row.get("lng")%>, clubCount:<%=row.get("clubCount")%>, huntingCount:<%=row.get("huntingCount")%>, loungeCount:<%=row.get("loungeCount")%>, pochaCount:<%=row.get("pochaCount")%>}<% if (i < sigunguCategoryCountList.size() - 1) { %>,<% } %><% } %>];
-  var regionCenters = [<% for (int i = 0; i < regionCenters.size(); i++) { Map<String, Object> row = regionCenters.get(i); %>{id:<%=row.get("id")%>, sido:'<%=row.get("sido")%>', sigungu:'<%=row.get("sigungu")%>', dong:'<%=row.get("dong")%>', lat:<%=row.get("lat")%>, lng:<%=row.get("lng")%>}<% if (i < regionCenters.size() - 1) { %>,<% } %><% } %>];
-  var regionCategoryCounts = [<% for (int i = 0; i < regionCategoryCounts.size(); i++) { Map<String, Object> row = regionCategoryCounts.get(i); %>{region_id:<%=row.get("region_id")%>, clubCount:<%=row.get("clubCount")%>, huntingCount:<%=row.get("huntingCount")%>, loungeCount:<%=row.get("loungeCount")%>, pochaCount:<%=row.get("pochaCount")%>}<% if (i < regionCategoryCounts.size() - 1) { %>,<% } %><% } %>];
+	  // 장르 정보는 별도로 조회하도록 변경 (Hotplace Entity에서 제거됨)
+	   %>{id:<%=hotplace.getId()%>, name:'<%=hotplace.getName().replace("'", "\\'")%>', categoryId:<%=hotplace.getCategoryId()%>, address:'<%=hotplace.getAddress().replace("'", "\\'")%>', lat:<%=hotplace.getLat()%>, lng:<%=hotplace.getLng()%>, regionId:<%=hotplace.getRegionId()%>}<% if (i < hotplaceList.size() - 1) { %>,<% } } }%>];
+	   
+	   var rootPath = '<%=root%>';
+	   var sigunguCenters = [<% for (int i = 0; i < sigunguCenterList.size(); i++) { Map<String, Object> row = sigunguCenterList.get(i); %>{sido:'<%=row.get("sido")%>', sigungu:'<%=row.get("sigungu")%>', lat:<%=row.get("lat")%>, lng:<%=row.get("lng")%>}<% if (i < sigunguCenterList.size() - 1) { %>,<% } %><% } %>];
+	   var sigunguCategoryCounts = [<% for (int i = 0; i < sigunguCategoryCountList.size(); i++) { Map<String, Object> row = sigunguCategoryCountList.get(i); %>{sigungu:'<%=row.get("sigungu")%>', lat:<%=row.get("lat")%>, lng:<%=row.get("lng")%>, clubCount:<%=row.get("clubCount")%>, huntingCount:<%=row.get("huntingCount")%>, loungeCount:<%=row.get("loungeCount")%>, pochaCount:<%=row.get("pochaCount")%>}<% if (i < sigunguCategoryCountList.size() - 1) { %>,<% } %><% } %>];
+	   var regionCenters = [<% for (int i = 0; i < regionCenters.size(); i++) { Map<String, Object> row = regionCenters.get(i); %>{id:<%=row.get("id")%>, sido:'<%=row.get("sido")%>', sigungu:'<%=row.get("sigungu")%>', dong:'<%=row.get("dong")%>', lat:<%=row.get("lat")%>, lng:<%=row.get("lng")%>}<% if (i < regionCenters.size() - 1) { %>,<% } %><% } %>];
+	   var regionCategoryCounts = [<% for (int i = 0; i < regionCategoryCounts.size(); i++) { Map<String, Object> row = regionCategoryCounts.get(i); %>{region_id:<%=row.get("region_id")%>, clubCount:<%=row.get("clubCount")%>, huntingCount:<%=row.get("huntingCount")%>, loungeCount:<%=row.get("loungeCount")%>, pochaCount:<%=row.get("pochaCount")%>}<% if (i < regionCategoryCounts.size() - 1) { %>,<% } %><% } %>];
 
-  var mapContainer = document.getElementById('map');
-  var mapOptions = {
-    center: new kakao.maps.LatLng(37.5665, 126.9780),
-    level: 7
-  };
-  var map = new kakao.maps.Map(mapContainer, mapOptions);
-
+	   var mapContainer = document.getElementById('map');
+	   var mapOptions = {
+	     center: new kakao.maps.LatLng(37.5665, 126.9780),
+	     level: 7
+	   };
+	   var map = new kakao.maps.Map(mapContainer, mapOptions);
   // URL 파라미터가 있으면 해당 위치로 이동
   if (targetLat && targetLng) {
     console.log('URL 파라미터 감지: lat=' + targetLat + ', lng=' + targetLng);
@@ -303,6 +350,8 @@
     map.setCenter(targetPosition);
     map.setLevel(5); // 줌 레벨 조정
   }
+  
+
 
   // 마커/오버레이 배열
   var hotplaceMarkers = [], hotplaceLabels = [], hotplaceInfoWindows = [];
@@ -443,6 +492,46 @@
     hotplaceInfoWindows.push(infowindow);
     hotplaceCategoryIds.push(place.categoryId);
   });
+  
+  // placeId 파라미터 처리 함수 (마커 생성 완료 후 실행)
+  function handlePlaceIdParameter() {
+    var placeIdParam = urlParams.get('placeId');
+    if (placeIdParam) {
+      var selectedPlaceId = parseInt(placeIdParam);
+      console.log('Selected place ID:', selectedPlaceId);
+      
+      // 선택된 장소를 핫플레이스 목록에서 찾기
+      var selectedPlace = hotplaces.find(function(place) {
+        return place.id === selectedPlaceId;
+      });
+      
+      if (selectedPlace) {
+        // 선택된 장소를 지도 중심으로 이동
+        var selectedPosition = new kakao.maps.LatLng(selectedPlace.lat, selectedPlace.lng);
+        map.setCenter(selectedPosition);
+        map.setLevel(3); // 더 자세한 줌 레벨
+        
+        console.log('Selected place found:', selectedPlace);
+        
+        // 해당 장소의 마커 찾기
+        var targetMarker = null;
+        for (var i = 0; i < hotplaces.length; i++) {
+          if (hotplaces[i].id === selectedPlaceId) {
+            targetMarker = hotplaceMarkers[i];
+            break;
+          }
+        }
+        
+        if (targetMarker) {
+          console.log('Target marker found, triggering click event');
+          // 마커 클릭 이벤트 트리거 (기존 마커 클릭과 동일한 동작)
+          kakao.maps.event.trigger(targetMarker, 'click');
+        } else {
+          console.log('Target marker not found');
+        }
+      }
+    }
+  }
 
   // 카테고리 필터 버튼 클릭 이벤트
   document.addEventListener('DOMContentLoaded', function() {
@@ -528,6 +617,9 @@
 
   kakao.maps.event.addListener(map, 'zoom_changed', updateMapOverlays);
   updateMapOverlays();
+  
+  // placeId 파라미터가 있으면 해당 장소로 이동하고 마커 클릭
+  handlePlaceIdParameter();
 
   // 구 오버레이 클릭 이벤트
   guOverlays.forEach(function(overlay, idx) {

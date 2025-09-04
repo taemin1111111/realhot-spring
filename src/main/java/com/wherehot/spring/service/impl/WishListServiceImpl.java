@@ -168,6 +168,7 @@ public class WishListServiceImpl implements WishListService {
             WishList wishList = new WishList();
             wishList.setUserid(loginId);
             wishList.setPlace_id(placeId);
+            wishList.setPersonal_note(null); // 명시적으로 null 설정
             
             WishList saved = saveWishList(wishList);
             if (saved != null) {
@@ -211,6 +212,24 @@ public class WishListServiceImpl implements WishListService {
         } catch (Exception e) {
             logger.error("Error getting wish count for place: {}", placeId, e);
             return 0;
+        }
+    }
+    
+    @Override
+    @Transactional
+    public boolean updatePersonalNote(int wishId, String personalNote) {
+        try {
+            int result = wishListMapper.updatePersonalNote(wishId, personalNote);
+            if (result > 0) {
+                logger.info("Personal note updated successfully: wishId={}, note={}", wishId, personalNote);
+                return true;
+            } else {
+                logger.warn("No wish list found to update: wishId={}", wishId);
+                return false;
+            }
+        } catch (Exception e) {
+            logger.error("Error updating personal note: wishId={}, note={}", wishId, personalNote, e);
+            return false;
         }
     }
 }

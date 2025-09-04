@@ -82,63 +82,6 @@
 </div>
 
 <script>
-// JWT 토큰 관리 함수들
-function saveToken(token, refreshToken) {
-    localStorage.setItem('accessToken', token);
-    if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken);
-    }
-}
-
-function getToken() {
-    return localStorage.getItem('accessToken');
-}
-
-function getRefreshToken() {
-    return localStorage.getItem('refreshToken');
-}
-
-function removeToken() {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userInfo');
-}
-
-// 토큰 자동 갱신 함수
-async function refreshAccessToken() {
-    const refreshToken = getRefreshToken();
-    if (!refreshToken) {
-        console.log('리프레시 토큰이 없습니다.');
-        return false;
-    }
-    
-    try {
-        const response = await fetch('<%=root%>/api/auth/refresh', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ refreshToken: refreshToken })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            if (data.result && data.token) {
-                // 새 액세스 토큰 저장
-                localStorage.setItem('accessToken', data.token);
-                console.log('토큰 갱신 성공');
-                return true;
-            }
-        }
-        
-        console.log('토큰 갱신 실패');
-        return false;
-    } catch (error) {
-        console.error('토큰 갱신 오류:', error);
-        return false;
-    }
-}
-
 // API 요청 시 JWT 토큰을 헤더에 포함하는 함수 (자동 갱신 포함)
 async function fetchWithAuth(url, options = {}) {
     const token = getToken();
@@ -216,9 +159,17 @@ async function handleLogin(event) {
             // 토큰 유효성 검사 (JwtResponse.token 필드 사용)
             if (data.token && data.token.includes('.')) {
                 console.log('JWT 토큰 저장:', data.token.substring(0, 50) + '...');
+                console.log('refreshToken 존재:', !!data.refreshToken);
                 
-                // 기존 방식으로 토큰 저장
+                // 토큰 저장 전 상태 확인
+                console.log('저장 전 localStorage accessToken:', localStorage.getItem('accessToken') ? '있음' : '없음');
+                console.log('저장 전 쿠키:', document.cookie);
+                
+                // ✅ 분리된 auth-utils.js의 함수 호출 (이제 localStorage에만 저장)
                 saveToken(data.token, data.refreshToken);
+                
+                // 저장 후 상태 확인
+                console.log('저장 후 localStorage accessToken:', localStorage.getItem('accessToken') ? '있음' : '없음');
                 
                 // 사용자 정보도 함께 저장 (즉시 UI 업데이트용)
                 const userInfo = {
@@ -282,15 +233,28 @@ async function handleLogin(event) {
 // 로그아웃 함수
 async function logout() {
     try {
-        const token = getToken();
-        if (token) {
-            await fetchWithAuth('/hotplace/api/auth/logout', { method: 'POST' });
+        const response = await fetch(root + '/api/auth/logout', {
+            method: 'POST',
+        });
+        
+        if (response.ok) {
+            console.log('서버 로그아웃 성공');
+        } else {
+            console.error('서버 로그아웃 실패');
         }
     } catch (error) {
-        console.error('Logout error:', error);
-    } finally {
-        removeToken();
-        location.reload();
+        console.error('로그아웃 요청 오류:', error);
+    }
+    
+    // 서버 응답과 관계없이 클라이언트 데이터 정리
+    removeToken(); // localStorage 정리
+    
+    // UI 업데이트
+    if (window.showLoggedOutUI) {
+        window.showLoggedOutUI();
+        console.log('로그아웃 후 즉시 UI 업데이트 완료');
+    } else {
+        location.reload(); // fallback
     }
 }
 

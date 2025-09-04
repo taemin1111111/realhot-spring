@@ -29,6 +29,7 @@
                     <div class="hpost-detail-menu">
                         <button class="hpost-detail-menu-btn" onclick="showHpostMenu()">⋯</button>
                         <div class="hpost-detail-menu-dropdown" id="hpostMenuDropdown" style="display: none;">
+                            <div class="hpost-detail-menu-item" onclick="showReportModal()">신고</div>
                             <div class="hpost-detail-menu-item" onclick="showHpostDeleteModal()">삭제</div>
                         </div>
                     </div>
@@ -162,10 +163,17 @@
 <script>
 // 전역 변수 설정
 let HPOST_ID = parseInt('${hpost.id}');
-if (isNaN(HPOST_ID)) {
+if (isNaN(HPOST_ID) || HPOST_ID <= 0) {
     HPOST_ID = 0;
+    console.error('HPOST_ID가 유효하지 않습니다. hpost.id 값:', '${hpost.id}');
+} else {
+    console.log('HPOST_ID 설정 완료:', HPOST_ID);
 }
-console.log('HPOST_ID 설정:', HPOST_ID);
+console.log('hpost.id 값:', '${hpost.id}');
+console.log('파싱된 HPOST_ID:', HPOST_ID);
+
+// 현재 댓글 정렬 상태
+let currentCommentSort = 'latest';
 
 // 로그인 상태 변경 감지 및 댓글 폼 업데이트 함수
 function updateCommentFormOnLoginChange() {
@@ -513,18 +521,30 @@ function displayComments(comments, sortType = 'latest') {
     let sortedComments = [...comments];
     
     if (sortType === 'latest') {
+        // 최신순: 생성 시간 기준 내림차순
         sortedComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        console.log('최신순 정렬 적용');
     } else if (sortType === 'popular') {
+        // 인기순: 좋아요 수 기준 내림차순, 같으면 최신순
         sortedComments.sort((a, b) => {
-            const aLikes = a.likeCount || 0;
-            const bLikes = b.likeCount || 0;
+            const aLikes = a.likes || 0;
+            const bLikes = b.likes || 0;
+            console.log(`댓글 ${a.id}: 좋아요 ${aLikes}, 댓글 ${b.id}: 좋아요 ${bLikes}`);
+            
             if (aLikes !== bLikes) {
-                return bLikes - aLikes;
+                return bLikes - aLikes; // 좋아요 많은 순
             } else {
-                return new Date(b.createdAt) - new Date(a.createdAt);
+                return new Date(b.createdAt) - new Date(a.createdAt); // 같으면 최신순
             }
         });
+        console.log('인기순 정렬 적용');
     }
+    
+    console.log('정렬된 댓글:', sortedComments.map(c => ({
+        id: c.id,
+        likes: c.likes,
+        createdAt: c.createdAt
+    })));
     
     let html = '';
     sortedComments.forEach((comment) => {
@@ -533,12 +553,25 @@ function displayComments(comments, sortType = 'latest') {
     
     commentsList.innerHTML = html;
     updateCommentCount(sortedComments.length);
+    
+    // 정렬 버튼 상태 업데이트
+    updateSortButtons(sortType);
 }
 
 function createCommentHTML(comment) {
     const timeAgo = getTimeAgo(comment.createdAt);
     
-    return '<div class="hpost-comment-item" data-comment-id="' + comment.id + '" data-author-userid="' + (comment.authorUserid || '') + '">' +
+    // authorUserid가 없으면 'anonymous'로 설정 (비로그인 사용자)
+    const authorUserid = comment.authorUserid || comment.idAddress || 'anonymous';
+    
+    console.log('댓글 HTML 생성:', {
+        commentId: comment.id,
+        nickname: comment.nickname,
+        authorUserid: authorUserid,
+        idAddress: comment.idAddress
+    });
+    
+    return '<div class="hpost-comment-item" data-comment-id="' + comment.id + '" data-author-userid="' + authorUserid + '">' +
         '<div class="hpost-comment-header">' +
             '<span class="hpost-comment-display-nickname">' + (comment.nickname || '') + '</span>' +
             '<div class="hpost-comment-menu" onclick="showCommentDeleteMenu(' + comment.id + ', \'' + (comment.nickname || '') + '\')">' +
@@ -569,11 +602,14 @@ function createCommentHTML(comment) {
 
 function updateSortButtons(activeSort) {
     const sortButtons = document.querySelectorAll('.hpost-sort-btn');
+    console.log('정렬 버튼 상태 업데이트:', activeSort);
+    
     sortButtons.forEach(btn => {
         btn.classList.remove('active');
         if ((activeSort === 'latest' && btn.textContent.includes('최신순')) || 
             (activeSort === 'popular' && btn.textContent.includes('인기순'))) {
             btn.classList.add('active');
+            console.log('활성화된 버튼:', btn.textContent);
         }
     });
 }
@@ -586,6 +622,10 @@ async function loadComments(sort = 'latest') {
             document.getElementById('commentsList').innerHTML = '<div class="no-comments">HPOST ID를 찾을 수 없습니다.</div>';
             return;
         }
+        
+        // 현재 정렬 상태 업데이트
+        currentCommentSort = sort;
+        console.log('현재 정렬 상태:', currentCommentSort);
         
         const url = '<%=root%>/hpost/' + HPOST_ID + '/comments?sort=' + sort;
         const response = await fetch(url);
@@ -744,7 +784,7 @@ async function submitComment() {
                 document.getElementById('commentContent').value = '';
             }
             
-            loadComments('latest');
+            loadComments(currentCommentSort);
             
         } else {
             alert(result.message || '댓글 등록에 실패했습니다.');
@@ -817,7 +857,7 @@ async function toggleCommentReaction(commentId, reactionType) {
                         console.log('리액션 없음 (취소됨)');
                     }
                 } else {
-                    loadComments('latest');
+                    loadComments(currentCommentSort);
                 }
             }, 100);
         } else {
@@ -853,6 +893,13 @@ function showCommentDeleteMenu(commentId, nickname) {
 function deleteComment(commentId, nickname) {
     const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
     const authorUserid = commentElement ? commentElement.getAttribute('data-author-userid') : null;
+    
+    console.log('댓글 삭제 요청:', {
+        commentId: commentId,
+        nickname: nickname,
+        authorUserid: authorUserid
+    });
+    
     showCommentPasswordModal(commentId, nickname, authorUserid);
 }
 
@@ -862,7 +909,17 @@ function showCommentPasswordModal(commentId, nickname, authorUserid) {
     const input = document.getElementById('commentPasswordModalInput');
     
     const loggedIn = isLoggedIn();
-    const isAnonymousComment = authorUserid === 'anonymous';
+    // authorUserid가 IP 주소 형태(숫자.숫자.숫자.숫자)이거나 'anonymous'이면 비로그인 사용자
+    const isAnonymousComment = authorUserid === 'anonymous' || 
+                              (authorUserid && /^\d+\.\d+\.\d+\.\d+$/.test(authorUserid));
+    
+    console.log('댓글 삭제 모달 표시:', {
+        commentId: commentId,
+        nickname: nickname,
+        authorUserid: authorUserid,
+        loggedIn: loggedIn,
+        isAnonymousComment: isAnonymousComment
+    });
     
     if (loggedIn && !isAnonymousComment) {
         title.textContent = '댓글을 삭제하시겠습니까?';
@@ -899,7 +956,9 @@ function confirmCommentDelete() {
     const password = input.value;
     
     const loggedIn = isLoggedIn();
-    const isAnonymousComment = authorUserid === 'anonymous';
+    // authorUserid가 IP 주소 형태(숫자.숫자.숫자.숫자)이거나 'anonymous'이면 비로그인 사용자
+    const isAnonymousComment = authorUserid === 'anonymous' || 
+                              (authorUserid && /^\d+\.\d+\.\d+\.\d+$/.test(authorUserid));
     
     if (isAnonymousComment || !loggedIn) {
         if (!password || password.length !== 4 || !/^\d{4}$/.test(password)) {
@@ -909,40 +968,53 @@ function confirmCommentDelete() {
         }
     }
     
-    const token = localStorage.getItem('accessToken');
-    
-    const requestData = {
-        commentId: commentId,
-        nickname: nickname,
-        authorUserid: authorUserid
-    };
-    
-    if (isAnonymousComment || !loggedIn) {
-        requestData.password = password;
-    }
-    
-    fetch('<%=root%>/hpost/comment/delete', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': token ? 'Bearer ' + token : ''
-        },
-        body: JSON.stringify(requestData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('댓글이 삭제되었습니다.');
-            closeCommentPasswordModal();
-            loadComments('latest');
-        } else {
-            alert(data.message || '댓글 삭제에 실패했습니다.');
+    try {
+        const baseUrl = '<%=root%>';
+        const url = baseUrl + '/hpost/' + HPOST_ID + '/comment/' + commentId;
+        
+        console.log('댓글 삭제 요청 URL:', url);
+        console.log('댓글 ID:', commentId);
+        console.log('닉네임:', nickname);
+        console.log('로그인 상태:', loggedIn);
+        
+        const formData = new URLSearchParams();
+        formData.append('nickname', nickname);
+        
+        if (isAnonymousComment || !loggedIn) {
+            formData.append('password', password);
         }
-    })
-    .catch(error => {
-        console.error('댓글 삭제 오류:', error);
-        alert('댓글 삭제 중 오류가 발생했습니다.');
-    });
+        
+        const token = localStorage.getItem('accessToken');
+        
+        fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': token ? 'Bearer ' + token : ''
+            },
+            body: formData
+        })
+        .then(response => {
+            console.log('댓글 삭제 응답 상태:', response.status, response.statusText);
+            return response.json();
+        })
+        .then(data => {
+            console.log('댓글 삭제 응답 데이터:', data);
+            if (data.success) {
+                alert('댓글이 삭제되었습니다.');
+                closeCommentPasswordModal();
+                loadComments(currentCommentSort);
+            } else {
+                alert(data.message || '댓글 삭제에 실패했습니다.');
+            }
+        })
+        .catch(error => {
+            console.error('댓글 삭제 오류:', error);
+            alert('댓글 삭제 중 오류가 발생했습니다.');
+        });
+    } catch (error) {
+        console.error('댓글 삭제 처리 오류:', error);
+        alert('댓글 삭제 처리 중 오류가 발생했습니다.');
+    }
 }
 
 // 사진 크기 조정 함수들
@@ -1066,8 +1138,11 @@ function closeHpostDeleteModal() {
 
 // 게시글 삭제 실행
 async function deleteHpost() {
-    if (!HPOST_ID || HPOST_ID === 0) {
-        alert('게시글 ID가 없습니다.');
+    console.log('deleteHpost 함수 시작 - HPOST_ID:', HPOST_ID);
+    
+    if (!HPOST_ID || HPOST_ID === 0 || isNaN(HPOST_ID)) {
+        console.error('HPOST_ID가 유효하지 않습니다:', HPOST_ID);
+        alert('게시글 ID가 유효하지 않습니다. 페이지를 새로고침해주세요.');
         return;
     }
     
@@ -1079,7 +1154,14 @@ async function deleteHpost() {
     }
     
     try {
-        const response = await fetch(`<%=root%>/hpost/${HPOST_ID}/delete`, {
+        const baseUrl = '<%=root%>';
+        const url = baseUrl + '/hpost/' + HPOST_ID + '/delete';
+        
+        console.log('삭제 요청 URL:', url);
+        console.log('HPOST_ID:', HPOST_ID);
+        console.log('baseUrl:', baseUrl);
+        
+        const response = await fetch(url, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -1089,26 +1171,132 @@ async function deleteHpost() {
             })
         });
         
-        const data = await response.json();
+        console.log('서버 응답 상태:', response.status, response.statusText);
         
-        if (response.ok && data.success) {
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('서버 응답 오류:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('서버 응답 데이터:', data);
+        
+        if (data.success) {
             alert('게시글이 삭제되었습니다.');
             // 목록 페이지로 이동
-            window.location.href = '<%=root%>/hpost';
+            window.location.href = baseUrl + '/hpost';
         } else {
             alert(data.message || '게시글 삭제에 실패했습니다. 비밀번호를 확인해주세요.');
         }
     } catch (error) {
         console.error('게시글 삭제 오류:', error);
-        alert('게시글 삭제 중 오류가 발생했습니다.');
+        alert('게시글 삭제 중 오류가 발생했습니다: ' + error.message);
     } finally {
         closeHpostDeleteModal();
     }
 }
 
+// 신고 모달 표시
+function showReportModal() {
+    const userInfo = getUserInfoFromToken();
+    if (!userInfo) {
+        showToast('신고는 로그인한 사용자만 가능합니다', 2500);
+        return;
+    }
+    
+    // 모달 표시
+    const reportModal = document.getElementById('reportModal');
+    reportModal.style.display = 'flex';
+}
+
+// 신고 모달 닫기
+function closeReportModal() {
+    const reportModal = document.getElementById('reportModal');
+    reportModal.style.display = 'none';
+    // 폼 초기화
+    document.getElementById('reportReason').value = '';
+    document.getElementById('reportContent').value = '';
+}
+
+// 신고 제출
+async function submitReport() {
+    const reason = document.getElementById('reportReason').value;
+    const content = document.getElementById('reportContent').value;
+    
+    if (!reason || !content) {
+        alert('신고 사유와 내용을 모두 입력해주세요.');
+        return;
+    }
+    
+    const userInfo = getUserInfoFromToken();
+    if (!userInfo) {
+        showToast('신고는 로그인한 사용자만 가능합니다', 2500);
+        return;
+    }
+    
+    try {
+        const baseUrl = '<%=root%>';
+        const url = baseUrl + '/hpost/report';
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('accessToken')
+            },
+            body: JSON.stringify({
+                postId: HPOST_ID,
+                reason: reason,
+                content: content
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                showToast('신고가 접수되었습니다', 2500);
+                // 모달 닫기
+                closeReportModal();
+            } else {
+                showToast(data.message || '신고 접수에 실패했습니다', 2500);
+            }
+        } else {
+            showToast('신고 접수 중 오류가 발생했습니다', 2500);
+        }
+    } catch (error) {
+        console.error('신고 오류:', error);
+        showToast('신고 접수 중 오류가 발생했습니다', 2500);
+    }
+}
+
+// 토스트 메시지 표시
+function showToast(message, duration = 2500) {
+    const toast = document.getElementById('toast');
+    const toastContent = toast.querySelector('.toast-content');
+    
+    toastContent.textContent = message;
+    toast.style.display = 'block';
+    
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, duration);
+}
+
 // 페이지 초기화
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOMContentLoaded 이벤트 시작');
+    console.log('초기 HPOST_ID 값:', HPOST_ID);
+    
+    // HPOST_ID 재확인
+    if (!HPOST_ID || HPOST_ID === 0) {
+        const hpostIdFromJSP = parseInt('${hpost.id}');
+        console.log('JSP에서 직접 가져온 hpost.id:', hpostIdFromJSP);
+        if (!isNaN(hpostIdFromJSP) && hpostIdFromJSP > 0) {
+            HPOST_ID = hpostIdFromJSP;
+            console.log('HPOST_ID 재설정 완료:', HPOST_ID);
+        }
+    }
     
     // 사진 관련 UI 설정
     const photoContainer = document.querySelector('.hpost-detail-photos');
@@ -1133,8 +1321,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // 댓글 폼 UI 설정
     setupCommentForm();
     
-    // 댓글 로드
-    loadComments('latest');
+    // 댓글 로드 (현재 정렬 상태 유지)
+    loadComments(currentCommentSort);
     
     // 투표 상태 및 통계 초기 로드 (지연 시간 단축)
     console.log('투표 통계 로드 시작 예약');
@@ -1145,3 +1333,34 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 200);
 });
 </script>
+
+<!-- 신고 모달 -->
+<div id="reportModal" class="password-modal">
+    <div class="password-modal-content">
+        <div class="password-modal-title" id="reportModalTitle">게시글 신고</div>
+        <div style="margin-bottom: 15px;">
+            <label for="reportReason" style="display: block; margin-bottom: 5px; font-weight: 600;">신고 사유</label>
+            <select id="reportReason" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                <option value="">신고 사유를 선택해주세요</option>
+                <option value="스팸">스팸</option>
+                <option value="부적절한 내용">부적절한 내용</option>
+                <option value="욕설/비방">욕설/비방</option>
+                <option value="저작권 침해">저작권 침해</option>
+                <option value="기타">기타</option>
+            </select>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label for="reportContent" style="display: block; margin-bottom: 5px; font-weight: 600;">상세 내용</label>
+            <textarea id="reportContent" placeholder="신고 상세 내용을 입력해주세요..." style="width: 100%; height: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; resize: vertical;" required></textarea>
+        </div>
+        <div class="password-modal-buttons">
+            <button class="password-modal-btn confirm" onclick="submitReport()">신고</button>
+            <button class="password-modal-btn cancel" onclick="closeReportModal()">취소</button>
+        </div>
+    </div>
+</div>
+
+<!-- 토스트 메시지 -->
+<div id="toast" class="toast-message" style="display: none;">
+    <div class="toast-content"></div>
+</div>

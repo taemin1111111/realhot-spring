@@ -8,6 +8,7 @@
         <result property="userid" column="userid"/>
         <result property="place_id" column="place_id"/>
         <result property="wishDate" column="wish_date"/>
+        <result property="personal_note" column="personal_note"/>
         <!-- 핫플레이스 정보 -->
         <result property="hotplaceName" column="hotplace_name"/>
         <result property="hotplaceAddress" column="hotplace_address"/>
@@ -19,11 +20,17 @@
         <result property="hotplaceReviewCount" column="hotplace_review_count"/>
         <!-- 사용자 정보 -->
         <result property="userNickname" column="user_nickname"/>
+        <!-- 카테고리 정보 -->
+        <result property="categoryName" column="category_name"/>
     </resultMap>
 
     <!-- 기본 SELECT 절 -->
     <sql id="selectWishListColumns">
-        SELECT w.*,
+        SELECT w.id as id,
+               w.userid as userid,
+               w.place_id as place_id,
+               w.wish_date as wish_date,
+               w.personal_note as personal_note,
                h.name as hotplace_name,
                h.address as hotplace_address,
                h.region as hotplace_region,
@@ -32,10 +39,12 @@
                h.image_url as hotplace_image_url,
                h.average_rating as hotplace_average_rating,
                h.review_count as hotplace_review_count,
-               m.nickname as user_nickname
+               m.nickname as user_nickname,
+               c.name as category_name
         FROM wishlist w
         LEFT JOIN hotplace_info h ON w.place_id = h.id
         LEFT JOIN member m ON w.userid = m.userid
+        LEFT JOIN category c ON h.category_id = c.id
     </sql>
 
     <!-- 사용자별 위시리스트 조회 -->
@@ -66,11 +75,13 @@
         INSERT INTO wishlist (
             userid,
             place_id,
-            wish_date
+            wish_date,
+            personal_note
         ) VALUES (
             #{userid},
             #{place_id},
-            #{wishDate}
+            #{wishDate},
+            #{personal_note}
         )
     </insert>
 
@@ -222,5 +233,12 @@
         GROUP BY c.id, c.name
         ORDER BY wish_count DESC
     </select>
+
+    <!-- 개인 메모 업데이트 -->
+    <update id="updatePersonalNote">
+        UPDATE wishlist 
+        SET personal_note = #{personalNote}
+        WHERE id = #{id}
+    </update>
 
 </mapper>

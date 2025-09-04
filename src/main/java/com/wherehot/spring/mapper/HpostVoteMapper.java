@@ -55,4 +55,9 @@ public interface HpostVoteMapper {
      */
     int deleteVoteByUserAndPost(@Param("userid") String userid, 
                                @Param("postId") int postId);
+    
+    /**
+     * 게시글의 모든 투표 삭제
+     */
+    void deleteVotesByPostId(@Param("postId") int postId);
 }

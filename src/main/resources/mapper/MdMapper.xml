@@ -1,68 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.wherehot.spring.mapper.MdMapper">
-    
-    <!-- MD 등록 -->
-    <insert id="insertMd" parameterType="com.wherehot.spring.entity.Md" useGeneratedKeys="true" keyProperty="mdId">
-        INSERT INTO md_info (md_name, place_id, contact, description, photo, created_at, is_visible)
-        VALUES (#{mdName}, #{placeId}, #{contact}, #{description}, #{photo}, NOW(), TRUE)
-    </insert>
-    
-    <!-- MD 목록 조회 (페이징, 검색) -->
-    <select id="selectMdListWithPlace" resultType="map">
+
+    <!-- MD 목록 조회 (페이징, 검색, 정렬) -->
+    <select id="selectMdList" resultType="com.wherehot.spring.entity.Md">
         SELECT 
-            m.md_id AS mdId,
-            m.md_name AS mdName,
-            m.place_id AS placeId,
+            m.md_id as mdId,
+            m.place_id as placeId,
+            m.md_name as mdName,
             m.contact,
             m.description,
             m.photo,
-            m.created_at AS createAt,
-            m.is_visible AS isVisible,
-            h.name AS placeName,
-            h.address,
-            COALESCE(w.wish_count, 0) AS wishCount,
-            <if test="loginId != null">
-                CASE WHEN mw.userid IS NOT NULL THEN true ELSE false END AS isWished
-            </if>
-            <if test="loginId == null">
-                false AS isWished
-            </if>
+            m.created_at as createdAt,
+            m.is_visible as isVisible,
+            COALESCE(w.wish_count, 0) as wishCount,
+            CASE WHEN uw.md_id IS NOT NULL THEN true ELSE false END as wished,
+            p.name as placeName,
+            p.address as placeAddress
         FROM md_info m
-        LEFT JOIN hotplace_info h ON m.place_id = h.id
+        LEFT JOIN hotplace_info p ON m.place_id = p.id
         LEFT JOIN (
-            SELECT md_id, COUNT(*) AS wish_count
-            FROM md_wish
+            SELECT md_id, COUNT(*) as wish_count 
+            FROM md_wish 
             GROUP BY md_id
         ) w ON m.md_id = w.md_id
-        <if test="loginId != null">
-            LEFT JOIN md_wish mw ON m.md_id = mw.md_id AND mw.userid = #{loginId}
+        LEFT JOIN (
+            SELECT md_id FROM md_wish WHERE userid = #{userId}
+        ) uw ON m.md_id = uw.md_id
+        WHERE m.is_visible = true
+        <if test="keyword != null and keyword != ''">
+            <choose>
+                <when test="searchType == 'mdName'">
+                    AND md_name LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="searchType == 'placeName'">
+                    AND place_id IN (
+                        SELECT id FROM hotplace_info 
+                        WHERE name LIKE CONCAT('%', #{keyword}, '%')
+                    )
+                </when>
+                <otherwise>
+                    AND (md_name LIKE CONCAT('%', #{keyword}, '%') 
+                         OR description LIKE CONCAT('%', #{keyword}, '%'))
+                </otherwise>
+            </choose>
         </if>
-        <where>
-            m.is_visible = TRUE
-            <if test="keyword != null and keyword != ''">
-                <choose>
-                    <when test="searchType == 'mdName'">
-                        AND m.md_name LIKE CONCAT('%', #{keyword}, '%')
-                    </when>
-                    <when test="searchType == 'placeName'">
-                        AND (h.name LIKE CONCAT('%', #{keyword}, '%') 
-                             OR h.address LIKE CONCAT('%', #{keyword}, '%'))
-                    </when>
-                    <otherwise>
-                        AND (m.md_name LIKE CONCAT('%', #{keyword}, '%') 
-                             OR h.name LIKE CONCAT('%', #{keyword}, '%')
-                             OR h.address LIKE CONCAT('%', #{keyword}, '%'))
-                    </otherwise>
-                </choose>
-            </if>
-        </where>
         <choose>
             <when test="sort == 'popular'">
-                ORDER BY COALESCE(w.wish_count, 0) DESC, m.created_at DESC
-            </when>
-            <when test="sort == 'name'">
-                ORDER BY m.md_name
+                ORDER BY (
+                    SELECT COUNT(*) FROM md_wish WHERE md_id = m.md_id
+                ) DESC, m.created_at DESC
             </when>
             <otherwise>
                 ORDER BY m.created_at DESC
@@ -70,122 +57,136 @@
         </choose>
         LIMIT #{size} OFFSET #{offset}
     </select>
-    
-    <!-- MD 전체 개수 -->
+
+    <!-- 전체 MD 개수 조회 -->
     <select id="selectMdCount" resultType="int">
         SELECT COUNT(*)
-        FROM md_info m
-        LEFT JOIN hotplace_info h ON m.place_id = h.id
-        <where>
-            m.is_visible = TRUE
-            <if test="keyword != null and keyword != ''">
-                <choose>
-                    <when test="searchType == 'mdName'">
-                        AND m.md_name LIKE CONCAT('%', #{keyword}, '%')
-                    </when>
-                    <when test="searchType == 'placeName'">
-                        AND (h.name LIKE CONCAT('%', #{keyword}, '%') 
-                             OR h.address LIKE CONCAT('%', #{keyword}, '%'))
-                    </when>
-                    <otherwise>
-                        AND (m.md_name LIKE CONCAT('%', #{keyword}, '%') 
-                             OR h.name LIKE CONCAT('%', #{keyword}, '%')
-                             OR h.address LIKE CONCAT('%', #{keyword}, '%'))
-                    </otherwise>
-                </choose>
-            </if>
-        </where>
+        FROM md_info
+        WHERE is_visible = true
+        <if test="keyword != null and keyword != ''">
+            <choose>
+                <when test="searchType == 'mdName'">
+                    AND md_name LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="searchType == 'placeName'">
+                    AND place_id IN (
+                        SELECT id FROM hotplace_info 
+                        WHERE name LIKE CONCAT('%', #{keyword}, '%')
+                    )
+                </when>
+                <otherwise>
+                    AND (md_name LIKE CONCAT('%', #{keyword}, '%') 
+                         OR description LIKE CONCAT('%', #{keyword}, '%'))
+                </otherwise>
+            </choose>
+        </if>
     </select>
-    
-    <!-- MD 상세 조회 -->
-    <select id="selectMdDetail" resultType="map">
+
+    <!-- 디버깅용: 모든 MD 조회 -->
+    <select id="selectAllMds" resultType="com.wherehot.spring.entity.Md">
         SELECT 
-            m.md_id AS mdId,
-            m.md_name AS mdName,
-            m.place_id AS placeId,
+            m.md_id as mdId,
+            m.place_id as placeId,
+            m.md_name as mdName,
             m.contact,
             m.description,
             m.photo,
-            m.created_at AS createAt,
-            m.is_visible AS isVisible,
-            h.name AS placeName,
-            h.address,
-            h.lat,
-            h.lng,
-            COALESCE(w.wish_count, 0) AS wishCount,
-            <if test="loginId != null">
-                CASE WHEN mw.userid IS NOT NULL THEN true ELSE false END AS isWished
-            </if>
-            <if test="loginId == null">
-                false AS isWished
-            </if>
+            m.created_at as createdAt,
+            m.is_visible as isVisible,
+            COALESCE(w.wish_count, 0) as wishCount,
+            CASE WHEN uw.md_id IS NOT NULL THEN true ELSE false END as wished,
+            p.name as placeName,
+            p.address as placeAddress
         FROM md_info m
-        LEFT JOIN hotplace_info h ON m.place_id = h.id
+        LEFT JOIN hotplace_info p ON m.place_id = p.id
         LEFT JOIN (
-            SELECT md_id, COUNT(*) AS wish_count
-            FROM md_wish
+            SELECT md_id, COUNT(*) as wish_count 
+            FROM md_wish 
             GROUP BY md_id
         ) w ON m.md_id = w.md_id
-        <if test="loginId != null">
-            LEFT JOIN md_wish mw ON m.md_id = mw.md_id AND mw.userid = #{loginId}
-        </if>
-        WHERE m.md_id = #{mdId} AND m.is_visible = TRUE
+        LEFT JOIN (
+            SELECT md_id FROM md_wish WHERE userid = #{userId}
+        ) uw ON m.md_id = uw.md_id
+        WHERE m.is_visible = true
+        ORDER BY m.created_at DESC
     </select>
-    
-    <!-- 검색 자동완성 제안 -->
-    <select id="selectSearchSuggestions" resultType="map">
-        <choose>
-            <when test="searchType == 'mdName'">
-                SELECT DISTINCT 
-                    m.md_name AS suggestion,
-                    'mdName' AS type
-                FROM md_info m
-                WHERE m.md_name LIKE CONCAT('%', #{keyword}, '%') 
-                AND m.is_visible = TRUE
-                ORDER BY 
-                    CASE WHEN m.md_name LIKE CONCAT(#{keyword}, '%') THEN 1 ELSE 2 END,
-                    m.md_name
-                LIMIT #{limit}
-            </when>
-            <when test="searchType == 'placeName'">
-                SELECT DISTINCT 
-                    h.name AS suggestion,
-                    'placeName' AS type
-                FROM md_info m
-                LEFT JOIN hotplace_info h ON m.place_id = h.id
-                WHERE h.name LIKE CONCAT('%', #{keyword}, '%') 
-                AND m.is_visible = TRUE
-                ORDER BY 
-                    CASE WHEN h.name LIKE CONCAT(#{keyword}, '%') THEN 1 ELSE 2 END,
-                    h.name
-                LIMIT #{limit}
-            </when>
-            <otherwise>
-                SELECT * FROM (
-                    SELECT DISTINCT 
-                        m.md_name COLLATE utf8mb4_unicode_ci AS suggestion,
-                        'mdName' AS type,
-                        CASE WHEN m.md_name LIKE CONCAT(#{keyword}, '%') THEN 1 ELSE 2 END AS priority
-                    FROM md_info m
-                    WHERE m.md_name LIKE CONCAT('%', #{keyword}, '%') 
-                    AND m.is_visible = TRUE
-                    
-                    UNION ALL
-                    
-                    SELECT DISTINCT 
-                        h.name COLLATE utf8mb4_unicode_ci AS suggestion,
-                        'placeName' AS type,
-                        CASE WHEN h.name LIKE CONCAT(#{keyword}, '%') THEN 1 ELSE 2 END AS priority
-                    FROM md_info m
-                    LEFT JOIN hotplace_info h ON m.place_id = h.id
-                    WHERE h.name LIKE CONCAT('%', #{keyword}, '%') 
-                    AND m.is_visible = TRUE
-                    AND h.name IS NOT NULL
-                ) combined
-                ORDER BY priority, suggestion
-                LIMIT #{limit}
-            </otherwise>
-        </choose>
+
+    <!-- MD 상세 조회 -->
+    <select id="selectMdById" resultType="com.wherehot.spring.entity.Md">
+        SELECT 
+            md_id as mdId,
+            place_id as placeId,
+            md_name as mdName,
+            contact,
+            description,
+            photo,
+            created_at as createdAt,
+            is_visible as isVisible
+        FROM md_info
+        WHERE md_id = #{mdId} AND is_visible = true
     </select>
-    
+
+    <!-- MD 등록 -->
+    <insert id="insertMd" parameterType="com.wherehot.spring.entity.Md" useGeneratedKeys="true" keyProperty="mdId">
+        INSERT INTO md_info (
+            place_id,
+            md_name,
+            contact,
+            description,
+            photo,
+            created_at,
+            is_visible
+        ) VALUES (
+            #{placeId},
+            #{mdName},
+            #{contact},
+            #{description},
+            #{photo},
+            NOW(),
+            true
+        )
+    </insert>
+
+    <!-- MD 수정 -->
+    <update id="updateMd" parameterType="com.wherehot.spring.entity.Md">
+        UPDATE md_info SET
+            place_id = #{placeId},
+            md_name = #{mdName},
+            contact = #{contact},
+            description = #{description},
+            photo = #{photo}
+        WHERE md_id = #{mdId}
+    </update>
+
+    <!-- MD 삭제 (비활성화) -->
+    <update id="deleteMd">
+        UPDATE md_info SET is_visible = false WHERE md_id = #{mdId}
+    </update>
+
+                           <!-- MD 찜하기 추가 -->
+            <insert id="insertMdWish">
+                INSERT INTO md_wish (md_id, userid, created_at)
+                VALUES (#{mdId}, #{userId}, NOW())
+            </insert>
+
+           <!-- MD 찜하기 삭제 -->
+           <delete id="deleteMdWish">
+               DELETE FROM md_wish 
+               WHERE md_id = #{mdId} AND userid = #{userId}
+           </delete>
+
+           <!-- MD 찜하기 여부 확인 -->
+           <select id="selectMdWishCount" resultType="int">
+               SELECT COUNT(*)
+               FROM md_wish
+               WHERE md_id = #{mdId} AND userid = #{userId}
+           </select>
+
+           <!-- MD 찜 개수 조회 -->
+           <select id="selectMdWishTotalCount" resultType="int">
+               SELECT COUNT(*)
+               FROM md_wish
+               WHERE md_id = #{mdId}
+           </select>
+
 </mapper>

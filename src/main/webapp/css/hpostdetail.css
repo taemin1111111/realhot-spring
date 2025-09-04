@@ -43,6 +43,7 @@ body {
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 15px;
+    position: relative;
 }
 
 .hpost-detail-title {
@@ -51,12 +52,20 @@ body {
     font-weight: bold;
     margin: 0;
     flex: 1;
+    word-wrap: break-word;
+    word-break: break-all;
+    line-height: 1.4;
+    padding-right: 50px; /* ... 버튼 공간 확보 */
+    max-width: calc(100% - 60px); /* ... 버튼 공간 제외한 최대 너비 */
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .hpost-detail-menu {
-    position: relative;
+    position: absolute;
+    top: 0;
+    right: 0;
     flex-shrink: 0;
-    margin-left: 15px;
 }
 
 .hpost-detail-menu-btn {
@@ -74,6 +83,7 @@ body {
 .hpost-detail-menu-btn:hover {
     background-color: rgba(0, 0, 0, 0.1);
     color: #333;
+    transform: scale(1.1);
 }
 
 .hpost-detail-menu-dropdown {
@@ -82,8 +92,8 @@ body {
     right: 0;
     background: white;
     border: 1px solid #ddd;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     min-width: 80px;
     z-index: 1000;
     margin-top: 5px;
@@ -134,20 +144,15 @@ body {
 /* 사진 출력 */
 .hpost-detail-photos {
     margin: 20px 0;
-    display: flex;
-    flex-direction: column;
+    display: flex !important;
+    flex-direction: column !important;
     gap: 20px;
     align-items: center;
     justify-content: center;
     width: 100%;
 }
 
-/* 가로형 사진들을 위한 가로 배치 */
-.hpost-detail-photos.horizontal-layout {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-}
+
 
 .hpost-detail-photo {
     max-width: 800px;
@@ -161,6 +166,87 @@ body {
     cursor: pointer;
     display: block;
     margin: 0 auto;
+}
+
+/* 토스트 메시지 스타일 */
+.toast-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #dc3545;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    z-index: 9999;
+    box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4);
+    animation: toastFadeIn 0.3s ease-in-out;
+}
+
+.toast-content {
+    text-align: center;
+}
+
+@keyframes toastFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* 신고 모달 스타일 */
+#reportModal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+#reportModal .modal-header {
+    border-bottom: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+    border-radius: 12px 12px 0 0;
+}
+
+#reportModal .modal-title {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+#reportModal .form-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+#reportModal .form-select,
+#reportModal .form-control {
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+
+#reportModal .form-select:focus,
+#reportModal .form-control:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+#reportModal .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 8px 20px;
+}
+
+#reportModal .btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
 }
 
 .hpost-detail-photo:hover {
@@ -360,6 +446,7 @@ body {
 .hpost-comment-menu:hover .hpost-comment-menu-dots {
     background-color: rgba(0, 0, 0, 0.1);
     color: #333;
+    transform: scale(1.1);
 }
 
 .hpost-comment-menu-dropdown {
@@ -368,16 +455,16 @@ body {
     right: 0;
     background: white;
     border: 1px solid #ddd;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     min-width: 60px;
     z-index: 1000;
 }
 
 .hpost-comment-menu-item {
-    padding: 6px 10px;
+    padding: 8px 12px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 14px;
     color: #333;
     transition: background-color 0.2s ease;
 }
@@ -789,62 +876,99 @@ body {
 
 /* ================= 댓글 비밀번호 모달 CSS ================= */
 
+/* 모달 애니메이션 */
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* 댓글 비밀번호 모달 */
 .modal {
-    display: none;
     position: fixed;
-    z-index: 1050; /* Bootstrap 모달보다 낮게 설정 */
-    left: 0;
     top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 10000;
     align-items: center;
+    justify-content: center;
+    animation: modalSlideIn 0.3s ease-out;
 }
 
 .modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     max-width: 400px;
     width: 90%;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+.modal-content h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
 .modal-buttons {
-    margin-top: 20px;
     display: flex;
     gap: 10px;
     justify-content: center;
+    margin-top: 20px;
 }
 
 .modal-buttons .btn {
-    padding: 8px 16px;
+    padding: 10px 20px;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .btn-danger {
-    background-color: #dc3545;
+    background: #dc3545;
     color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
 }
 
 .btn-secondary {
-    background-color: #6c757d;
+    background: #6c757d;
     color: white;
 }
 
-#commentPasswordModalInput {
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
+
+#commentPasswordModalInput,
+#hpostDeletePasswordInput {
     width: 100%;
-    padding: 8px;
-    margin: 10px 0;
+    padding: 12px;
     border: 1px solid #ddd;
-    border-radius: 4px;
-    text-align: center;
+    border-radius: 8px;
     font-size: 16px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+    text-align: center;
 }
 
 /* Bootstrap 모달과의 충돌 방지 */
@@ -922,6 +1046,119 @@ body {
 .hpost-detail-dislike-btn.active .badge {
     background-color: transparent;
     color: inherit;
+}
+
+/* ================= 반응형 디자인 ================= */
+@media (max-width: 768px) {
+    .hpost-detail-title {
+        font-size: 20px;
+        padding-right: 40px;
+        max-width: calc(100% - 45px);
+    }
+    
+    .hpost-detail-menu-btn {
+        font-size: 20px;
+        padding: 2px 6px;
+    }
+    
+    .hpost-detail-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .hpost-detail-menu {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .hpost-detail-title {
+        font-size: 18px;
+        padding-right: 35px;
+        max-width: calc(100% - 40px);
+    }
+    
+    .hpost-detail-menu-btn {
+        font-size: 18px;
+        padding: 1px 4px;
+    }
+}
+
+/* ================= 신고 모달 스타일 ================= */
+/* 비밀번호 확인 모달 (신고 모달과 동일한 스타일) */
+.password-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+.password-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.password-modal-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
+.password-modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.password-modal-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.password-modal-btn.confirm {
+    background: #dc3545;
+    color: white;
+}
+
+.password-modal-btn.confirm:hover {
+    background: #c82333;
+}
+
+.password-modal-btn.cancel {
+    background: #6c757d;
+    color: white;
+}
+
+.password-modal-btn.cancel:hover {
+    background: #5a6268;
 }
 
 

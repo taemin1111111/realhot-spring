@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wherehot.spring.mapper.AdminMapper">
+    
+    <!-- 신고된 게시물 목록 조회 (신고 개수 순) -->
+    <select id="getReportedPostsByReportCount" resultType="java.util.Map">
+        SELECT 
+            p.id as post_id,
+            p.id as id,
+            p.title,
+            p.nickname,
+            p.content,
+            p.views,
+            p.likes,
+            p.dislikes,
+            p.created_at,
+            COUNT(r.id) as report_count,
+            MAX(r.report_time) as latest_report_time
+        FROM hottalk_post p
+        INNER JOIN hottalk_report r ON p.id = r.post_id
+        GROUP BY p.id, p.title, p.nickname, p.content, p.views, p.likes, p.dislikes, p.created_at
+        ORDER BY report_count DESC, latest_report_time DESC
+    </select>
+    
+    <!-- 신고된 게시물 목록 조회 (최신 신고 순) -->
+    <select id="getReportedPostsByLatestReport" resultType="java.util.Map">
+        SELECT 
+            p.id as post_id,
+            p.id as id,
+            p.title,
+            p.nickname,
+            p.content,
+            p.views,
+            p.likes,
+            p.dislikes,
+            p.created_at,
+            COUNT(r.id) as report_count,
+            MAX(r.report_time) as latest_report_time
+        FROM hottalk_post p
+        INNER JOIN hottalk_report r ON p.id = r.post_id
+        GROUP BY p.id, p.title, p.nickname, p.content, p.views, p.likes, p.dislikes, p.created_at
+        ORDER BY latest_report_time DESC, report_count DESC
+    </select>
+    
+    <!-- 특정 게시물의 신고 상세 정보 조회 -->
+    <select id="getReportDetailsByPostId" resultType="java.util.Map">
+        SELECT 
+            r.id as report_id,
+            r.user_id,
+            r.reason,
+            r.content as report_content,
+            r.report_time,
+            r.user_id as reporter
+        FROM hottalk_report r
+        WHERE r.post_id = #{postId}
+        ORDER BY r.report_time DESC
+    </select>
+    
+    <!-- 게시물별 신고 개수 조회 -->
+    <select id="getReportCountByPostId" resultType="int">
+        SELECT COUNT(*)
+        FROM hottalk_report
+        WHERE post_id = #{postId}
+    </select>
+    
+</mapper>

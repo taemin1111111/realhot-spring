@@ -594,6 +594,8 @@ public class CourseController {
             
         } catch (Exception e) {
             // 에러 발생 시 빈 데이터로 설정
+            System.err.println("지역 데이터 로드 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
             model.addAttribute("regionsBySido", new HashMap<>());
             model.addAttribute("regionsBySigungu", new HashMap<>());
         }

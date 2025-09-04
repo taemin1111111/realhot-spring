@@ -3,125 +3,164 @@ package com.wherehot.spring.service.impl;
 import com.wherehot.spring.entity.Md;
 import com.wherehot.spring.mapper.MdMapper;
 import com.wherehot.spring.service.MdService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.HttpSession;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.ArrayList;
 
 @Service
-@Transactional
 public class MdServiceImpl implements MdService {
-
-    private static final Logger log = LoggerFactory.getLogger(MdServiceImpl.class);
-
+    
     @Autowired
     private MdMapper mdMapper;
     
-    @Value("${app.upload.path:uploads/mdphotos}")
-    private String uploadPath;
-
     @Override
-    public void registerMd(Md md, MultipartFile photo) throws Exception {
-        // 사진 파일 처리
-        if (photo != null && !photo.isEmpty()) {
-            String savedFileName = savePhotoFile(photo);
-            md.setPhoto(savedFileName);
+    public Map<String, Object> getMdList(int page, int size, String keyword, String searchType, String sort, String userId) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            int offset = page * size;
+            
+            // MD 목록 조회 (userId 포함하여 찜 상태도 함께 조회)
+            List<Md> mdList = mdMapper.selectMdList(offset, size, keyword, searchType, sort, userId);
+            
+            // 전체 개수 조회
+            int totalCount = mdMapper.selectMdCount(keyword, searchType);
+            
+            int totalPages = (int) Math.ceil((double) totalCount / size);
+            
+            result.put("success", true);
+            result.put("mds", mdList);
+            result.put("currentPage", page);
+            result.put("totalPages", totalPages);
+            result.put("totalElements", totalCount);
+            
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "MD 목록을 불러오는데 실패했습니다: " + e.getMessage());
+            e.printStackTrace();
         }
         
-        // MD 등록
-        int result = mdMapper.insertMd(md);
-        if (result <= 0) {
-            throw new RuntimeException("MD 등록에 실패했습니다.");
-        }
+        return result;
     }
-
+    
     @Override
-    @Transactional(readOnly = true)
-    public Page<Map<String, Object>> getMdListWithPlace(Pageable pageable, String keyword, String sort, String searchType) {
-        String loginId = getCurrentLoginId();
-        
-        int offset = (int) pageable.getOffset();
-        int size = pageable.getPageSize();
-        
-        List<Map<String, Object>> mdList = mdMapper.selectMdListWithPlace(offset, size, keyword, sort, loginId, searchType);
-        int totalCount = mdMapper.selectMdCount(keyword, searchType);
-        
-        return new PageImpl<>(mdList, pageable, totalCount);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Map<String, Object> getMdDetail(Integer mdId) {
-        String loginId = getCurrentLoginId();
-        return mdMapper.selectMdDetail(mdId, loginId);
-    }
-
-
-
-    /**
-     * 사진 파일 저장
-     */
-    private String savePhotoFile(MultipartFile photo) throws IOException {
-        // 업로드 디렉터리 생성
-        File uploadDir = new File(uploadPath);
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
-        }
-        
-        // 원본 파일명에서 확장자 추출
-        String originalFilename = photo.getOriginalFilename();
-        String extension = "";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        }
-        
-        // 고유한 파일명 생성
-        String savedFileName = UUID.randomUUID().toString() + extension;
-        
-        // 파일 저장
-        File destFile = new File(uploadDir, savedFileName);
-        photo.transferTo(destFile);
-        
-        return savedFileName;
-    }
-
-    @Override
-    public List<Map<String, Object>> getSearchSuggestions(String keyword, String searchType, int limit) {
-        if (keyword == null || keyword.trim().isEmpty()) {
+    public List<Md> getAllMds(String userId) {
+        try {
+            return mdMapper.selectAllMds(userId);
+        } catch (Exception e) {
+            e.printStackTrace();
             return new ArrayList<>();
         }
-        return mdMapper.selectSearchSuggestions(keyword.trim(), searchType, limit);
     }
-
-    /**
-     * 현재 로그인한 사용자 ID 가져오기
-     */
-    private String getCurrentLoginId() {
+    
+    @Override
+    public Md getMdById(int mdId) {
         try {
-            ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-            HttpSession session = attr.getRequest().getSession(false);
-            if (session != null) {
-                return (String) session.getAttribute("loginid");
-            }
+            return mdMapper.selectMdById(mdId);
         } catch (Exception e) {
-            log.debug("Failed to get current login ID", e);
+            e.printStackTrace();
+            return null;
         }
-        return null;
+    }
+    
+    @Override
+    public boolean registerMd(Md md) {
+        try {
+            int result = mdMapper.insertMd(md);
+            return result > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean updateMd(Md md) {
+        try {
+            int result = mdMapper.updateMd(md);
+            return result > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean deleteMd(int mdId) {
+        try {
+            int result = mdMapper.deleteMd(mdId);
+            return result > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean addMdWish(int mdId, String userId) {
+        try {
+            System.out.println("=== MdServiceImpl.addMdWish ===");
+            System.out.println("mdId: " + mdId + ", userId: " + userId);
+            
+            // 이미 찜한 상태인지 확인
+            boolean isWished = isMdWished(mdId, userId);
+            System.out.println("현재 찜 상태: " + isWished);
+            
+            if (isWished) {
+                // 이미 찜한 상태라면 찜을 제거 (토글 방식)
+                System.out.println("이미 찜한 상태 - 찜 제거 시도");
+                boolean removeResult = removeMdWish(mdId, userId);
+                System.out.println("찜 제거 결과: " + removeResult);
+                return removeResult;
+            }
+            
+            // 찜하지 않은 상태라면 찜 추가
+            System.out.println("찜하지 않은 상태 - 찜 추가 시도");
+            int result = mdMapper.insertMdWish(mdId, userId);
+            System.out.println("찜 추가 결과: " + result);
+            return result > 0;
+        } catch (Exception e) {
+            System.out.println("addMdWish 오류: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean removeMdWish(int mdId, String userId) {
+        try {
+            System.out.println("=== MdServiceImpl.removeMdWish ===");
+            System.out.println("mdId: " + mdId + ", userId: " + userId);
+            
+            int result = mdMapper.deleteMdWish(mdId, userId);
+            System.out.println("찜 제거 결과: " + result);
+            return result > 0;
+        } catch (Exception e) {
+            System.out.println("removeMdWish 오류: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean isMdWished(int mdId, String userId) {
+        try {
+            System.out.println("=== MdServiceImpl.isMdWished ===");
+            System.out.println("mdId: " + mdId + ", userId: " + userId);
+            
+            int count = mdMapper.selectMdWishCount(mdId, userId);
+            System.out.println("찜 개수: " + count);
+            boolean result = count > 0;
+            System.out.println("찜 상태: " + result);
+            return result;
+        } catch (Exception e) {
+            System.out.println("isMdWished 오류: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 }

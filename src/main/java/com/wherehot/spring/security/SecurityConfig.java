@@ -91,13 +91,18 @@ public class SecurityConfig {
                 .requestMatchers("/api/club/**").permitAll()                      // 클럽 관련 API
                 .requestMatchers("/api/md/**").permitAll()                        // MD API (찜 기능 포함)
                 .requestMatchers("/api/notice/**").permitAll()                    // 공지사항 API
+                .requestMatchers("/api/notifications/**").permitAll()             // 알림 API
                 
                 // == 관리자 전용 ==
                 .requestMatchers("/adminpage/**").hasAuthority("ROLE_ADMIN")      // 관리자 페이지
+                .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")          // 관리자 API
                 .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")      // 관리자 API
                 
-                // == 로그인 필요한 페이지 ==
-                .requestMatchers("/mypage/**").authenticated()                    // 마이페이지
+                // == 마이페이지 ==
+                .requestMatchers("/mypage").permitAll()                          // 마이페이지 화면 접근 허용
+                .requestMatchers("/mypage/wishlist").permitAll()                 // 찜 목록 화면 접근 허용
+                .requestMatchers("/mypage/posts").permitAll()                    // 내 게시글 화면 접근 허용
+                .requestMatchers("/mypage/api/**").authenticated()               // 마이페이지 API만 인증 필요
                 
                 // == 나머지 모든 요청 허용 ==
                 .anyRequest().permitAll())
@@ -149,6 +154,7 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/api/**", configuration);
         source.registerCorsConfiguration("/oauth2/**", configuration);
         source.registerCorsConfiguration("/hpost/**", configuration);
+        source.registerCorsConfiguration("/admin/**", configuration);
         source.registerCorsConfiguration("/**", configuration); // 모든 경로에 CORS 설정 적용
         
         return source;

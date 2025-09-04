@@ -116,6 +116,7 @@ public class WishListController {
             WishList wishList = new WishList();
             wishList.setUserid(userId);
             wishList.setPlace_id(hotplaceId);
+            wishList.setPersonal_note(null); // 명시적으로 null 설정
             WishList savedWishList = wishListService.saveWishList(wishList);
             
             return ResponseEntity.ok(savedWishList);

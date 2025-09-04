@@ -12,15 +12,19 @@ public class WishList {
     private int place_id;       // 핫플레이스 ID (hotplace_info.id 참조)
     private LocalDateTime wishDate; // 찜한 날짜
     private String personal_note; // 개인 메모
+    private String categoryName; // 카테고리명
 
     // 생성자
-    public WishList() {}
+    public WishList() {
+        this.personal_note = null;
+    }
 
     public WishList(int id, String userid, int place_id, LocalDateTime wishDate) {
         this.id = id;
         this.userid = userid;
         this.place_id = place_id;
         this.wishDate = wishDate;
+        this.personal_note = null;
     }
 
     public WishList(int id, String userid, int place_id, LocalDateTime wishDate, String personal_note) {
@@ -70,5 +74,13 @@ public class WishList {
 
     public void setPersonal_note(String personal_note) {
         this.personal_note = personal_note;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
     }
 }

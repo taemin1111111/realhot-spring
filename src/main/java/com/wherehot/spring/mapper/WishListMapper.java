@@ -120,4 +120,9 @@ public interface WishListMapper {
      * 위시리스트 저장 (메서드명 variant)
      */
     WishList saveWishList(WishList wishList);
+    
+    /**
+     * 위시리스트의 개인 메모 업데이트
+     */
+    int updatePersonalNote(@Param("id") int id, @Param("personalNote") String personalNote);
 }

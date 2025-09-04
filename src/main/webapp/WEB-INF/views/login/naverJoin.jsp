@@ -66,9 +66,11 @@ String birthday = (String)session.getAttribute("birthday");
             <div class="mb-4">
                 <label for="nickname" class="form-label">닉네임</label>
                 <div class="input-group">
-                    <input type="text" name="nickname" id="nickname" class="form-control" required placeholder="닉네임을 입력하세요">
+                    <input type="text" name="nickname" id="nickname" class="form-control" 
+                           maxlength="7" required placeholder="닉네임 (2~7자)">
                     <button type="button" class="btn btn-outline-secondary" onclick="checkNickname()">중복확인</button>
                 </div>
+                <div class="form-text text-muted">닉네임은 2~7자 사이로 입력해주세요.</div>
                 <div id="nickResult" class="mt-2 small"></div>
             </div>
 
@@ -81,6 +83,11 @@ String birthday = (String)session.getAttribute("birthday");
             const nickname = document.getElementById("nickname").value.trim();
             if (nickname === "") {
                 document.getElementById("nickResult").innerText = "닉네임을 입력하세요.";
+                document.getElementById("nickResult").style.color = "red";
+                return;
+            }
+            if (nickname.length < 2) {
+                document.getElementById("nickResult").innerText = "닉네임은 최소 2자 이상 입력해주세요.";
                 document.getElementById("nickResult").style.color = "red";
                 return;
             }

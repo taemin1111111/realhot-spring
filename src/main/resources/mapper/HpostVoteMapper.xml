@@ -66,4 +66,10 @@
         WHERE userid = #{userid} AND post_id = #{postId}
     </delete>
 
+    <!-- 게시글의 모든 투표 삭제 -->
+    <delete id="deleteVotesByPostId">
+        DELETE FROM hottalk_vote
+        WHERE post_id = #{postId}
+    </delete>
+
 </mapper>

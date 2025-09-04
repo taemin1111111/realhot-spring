@@ -4,16 +4,377 @@
 .admin-report-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
-    background: #1a1a1a;
+    padding: 24px;
+    background: #fafafa;
     min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* 회원 관리 페이지 전용 컨테이너 */
 .admin-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 24px;
+    background: #fafafa;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 관리자 페이지 헤더 */
+.admin-header {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e5e7eb;
+}
+
+.admin-header h2 {
+    color: #1f2937;
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.025em;
+}
+
+/* 필터 버튼 그룹 */
+.admin-filter-group {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.admin-filter-btn {
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-filter-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    color: #1f2937;
+    text-decoration: none;
+}
+
+.admin-filter-btn.active {
+    background: #1f2937;
+    border-color: #1f2937;
+    color: white;
+}
+
+.admin-filter-btn i {
+    font-size: 16px;
+}
+
+/* 신고 게시물 카드 */
+.report-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.report-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #d1d5db;
+}
+
+.report-card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.report-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+
+.report-title-link {
+    color: #1f2937;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.report-title-link:hover {
+    color: #3b82f6;
+    text-decoration: none;
+}
+
+.report-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.report-card-content {
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.report-card-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.report-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #f3f4f6;
+}
+
+.report-stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.report-stat-label {
+    font-size: 12px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.report-stat.report-count .report-stat-value {
+    color: #dc2626;
+}
+
+.report-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.report-detail-btn {
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.report-detail-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    color: #1f2937;
+}
+
+.report-detail-btn i {
+    font-size: 14px;
+    transition: transform 0.2s ease;
+}
+
+.report-detail-btn.expanded i {
+    transform: rotate(180deg);
+}
+
+.report-delete-btn {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #dc2626;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.report-delete-btn:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: white;
+}
+
+.report-delete-btn i {
+    font-size: 14px;
+}
+
+/* 신고 상세 정보 */
+.report-details {
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    padding: 20px 24px;
+}
+
+.report-details h6 {
+    color: #1f2937;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+}
+
+.report-detail-item {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.report-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.report-detail-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.report-detail-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.report-detail-value {
+    font-size: 14px;
+    color: #1f2937;
+    font-weight: 500;
+}
+
+/* 빈 상태 */
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: #6b7280;
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: #d1d5db;
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 8px 0;
+}
+
+.empty-state p {
+    font-size: 14px;
+    margin: 0;
+}
+
+/* 로딩 상태 */
+.loading-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: #6b7280;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 50%;
+    border-top-color: #1f2937;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 에러 상태 */
+.error-state {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 16px;
+    color: #dc2626;
+    font-size: 14px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .admin-report-container,
+    .admin-container {
+        padding: 16px;
+    }
+    
+    .admin-header {
+        padding: 20px;
+    }
+    
+    .admin-header h2 {
+        font-size: 24px;
+    }
+    
+    .admin-filter-group {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .admin-filter-btn {
+        justify-content: center;
+    }
+    
+    .report-card-header {
+        padding: 16px;
+    }
+    
+    .report-card-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .report-detail-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .report-card-actions {
+        justify-content: center;
+    }
 }
 
 /* 회원 관리 페이지 제목 */

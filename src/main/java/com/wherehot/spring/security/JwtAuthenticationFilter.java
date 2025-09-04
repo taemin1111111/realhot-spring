@@ -16,7 +16,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Collections;
+import jakarta.servlet.http.Cookie;
 
 /**
  * JWT 인증 필터
@@ -84,12 +87,45 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * 요청에서 JWT 토큰 추출
      */
     private String parseJwt(HttpServletRequest request) {
+        // 1. HTTP 헤더에서 Authorization Bearer 토큰 확인
         String headerAuth = request.getHeader("Authorization");
         
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+            logger.info("HTTP 헤더에서 JWT 토큰 발견");
             return headerAuth.substring(7);
         }
         
+        // 2. 쿠키에서 accessToken 확인 (브라우저 직접 접근 시)
+        jakarta.servlet.http.Cookie[] cookies = request.getCookies();
+        logger.info("쿠키 개수: {}", cookies != null ? cookies.length : 0);
+        
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                logger.info("쿠키 이름: {}, 값: {}", cookie.getName(), 
+                    (cookie.getValue() != null && cookie.getValue().length() > 20) ? 
+                    cookie.getValue().substring(0, 20) + "..." : 
+                    cookie.getValue());
+                
+                if ("accessToken".equals(cookie.getName())) {
+                    String token = cookie.getValue();
+                    if (StringUtils.hasText(token)) {
+                        try {
+                            // 서버에서 설정한 쿠키는 URL 인코딩되지 않았으므로 디코딩 불필요
+                            logger.info("쿠키에서 JWT 토큰 발견 - 길이: {}", token.length());
+                            return token;
+                        } catch (IllegalArgumentException e) {
+                            logger.error("쿠키 토큰 처리 실패 (IllegalArgumentException): {}", e.getMessage());
+                        }
+                    } else {
+                        logger.warn("accessToken 쿠키 값이 비어있음");
+                    }
+                }
+            }
+        } else {
+            logger.info("쿠키가 없음");
+        }
+        
+        logger.info("JWT 토큰을 찾을 수 없음");
         return null;
     }
     

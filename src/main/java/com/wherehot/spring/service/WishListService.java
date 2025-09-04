@@ -42,4 +42,9 @@ public interface WishListService {
      * 특정 장소의 위시리스트 개수 조회 (간편 메서드)
      */
     int getWishCount(int placeId);
+    
+    /**
+     * 위시리스트의 개인 메모 업데이트
+     */
+    boolean updatePersonalNote(int wishId, String personalNote);
 }

@@ -70,3 +70,4 @@ public class HpostReport {
         this.reportTime = reportTime;
     }
 }
+

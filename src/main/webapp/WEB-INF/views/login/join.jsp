@@ -38,9 +38,11 @@
         <!-- 닉네임 -->
         <div class="mb-3">
             <div class="input-group">
-                <input type="text" name="nickname" id="join-nickname" class="form-control" placeholder="닉네임" required>
+                <input type="text" name="nickname" id="join-nickname" class="form-control" 
+                       maxlength="7" placeholder="닉네임 (2~7자)" required>
                 <button type="button" class="btn btn-outline-secondary" onclick="checkNickname()">중복확인</button>
             </div>
+            <div class="form-text text-muted">닉네임은 2~7자 사이로 입력해주세요.</div>
             <div id="join-nickCheckResult" class="mt-1 small"></div>
         </div>
 
@@ -118,6 +120,11 @@ function checkNickname() {
     const nickname = document.getElementById("join-nickname").value.trim();
     if(nickname === "") {
         document.getElementById("join-nickCheckResult").textContent = "닉네임을 입력하세요.";
+        document.getElementById("join-nickCheckResult").style.color = "red";
+        return;
+    }
+    if(nickname.length < 2) {
+        document.getElementById("join-nickCheckResult").textContent = "닉네임은 최소 2자 이상 입력해주세요.";
         document.getElementById("join-nickCheckResult").style.color = "red";
         return;
     }

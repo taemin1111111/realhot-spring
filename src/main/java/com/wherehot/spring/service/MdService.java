@@ -10,23 +10,30 @@ import java.util.Map;
 
 public interface MdService {
     
-    /**
-     * MD 등록
-     */
-    void registerMd(Md md, MultipartFile photo) throws Exception;
+    // MD 목록 조회 (페이징, 검색, 정렬)
+    Map<String, Object> getMdList(int page, int size, String keyword, String searchType, String sort, String userId);
     
-    /**
-     * MD 목록 조회 (페이징)
-     */
-    Page<Map<String, Object>> getMdListWithPlace(Pageable pageable, String keyword, String sort, String searchType);
+    // MD 상세 조회
+    Md getMdById(int mdId);
     
-    /**
-     * MD 상세 조회
-     */
-    Map<String, Object> getMdDetail(Integer mdId);
+    // MD 등록
+    boolean registerMd(Md md);
     
-    /**
-     * 검색 자동완성 제안
-     */
-    List<Map<String, Object>> getSearchSuggestions(String keyword, String searchType, int limit);
+    // MD 수정
+    boolean updateMd(Md md);
+    
+    // MD 삭제
+    boolean deleteMd(int mdId);
+    
+    // MD 찜하기
+    boolean addMdWish(int mdId, String userId);
+    
+    // MD 찜하기 취소
+    boolean removeMdWish(int mdId, String userId);
+    
+    // MD 찜하기 여부 확인
+    boolean isMdWished(int mdId, String userId);
+    
+    // 디버깅용: 모든 MD 조회
+    List<Md> getAllMds(String userId);
 }

@@ -476,6 +476,34 @@ body:has(.course-hunting-container) {
     margin: 10px;
 }
 
+/* 서울 전체 버튼 */
+.course-hunting-seoul-all {
+    font-weight: 600;
+    font-size: 15px;
+    color: #495057;
+    padding: 10px 12px;
+    background: #ffffff;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.course-hunting-seoul-all:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.course-hunting-seoul-all i {
+    font-size: 16px;
+}
+
 /* 시군구 그룹 간격 추가 */
 .course-hunting-sigungu-container > div {
     margin-bottom: 25px;

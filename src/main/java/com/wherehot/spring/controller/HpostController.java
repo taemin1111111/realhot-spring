@@ -2,9 +2,11 @@ package com.wherehot.spring.controller;
 
 import com.wherehot.spring.entity.Hpost;
 import com.wherehot.spring.entity.Hcomment;
+import com.wherehot.spring.entity.HpostReport;
 import com.wherehot.spring.service.HpostService;
 import com.wherehot.spring.service.HpostVoteService;
 import com.wherehot.spring.service.HcommentService;
+import com.wherehot.spring.service.HpostReportService;
 import com.wherehot.spring.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +50,9 @@ public class HpostController {
     
     @Autowired
     private HcommentService hcommentService;
+    
+    @Autowired
+    private HpostReportService hpostReportService;
     
     /**
      * 인증 정보를 바탕으로 사용자 ID를 안전하게 가져오는 통합 메소드
@@ -108,6 +113,8 @@ public class HpostController {
     @GetMapping({"", "/"})
     public String hpostMain(@RequestParam(defaultValue = "1") int page,
                            @RequestParam(defaultValue = "latest") String sort,
+                           @RequestParam(value = "searchType", defaultValue = "all") String searchType,
+                           @RequestParam(value = "searchKeyword", defaultValue = "") String searchKeyword,
                            Model model) {
         
         // 페이지 번호 검증
@@ -115,19 +122,36 @@ public class HpostController {
             page = 1;
         }
         
-        int pageSize = 10;
+        int pageSize = 20; // 10개에서 20개로 변경
         int offset = (page - 1) * pageSize;
         
         List<Hpost> hpostList;
         int totalCount;
         
-        if ("popular".equals(sort)) {
-            hpostList = hpostService.getPopularHpostList(offset);
-            totalCount = hpostService.getTotalHpostCount();
+        // 검색어가 있는 경우 검색 로직 적용
+        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+            if ("popular".equals(sort)) {
+                hpostList = hpostService.searchPopularHpostList(searchType, searchKeyword.trim(), offset);
+                totalCount = hpostService.getSearchHpostCount(searchType, searchKeyword.trim());
+            } else {
+                hpostList = hpostService.searchLatestHpostList(searchType, searchKeyword.trim(), offset);
+                totalCount = hpostService.getSearchHpostCount(searchType, searchKeyword.trim());
+            }
         } else {
-            hpostList = hpostService.getLatestHpostList(offset);
-            totalCount = hpostService.getTotalHpostCount();
+            // 검색어가 없는 경우 기존 로직
+            if ("popular".equals(sort)) {
+                hpostList = hpostService.getPopularHpostList(offset);
+                totalCount = hpostService.getTotalHpostCount();
+            } else {
+                hpostList = hpostService.getLatestHpostList(offset);
+                totalCount = hpostService.getTotalHpostCount();
+            }
         }
+        
+        // 페이징 계산
+        int totalPages = (int) Math.ceil((double) totalCount / pageSize);
+        int startPage = Math.max(1, page - 2);
+        int endPage = Math.min(totalPages, page + 2);
         
         // 시간 포맷팅
         for (Hpost hpost : hpostList) {
@@ -137,7 +161,12 @@ public class HpostController {
         model.addAttribute("hpostList", hpostList);
         model.addAttribute("totalCount", totalCount);
         model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("startPage", startPage);
+        model.addAttribute("endPage", endPage);
         model.addAttribute("sort", sort);
+        model.addAttribute("searchType", searchType);
+        model.addAttribute("searchKeyword", searchKeyword);
         model.addAttribute("mainPage", "hpost/hpost.jsp");
         
         return "index";
@@ -803,6 +832,75 @@ public class HpostController {
             e.printStackTrace();
             response.put("success", false);
             response.put("message", "게시글 삭제 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    /**
+     * 게시글 신고 처리
+     */
+    @PostMapping("/report")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> reportHpost(
+            @RequestBody Map<String, Object> requestBody,
+            Authentication authentication,
+            HttpServletRequest request) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 로그인 상태 확인
+            String userId = getUserId(authentication, request);
+            if (userId == null) {
+                response.put("success", false);
+                response.put("message", "로그인이 필요합니다.");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 요청 데이터 검증
+            Integer postId = (Integer) requestBody.get("postId");
+            String reason = (String) requestBody.get("reason");
+            String content = (String) requestBody.get("content");
+            
+            if (postId == null || reason == null || content == null || 
+                reason.trim().isEmpty() || content.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "필수 정보가 누락되었습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 게시글 존재 여부 확인
+            Hpost hpost = hpostService.getHpostByIdWithoutIncrement(postId);
+            if (hpost == null) {
+                response.put("success", false);
+                response.put("message", "존재하지 않는 게시글입니다.");
+                return ResponseEntity.notFound().build();
+            }
+            
+            // 신고 정보 생성
+            HpostReport report = new HpostReport();
+            report.setUserId(userId);
+            report.setPostId(postId);
+            report.setReason(reason.trim());
+            report.setContent(content.trim());
+            report.setReportTime(LocalDateTime.now());
+            
+            // 신고 저장
+            boolean saveResult = hpostReportService.saveReport(report);
+            if (!saveResult) {
+                response.put("success", false);
+                response.put("message", "신고 저장에 실패했습니다.");
+                return ResponseEntity.internalServerError().body(response);
+            }
+            
+            response.put("success", true);
+            response.put("message", "신고가 접수되었습니다.");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "신고 처리 중 오류가 발생했습니다.");
             return ResponseEntity.internalServerError().body(response);
         }
     }

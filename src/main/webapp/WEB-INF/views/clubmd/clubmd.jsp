@@ -1,712 +1,464 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.util.*" %>
-<%
-    String root = request.getContextPath();
-    String loginId = (String)session.getAttribute("loginid");
-    String nickname = (String)session.getAttribute("nickname");
-    String provider = (String)session.getAttribute("provider");
-%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<!-- MD 전용 CSS -->
-<link rel="stylesheet" href="<%=root%>/css/md.css">
+<!-- 필요한 CSS/JS 링크 추가 -->
+<link href="${pageContext.request.contextPath}/css/md.css" rel="stylesheet">
 
-<div class="md-container">
-    
-    <!-- 신뢰도 표시 섹션 -->
-    <div class="md-trust-section">
-        <div class="md-trust-grid">
-            <div class="md-trust-item">
-                <div class="md-trust-icon">
-                    <i class="bi bi-shield-check"></i>
-                </div>
-                <div class="md-trust-title">검증된 MD</div>
-                <div class="md-trust-desc">모든 MD는 신원이 확인된 검증된 MD입니다</div>
-            </div>
-            <div class="md-trust-item">
-                <div class="md-trust-icon">
-                    <i class="bi bi-lock"></i>
-                </div>
-                <div class="md-trust-title">안전한 예약</div>
-                <div class="md-trust-desc">개인정보 보호 및 안전한 예약 시스템</div>
-            </div>
-            <div class="md-trust-item">
-                <div class="md-trust-icon">
-                    <i class="bi bi-star"></i>
-                </div>
-                <div class="md-trust-title">고객 만족</div>
-                <div class="md-trust-desc">높은 고객 만족도와 신뢰받는 서비스</div>
-            </div>
-        </div>
+<!-- MD 목록 섹션 -->
+<div class="clubmd-page">
+    <!-- 우주 배경 -->
+    <div class="space-background">
+        <!-- 별들 컨테이너 -->
+        <div class="stars-container" id="starsContainer"></div>
     </div>
     
-    <!-- 검색 및 정렬 섹션 -->
-    <div class="md-search-section">
-        <div class="row g-3 align-items-center">
-            <div class="col-md-3">
-                <select id="searchType" class="form-select">
-                    <option value="all">전체 검색</option>
-                    <option value="mdName">MD명 검색</option>
-                    <option value="placeName">장소명 검색</option>
-                </select>
+    <!-- 메인 콘텐츠 영역 -->
+    <div class="clubmd-content-wrapper">
+        <div class="main-container">
+            <!-- 섹션 타이틀 -->
+            <div class="section-title">
+                <img src="${pageContext.request.contextPath}/logo/fire.png" alt="MD">
+                MD 목록
             </div>
+
+    <!-- 검색 섹션 -->
+    <div class="card-box mb-4">
+        <div class="row">
             <div class="col-md-4">
-                <div class="input-group">
-                    <input type="text" id="searchKeyword" class="form-control" placeholder="검색어를 입력하세요...">
-                    <button class="btn btn-outline-primary" onclick="searchMds()">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <select id="sortOption" class="form-select" onchange="searchMds()">
-                    <option value="latest">최신순</option>
-                    <option value="popular">인기순 (찜 많은순)</option>
+                <select class="form-select" id="searchType">
+                    <option value="all">전체</option>
+                    <option value="mdName">MD명</option>
+                    <option value="placeName">장소명</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <% if("admin".equals(provider)) { %>
-                    <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#mdRegisterModal">
-                        <i class="bi bi-plus-circle me-2"></i> MD 등록
-                    </button>
-                <% } %>
+            <div class="col-md-6">
+                <input type="text" class="form-control" id="searchKeyword" placeholder="검색어를 입력하세요...">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" onclick="searchMds()">
+                    <i class="bi bi-search"></i> 검색
+                </button>
             </div>
         </div>
     </div>
     
-    <!-- MD 카드 섹션 -->
-    <div class="md-cards-section mt-4">
-        <!-- MD 목록 컨테이너 -->
-        <div id="mdListContainer">
-            <div class="loading text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">로딩중...</span>
-                </div>
-                <p class="mt-2">MD 목록을 불러오는 중...</p>
-            </div>
-        </div>
-        
-        <!-- 페이지네이션 -->
-        <nav id="paginationContainer" class="mt-4" style="display: none;">
-            <ul class="pagination justify-content-center" id="pagination">
-            </ul>
-        </nav>
-        
-        <!-- 페이지 정보 -->
-        <div id="pageInfo" class="text-center text-muted mt-2" style="display: none;">
-        </div>
+    <!-- 정렬 버튼 -->
+    <div class="mb-3">
+        <button type="button" id="sortLatest" class="btn btn-outline-secondary me-2" onclick="loadMds(1, 'latest')">전체</button>
+        <button type="button" id="sortPopular" class="btn btn-outline-secondary" onclick="loadMds(1, 'popular')">인기순</button>
     </div>
+    
+    <!-- MD 목록 컨테이너 -->
+    <div id="mdListContainer">
+        <!-- MD 목록이 여기에 동적으로 로드됩니다 -->
+    </div>
+    
+    <!-- 페이지네이션 -->
+    <nav aria-label="MD 페이지네이션" id="paginationContainer" class="mt-4">
+        <!-- 페이지네이션이 여기에 동적으로 로드됩니다 -->
+    </nav>
 </div>
 
-<!-- MD 등록 모달 -->
-<div class="modal fade md-modal" id="mdRegisterModal" tabindex="-1" aria-labelledby="mdRegisterModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="mdRegisterModalLabel">MD 등록</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="mdRegisterForm" enctype="multipart/form-data">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="mdName" class="form-label">MD 이름 *</label>
-                                <input type="text" class="form-control" id="mdName" name="mdName" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="placeSearch" class="form-label">장소 검색 *</label>
-                                <div class="position-relative">
-                                    <input type="text" class="form-control" id="placeSearch" 
-                                           placeholder="장소명을 입력하세요" autocomplete="off">
-                                    <input type="hidden" id="placeId" name="placeId" required>
-                                    <div id="placeSearchResults" class="list-group position-absolute w-100" 
-                                         style="z-index: 1050; display: none;">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="contact" class="form-label">연락처</label>
-                        <input type="text" class="form-control" id="contact" name="contact" 
-                               placeholder="인스타 아이디 또는 오픈채팅 링크">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="description" class="form-label">소개</label>
-                        <textarea class="form-control" id="description" name="description" rows="4" 
-                                  placeholder="MD에 대한 간단한 소개나 특징을 적어주세요"></textarea>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="photo" class="form-label">사진</label>
-                        <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
-                        <div class="form-text">선택사항입니다. MD 사진을 업로드해주세요.</div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                <button type="button" class="btn btn-primary" onclick="registerMd()">등록</button>
-            </div>
+<!-- 로그인 필요 토스트 메시지 -->
+<div id="loginToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;">
+    <div class="d-flex">
+        <div class="toast-body">
+            로그인 후 사용 가능합니다
         </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
 </div>
 
 <script>
-let currentPage = 0;
-let totalPages = 0;
-let totalElements = 0;
+    let currentPage = 1;
+    let currentSort = 'latest';
+    let currentKeyword = '';
+    let currentSearchType = 'all';
 
-// 페이지 로드시 초기화
-$(document).ready(function() {
-    loadMds();
-    setupPlaceAutoComplete();
-    
-    // Enter 키 검색
-    $('#searchKeyword').on('keypress', function(e) {
-        if (e.which === 13) {
-            searchMds();
+    // 페이지 로드 시 MD 목록 로드
+    $(document).ready(function() {
+        console.log('페이지 로드 완료');
+        
+        // body에 clubmd-page 클래스 추가 (푸터 전체 너비를 위해)
+        $('body').addClass('clubmd-page');
+        
+        // 별들 먼저 생성
+        setTimeout(function() {
+            createStars();
+        }, 100);
+        
+        // MD 목록 로드
+        loadMds(1, 'latest');
+    });
+
+    // 별들 생성 함수 - 완전 새로 작성
+    function createStars() {
+        console.log('별 생성 시작...');
+        
+        // 별들 컨테이너 찾기
+        const starsContainer = document.getElementById('starsContainer');
+        if (!starsContainer) {
+            console.error('별들 컨테이너를 찾을 수 없습니다!');
+            return;
         }
-    });
-    
-    // 검색 자동완성 설정
-    setupSearchAutocomplete();
-});
-
-// MD 목록 로드
-function loadMds(page = 0) {
-    const keyword = $('#searchKeyword').val();
-    const sort = $('#sortOption').val();
-    const searchType = $('#searchType').val();
-    currentPage = page;
-
-    const params = new URLSearchParams({
-        page: page,
-        size: 15
-    });
-    
-    if (keyword) params.append('keyword', keyword);
-    if (sort) params.append('sort', sort);
-    if (searchType) params.append('searchType', searchType);
-    
-    const apiUrl = '<%=root%>/api/md?' + params.toString();
-
-
-    
-    // JWT 토큰을 헤더에 포함하여 API 호출
-    const headers = {};
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-        headers['Authorization'] = 'Bearer ' + token;
-
-    }
-    
-    $.ajax({
-        url: apiUrl,
-        method: 'GET',
-        headers: headers,
-        dataType: 'json',
-        success: function(response) {
-
-            if (response.success) {
-                displayMds(response.mds || []);
-                updatePagination(response.currentPage || 0, response.totalPages || 1, response.totalElements || 0);
-            } else {
-                showError('MD 목록을 불러오는데 실패했습니다.');
+        
+        console.log('별들 컨테이너 찾음:', starsContainer);
+        
+        // 기존 별들 제거
+        starsContainer.innerHTML = '';
+        
+        const starCount = 200; // 별 개수 증가 (전체 화면 채우기)
+        
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            
+            // 랜덤 위치와 크기
+            const size = Math.random() * 2 + 0.5; // 0.5-2.5px로 크기 축소
+            const x = Math.random() * 120; // 0-120%로 화면 밖까지 확장
+            const y = Math.random() * 120; // 0-120%로 화면 밖까지 확장
+            
+            // 인라인 스타일로 강제 적용
+            star.style.position = 'absolute';
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.left = x + '%';
+            star.style.top = y + '%';
+            star.style.background = '#ffffff';
+            star.style.borderRadius = '50%';
+            star.style.boxShadow = '0 0 6px #ffffff';
+            star.style.zIndex = '1000';
+            star.style.display = 'block';
+            
+            starsContainer.appendChild(star);
+            
+            // 디버깅: 첫 번째 별 확인
+            if (i === 0) {
+                console.log('첫 번째 별 스타일:', star.style.cssText);
+                console.log('첫 번째 별 크기:', star.offsetWidth, 'x', star.offsetHeight);
             }
-        },
-        error: function(xhr, status, error) {
-
-            showError('MD 목록을 불러오는 중 오류가 발생했습니다.');
         }
-    });
-}
-
-// MD 목록 표시
-function displayMds(mds) {
-    if (!mds || mds.length === 0) {
-        $('#mdListContainer').html(
-            '<div class="md-empty-state text-center py-5">' +
-                '<div class="md-empty-icon">' +
-                    '<i class="bi bi-exclamation-triangle display-1 text-muted"></i>' +
-                '</div>' +
-                '<h4 class="md-empty-title mt-3">등록된 MD가 없습니다</h4>' +
-                '<p class="md-empty-description text-muted">현재 등록된 MD가 없습니다.</p>' +
-                '<p class="md-empty-description text-muted">관리자에게 연락해서 MD 등록을 요청해주세요!</p>' +
-            '</div>'
-        );
-        return;
+        
+        console.log(`${starCount}개의 별이 생성되었습니다.`);
+        console.log('별들 컨테이너 내용:', starsContainer.innerHTML);
     }
 
-
-    
-    // JWT 토큰 기반 로그인 상태 확인
-    const token = localStorage.getItem('accessToken');
-    const isLoggedIn = token && token !== 'null' && token !== '';
-
-    
-    let html = '<div class="md-cards-grid">';
-    mds.forEach(function(md) {
-
-        const isWished = md.isWished || false;
-        const wishCount = md.wishCount || 0;
-
+    // 정렬 버튼 상태 업데이트
+    function updateSortButtons(sort) {
+        // 모든 정렬 버튼을 기본 스타일로 초기화
+        $('#sortLatest').removeClass('btn-primary').addClass('btn-outline-secondary');
+        $('#sortPopular').removeClass('btn-primary').addClass('btn-outline-secondary');
         
-        // Model1과 동일한 구조로 변경
-        html += '<div class="md-card">' +
-                    '<div class="md-verified-badge">' +
-                        '<i class="bi bi-shield-check me-1"></i>검증됨' +
-                    '</div>';
-                    
-        // 하트 버튼 항상 표시 (찜 기능은 로그인 시에만 작동)
-
-        html += '<button type="button" class="md-wish-btn ' + (isWished ? 'wished' : '') + '"' +
-                ' onclick="toggleMdWish(' + md.mdId + ', this)"' +
-                ' data-md-id="' + md.mdId + '"' +
-                ' data-wished="' + isWished + '">' +
-                    '<i class="bi ' + (isWished ? 'bi-heart-fill' : 'bi-heart') + '"></i>' +
-                '</button>';
-        
-        html += '<div class="md-card-header">';
-        if (md.photo && md.photo.trim() !== '') {
-            html += '<img src="<%=root%>/uploads/mdphotos/' + md.photo + '" class="md-card-image" alt="MD 사진">';
-        } else {
-            html += '<div class="md-card-placeholder"><i class="bi bi-person-circle"></i></div>';
+        // 현재 선택된 정렬 버튼을 활성화 스타일로 변경
+        if (sort === 'latest') {
+            $('#sortLatest').removeClass('btn-outline-secondary').addClass('btn-primary');
+        } else if (sort === 'popular') {
+            $('#sortPopular').removeClass('btn-outline-secondary').addClass('btn-primary');
         }
-        html += '</div>' +
-                '<div class="md-card-body">' +
-                    '<div class="md-card-title-row">' +
-                        
-                        '<h5 class="md-card-name">' + md.mdName + '</h5>' +
-                        '<div class="md-wish-count">' +
-                            '<i class="bi bi-heart-fill me-1"></i>' +
-                            '<span class="wish-count-number">' + wishCount + '</span>' +
+    }
+
+    // MD 목록 로드
+    function loadMds(page, sort = 'latest') {
+        currentPage = page;
+        currentSort = sort;
+        
+        // 정렬 버튼 상태 업데이트
+        updateSortButtons(sort);
+        
+        const offset = (page - 1) * 10; // 페이지당 10개
+        
+        // JWT 토큰 가져오기
+        const token = localStorage.getItem('accessToken');
+        
+        $.ajax({
+            url: '${pageContext.request.contextPath}/md/api/list',
+            method: 'GET',
+            headers: {
+                'Authorization': token ? 'Bearer ' + token : ''
+            },
+            data: {
+                page: page - 1,  // Spring Boot는 0부터 시작
+                size: 10,
+                keyword: currentKeyword,
+                searchType: currentSearchType,
+                sort: sort
+            },
+            success: function(response) {
+                if (response.success) {
+                    displayMds(response.mds || []);
+                    updatePagination(response.currentPage || 1, response.totalPages || 1, response.totalElements || 0);
+                } else {
+                    showError('MD 목록을 불러오는데 실패했습니다.');
+                }
+            },
+            error: function(xhr, status, error) {
+                showError('서버 오류가 발생했습니다.');
+            }
+        });
+    }
+
+    // MD 목록 표시
+    function displayMds(mds) {
+        if (!mds || mds.length === 0) {
+            $('#mdListContainer').html(`
+                <div class="card-box text-center py-5">
+                    <div class="text-muted">
+                        <i class="bi bi-exclamation-triangle display-1"></i>
+                    </div>
+                    <h4 class="mt-3">등록된 MD가 없습니다</h4>
+                    <p class="text-muted-small">현재 등록된 MD가 없습니다.</p>
+                </div>
+            `);
+            return;
+        }
+        
+        // JWT 토큰 기반 로그인 상태 확인
+        const token = localStorage.getItem('accessToken');
+        const isLoggedIn = token && token !== 'null' && token !== '';
+        
+        let html = '<div class="row">';
+        mds.forEach(function(md, index) {
+            const isWished = md.wished || false;
+            const wishCount = md.wishCount || 0;
+            const placeName = md.placeName || '가게명 없음';
+            const placeAddress = md.placeAddress || '주소 없음';
+            const contact = md.contact || '연락처 없음';
+            const description = md.description || '설명이 없습니다.';
+            const createdAt = md.createdAt ? new Date(md.createdAt).toLocaleDateString('ko-KR') : '';
+            
+            html += '<div class="col-md-6 col-lg-4 mb-4">' +
+                '<div class="card-box clubmd-md-card">' +
+                    '<div class="clubmd-md-card-header position-relative">' +
+                        '<div class="clubmd-md-wish-btn ' + (isWished ? 'wished' : '') + '" ' +
+                             'data-md-id="' + md.mdId + '" ' +
+                             'data-wished="' + isWished + '" ' +
+                             'onclick="toggleMdWish(' + md.mdId + ', this)">' +
+                            '<i class="bi ' + (isWished ? 'bi-heart-fill text-danger' : 'bi-heart') + '"></i>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="md-card-location">' +
-                        '<i class="bi bi-geo-alt"></i>' +
-                        '<span class="md-card-place">' + (md.placeName || '장소 미정') + '</span>' +
+                    '<div class="clubmd-md-card-body">' +
+                        '<div class="clubmd-md-photo-container mb-3">' +
+                            (md.photo ? 
+                                '<img src="' + md.photo + '" alt="' + md.mdName + '" class="clubmd-md-photo">' : 
+                                '<div class="clubmd-md-photo-placeholder"><i class="bi bi-person-circle"></i></div>'
+                            ) +
+                        '</div>' +
+                        '<div class="clubmd-md-info">' +
+                            '<h5 class="clubmd-md-name mb-2">' + md.mdName + '</h5>' +
+                            '<div class="clubmd-md-place mb-2">' +
+                                '<span class="clubmd-place-name">' + placeName + '</span>' +
+                                '<span class="clubmd-place-address">(' + placeAddress + ')</span>' +
+                            '</div>' +
+                            '<div class="clubmd-md-contact mb-2">' +
+                                '<i class="bi bi-telephone me-1"></i>' +
+                                '<span>' + contact + '</span>' +
+                            '</div>' +
+                            '<p class="clubmd-md-description mb-2">' + description + '</p>' +
+                            '<div class="clubmd-md-date">' +
+                                '<small class="text-muted">MD 등록일: ' + createdAt + '</small>' +
+                            '</div>' +
+                        '</div>' +
                     '</div>' +
-                    '<div class="md-card-address">' +
-                        '<i class="bi bi-geo-alt-fill"></i>' +
-                        '<span class="address-text">' + (md.address || '') + '</span>' +
-                    '</div>';
-                    
-        if (md.contact && md.contact.trim() !== '') {
-            html += '<div class="md-card-contact">' +
-                        '<i class="bi bi-telephone"></i>' +
-                        '<span class="md-card-contact-text">' + md.contact + '</span>' +
-                    '</div>';
-        }
-        if (md.description && md.description.trim() !== '') {
-            html += '<div class="md-card-description">' +
-                        '<span class="description-text">연결주소: ' + md.description + '</span>' +
-                    '</div>';
-        }
-        html += '</div>' +
+                    '<div class="clubmd-md-wish-count d-flex align-items-center justify-content-center" data-md-id="' + md.mdId + '">' +
+                        '<i class="bi bi-heart-fill me-1"></i>' +
+                        '<span class="clubmd-wish-count-number fw-bold">' + wishCount + '</span>' +
+                    '</div>' +
+                '</div>' +
             '</div>';
-    });
-    html += '</div>';
-
-    $('#mdListContainer').html(html);
-}
-
-// 페이지네이션 업데이트
-function updatePagination(currentPage, totalPages, totalElements) {
-    const pageSize = 15;
-    
-    if (totalPages <= 1) {
-        $('#paginationContainer').hide();
-        $('#pageInfo').hide();
-        return;
-    }
-
-    let html = '';
-    
-    // 이전 페이지
-    if (currentPage > 0) {
-        html += '<li class="page-item"><a class="page-link" href="#" onclick="loadMds(' + (currentPage - 1) + ')">이전</a></li>';
-    } else {
-        html += '<li class="page-item disabled"><span class="page-link">이전</span></li>';
-    }
-    
-    // 페이지 번호들
-    const startPage = Math.max(0, currentPage - 2);
-    const endPage = Math.min(totalPages - 1, currentPage + 2);
-    
-    if (startPage > 0) {
-        html += '<li class="page-item"><a class="page-link" href="#" onclick="loadMds(0)">1</a></li>';
-        if (startPage > 1) {
-            html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
-        }
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-        const active = i === currentPage ? ' active' : '';
-        html += '<li class="page-item' + active + '"><a class="page-link" href="#" onclick="loadMds(' + i + ')">' + (i + 1) + '</a></li>';
-    }
-    
-    if (endPage < totalPages - 1) {
-        if (endPage < totalPages - 2) {
-            html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
-        }
-        html += '<li class="page-item"><a class="page-link" href="#" onclick="loadMds(' + (totalPages - 1) + ')">' + totalPages + '</a></li>';
-    }
-    
-    // 다음 페이지
-    if (currentPage < totalPages - 1) {
-        html += '<li class="page-item"><a class="page-link" href="#" onclick="loadMds(' + (currentPage + 1) + ')">다음</a></li>';
-    } else {
-        html += '<li class="page-item disabled"><span class="page-link">다음</span></li>';
-    }
-
-    $('#pagination').html(html);
-    $('#paginationContainer').show();
-    
-    // 페이지 정보 표시
-    const startItem = currentPage * pageSize + 1;
-    const endItem = Math.min((currentPage + 1) * pageSize, totalElements);
-    $('#pageInfo').html('<small>총 ' + totalElements + '개의 MD 중 ' + startItem + '-' + endItem + '번째</small>').show();
-}
-
-// 검색
-function searchMds() {
-    loadMds(0);
-}
-
-// MD 등록
-function registerMd() {
-    const form = document.getElementById('mdRegisterForm');
-    const formData = new FormData(form);
-    
-    // 필수 필드 검증
-    const mdName = formData.get('mdName');
-    const placeId = formData.get('placeId');
-    
-    if (!mdName || !placeId) {
-        showMessage('필수 항목을 모두 입력해주세요.', 'warning');
-        return;
-    }
-    
-    $.ajax({
-        url: '<%=root%>/api/md/register',
-        method: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-            if (response.success) {
-                showMessage('MD가 성공적으로 등록되었습니다.', 'success');
-                $('#mdRegisterModal').modal('hide');
-                $('#mdRegisterForm')[0].reset();
-                $('#placeId').val('');
-                loadMds(currentPage);
-            } else {
-                showMessage('MD 등록에 실패했습니다: ' + response.message, 'error');
-            }
-        },
-        error: function() {
-            showMessage('MD 등록 중 오류가 발생했습니다.', 'error');
-        }
-    });
-}
-
-// MD 찜 토글 - JWT 토큰 기반
-function toggleMdWish(mdId, button) {
-
-    
-    // JWT 토큰 기반 로그인 확인
-    const token = localStorage.getItem('accessToken');
-    if (!token || token === 'null' || token === '') {
-        showMessage('로그인이 필요합니다.', 'warning');
-        return;
-    }
-    
-    const isWished = $(button).attr('data-wished') === 'true';
-    const method = isWished ? 'DELETE' : 'POST';
-    
-
-    $(button).prop('disabled', true);
-    
-    const apiUrl = '<%=root%>/api/md/' + mdId + '/wish';
-
-    
-    $.ajax({
-        url: apiUrl,
-        method: method,
-        headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'
-        },
-        dataType: 'json',
-        success: function(response) {
-
-            if (response.success) {
-                const newWished = !isWished;
-                $(button).attr('data-wished', newWished);
-                
-
-                if (newWished) {
-                    $(button).addClass('wished');
-                    $(button).find('i').removeClass('bi-heart').addClass('bi-heart-fill');
-                } else {
-                    $(button).removeClass('wished');
-                    $(button).find('i').removeClass('bi-heart-fill').addClass('bi-heart');
-                }
-                
-                $(button).prop('disabled', false);
-                // alert 제거 - 사용자 경험 개선
-
-            } else {
-
-                showMessage(response.message, 'success');
-                $(button).prop('disabled', false);
-            }
-        },
-        error: function(xhr, status, error) {
-
-            if (xhr.status === 401) {
-                showMessage('로그인이 필요합니다.', 'warning');
-            } else {
-                showMessage('찜하기 처리 중 오류가 발생했습니다.', 'error');
-            }
-            $(button).prop('disabled', false);
-        }
-    });
-}
-
-// MD 상세보기
-function viewMdDetail(mdId) {
-    showMessage('MD 상세보기 기능 구현 예정입니다.', 'info');
-}
-
-// 장소 자동완성 설정
-function setupPlaceAutoComplete() {
-    $('#placeSearch').on('input', function() {
-        const keyword = $(this).val();
-        if (keyword.length >= 2) {
-            searchPlaces(keyword);
-        } else {
-            $('#placeSearchResults').hide();
-            $('#placeId').val('');
-        }
-    });
-
-    // 외부 클릭시 자동완성 숨기기
-    $(document).on('click', function(e) {
-        if (!$(e.target).closest('#placeSearch, #placeSearchResults').length) {
-            $('#placeSearchResults').hide();
-        }
-    });
-}
-
-// 장소 검색
-function searchPlaces(keyword) {
-    $.ajax({
-        url: '<%=root%>/api/places/search?keyword=' + encodeURIComponent(keyword),
-        method: 'GET',
-        dataType: 'json',
-        success: function(response) {
-            if (response.success && response.places) {
-                displayPlaceResults(response.places);
-            }
-        },
-        error: function() {
-            // 임시 더미 데이터 (장소 API가 없을 경우)
-            const dummyPlaces = [
-                {id: 1, name: '강남역 클럽', address: '서울 강남구'},
-                {id: 2, name: '홍대 클럽', address: '서울 마포구'},
-                {id: 3, name: '이태원 클럽', address: '서울 용산구'}
-            ].filter(place => place.name.includes(keyword));
-            displayPlaceResults(dummyPlaces);
-        }
-    });
-}
-
-// 장소 검색 결과 표시
-function displayPlaceResults(places) {
-    let html = '';
-    places.forEach(function(place) {
-        html += '<a href="#" class="list-group-item list-group-item-action" onclick="selectPlace(' + place.id + ', \'' + place.name + '\', \'' + (place.address || '') + '\')">' + place.name + (place.address ? ' - ' + place.address : '') + '</a>';
-    });
-    
-    if (html) {
-        $('#placeSearchResults').html(html).show();
-    } else {
-        $('#placeSearchResults').html('<div class="list-group-item">검색 결과가 없습니다.</div>').show();
-    }
-}
-
-// 장소 선택
-function selectPlace(id, name, address) {
-    $('#placeId').val(id);
-    $('#placeSearch').val(name + (address ? ' - ' + address : ''));
-    $('#placeSearchResults').hide();
-}
-
-// 검색 자동완성 설정
-function setupSearchAutocomplete() {
-    let searchTimeout;
-    
-    $('#searchKeyword').on('input', function() {
-        const keyword = $(this).val();
-        const searchType = $('#searchType').val();
-        
-        clearTimeout(searchTimeout);
-        
-        if (keyword.length >= 2) {
-            searchTimeout = setTimeout(function() {
-                getSearchSuggestions(keyword, searchType);
-            }, 300);
-        } else {
-            hideSearchSuggestions();
-        }
-    });
-    
-    // 외부 클릭시 자동완성 숨기기
-    $(document).on('click', function(e) {
-        if (!$(e.target).closest('#searchKeyword, .search-suggestions').length) {
-            hideSearchSuggestions();
-        }
-    });
-}
-
-// 검색 제안 가져오기
-function getSearchSuggestions(keyword, searchType) {
-    const params = new URLSearchParams({
-        keyword: keyword,
-        searchType: searchType,
-        limit: 5
-    });
-    
-    const token = localStorage.getItem('accessToken');
-    const headers = {};
-    if (token) {
-        headers['Authorization'] = 'Bearer ' + token;
-    }
-    
-    $.ajax({
-        url: '<%=root%>/api/md/suggestions?' + params.toString(),
-        method: 'GET',
-        headers: headers,
-        dataType: 'json',
-        success: function(response) {
-            if (response.success && response.suggestions) {
-                showSearchSuggestions(response.suggestions);
-            }
-        },
-        error: function() {
-            // 자동완성 실패시 조용히 무시
-        }
-    });
-}
-
-// 검색 제안 표시
-function showSearchSuggestions(suggestions) {
-    let html = '<div class="search-suggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 8px; max-height: 300px; overflow-y: auto; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-top: 2px;">';
-    
-    suggestions.forEach(function(suggestion, index) {
-        let suggestionText = suggestion.suggestion || suggestion;
-        let suggestionType = suggestion.type || '';
-        let typeIcon = '';
-        let typeLabel = '';
-        
-        if (suggestionType === 'mdName') {
-            typeIcon = '<i class="bi bi-person-fill me-2 text-primary"></i>';
-            typeLabel = '<small class="text-muted ms-auto">MD</small>';
-        } else if (suggestionType === 'placeName') {
-            typeIcon = '<i class="bi bi-geo-alt-fill me-2 text-success"></i>';
-            typeLabel = '<small class="text-muted ms-auto">장소</small>';
-        }
-        
-        let borderClass = index === suggestions.length - 1 ? '' : 'border-bottom: 1px solid #f0f0f0;';
-        
-        html += '<div class="suggestion-item d-flex align-items-center px-3 py-2" style="cursor: pointer; ' + borderClass + ' transition: all 0.2s ease; color: #212529;" onmouseover="this.style.backgroundColor=\'#e3f2fd\'; this.style.transform=\'translateX(2px)\';" onmouseout="this.style.backgroundColor=\'white\'; this.style.transform=\'translateX(0)\';" onclick="selectSuggestion(\'' + suggestionText.replace("'", "\\'") + '\')">' + 
-                typeIcon + 
-                '<span class="flex-grow-1 fw-medium" style="color: #212529;">' + suggestionText + '</span>' + 
-                typeLabel + 
-                '</div>';
-    });
-    
-    html += '</div>';
-    
-    // 기존 제안 제거
-    $('.search-suggestions').remove();
-    
-    // 검색 input 그룹에 상대 위치 설정하고 제안 추가
-    $('#searchKeyword').closest('.input-group').css('position', 'relative').append(html);
-}
-
-// 검색 제안 선택
-function selectSuggestion(suggestion) {
-    $('#searchKeyword').val(suggestion);
-    hideSearchSuggestions();
-    searchMds();
-}
-
-// 검색 제안 숨기기
-function hideSearchSuggestions() {
-    $('.search-suggestions').remove();
-}
-
-// 사용자 친화적 메시지 표시
-function showMessage(message, type = 'info') {
-    // 기존 메시지 제거
-    $('.toast-message').remove();
-    
-    let iconClass = '';
-    let bgClass = '';
-    
-    switch(type) {
-        case 'success':
-            iconClass = 'bi-check-circle-fill';
-            bgClass = 'bg-success';
-            break;
-        case 'error':
-            iconClass = 'bi-exclamation-triangle-fill';
-            bgClass = 'bg-danger';
-            break;
-        case 'warning':
-            iconClass = 'bi-exclamation-circle-fill';
-            bgClass = 'bg-warning';
-            break;
-        default:
-            iconClass = 'bi-info-circle-fill';
-            bgClass = 'bg-info';
-    }
-    
-    const toastHtml = `
-        <div class="toast-message position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 10000;">
-            <div class="alert ${bgClass} text-white d-flex align-items-center border-0 shadow" role="alert">
-                <i class="bi ${iconClass} me-2"></i>
-                <span>${message}</span>
-                <button type="button" class="btn-close btn-close-white ms-auto" onclick="$(this).closest('.toast-message').remove()"></button>
-            </div>
-        </div>
-    `;
-    
-    $('body').append(toastHtml);
-    
-    // 3초 후 자동 제거
-    setTimeout(() => {
-        $('.toast-message').fadeOut(300, function() {
-            $(this).remove();
         });
-    }, 3000);
-}
+        html += '</div>';
+        
+        $('#mdListContainer').html(html);
+    }
 
-// 오류 표시
-function showError(message) {
-    $('#mdListContainer').html(
-        '<div class="alert alert-danger text-center">' +
-            '<h5><i class="bi bi-exclamation-triangle"></i> 오류</h5>' +
-            '<p>' + message + '</p>' +
-            '<button class="btn btn-primary" onclick="loadMds()">다시 시도</button>' +
-        '</div>'
-    );
-}
+    // MD 찜하기 토글
+    function toggleMdWish(mdId, button) {
+        // JWT 토큰 기반 로그인 확인
+        const token = localStorage.getItem('accessToken');
+        if (!token || token === 'null' || token === '') {
+            showLoginToast();
+            return;
+        }
+        
+        $(button).prop('disabled', true);
+        
+        // 항상 POST로 요청 (토글 방식)
+        const apiUrl = '${pageContext.request.contextPath}/md/api/' + mdId + '/wish';
+        
+        $.ajax({
+            url: apiUrl,
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            success: function(response) {
+                if (response.success) {
+                    // 서버에서 반환된 찜 상태 사용
+                    const newWished = response.isWished;
+                    
+                    // 버튼의 data-wished 속성 업데이트
+                    $(button).attr('data-wished', newWished);
+                    
+                    // 하트 아이콘 변경
+                    const heartIcon = $(button).find('i');
+                    if (newWished) {
+                        // 찜한 상태: 빨간 채워진 하트
+                        $(button).addClass('wished');
+                        heartIcon.removeClass('bi-heart').addClass('bi-heart-fill text-danger');
+                        // CSS 강제 적용
+                        heartIcon.css('color', '#dc3545');
+                    } else {
+                        // 찜하지 않은 상태: 빈 하트
+                        $(button).removeClass('wished');
+                        heartIcon.removeClass('bi-heart-fill text-danger').addClass('bi-heart');
+                        // CSS 강제 적용
+                        heartIcon.css('color', '#6c757d');
+                    }
+                    
+                    // 찜 개수 업데이트
+                    updateWishCount(mdId, newWished);
+                    
+                    // 성공 메시지 표시
+                    if (newWished) {
+                        showToast('찜하기가 완료되었습니다! 💖', 'success');
+                    } else {
+                        showToast('찜하기가 취소되었습니다.', 'info');
+                    }
+                    
+                    $(button).prop('disabled', false);
+                } else {
+                    showError(response.message || '찜하기 처리에 실패했습니다.');
+                    $(button).prop('disabled', false);
+                }
+            },
+            error: function() {
+                showError('서버 오류가 발생했습니다.');
+                $(button).prop('disabled', false);
+            }
+        });
+    }
+
+    // 찜 개수 업데이트
+    function updateWishCount(mdId, isWished) {
+        const wishCountElement = $(`.clubmd-md-wish-count[data-md-id="${mdId}"] .clubmd-wish-count-number`);
+        
+        if (isWished) {
+            // 찜 추가된 경우 개수 증가
+            let currentCount = parseInt(wishCountElement.text()) || 0;
+            wishCountElement.text(currentCount + 1);
+        } else {
+            // 찜 제거된 경우 개수 감소
+            let currentCount = parseInt(wishCountElement.text()) || 0;
+            wishCountElement.text(Math.max(0, currentCount - 1));
+        }
+    }
+
+    // 토스트 메시지 표시 함수
+    function showToast(message, type) {
+        // 기존 토스트 제거
+        const existingToast = document.querySelector('.toast-message');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        
+        // 새 토스트 생성
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        `;
+        
+        // 타입에 따른 스타일 설정
+        if (type === 'success') {
+            toast.style.backgroundColor = '#4caf50';
+        } else if (type === 'error') {
+            toast.style.backgroundColor = '#f44336';
+        } else {
+            toast.style.backgroundColor = '#2196f3';
+        }
+        
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // 애니메이션
+        setTimeout(() => {
+            toast.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // 자동 제거
+        setTimeout(() => {
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    // 검색
+    function searchMds() {
+        currentKeyword = $('#searchKeyword').val().trim();
+        currentSearchType = $('#searchType').val();
+        loadMds(1, currentSort);
+    }
+
+    // 페이지네이션 업데이트
+    function updatePagination(currentPage, totalPages, totalElements) {
+        if (totalPages <= 1) {
+            $('#paginationContainer').html('');
+            return;
+        }
+
+        let html = '<ul class="pagination justify-content-center">';
+        
+        // 이전 페이지
+        if (currentPage > 1) {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="loadMds(${currentPage - 1}, '${currentSort}')">이전</a></li>`;
+        }
+        
+        // 페이지 번호
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === currentPage) {
+                html += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
+            } else {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="loadMds(${i}, '${currentSort}')">${i}</a></li>`;
+            }
+        }
+        
+        // 다음 페이지
+        if (currentPage < totalPages) {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="loadMds(${currentPage + 1}, '${currentSort}')">다음</a></li>`;
+        }
+        
+        html += '</ul>';
+        $('#paginationContainer').html(html);
+    }
+
+    // 로그인 필요 토스트 표시
+    function showLoginToast() {
+        const toast = new bootstrap.Toast(document.getElementById('loginToast'));
+        toast.show();
+        
+        // 2.5초 후 자동 숨김
+        setTimeout(function() {
+            toast.hide();
+        }, 2500);
+    }
+
+    // 에러 메시지 표시
+    function showError(message) {
+        alert(message);
+    }
 </script>

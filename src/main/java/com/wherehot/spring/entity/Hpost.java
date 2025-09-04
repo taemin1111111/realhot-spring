@@ -27,6 +27,7 @@ public class Hpost {
     private Integer reports = 0;           // 신고수 (INT, default '0')
     private LocalDateTime createdAt;       // 생성시간 (DATETIME, default CURRENT_TIMESTAMP)
     private String formattedTime;          // 포맷팅된 시간 (몇분전, 몇시간전 등)
+    private Integer commentCount = 0;      // 댓글 수 (인기순 정렬용)
     
     // 연관관계 (MyBatis에서 별도 조회)
     private List<Hcomment> comments = new ArrayList<>();
@@ -178,5 +179,11 @@ public class Hpost {
         this.comments = comments;
     }
     
-   
+    public Integer getCommentCount() {
+        return commentCount;
+    }
+    
+    public void setCommentCount(Integer commentCount) {
+        this.commentCount = commentCount;
+    }
 }

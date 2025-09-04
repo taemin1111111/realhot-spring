@@ -88,5 +88,9 @@
     <select id="findByIdAndNickname" resultMap="HcommentResult">
         SELECT * FROM hottalk_comment WHERE id = #{id} AND nickname = #{nickname}
     </select>
+    
+    <delete id="deleteCommentsByPostId">
+        DELETE FROM hottalk_comment WHERE post_id = #{postId}
+    </delete>
 
 </mapper>

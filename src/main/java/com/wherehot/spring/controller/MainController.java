@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Optional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -56,6 +57,9 @@ public class MainController {
 
     @Autowired
     private JwtUtils jwtUtils;
+
+    @Autowired
+    private HpostService hpostService;
 
     /**
      * 메인 페이지 (기본 페이지)
@@ -124,7 +128,12 @@ public class MainController {
             List<Category> categoryList = categoryService.findAllCategories();
             model.addAttribute("categoryList", categoryList);
             
-          
+            // 10. 핫플썰 인기글 5위까지 조회
+            List<com.wherehot.spring.entity.Hpost> popularHotplacePosts = hpostService.getPopularHpostList(0);
+            if (popularHotplacePosts.size() > 5) {
+                popularHotplacePosts = popularHotplacePosts.subList(0, 5);
+            }
+            model.addAttribute("popularHotplacePosts", popularHotplacePosts);
             
             // 11. 인증 정보
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -159,7 +168,7 @@ public class MainController {
         model.addAttribute("hotplaceNameList", new ArrayList<>());
         model.addAttribute("dongToRegionIdMapping", new HashMap<>());
         model.addAttribute("categoryList", new ArrayList<>());
-        model.addAttribute("popularPosts", new ArrayList<>());
+        model.addAttribute("popularHotplacePosts", new ArrayList<>());
         model.addAttribute("isAuthenticated", false);
         model.addAttribute("cacheTimestamp", System.currentTimeMillis());
     }

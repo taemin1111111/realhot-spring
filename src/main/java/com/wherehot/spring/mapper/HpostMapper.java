@@ -25,6 +25,26 @@ public interface HpostMapper {
     int selectTotalHpostCount();
     
     /**
+     * 검색 게시글 목록 조회 (최신순)
+     */
+    List<Hpost> searchLatestHpostList(@Param("searchType") String searchType, 
+                                      @Param("searchKeyword") String searchKeyword, 
+                                      @Param("offset") int offset);
+    
+    /**
+     * 검색 게시글 목록 조회 (인기순)
+     */
+    List<Hpost> searchPopularHpostList(@Param("searchType") String searchType, 
+                                       @Param("searchKeyword") String searchKeyword, 
+                                       @Param("offset") int offset);
+    
+    /**
+     * 검색 게시글 수 조회
+     */
+    int selectSearchHpostCount(@Param("searchType") String searchType, 
+                              @Param("searchKeyword") String searchKeyword);
+    
+    /**
      * 게시글 상세 조회
      */
     Hpost selectHpostById(@Param("id") int id);

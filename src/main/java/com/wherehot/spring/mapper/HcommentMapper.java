@@ -38,4 +38,7 @@ public interface HcommentMapper {
     void deleteComment(@Param("id") int id);
     
     Optional<Hcomment> findByIdAndNickname(@Param("id") int id, @Param("nickname") String nickname);
+    
+    // 게시물의 모든 댓글 삭제
+    void deleteCommentsByPostId(@Param("postId") int postId);
 }

@@ -8,13 +8,39 @@
 <div class="container mt-5 hpost-container">
     <!-- 핫플썰 제목 -->
     <div class="hpost-title">
-        <h2>핫플썰</h2>
+        <h2><img src="<c:url value='/logo/fire.png'/>" alt="Fire" class="title-icon"> 핫플썰</h2>
+    </div>
+    
+    <!-- 검색 기능 -->
+    <div class="hpost-search-container">
+        <form action="<c:url value='/hpost'/>" method="GET" class="hpost-search-form">
+            <div class="hpost-search-row">
+                <div class="hpost-search-type">
+                    <select name="searchType" class="form-select">
+                        <option value="all" ${param.searchType == 'all' || empty param.searchType ? 'selected' : ''}>전체</option>
+                        <option value="title" ${param.searchType == 'title' ? 'selected' : ''}>제목</option>
+                        <option value="content" ${param.searchType == 'content' ? 'selected' : ''}>내용</option>
+                    </select>
+                </div>
+                <div class="hpost-search-input">
+                    <input type="text" name="searchKeyword" value="${param.searchKeyword}" 
+                           class="form-control" placeholder="검색어를 입력하세요" maxlength="100">
+                </div>
+                <div class="hpost-search-button">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> 검색
+                    </button>
+                </div>
+            </div>
+            <!-- 정렬 옵션 유지 -->
+            <input type="hidden" name="sort" value="${param.sort}">
+        </form>
     </div>
     
     <!-- 정렬 드롭다운과 글쓰기 버튼 -->
     <div class="hpost-controls">
         <div class="hpost-sort-dropdown">
-            <button class="btn btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn btn-link dropdown-toggle ${sort == 'popular' ? 'popular-active' : ''}" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-arrow-down-up"></i> ${sort == 'latest' || empty sort ? '최신순' : '인기순'}
             </button>
             <ul class="dropdown-menu">
@@ -33,10 +59,11 @@
     <div class="hpost-header">
         <div class="row">
             <div class="col-2">닉네임</div>
-            <div class="col-6">제목</div>
+            <div class="col-5">제목</div>
             <div class="col-1"><i class="bi bi-eye text-muted"></i></div>
             <div class="col-1"><i class="bi bi-hand-thumbs-up text-primary"></i></div>
             <div class="col-1"><i class="bi bi-hand-thumbs-down text-danger"></i></div>
+            <div class="col-1"><i class="bi bi-chat-dots text-info"></i></div>
             <div class="col-1">작성일</div>
         </div>
     </div>
@@ -50,13 +77,20 @@
             <c:when test="${not empty hpostList}">
                 <c:forEach var="hpost" items="${hpostList}" varStatus="status">
                     <div class="row hpost-item">
-                        <div class="col-2">${hpost.nickname}</div>
-                        <div class="col-6">
-                            <a href="<c:url value='/hpost/${hpost.id}'/>" class="hpost-title-link">${hpost.title}</a>
+                        <div class="col-2">
+                            <c:if test="${param.sort == 'popular' && currentPage == 1}">
+                                <c:set var="rank" value="${status.index + 1}" />
+                                                                 <span class="rank-number ${rank <= 3 ? 'top-rank' : ''}" style="font-weight: bold; color: #ff6b6b; margin-right: 8px; font-size: 16px;">${rank}위</span>
+                            </c:if>
+                            ${hpost.nickname}
+                        </div>
+                        <div class="col-5">
+                            <a href="<c:url value='/hpost/${hpost.id}'/>" class="hpost-title-link" title="${hpost.title}">${hpost.title}</a>
                         </div>
                         <div class="col-1">${hpost.views}</div>
                         <div class="col-1">${hpost.likes}</div>
                         <div class="col-1">${hpost.dislikes}</div>
+                        <div class="col-1">${hpost.commentCount}</div>
                         <div class="col-1 hpost-date">${hpost.formattedTime}</div>
                     </div>
                     <hr class="hpost-item-divider">
@@ -70,6 +104,42 @@
             </c:otherwise>
         </c:choose>
     </div>
+    
+    <!-- 페이징 -->
+    <c:if test="${not empty hpostList and totalPages > 1}">
+        <div class="hpost-pagination">
+            <nav aria-label="게시글 페이지 네비게이션">
+                <ul class="pagination justify-content-center">
+                                         <!-- 이전 페이지 -->
+                     <c:if test="${currentPage > 1}">
+                         <li class="page-item">
+                             <a class="page-link" href="<c:url value='/hpost?sort=${param.sort}&searchType=${param.searchType}&searchKeyword=${param.searchKeyword}&page=${currentPage - 1}'/>" aria-label="이전">
+                                 <i class="bi bi-chevron-left"></i>
+                             </a>
+                         </li>
+                     </c:if>
+                     
+                     <!-- 페이지 번호들 -->
+                     <c:forEach var="pageNum" begin="${startPage}" end="${endPage}">
+                         <li class="page-item ${pageNum == currentPage ? 'active' : ''}">
+                             <a class="page-link" href="<c:url value='/hpost?sort=${param.sort}&searchType=${param.searchType}&searchKeyword=${param.searchKeyword}&page=${pageNum}'/>">${pageNum}</a>
+                         </li>
+                     </c:forEach>
+                     
+                     <!-- 다음 페이지 -->
+                     <c:if test="${currentPage < totalPages}">
+                         <li class="page-item">
+                             <a class="page-link" href="<c:url value='/hpost?sort=${param.sort}&searchType=${param.searchType}&searchKeyword=${param.searchKeyword}&page=${currentPage + 1}'/>" aria-label="다음">
+                                 <i class="bi bi-chevron-right"></i>
+                             </a>
+                         </li>
+                     </c:if>
+                </ul>
+            </nav>
+        </div>
+    </c:if>
+    
+    
 </div>
 
 <!-- 글쓰기 모달 -->

@@ -3,13 +3,11 @@
 <%
     String root = request.getContextPath();
 %>
-
-<div class="hunting-popular-section">
+<div class="hotplace-popular-section">
     <div class="section-header">
-        <h3 class="section-title">🔥 헌팅썰 인기글</h3>
+        <h3 class="section-title">🔥 핫플썰 인기글</h3>
         <a href="<%=root%>/community?sort=popular" class="view-all-link">전체보기 →</a>
     </div>
-    
     <div class="posts-table-header">
         <div class="col-rank">순위</div>
         <div class="col-nickname">닉네임</div>
@@ -17,25 +15,18 @@
         <div class="col-likes">좋아요</div>
         <div class="col-views">조회수</div>
     </div>
-    
     <div class="posts-list">
         <c:choose>
-            <c:when test="${not empty popularPosts}">
-                <c:forEach var="post" items="${popularPosts}" varStatus="status">
-                    <div class="posts-table-row" onclick="location.href='<%=root%>/community?post_id=${post.id}'">
+            <c:when test="${not empty popularHotplacePosts}">
+                <c:forEach var="post" items="${popularHotplacePosts}" varStatus="status">
+                    <div class="posts-table-row" onclick="location.href='<%=root%>/hpost/${post.id}'">
                         <div class="col-rank" style="color: #ff6b6b; font-weight: bold;">${status.index + 1}위</div>
                         <div class="col-nickname">
-                            <c:choose>
-                                <c:when test="${not empty post.userid and post.userid ne 'null'}">
-                                    ⭐ <c:out value="${not empty post.nickname ? post.nickname : post.userid}" />
-                                </c:when>
-                                <c:otherwise>
-                                    <c:out value="${post.nickname}" />
-                                </c:otherwise>
-                            </c:choose>
+                            <c:if test="${not empty post.userid and post.userid ne 'null'}">⭐ </c:if>
+                            <c:out value="${post.nickname}" />
                         </div>
                         <div class="col-title">
-                            <a href="javascript:void(0)"><c:out value="${post.title}" /></a>
+                            <a href="<%=root%>/hpost/${post.id}"><c:out value="${post.title}" /></a>
                         </div>
                         <div class="col-likes">👍 ${post.likes}</div>
                         <div class="col-views">👁️ ${post.views}</div>
@@ -52,7 +43,7 @@
 </div>
 
 <style>
-.hunting-popular-section {
+.hotplace-popular-section {
     background: white;
     border-radius: 15px;
     padding: 25px;
@@ -190,7 +181,7 @@
 }
 
 @media (max-width: 768px) {
-    .hunting-popular-section {
+    .hotplace-popular-section {
         margin-top: 15px;
         padding: 15px;
     }
@@ -199,4 +190,4 @@
         font-size: 1.1rem;
     }
 }
-</style> 
+</style>

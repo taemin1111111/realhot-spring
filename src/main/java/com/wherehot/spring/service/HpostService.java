@@ -35,6 +35,27 @@ public class HpostService {
     }
     
     /**
+     * 검색 게시글 목록 조회 (최신순)
+     */
+    public List<Hpost> searchLatestHpostList(String searchType, String searchKeyword, int offset) {
+        return hpostMapper.searchLatestHpostList(searchType, searchKeyword, offset);
+    }
+    
+    /**
+     * 검색 게시글 목록 조회 (인기순)
+     */
+    public List<Hpost> searchPopularHpostList(String searchType, String searchKeyword, int offset) {
+        return hpostMapper.searchPopularHpostList(searchType, searchKeyword, offset);
+    }
+    
+    /**
+     * 검색 게시글 수 조회
+     */
+    public int getSearchHpostCount(String searchType, String searchKeyword) {
+        return hpostMapper.selectSearchHpostCount(searchType, searchKeyword);
+    }
+    
+    /**
      * 게시글 상세 조회 (조회수 증가 없음)
      */
     public Hpost getHpostByIdWithoutIncrement(int id) {

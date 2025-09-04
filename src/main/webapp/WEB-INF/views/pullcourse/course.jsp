@@ -27,6 +27,15 @@
                     </div>
                     
                     <div class="course-hunting-sigungu-container" id="sigungu-${sido}" style="display: none;">
+
+                        
+                        <!-- 서울 전체 버튼 (서울인 경우에만) -->
+                        <c:if test="${sido eq '서울'}">
+                            <div class="course-hunting-seoul-all" onclick="filterByRegion('서울', '', '')">
+                                <i class="fas fa-map-marker-alt"></i> 서울 전체
+                            </div>
+                        </c:if>
+                        
                         <!-- 시군구를 5개씩 그룹으로 나누어 표시 -->
                         <c:set var="sigunguEntries" value="${regionsBySigungu[sido]}" />
                         <c:set var="sigunguList" value="${sigunguEntries.entrySet()}" />
@@ -97,6 +106,11 @@
                 <c:when test="${not empty param.sigungu and param.sigungu ne ''}">
                     <span class="region-badge">
                         <i class="fas fa-map-marker-alt"></i> ${param.sigungu} 전체 코스
+                    </span>
+                </c:when>
+                <c:when test="${not empty param.sido and param.sido ne '' and empty param.sigungu and empty param.dong}">
+                    <span class="region-badge">
+                        <i class="fas fa-map-marker-alt"></i> ${param.sido} 전체 코스
                     </span>
                 </c:when>
                 <c:otherwise>

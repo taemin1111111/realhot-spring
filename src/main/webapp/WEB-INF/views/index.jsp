@@ -150,7 +150,12 @@
 	<!-- 하단 푸터 영역 -->
 	<jsp:include page="main/footer.jsp" />
 
-
+	<!-- ✅ 인증 관련 스크립트 분리 -->
+	<script>
+		// JSP에서 JavaScript로 contextPath 전달
+		window.ROOT_CONTEXT = "<%=root%>";
+	</script>
+	<script src="<%=root%>/js/auth-utils.js"></script>
 
 </body>
 </html>

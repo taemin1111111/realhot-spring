@@ -14,6 +14,10 @@ public class Md {
     private String photo;
     private LocalDateTime createdAt;
     private boolean isVisible;
+    private int wishCount; // 찜 개수
+    private boolean isWished; // 현재 사용자가 찜했는지 여부
+    private String placeName; // 가게 이름
+    private String placeAddress; // 가게 주소
     
     // 기본 생성자
     public Md() {}
@@ -29,6 +33,20 @@ public class Md {
         this.photo = photo;
         this.createdAt = createdAt;
         this.isVisible = isVisible;
+    }
+    
+    // isWished 포함 생성자
+    public Md(int mdId, int placeId, String mdName, String contact, 
+                 String description, String photo, LocalDateTime createdAt, boolean isVisible, boolean isWished) {
+        this.mdId = mdId;
+        this.placeId = placeId;
+        this.mdName = mdName;
+        this.contact = contact;
+        this.description = description;
+        this.photo = photo;
+        this.createdAt = createdAt;
+        this.isVisible = isVisible;
+        this.isWished = isWished;
     }
     
     // Getter와 Setter 메서드들
@@ -96,6 +114,38 @@ public class Md {
         this.isVisible = isVisible;
     }
     
+    public int getWishCount() {
+        return wishCount;
+    }
+    
+    public void setWishCount(int wishCount) {
+        this.wishCount = wishCount;
+    }
+    
+    public boolean isWished() {
+        return isWished;
+    }
+    
+    public void setWished(boolean isWished) {
+        this.isWished = isWished;
+    }
+    
+    public String getPlaceName() {
+        return placeName;
+    }
+    
+    public void setPlaceName(String placeName) {
+        this.placeName = placeName;
+    }
+    
+    public String getPlaceAddress() {
+        return placeAddress;
+    }
+    
+    public void setPlaceAddress(String placeAddress) {
+        this.placeAddress = placeAddress;
+    }
+    
     @Override
     public String toString() {
         return "Md{" +
@@ -107,6 +157,8 @@ public class Md {
                 ", photo='" + photo + '\'' +
                 ", createdAt=" + createdAt +
                 ", isVisible=" + isVisible +
+                ", wishCount=" + wishCount +
+                ", isWished=" + isWished +
                 '}';
     }
 }

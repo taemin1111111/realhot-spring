@@ -179,4 +179,52 @@
         DELETE FROM course WHERE id = #{id}
     </delete>
 
+    <!-- 검색으로 최신글 조회 -->
+    <select id="getLatestCourseListBySearch" resultMap="CourseResultMap">
+        SELECT DISTINCT c.id, c.user_id, c.title, c.summary, c.author_userid, c.nickname, c.passwd_hash,
+               c.created_at, c.updated_at, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.is_deleted
+        FROM course c
+        LEFT JOIN course_step cs ON c.id = cs.course_id
+        LEFT JOIN hotplace_info h ON cs.place_id = h.id
+        WHERE c.is_deleted = 0
+        AND (
+            c.title LIKE CONCAT('%', #{keyword}, '%')
+            OR c.summary LIKE CONCAT('%', #{keyword}, '%')
+            OR h.name LIKE CONCAT('%', #{keyword}, '%')
+        )
+        ORDER BY c.created_at DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 검색으로 인기글 조회 -->
+    <select id="getPopularCourseListBySearch" resultMap="CourseResultMap">
+        SELECT DISTINCT c.id, c.user_id, c.title, c.summary, c.author_userid, c.nickname, c.passwd_hash,
+               c.created_at, c.updated_at, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.is_deleted
+        FROM course c
+        LEFT JOIN course_step cs ON c.id = cs.course_id
+        LEFT JOIN hotplace_info h ON cs.place_id = h.id
+        WHERE c.is_deleted = 0
+        AND (
+            c.title LIKE CONCAT('%', #{keyword}, '%')
+            OR c.summary LIKE CONCAT('%', #{keyword}, '%')
+            OR h.name LIKE CONCAT('%', #{keyword}, '%')
+        )
+        ORDER BY (c.view_count * 0.2 + c.like_count * 0.5 + c.comment_count * 0.3) DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 검색으로 코스 수 조회 -->
+    <select id="getCourseCountBySearch" resultType="int">
+        SELECT COUNT(DISTINCT c.id)
+        FROM course c
+        LEFT JOIN course_step cs ON c.id = cs.course_id
+        LEFT JOIN hotplace_info h ON cs.place_id = h.id
+        WHERE c.is_deleted = 0
+        AND (
+            c.title LIKE CONCAT('%', #{keyword}, '%')
+            OR c.summary LIKE CONCAT('%', #{keyword}, '%')
+            OR h.name LIKE CONCAT('%', #{keyword}, '%')
+        )
+    </select>
+
 </mapper>

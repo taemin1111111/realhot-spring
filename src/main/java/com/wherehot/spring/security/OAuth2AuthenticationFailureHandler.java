@@ -10,6 +10,8 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * OAuth2 로그인 실패 처리
@@ -33,6 +35,7 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
             errorMessage = "잘못된 OAuth2 요청입니다.";
         }
         
-        response.sendRedirect("/?error=" + errorMessage);
+        String encodedMessage = URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
+        response.sendRedirect("/?error=" + encodedMessage);
     }
 }

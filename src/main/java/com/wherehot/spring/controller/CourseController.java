@@ -134,6 +134,7 @@ public class CourseController {
                            @RequestParam(required = false) String sido,
                            @RequestParam(required = false) String sigungu,
                            @RequestParam(required = false) String dong,
+                           @RequestParam(required = false) String search,
                            Model model) {
         
 
@@ -141,7 +142,15 @@ public class CourseController {
         List<Course> courseList;
         int totalCount;
         
-        if (sido != null || sigungu != null || dong != null) {
+        if (search != null && !search.trim().isEmpty()) {
+            // 검색 기능
+            if ("popular".equals(sort)) {
+                courseList = courseService.getPopularCourseListBySearch(search.trim(), page);
+            } else {
+                courseList = courseService.getLatestCourseListBySearch(search.trim(), page);
+            }
+            totalCount = courseService.getCourseCountBySearch(search.trim());
+        } else if (sido != null || sigungu != null || dong != null) {
             // 지역별 필터링
             if ("popular".equals(sort)) {
                 courseList = courseService.getPopularCourseListByRegion(sido, sigungu, dong, page);
@@ -167,6 +176,7 @@ public class CourseController {
         model.addAttribute("sido", sido);
         model.addAttribute("sigungu", sigungu);
         model.addAttribute("dong", dong);
+        model.addAttribute("search", search);
         model.addAttribute("totalCount", totalCount);
         
         // 지역 데이터 추가

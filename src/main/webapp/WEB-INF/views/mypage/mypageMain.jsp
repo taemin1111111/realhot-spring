@@ -63,8 +63,8 @@
                      </div>
                  </div>
 
-                 <!-- 비밀번호 변경 -->
-                 <div class="card border-0 shadow-sm mb-4">
+                 <!-- 비밀번호 변경 (OAuth2 사용자 제외) -->
+                 <div class="card border-0 shadow-sm mb-4" id="passwordChangeSection">
                      <div class="card-header bg-transparent border-0 pb-0">
                          <h5 class="mb-0 text-dark fw-semibold"><i class="bi bi-key text-primary me-2"></i>비밀번호 변경</h5>
                      </div>
@@ -312,8 +312,17 @@
                          document.title = document.title.replace(/^.*님/, response.nickname + '님');
                      }
                      
-                     // 통계 정보도 함께 로드
-                     loadStats();
+                                         // OAuth2 사용자일 때 비밀번호 변경 섹션 숨기기
+                    if (response.provider && response.provider !== 'site') {
+                        console.log('OAuth2 사용자 감지 - 비밀번호 변경 섹션 숨김:', response.provider);
+                        $('#passwordChangeSection').hide();
+                    } else {
+                        console.log('일반 사용자 - 비밀번호 변경 섹션 표시');
+                        $('#passwordChangeSection').show();
+                    }
+                    
+                    // 통계 정보도 함께 로드
+                    loadStats();
                 },
                 error: function(xhr, status, error) {
                     console.error('프로필 정보 로드 오류:', error);

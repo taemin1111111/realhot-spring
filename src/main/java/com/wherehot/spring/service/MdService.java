@@ -36,4 +36,14 @@ public interface MdService {
     
     // 디버깅용: 모든 MD 조회
     List<Md> getAllMds(String userId);
+    
+    // 가게 목록 조회 (MD 추가용)
+    List<Map<String, Object>> getHotplaceList();
+    
+    // 가게 검색 (MD 추가용)
+    List<Map<String, Object>> searchHotplaces(String keyword);
+    
+    // 검색 자동완성
+    List<Map<String, Object>> getSearchSuggestions(String keyword, String searchType);
+
 }

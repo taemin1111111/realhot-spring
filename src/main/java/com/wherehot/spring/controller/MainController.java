@@ -367,7 +367,9 @@ public class MainController {
     @ResponseBody
     public org.springframework.http.ResponseEntity<Map<String, Object>> getGenres(
             @RequestParam(value = "action", required = false) String action,
-            @RequestParam(value = "placeId", required = false) Integer placeId) {
+            @RequestParam(value = "placeId", required = false) Integer placeId,
+            @RequestParam(value = "genreId", required = false) Integer genreId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
         Map<String, Object> response = new HashMap<>();
         
         try {
@@ -377,6 +379,34 @@ public class MainController {
                 
                 response.put("success", true);
                 response.put("genres", genres);
+            } else if ("add".equals(action) && placeId != null && genreId != null) {
+                // 장르 추가 (관리자 전용)
+                // 관리자 권한 확인
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                if (auth == null || !auth.getAuthorities().stream()
+                        .anyMatch(authority -> authority.getAuthority().equals("ADMIN"))) {
+                    response.put("success", false);
+                    response.put("error", "관리자 권한이 필요합니다.");
+                    return org.springframework.http.ResponseEntity.status(403).body(response);
+                }
+                
+                boolean success = clubGenreService.addGenreToPlace(placeId, genreId);
+                response.put("success", success);
+                response.put("message", success ? "장르가 추가되었습니다." : "장르 추가에 실패했습니다.");
+            } else if ("remove".equals(action) && placeId != null && genreId != null) {
+                // 장르 제거 (관리자 전용)
+                // 관리자 권한 확인
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                if (auth == null || !auth.getAuthorities().stream()
+                        .anyMatch(authority -> authority.getAuthority().equals("ADMIN"))) {
+                    response.put("success", false);
+                    response.put("error", "관리자 권한이 필요합니다.");
+                    return org.springframework.http.ResponseEntity.status(403).body(response);
+                }
+                
+                boolean success = clubGenreService.removeGenreFromPlace(placeId, genreId);
+                response.put("success", success);
+                response.put("message", success ? "장르가 제거되었습니다." : "장르 제거에 실패했습니다.");
             } else {
                 // 전체 장르 목록 조회
                 List<ClubGenre> genres = clubGenreService.getAllGenres();
@@ -389,7 +419,89 @@ public class MainController {
         } catch (Exception e) {
             logger.error("Genre error: ", e);
             response.put("success", false);
-            response.put("error", "장르 목록 조회 중 오류가 발생했습니다.");
+            response.put("error", "장르 처리 중 오류가 발생했습니다: " + e.getMessage());
+            return org.springframework.http.ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    // 대표 사진 변경 API (관리자 전용)
+    @PostMapping("/api/main/set-main-image")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> setMainImage(
+            @RequestParam("imageId") int imageId,
+            @RequestParam("placeId") int placeId,
+            HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 관리자 권한 확인
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals("ADMIN"))) {
+                response.put("success", false);
+                response.put("error", "관리자 권한이 필요합니다.");
+                return org.springframework.http.ResponseEntity.status(403).body(response);
+            }
+            
+            // 대표 사진 변경 처리
+            Map<String, Object> result = contentImageService.setMainImage(imageId, placeId);
+            
+            if ((Boolean) result.get("success")) {
+                response.put("success", true);
+                response.put("message", result.get("message"));
+                return org.springframework.http.ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("error", result.get("message"));
+                return org.springframework.http.ResponseEntity.badRequest().body(response);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Set main image error for imageId: {}, placeId: {}", imageId, placeId, e);
+            response.put("success", false);
+            response.put("error", "대표 사진 변경 중 오류가 발생했습니다: " + e.getMessage());
+            return org.springframework.http.ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    // 이미지 삭제 API (관리자 전용)
+    @PostMapping("/api/main/delete-image")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> deleteImage(
+            @RequestParam("imageId") int imageId,
+            HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 관리자 권한 확인
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals("ADMIN"))) {
+                response.put("success", false);
+                response.put("error", "관리자 권한이 필요합니다.");
+                return org.springframework.http.ResponseEntity.status(403).body(response);
+            }
+            
+            // 웹앱 경로 설정
+            String webappPath = request.getSession().getServletContext().getRealPath("/");
+            
+            // 이미지 삭제 처리
+            Map<String, Object> result = contentImageService.deleteImage(imageId, webappPath);
+            
+            if ((Boolean) result.get("success")) {
+                response.put("success", true);
+                response.put("message", result.get("message"));
+                return org.springframework.http.ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("error", result.get("message"));
+                return org.springframework.http.ResponseEntity.badRequest().body(response);
+            }
+            
+        } catch (Exception e) {
+            logger.error("Delete image error for imageId: {}", imageId, e);
+            response.put("success", false);
+            response.put("error", "이미지 삭제 중 오류가 발생했습니다: " + e.getMessage());
             return org.springframework.http.ResponseEntity.internalServerError().body(response);
         }
     }

@@ -43,7 +43,7 @@
                         <hr>
 
                         <div class="d-flex justify-content-center my-3">
-                            <a href="https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=Uhipu8CFRcKrmTNw5xie&redirect_uri=http%3A%2F%2Flocalhost%3A8083%2Fhotplace%2Flogin%2FnaverCallback.jsp&state=random_state">
+                            <a href="<%=root%>/oauth2/authorization/naver">
                                 <img src="https://static.nid.naver.com/oauth/small_g_in.PNG" alt="네이버 로그인" style="width: 300px; height: 50px;">
                             </a>
                         </div>
@@ -59,7 +59,7 @@
                         </button>
 
                         <!-- 네이버 간편회원가입 -->
-                        <a href="https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=Uhipu8CFRcKrmTNw5xie&redirect_uri=http%3A%2F%2Flocalhost%3A8083%2Fhotplace%2Flogin%2FnaverCallback.jsp&state=random_state"
+                        <a href="<%=root%>/oauth2/authorization/naver"
                            style="display: block; width: 300px; height: 50px; background: #03C75A; border: none; border-radius: 4px; color: white; text-decoration: none; font-size: 16px; font-weight: 500; margin: 0 auto 10px auto;">
                            <img src="https://static.nid.naver.com/oauth/small_g_in.PNG" alt="네이버" style="width: 300px; height: 50px;">
                         </a>

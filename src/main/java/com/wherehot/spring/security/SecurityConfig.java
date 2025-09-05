@@ -9,6 +9,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -34,6 +36,15 @@ public class SecurityConfig {
     @Autowired
     private CustomOAuth2UserService customOAuth2UserService;
     
+    @Autowired
+    private OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    
+    @Autowired
+    private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+    
+    @Autowired
+    private CustomAuthorizationRequestRepository customAuthorizationRequestRepository;
+    
     @Bean
     public PasswordEncoder passwordEncoder() {
         // BCrypt 강도 조정: 성능 최적화를 위해 8로 설정
@@ -53,6 +64,11 @@ public class SecurityConfig {
     }
     
     @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+    
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             // CSRF 비활성화 (JWT 사용)
@@ -61,9 +77,12 @@ public class SecurityConfig {
             // CORS 설정
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             
-            // 세션 비활성화 (JWT 기반 무상태 인증)
+            // OAuth2를 위해 세션 활성화 (JWT는 성공 후 사용)
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(false)
+                .sessionRegistry(sessionRegistry()))
             
             // 인증 예외 처리
             .exceptionHandling(exception -> exception
@@ -84,7 +103,7 @@ public class SecurityConfig {
                 
                 // == API 경로들 ==
                 .requestMatchers("/api/auth/**").permitAll()                      // 인증 API
-                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()    // OAuth2
+                .requestMatchers("/oauth2/**", "/login/oauth2/**", "/oauth2/code/**").permitAll()    // OAuth2
                 .requestMatchers("/api/main/place-images").permitAll()            // 메인 페이지 이미지 조회 API
                 .requestMatchers("/api/main/upload-images").hasAuthority("ADMIN") // 관리자 전용 이미지 업로드 API
                 .requestMatchers("/api/main/**").permitAll()                      // 기타 메인 페이지 API (투표 등)
@@ -121,8 +140,13 @@ public class SecurityConfig {
                 .defaultSuccessUrl("/", true)
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(customOAuth2UserService))
-                .successHandler(new OAuth2AuthenticationSuccessHandler())
-                .failureHandler(new OAuth2AuthenticationFailureHandler()))
+                .successHandler(oAuth2AuthenticationSuccessHandler)
+                .failureHandler(oAuth2AuthenticationFailureHandler)
+                .redirectionEndpoint(redirection -> redirection
+                    .baseUri("/oauth2/code/*"))
+                .authorizationEndpoint(authorization -> authorization
+                    .baseUri("/oauth2/authorization")
+                    .authorizationRequestRepository(customAuthorizationRequestRepository)))
             
             // JWT 인증 필터 추가
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

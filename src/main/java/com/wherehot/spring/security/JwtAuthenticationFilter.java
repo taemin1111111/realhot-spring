@@ -38,6 +38,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, 
                                   FilterChain filterChain) throws ServletException, IOException {
         
+        // OAuth2 관련 요청은 JWT 필터를 건너뛰기
+        String requestURI = request.getRequestURI();
+        if (requestURI.startsWith("/oauth2/") || requestURI.startsWith("/login/oauth2/")) {
+            logger.info("OAuth2 요청으로 JWT 필터 건너뛰기: {}", requestURI);
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         try {
             String jwt = parseJwt(request);
             logger.info("JWT 인증 필터 - 요청 경로: {}, JWT 토큰: {}", request.getRequestURI(), jwt != null ? "있음" : "없음");

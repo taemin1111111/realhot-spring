@@ -58,8 +58,17 @@
     <!-- 게시글 목록 헤더 -->
     <div class="hpost-header">
         <div class="row">
-            <div class="col-2">닉네임</div>
-            <div class="col-5">제목</div>
+            <c:choose>
+                <c:when test="${param.sort == 'popular' && currentPage == 1}">
+                    <div class="col-1">순위</div>
+                    <div class="col-2">닉네임</div>
+                    <div class="col-4">제목</div>
+                </c:when>
+                <c:otherwise>
+                    <div class="col-3">닉네임</div>
+                    <div class="col-4">제목</div>
+                </c:otherwise>
+            </c:choose>
             <div class="col-1"><i class="bi bi-eye text-muted"></i></div>
             <div class="col-1"><i class="bi bi-hand-thumbs-up text-primary"></i></div>
             <div class="col-1"><i class="bi bi-hand-thumbs-down text-danger"></i></div>
@@ -77,16 +86,38 @@
             <c:when test="${not empty hpostList}">
                 <c:forEach var="hpost" items="${hpostList}" varStatus="status">
                     <div class="row hpost-item">
-                        <div class="col-2">
-                            <c:if test="${param.sort == 'popular' && currentPage == 1}">
-                                <c:set var="rank" value="${status.index + 1}" />
-                                                                 <span class="rank-number ${rank <= 3 ? 'top-rank' : ''}" style="font-weight: bold; color: #ff6b6b; margin-right: 8px; font-size: 16px;">${rank}위</span>
-                            </c:if>
-                            ${hpost.nickname}
-                        </div>
-                        <div class="col-5">
-                            <a href="<c:url value='/hpost/${hpost.id}'/>" class="hpost-title-link" title="${hpost.title}">${hpost.title}</a>
-                        </div>
+                        <c:choose>
+                            <c:when test="${param.sort == 'popular' && currentPage == 1}">
+                                <div class="col-1">
+                                    <c:set var="rank" value="${status.index + 1}" />
+                                    <span class="rank-number ${rank <= 3 ? 'top-rank' : ''}" style="font-weight: bold; color: #ff6b6b; font-size: 16px;">${rank}위</span>
+                                </div>
+                                <div class="col-2">
+                                    <c:if test="${not empty hpost.userid and hpost.userid ne 'null'}">
+                                        <span style="display: inline-block; width: 24px; text-align: center;">
+                                            <i class="bi bi-person-fill" style="color: #ff69b4; font-size: 18px;"></i>
+                                        </span>
+                                    </c:if>
+                                    <span style="display: inline-block; vertical-align: middle;">${hpost.nickname}</span>
+                                </div>
+                                <div class="col-4">
+                                    <a href="<c:url value='/hpost/${hpost.id}'/>" class="hpost-title-link" title="${hpost.title}">${hpost.title}</a>
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="col-3">
+                                    <c:if test="${not empty hpost.userid and hpost.userid ne 'null'}">
+                                        <span style="display: inline-block; width: 24px; text-align: center;">
+                                            <i class="bi bi-person-fill" style="color: #ff69b4; font-size: 18px;"></i>
+                                        </span>
+                                    </c:if>
+                                    <span style="display: inline-block; vertical-align: middle;">${hpost.nickname}</span>
+                                </div>
+                                <div class="col-4">
+                                    <a href="<c:url value='/hpost/${hpost.id}'/>" class="hpost-title-link" title="${hpost.title}">${hpost.title}</a>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
                         <div class="col-1">${hpost.views}</div>
                         <div class="col-1">${hpost.likes}</div>
                         <div class="col-1">${hpost.dislikes}</div>

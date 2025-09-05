@@ -137,6 +137,35 @@ public class CourseService {
         return courseMapper.getCourseCountByRegion(sido, sigungu, dong);
     }
     
+    // 검색으로 최신글 조회
+    public List<Course> getLatestCourseListBySearch(String keyword, int page) {
+        int offset = (page - 1) * PAGE_SIZE;
+        List<Course> courses = courseMapper.getLatestCourseListBySearch(keyword, offset, PAGE_SIZE);
+        // 각 코스의 스텝 정보 로드
+        for (Course course : courses) {
+            List<CourseStep> steps = courseStepMapper.getCourseStepsByCourseId(course.getId());
+            course.setCourseSteps(steps);
+        }
+        return courses;
+    }
+    
+    // 검색으로 인기글 조회
+    public List<Course> getPopularCourseListBySearch(String keyword, int page) {
+        int offset = (page - 1) * PAGE_SIZE;
+        List<Course> courses = courseMapper.getPopularCourseListBySearch(keyword, offset, PAGE_SIZE);
+        // 각 코스의 스텝 정보 로드
+        for (Course course : courses) {
+            List<CourseStep> steps = courseStepMapper.getCourseStepsByCourseId(course.getId());
+            course.setCourseSteps(steps);
+        }
+        return courses;
+    }
+    
+    // 검색으로 코스 수 조회
+    public int getCourseCountBySearch(String keyword) {
+        return courseMapper.getCourseCountBySearch(keyword);
+    }
+    
     // 좋아요 처리
     @Transactional
     public void toggleLike(int courseId, boolean isLike) {

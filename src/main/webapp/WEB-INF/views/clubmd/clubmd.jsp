@@ -31,8 +31,9 @@
                     <option value="placeName">장소명</option>
                 </select>
             </div>
-            <div class="col-md-6">
-                <input type="text" class="form-control" id="searchKeyword" placeholder="검색어를 입력하세요...">
+            <div class="col-md-6" style="position: relative;">
+                <input type="text" class="form-control" id="searchKeyword" placeholder="검색어를 입력하세요..." autocomplete="off">
+                <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
             </div>
             <div class="col-md-2">
                 <button class="btn btn-primary w-100" onclick="searchMds()">
@@ -42,10 +43,19 @@
         </div>
     </div>
     
-    <!-- 정렬 버튼 -->
-    <div class="mb-3">
-        <button type="button" id="sortLatest" class="btn btn-outline-secondary me-2" onclick="loadMds(1, 'latest')">전체</button>
-        <button type="button" id="sortPopular" class="btn btn-outline-secondary" onclick="loadMds(1, 'popular')">인기순</button>
+    <!-- 정렬 버튼과 관리자 기능 -->
+    <div class="mb-3 d-flex justify-content-between align-items-center">
+        <div>
+            <button type="button" id="sortLatest" class="btn btn-outline-secondary me-2" onclick="loadMds(1, 'latest')">전체</button>
+            <button type="button" id="sortPopular" class="btn btn-outline-secondary" onclick="loadMds(1, 'popular')">인기순</button>
+        </div>
+        
+        <!-- 관리자만 보이는 MD 추가 버튼 (완전 오른쪽 끝) -->
+        <div>
+            <button type="button" id="admin-md-add" class="btn btn-outline-secondary" onclick="openMdAddModal()" style="display: none;">
+                <i class="bi bi-plus-circle"></i> MD 추가
+            </button>
+        </div>
     </div>
     
     <!-- MD 목록 컨테이너 -->
@@ -69,6 +79,154 @@
     </div>
 </div>
 
+<!-- MD 추가 모달 -->
+<div id="mdAddModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">
+                <i class="bi bi-plus-circle me-2"></i>MD 추가
+            </h5>
+            <button type="button" class="modal-close" onclick="closeMdAddModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="mdAddForm">
+                <div class="mb-3">
+                    <label for="mdName" class="form-label">MD 이름 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="mdName" name="mdName" required>
+                </div>
+                
+                <div class="mb-3" style="position: relative;">
+                    <label for="placeId" class="form-label">가게 선택 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="placeId" name="placeId" placeholder="가게명을 검색하세요..." required>
+                    <div id="placeSearchResults" class="search-results" style="display: none;"></div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="contact" class="form-label">연락처</label>
+                    <input type="text" class="form-control" id="contact" name="contact" placeholder="예: 010-1234-5678">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">MD 소개</label>
+                    <textarea class="form-control" id="description" name="description" rows="4" placeholder="MD에 대한 소개를 입력하세요..."></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="mdPhoto" class="form-label">MD 사진</label>
+                    <input type="file" class="form-control" id="mdPhoto" name="mdPhoto" accept="image/*">
+                    <div class="form-text">JPG, PNG 파일만 업로드 가능합니다.</div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="isVisible" name="isVisible" checked>
+                        <label class="form-check-label" for="isVisible">
+                            즉시 공개
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeMdAddModal()">취소</button>
+            <button type="button" class="btn btn-primary" onclick="submitMdAdd()">
+                <i class="bi bi-check-circle me-1"></i>MD 추가
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MD 수정 모달 -->
+<div id="mdEditModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">
+                <i class="bi bi-pencil-square me-2"></i>MD 수정
+            </h5>
+            <button type="button" class="modal-close" onclick="closeMdEditModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="mdEditForm">
+                <div class="mb-3">
+                    <label for="editMdName" class="form-label">MD 이름 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="editMdName" name="editMdName" required>
+                </div>
+                
+                <div class="mb-3" style="position: relative;">
+                    <label for="editPlaceId" class="form-label">가게 선택 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="editPlaceId" name="editPlaceId" placeholder="가게명을 검색하세요..." required>
+                    <div id="editPlaceSearchResults" class="search-results" style="display: none;"></div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="editContact" class="form-label">연락처</label>
+                    <input type="text" class="form-control" id="editContact" name="editContact" placeholder="예: 010-1234-5678">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="editDescription" class="form-label">MD 소개</label>
+                    <textarea class="form-control" id="editDescription" name="editDescription" rows="4" placeholder="MD에 대한 소개를 입력하세요..."></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="editMdPhoto" class="form-label">MD 사진</label>
+                    <input type="file" class="form-control" id="editMdPhoto" name="editMdPhoto" accept="image/*">
+                    <div class="form-text">새로운 사진을 선택하면 기존 사진이 교체됩니다.</div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="editIsVisible" name="editIsVisible">
+                        <label class="form-check-label" for="editIsVisible">
+                            공개 상태
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeMdEditModal()">취소</button>
+            <button type="button" class="btn btn-primary" onclick="submitMdEdit()">
+                <i class="bi bi-check-circle me-1"></i>수정 완료
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MD 삭제 확인 모달 -->
+<div id="mdDeleteModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">
+                <i class="bi bi-exclamation-triangle me-2 text-warning"></i>MD 삭제 확인
+            </h5>
+            <button type="button" class="modal-close" onclick="closeMdDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="text-center">
+                <i class="bi bi-exclamation-triangle display-4 text-warning mb-3"></i>
+                <h5>정말로 이 MD를 삭제하시겠습니까?</h5>
+                <p class="text-muted mb-3">
+                    <strong id="deleteMdName"></strong> MD를 삭제하면<br>
+                    관련된 찜 목록과 사진 파일도 함께 삭제됩니다.
+                </p>
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>주의:</strong> 이 작업은 되돌릴 수 없습니다.
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeMdDeleteModal()">
+                <i class="bi bi-x-circle me-1"></i>취소
+            </button>
+            <button type="button" class="btn btn-danger" onclick="confirmDeleteMd()">
+                <i class="bi bi-trash me-1"></i>삭제
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     let currentPage = 1;
     let currentSort = 'latest';
@@ -87,8 +245,41 @@
             createStars();
         }, 100);
         
+        // 관리자 권한 확인
+        checkAdminPermission();
+        
         // MD 목록 로드
         loadMds(1, 'latest');
+        
+        // 가게 검색 이벤트 리스너
+        let selectedPlaceId = null;
+        let searchTimeout = null;
+        
+        document.getElementById('placeId').addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            // 기존 타이머 클리어
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+            
+            if (query.length >= 2) {
+                // 300ms 후에 검색 실행 (타이핑 중단 후)
+                searchTimeout = setTimeout(() => {
+                    searchHotplaces(query);
+                }, 300);
+            } else {
+                hideSearchResults();
+                selectedPlaceId = null;
+            }
+        });
+        
+        // 검색 결과 외부 클릭 시 숨기기
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#placeId') && !e.target.closest('#placeSearchResults')) {
+                hideSearchResults();
+            }
+        });
     });
 
     // 별들 생성 함수 - 완전 새로 작성
@@ -200,15 +391,28 @@
     // MD 목록 표시
     function displayMds(mds) {
         if (!mds || mds.length === 0) {
-            $('#mdListContainer').html(`
-                <div class="card-box text-center py-5">
-                    <div class="text-muted">
-                        <i class="bi bi-exclamation-triangle display-1"></i>
-                    </div>
-                    <h4 class="mt-3">등록된 MD가 없습니다</h4>
-                    <p class="text-muted-small">현재 등록된 MD가 없습니다.</p>
-                </div>
-            `);
+            let message = '';
+            let detailMessage = '';
+            
+            if (currentKeyword && currentKeyword.trim() !== '') {
+                // 검색 결과가 없는 경우
+                message = '해당하는 MD가 없습니다';
+                detailMessage = '검색어 "' + currentKeyword + '"에 대한 결과를 찾을 수 없습니다.';
+            } else {
+                // 일반적으로 MD가 없는 경우
+                message = '등록된 MD가 없습니다';
+                detailMessage = '현재 등록된 MD가 없습니다.';
+            }
+            
+            $('#mdListContainer').html(
+                '<div class="card-box text-center py-5">' +
+                    '<div>' +
+                        '<i class="bi bi-exclamation-triangle display-1" style="color: #000000;"></i>' +
+                    '</div>' +
+                    '<h4 class="mt-3" style="color: #000000;">' + message + '</h4>' +
+                    '<p class="text-muted-small" style="color: #ffffff;">' + detailMessage + '</p>' +
+                '</div>'
+            );
             return;
         }
         
@@ -239,7 +443,7 @@
                     '<div class="clubmd-md-card-body">' +
                         '<div class="clubmd-md-photo-container mb-3">' +
                             (md.photo ? 
-                                '<img src="' + md.photo + '" alt="' + md.mdName + '" class="clubmd-md-photo">' : 
+                                '<img src="' + '${pageContext.request.contextPath}' + md.photo + '" alt="' + md.mdName + '" class="clubmd-md-photo">' : 
                                 '<div class="clubmd-md-photo-placeholder"><i class="bi bi-person-circle"></i></div>'
                             ) +
                         '</div>' +
@@ -251,11 +455,21 @@
                             '</div>' +
                             '<div class="clubmd-md-contact mb-2">' +
                                 '<i class="bi bi-telephone me-1"></i>' +
-                                '<span>' + contact + '</span>' +
+                                '<span class="clubmd-contact-link" onclick="openContact(\'' + contact + '\')" style="cursor: pointer; color: #007bff; text-decoration: underline;">' + contact + '</span>' +
                             '</div>' +
-                            '<p class="clubmd-md-description mb-2">' + description + '</p>' +
+                            '<div class="clubmd-md-description-container mb-2">' +
+                                '<p class="clubmd-md-description text-center">' + description + '</p>' +
+                            '</div>' +
                             '<div class="clubmd-md-date">' +
                                 '<small class="text-muted">MD 등록일: ' + createdAt + '</small>' +
+                            '</div>' +
+                            '<div class="clubmd-md-admin-actions mt-2" style="display: none;">' +
+                                '<button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="openMdEditModal(' + md.mdId + ')">' +
+                                    '<i class="bi bi-pencil-square me-1"></i>수정' +
+                                '</button>' +
+                                '<button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteMd(' + md.mdId + ', \'' + md.mdName + '\')">' +
+                                    '<i class="bi bi-trash me-1"></i>삭제' +
+                                '</button>' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
@@ -269,6 +483,9 @@
         html += '</div>';
         
         $('#mdListContainer').html(html);
+        
+        // MD 카드 생성 후 관리자 권한 다시 확인
+        checkAdminPermission();
     }
 
     // MD 찜하기 토글
@@ -411,7 +628,100 @@
     function searchMds() {
         currentKeyword = $('#searchKeyword').val().trim();
         currentSearchType = $('#searchType').val();
+        hideSearchSuggestions();
         loadMds(1, currentSort);
+    }
+    
+    // 검색 자동완성 기능
+    let searchTimeout;
+    $(document).ready(function() {
+        // 검색어 입력 이벤트
+        $('#searchKeyword').on('input', function() {
+            const query = $(this).val().trim();
+            const searchType = $('#searchType').val();
+            
+            // 이전 타이머 클리어
+            clearTimeout(searchTimeout);
+            
+            if (query.length >= 2) {
+                // 300ms 후에 자동완성 요청
+                searchTimeout = setTimeout(function() {
+                    loadSearchSuggestions(query, searchType);
+                }, 300);
+            } else {
+                hideSearchSuggestions();
+            }
+        });
+        
+        // 검색 타입 변경 시 자동완성 업데이트
+        $('#searchType').on('change', function() {
+            const query = $('#searchKeyword').val().trim();
+            if (query.length >= 2) {
+                loadSearchSuggestions(query, $(this).val());
+            }
+        });
+        
+        // 자동완성 항목 클릭 이벤트
+        $(document).on('click', '.search-suggestion-item', function() {
+            const suggestionText = $(this).data('text');
+            $('#searchKeyword').val(suggestionText);
+            hideSearchSuggestions();
+            searchMds();
+        });
+        
+        // 다른 곳 클릭 시 자동완성 숨기기
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#searchKeyword, #searchSuggestions').length) {
+                hideSearchSuggestions();
+            }
+        });
+    });
+    
+    // 검색 자동완성 로드
+    function loadSearchSuggestions(query, searchType) {
+        $.ajax({
+            url: '${pageContext.request.contextPath}/md/api/search-suggestions',
+            method: 'GET',
+            data: {
+                keyword: query,
+                searchType: searchType
+            },
+            success: function(response) {
+                if (response.success) {
+                    displaySearchSuggestions(response.suggestions);
+                }
+            },
+            error: function() {
+                hideSearchSuggestions();
+            }
+        });
+    }
+    
+    // 검색 자동완성 표시
+    function displaySearchSuggestions(suggestions) {
+        const container = $('#searchSuggestions');
+        container.empty();
+        
+        if (suggestions && suggestions.length > 0) {
+            suggestions.forEach(function(suggestion) {
+                const item = $('<div class="search-suggestion-item"></div>')
+                    .data('text', suggestion.text)
+                    .html(
+                        '<span class="suggestion-type">[' + suggestion.type + ']</span>' +
+                        '<span class="suggestion-text">' + suggestion.text + '</span>' +
+                        (suggestion.detail ? '<span class="suggestion-detail">' + suggestion.detail + '</span>' : '')
+                    );
+                container.append(item);
+            });
+            container.show();
+        } else {
+            hideSearchSuggestions();
+        }
+    }
+    
+    // 검색 자동완성 숨기기
+    function hideSearchSuggestions() {
+        $('#searchSuggestions').hide();
     }
 
     // 페이지네이션 업데이트
@@ -460,5 +770,527 @@
     // 에러 메시지 표시
     function showError(message) {
         alert(message);
+    }
+
+    // 관리자 권한 확인
+    function checkAdminPermission() {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            console.log('토큰이 없음 - 관리자 버튼 숨김');
+            $('#admin-md-add').hide();
+            $('.clubmd-md-admin-actions').hide();
+            return;
+        }
+        
+        try {
+            // JWT 토큰 파싱
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            console.log('JWT 토큰 payload:', payload);
+            
+            // 관리자 권한 확인 (provider가 'admin'인 경우만)
+            const isAdmin = payload.provider === 'admin';
+            
+            if (isAdmin) {
+                console.log('관리자 권한 확인됨');
+                $('#admin-md-add').show();
+                $('.clubmd-md-admin-actions').show();
+            } else {
+                console.log('일반 사용자 - 관리자 버튼 숨김');
+                $('#admin-md-add').hide();
+                $('.clubmd-md-admin-actions').hide();
+            }
+        } catch (error) {
+            console.error('JWT 토큰 파싱 실패:', error);
+            $('#admin-md-add').hide();
+            $('.clubmd-md-admin-actions').hide();
+        }
+    }
+
+    // MD 추가 모달 열기
+    function openMdAddModal() {
+        // 관리자 권한 재확인
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            showError('로그인이 필요합니다.');
+            return;
+        }
+        
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const isAdmin = payload.provider === 'admin';
+            
+            if (!isAdmin) {
+                showError('관리자 권한이 필요합니다.');
+                return;
+            }
+        } catch (error) {
+            showError('권한 확인에 실패했습니다.');
+            return;
+        }
+        
+        // 폼 초기화
+        document.getElementById('mdAddForm').reset();
+        document.getElementById('isVisible').checked = true;
+        selectedPlaceId = null;
+        
+        // 모달 표시
+        const modal = document.getElementById('mdAddModal');
+        modal.style.display = 'flex';
+        modal.classList.add('show');
+    }
+
+    // 가게 검색
+    function searchHotplaces(query) {
+        $.ajax({
+            url: '${pageContext.request.contextPath}/md/api/hotplaces/search',
+            method: 'GET',
+            data: { keyword: query },
+            success: function(response) {
+                if (response.success) {
+                    displaySearchResults(response.hotplaces);
+                } else {
+                    hideSearchResults();
+                }
+            },
+            error: function() {
+                hideSearchResults();
+            }
+        });
+    }
+    
+    // 검색 결과 표시
+    function displaySearchResults(hotplaces) {
+        const resultsContainer = document.getElementById('placeSearchResults');
+        
+        if (hotplaces.length === 0) {
+            resultsContainer.innerHTML = '<div class="search-result-item">검색 결과가 없습니다.</div>';
+        } else {
+            let html = '';
+            hotplaces.forEach(function(hotplace) {
+                html += '<div class="search-result-item" data-place-id="' + hotplace.placeId + '" data-place-name="' + hotplace.placeName + '">' +
+                    '<div class="place-name">' + hotplace.placeName + '</div>' +
+                    '<div class="place-address">' + hotplace.placeAddress + '</div>' +
+                '</div>';
+            });
+            resultsContainer.innerHTML = html;
+            
+            // 검색 결과 클릭 이벤트
+            resultsContainer.querySelectorAll('.search-result-item').forEach(function(item) {
+                item.addEventListener('click', function() {
+                    const placeId = this.getAttribute('data-place-id');
+                    const placeName = this.getAttribute('data-place-name');
+                    
+                    document.getElementById('placeId').value = placeName;
+                    selectedPlaceId = placeId;
+                    hideSearchResults();
+                });
+            });
+        }
+        
+        resultsContainer.style.display = 'block';
+    }
+    
+    // 검색 결과 숨기기
+    function hideSearchResults() {
+        document.getElementById('placeSearchResults').style.display = 'none';
+    }
+
+    // MD 추가 모달 닫기
+    function closeMdAddModal() {
+        const modal = document.getElementById('mdAddModal');
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+    }
+
+    // MD 추가 제출
+    function submitMdAdd() {
+        const form = document.getElementById('mdAddForm');
+        const formData = new FormData(form);
+        
+        // 필수 필드 검증
+        const mdName = document.getElementById('mdName').value.trim();
+        
+        if (!mdName) {
+            showError('MD 이름을 입력해주세요.');
+            return;
+        }
+        
+        if (!selectedPlaceId) {
+            showError('가게를 선택해주세요.');
+            return;
+        }
+        
+        // 토큰 가져오기
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            showError('로그인이 필요합니다.');
+            return;
+        }
+        
+        // 버튼 비활성화
+        const submitBtn = document.querySelector('#mdAddModal .btn-primary');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>추가 중...';
+        
+        // FormData에 placeId 추가
+        formData.set('placeId', selectedPlaceId);
+        
+        // AJAX 요청
+        $.ajax({
+            url: '${pageContext.request.contextPath}/md/api/add',
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            },
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    showToast('MD가 성공적으로 추가되었습니다!', 'success');
+                    closeMdAddModal();
+                    loadMds(currentPage, currentSort); // 목록 새로고침
+                } else {
+                    showError(response.message || 'MD 추가에 실패했습니다.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('MD 추가 오류:', error);
+                showError('서버 오류가 발생했습니다.');
+            },
+            complete: function() {
+                // 버튼 복원
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>MD 추가';
+            }
+        });
+    }
+
+    // MD 수정 모달 열기
+    function openMdEditModal(mdId) {
+        // 관리자 권한 재확인
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            showError('로그인이 필요합니다.');
+            return;
+        }
+        
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.provider !== 'admin') {
+                showError('관리자 권한이 필요합니다.');
+                return;
+            }
+        } catch (error) {
+            showError('권한 확인에 실패했습니다.');
+            return;
+        }
+        
+        // MD 정보 로드
+        loadMdForEdit(mdId);
+        
+        // 모달 표시
+        const modal = document.getElementById('mdEditModal');
+        modal.style.display = 'flex';
+        modal.classList.add('show');
+    }
+
+    // MD 수정 모달 닫기
+    function closeMdEditModal() {
+        const modal = document.getElementById('mdEditModal');
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+    }
+
+    // MD 정보 로드 (수정용)
+    function loadMdForEdit(mdId) {
+        $.ajax({
+            url: '${pageContext.request.contextPath}/md/api/' + mdId,
+            method: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const md = response.md;
+                    document.getElementById('editMdName').value = md.mdName;
+                    document.getElementById('editContact').value = md.contact || '';
+                    document.getElementById('editDescription').value = md.description || '';
+                    document.getElementById('editIsVisible').checked = md.isVisible;
+                    
+                    // 가게 정보 설정
+                    document.getElementById('editPlaceId').value = md.placeName;
+                    selectedEditPlaceId = md.placeId;
+                    
+                    // 현재 수정 중인 MD ID 저장
+                    currentEditMdId = mdId;
+                } else {
+                    showError('MD 정보를 불러오는데 실패했습니다.');
+                }
+            },
+            error: function() {
+                showError('MD 정보를 불러오는데 실패했습니다.');
+            }
+        });
+    }
+
+    // MD 수정 제출
+    function submitMdEdit() {
+        const form = document.getElementById('mdEditForm');
+        const formData = new FormData(form);
+        
+        // 필수 필드 검증
+        const mdName = document.getElementById('editMdName').value.trim();
+        
+        if (!mdName) {
+            showError('MD 이름을 입력해주세요.');
+            return;
+        }
+        
+        if (!selectedEditPlaceId) {
+            showError('가게를 선택해주세요.');
+            return;
+        }
+        
+        // 토큰 가져오기
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            showError('로그인이 필요합니다.');
+            return;
+        }
+        
+        // 버튼 비활성화
+        const submitBtn = document.querySelector('#mdEditModal .btn-primary');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>수정 중...';
+        
+        // FormData에 placeId 추가
+        formData.set('placeId', selectedEditPlaceId);
+        
+        // AJAX 요청
+        $.ajax({
+            url: '${pageContext.request.contextPath}/md/api/edit/' + currentEditMdId,
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            },
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    showToast('MD가 성공적으로 수정되었습니다!', 'success');
+                    closeMdEditModal();
+                    loadMds(currentPage, currentSort); // 목록 새로고침
+                } else {
+                    showError(response.message || 'MD 수정에 실패했습니다.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('MD 수정 오류:', error);
+                showError('서버 오류가 발생했습니다.');
+            },
+            complete: function() {
+                // 버튼 복원
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>수정 완료';
+            }
+        });
+    }
+
+    // MD 수정용 변수들
+    let selectedEditPlaceId = null;
+    let currentEditMdId = null;
+    let editSearchTimeout = null;
+    
+    // MD 수정용 가게 검색 이벤트 리스너
+    document.getElementById('editPlaceId').addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        if (editSearchTimeout) {
+            clearTimeout(editSearchTimeout);
+        }
+        
+        if (query.length >= 2) {
+            editSearchTimeout = setTimeout(() => {
+                searchHotplacesForEdit(query);
+            }, 300);
+        } else {
+            hideEditSearchResults();
+            selectedEditPlaceId = null;
+        }
+    });
+    
+    // MD 수정용 가게 검색
+    function searchHotplacesForEdit(query) {
+        $.ajax({
+            url: '${pageContext.request.contextPath}/md/api/hotplaces/search',
+            method: 'GET',
+            data: { keyword: query },
+            success: function(response) {
+                if (response.success) {
+                    displayEditSearchResults(response.hotplaces);
+                } else {
+                    hideEditSearchResults();
+                }
+            },
+            error: function() {
+                hideEditSearchResults();
+            }
+        });
+    }
+    
+    // MD 수정용 검색 결과 표시
+    function displayEditSearchResults(hotplaces) {
+        const resultsContainer = document.getElementById('editPlaceSearchResults');
+        
+        if (hotplaces.length === 0) {
+            resultsContainer.innerHTML = '<div class="search-result-item">검색 결과가 없습니다.</div>';
+        } else {
+            let html = '';
+            hotplaces.forEach(function(hotplace) {
+                html += '<div class="search-result-item" data-place-id="' + hotplace.placeId + '" data-place-name="' + hotplace.placeName + '">' +
+                    '<div class="place-name">' + hotplace.placeName + '</div>' +
+                    '<div class="place-address">' + hotplace.placeAddress + '</div>' +
+                '</div>';
+            });
+            resultsContainer.innerHTML = html;
+            
+            // 검색 결과 클릭 이벤트
+            resultsContainer.querySelectorAll('.search-result-item').forEach(function(item) {
+                item.addEventListener('click', function() {
+                    const placeId = this.getAttribute('data-place-id');
+                    const placeName = this.getAttribute('data-place-name');
+                    
+                    document.getElementById('editPlaceId').value = placeName;
+                    selectedEditPlaceId = placeId;
+                    hideEditSearchResults();
+                });
+            });
+        }
+        
+        resultsContainer.style.display = 'block';
+    }
+    
+    // MD 수정용 검색 결과 숨기기
+    function hideEditSearchResults() {
+        document.getElementById('editPlaceSearchResults').style.display = 'none';
+    }
+    
+    // MD 삭제 관련 변수
+    let deleteMdId = null;
+    
+    // MD 삭제 모달 열기
+    function deleteMd(mdId, mdName) {
+        // 관리자 권한 재확인
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            showError('로그인이 필요합니다.');
+            return;
+        }
+        
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.provider !== 'admin') {
+                showError('관리자 권한이 필요합니다.');
+                return;
+            }
+        } catch (error) {
+            showError('권한 확인에 실패했습니다.');
+            return;
+        }
+        
+        deleteMdId = mdId;
+        document.getElementById('deleteMdName').textContent = mdName;
+        
+        const modal = document.getElementById('mdDeleteModal');
+        modal.style.display = 'flex';
+        modal.classList.add('show');
+    }
+    
+    // MD 삭제 모달 닫기
+    function closeMdDeleteModal() {
+        const modal = document.getElementById('mdDeleteModal');
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+        deleteMdId = null;
+    }
+    
+    // MD 삭제 확인
+    function confirmDeleteMd() {
+        if (!deleteMdId) {
+            showError('삭제할 MD 정보가 없습니다.');
+            return;
+        }
+        
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            showError('로그인이 필요합니다.');
+            return;
+        }
+        
+        // 삭제 버튼 비활성화
+        const deleteBtn = document.querySelector('#mdDeleteModal .btn-danger');
+        deleteBtn.disabled = true;
+        deleteBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>삭제 중...';
+        
+        $.ajax({
+            url: '${pageContext.request.contextPath}/md/api/delete/' + deleteMdId,
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showToast('MD가 성공적으로 삭제되었습니다!', 'success');
+                    closeMdDeleteModal();
+                    loadMds(currentPage, currentSort); // 목록 새로고침
+                } else {
+                    showError(response.message || 'MD 삭제에 실패했습니다.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('MD 삭제 오류:', error);
+                if (xhr.status === 403) {
+                    showError('관리자 권한이 필요합니다.');
+                } else if (xhr.status === 404) {
+                    showError('삭제할 MD를 찾을 수 없습니다.');
+                } else {
+                    showError('MD 삭제 중 오류가 발생했습니다.');
+                }
+            },
+            complete: function() {
+                // 버튼 상태 복원
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="bi bi-trash me-1"></i>삭제';
+            }
+        });
+    }
+    
+    // 연락처 클릭 처리 (카카오톡 오픈채팅 등)
+    function openContact(contact) {
+        if (!contact) {
+            return;
+        }
+        
+        // 카카오톡 오픈채팅 링크인지 확인
+        if (contact.includes('open.kakao.com') || contact.includes('kakaotalk://')) {
+            // 카카오톡 링크인 경우 새 창에서 열기
+            window.open(contact, '_blank');
+        } else if (contact.startsWith('http://') || contact.startsWith('https://')) {
+            // 일반 URL인 경우 새 창에서 열기
+            window.open(contact, '_blank');
+        } else if (contact.includes('@')) {
+            // 이메일인 경우
+            window.location.href = 'mailto:' + contact;
+        } else if (contact.match(/^[0-9-+\s()]+$/)) {
+            // 전화번호인 경우
+            window.location.href = 'tel:' + contact;
+        } else {
+            // 기타 텍스트인 경우 클립보드에 복사
+            navigator.clipboard.writeText(contact).then(function() {
+                showToast('연락처가 클립보드에 복사되었습니다: ' + contact, 'info');
+            }).catch(function() {
+                showToast('연락처: ' + contact, 'info');
+            });
+        }
     }
 </script>

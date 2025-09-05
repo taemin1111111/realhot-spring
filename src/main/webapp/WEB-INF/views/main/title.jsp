@@ -272,12 +272,12 @@
 
                 <!-- 테이블 예약하기 -->
                 <li class="nav-item">
-                    <a class="nav-link" href="<%=root%>/?main=clubtable/clubtable.jsp">테이블 예약하기</a>
+                    <a class="nav-link" href="<%=root%>/clubtable">테이블 예약하기</a>
                 </li>
 
                 <!-- 📢 공지사항 -->
                 <li class="nav-item">
-                    <a class="nav-link" href="<%=root%>/?main=notice/noticemain.jsp">공지사항</a>
+                    <a class="nav-link" href="<%=root%>/notice">공지사항</a>
                 </li>
             </ul>
         </nav>
@@ -317,7 +317,7 @@
                     <!-- 사용자 정보 -->
                     <div class="dropdown">
                         <a href="#" class="text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                            <span id="user-icon">👤</span> <span id="user-nickname">사용자</span>님
+                            <i id="user-icon" class="bi bi-person-fill" style="color: #ff69b4; margin-right: 6px; font-size: 18px;"></i> <span id="user-nickname">사용자</span>님
                         </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li id="mypage-menu"><a class="dropdown-item" href="<%=root%>/mypage">마이페이지</a></li>
@@ -398,9 +398,11 @@ function updateTitleUI(userInfo) {
         if (userIcon) {
             try {
                 if (userInfo.provider === 'admin') {
-                    userIcon.textContent = '👑'; // 관리자는 왕관
+                    userIcon.className = 'bi bi-gear-fill';
+                    userIcon.style.cssText = 'color: #ffc107; margin-right: 6px; font-size: 18px;';
                 } else {
-                    userIcon.textContent = '👤'; // 일반 사용자는 사람
+                    userIcon.className = 'bi bi-person-fill';
+                    userIcon.style.cssText = 'color: #ff69b4; margin-right: 6px; font-size: 18px;';
                 }
             } catch (e) {
                 console.warn('userIcon 이모티콘 변경 실패:', e);
@@ -535,6 +537,9 @@ function showLoggedOutUI() {
 
 // DOM 로드 시 초기 상태 확인 (coursedetail 방식)
 document.addEventListener('DOMContentLoaded', function() {
+    // OAuth2 로그인 후 URL 파라미터에서 토큰 처리
+    handleOAuth2Login();
+    
     // 저장된 토큰으로 초기 상태 확인
     const userInfo = getUserInfoFromToken();
     if (userInfo) {
@@ -543,6 +548,48 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoggedOutUI();
     }
 });
+
+// OAuth2 로그인 후 URL 파라미터 처리
+function handleOAuth2Login() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const userid = urlParams.get('userid');
+    const nickname = urlParams.get('nickname');
+    const provider = urlParams.get('provider');
+    const email = urlParams.get('email');
+    
+    if (token && userid) {
+        console.log('OAuth2 로그인 감지 - 토큰 처리 시작');
+        console.log('토큰:', token.substring(0, 50) + '...');
+        console.log('사용자 ID:', userid);
+        console.log('닉네임:', nickname);
+        console.log('제공자:', provider);
+        console.log('이메일:', email);
+        
+        // 토큰을 localStorage에 저장
+        localStorage.setItem('accessToken', token);
+        
+        // 사용자 정보를 localStorage에 저장
+        const userInfo = {
+            userid: userid,
+            nickname: nickname,
+            provider: provider,
+            email: email
+        };
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+        
+        console.log('OAuth2 로그인 - 토큰 및 사용자 정보 저장 완료');
+        
+        // URL에서 파라미터 제거 (새로고침 시 중복 처리 방지)
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+        
+        // UI 즉시 업데이트
+        updateTitleUI(userInfo);
+        
+        console.log('OAuth2 로그인 - UI 업데이트 완료');
+    }
+}
 
 // 토큰 관련 유틸리티 함수들
 function getToken() {
@@ -588,13 +635,18 @@ function goToAdminPage(path) {
 // API 요청 시 자동 토큰 갱신 포함
 async function fetchWithAuth(url, options = {}) {
     const token = getToken();
+    console.log('fetchWithAuth - URL:', url);
+    console.log('fetchWithAuth - Token:', token ? token.substring(0, 20) + '...' : 'null');
+    
     const defaultOptions = {
         headers: {
             'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` }),
+            ...(token && { 'Authorization': 'Bearer ' + token }),
             ...options.headers
         }
     };
+    
+    console.log('fetchWithAuth - Headers:', JSON.stringify(defaultOptions.headers));
     
     let response = await fetch(url, { ...defaultOptions, ...options });
     
@@ -610,7 +662,7 @@ async function fetchWithAuth(url, options = {}) {
                 ...defaultOptions,
                 headers: {
                     ...defaultOptions.headers,
-                    'Authorization': `Bearer ${newToken}`
+                    'Authorization': 'Bearer ' + newToken
                 }
             };
             response = await fetch(url, { ...retryOptions, ...options });
@@ -736,9 +788,11 @@ function updateTitleUIFromSavedInfo(userInfo) {
         if (userIcon) {
             try {
                 if (userInfo.provider === 'admin') {
-                    userIcon.textContent = '👑'; // 관리자는 왕관
+                    userIcon.className = 'bi bi-gear-fill';
+                    userIcon.style.cssText = 'color: #ffc107; margin-right: 6px; font-size: 18px;';
                 } else {
-                    userIcon.textContent = '👤'; // 일반 사용자는 사람
+                    userIcon.className = 'bi bi-person-fill';
+                    userIcon.style.cssText = 'color: #ff69b4; margin-right: 6px; font-size: 18px;';
                 }
             } catch (e) {
                 console.warn('userIcon 이모티콘 변경 실패:', e);
@@ -830,9 +884,11 @@ async function updateAuthUI() {
                 // 이모티콘 설정
                 if (userIcon) {
                     if (payload.provider === 'admin') {
-                        userIcon.textContent = '👑'; // 관리자는 왕관
+                        userIcon.className = 'bi bi-gear-fill';
+                        userIcon.style.cssText = 'color: #ffc107; margin-right: 6px; font-size: 18px;';
                     } else {
-                        userIcon.textContent = '👤'; // 일반 사용자는 사람
+                        userIcon.className = 'bi bi-person-fill';
+                        userIcon.style.cssText = 'color: #ff69b4; margin-right: 6px; font-size: 18px;';
                     }
                 }
                 
@@ -1555,4 +1611,5 @@ window.openNotificationModal = openNotificationModal;
 window.closeNotificationModal = closeNotificationModal;
 window.deleteNotificationFromModal = deleteNotificationFromModal;
 
+</script>
 </script>

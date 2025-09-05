@@ -90,17 +90,6 @@ public class MdServiceImpl implements MdService {
     }
     
     @Override
-    public boolean deleteMd(int mdId) {
-        try {
-            int result = mdMapper.deleteMd(mdId);
-            return result > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-    
-    @Override
     public boolean addMdWish(int mdId, String userId) {
         try {
             System.out.println("=== MdServiceImpl.addMdWish ===");
@@ -162,5 +151,141 @@ public class MdServiceImpl implements MdService {
             e.printStackTrace();
             return false;
         }
+    }
+    
+    @Override
+    public List<Map<String, Object>> getHotplaceList() {
+        try {
+            return mdMapper.selectHotplaceList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+    
+    @Override
+    public List<Map<String, Object>> searchHotplaces(String keyword) {
+        try {
+            return mdMapper.searchHotplaces(keyword);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+    
+    @Override
+    public boolean deleteMd(int mdId) {
+        try {
+            // 1. MD 정보 조회 (사진 파일 경로 확인용)
+            Md md = mdMapper.selectMdById(mdId);
+            if (md == null) {
+                System.out.println("삭제할 MD를 찾을 수 없습니다: " + mdId);
+                return false;
+            }
+            
+            // 2. MD 찜 목록 삭제
+            int deletedWishes = mdMapper.deleteMdWishes(mdId);
+            System.out.println("MD 찜 목록 삭제 완료: " + deletedWishes + "개");
+            
+            // 3. 사진 파일 삭제
+            if (md.getPhoto() != null && !md.getPhoto().isEmpty()) {
+                try {
+                    String photoPath = md.getPhoto();
+                    // 웹 경로를 실제 파일 경로로 변환
+                    if (photoPath.startsWith("/uploads/")) {
+                        String realPath = System.getProperty("user.dir") + "/src/main/webapp" + photoPath;
+                        java.io.File photoFile = new java.io.File(realPath);
+                        if (photoFile.exists()) {
+                            boolean deleted = photoFile.delete();
+                            System.out.println("사진 파일 삭제: " + realPath + " - " + (deleted ? "성공" : "실패"));
+                        } else {
+                            System.out.println("사진 파일이 존재하지 않습니다: " + realPath);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("사진 파일 삭제 중 오류: " + e.getMessage());
+                    // 사진 파일 삭제 실패해도 MD 삭제는 계속 진행
+                }
+            }
+            
+            // 4. MD 삭제
+            int result = mdMapper.deleteMd(mdId);
+            System.out.println("MD 삭제 완료: " + mdId + " - " + (result > 0 ? "성공" : "실패"));
+            
+            return result > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    @Override
+    public List<Map<String, Object>> getSearchSuggestions(String keyword, String searchType) {
+        List<Map<String, Object>> suggestions = new ArrayList<>();
+        
+        try {
+            switch (searchType) {
+                case "all":
+                    // 전체 검색: MD명과 가게명 모두 자동완성
+                    suggestions.addAll(getMdNameSuggestions(keyword));
+                    suggestions.addAll(getPlaceNameSuggestions(keyword));
+                    break;
+                case "mdName":
+                    // MD명만 자동완성
+                    suggestions.addAll(getMdNameSuggestions(keyword));
+                    break;
+                case "placeName":
+                    // 가게명만 자동완성
+                    suggestions.addAll(getPlaceNameSuggestions(keyword));
+                    break;
+            }
+            
+            // 최대 10개까지만 반환
+            return suggestions.stream().limit(10).collect(java.util.stream.Collectors.toList());
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+    
+    // MD명 자동완성
+    private List<Map<String, Object>> getMdNameSuggestions(String keyword) {
+        List<Map<String, Object>> suggestions = new ArrayList<>();
+        
+        try {
+            List<Map<String, Object>> mdNames = mdMapper.searchMdNames(keyword);
+            for (Map<String, Object> md : mdNames) {
+                Map<String, Object> suggestion = new HashMap<>();
+                suggestion.put("type", "MD명");
+                suggestion.put("text", md.get("mdName"));
+                suggestion.put("detail", md.get("placeName"));
+                suggestions.add(suggestion);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return suggestions;
+    }
+    
+    // 가게명 자동완성
+    private List<Map<String, Object>> getPlaceNameSuggestions(String keyword) {
+        List<Map<String, Object>> suggestions = new ArrayList<>();
+        
+        try {
+            List<Map<String, Object>> places = mdMapper.searchHotplaces(keyword);
+            for (Map<String, Object> place : places) {
+                Map<String, Object> suggestion = new HashMap<>();
+                suggestion.put("type", "가게명");
+                suggestion.put("text", place.get("placeName"));
+                suggestion.put("detail", place.get("placeAddress"));
+                suggestions.add(suggestion);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return suggestions;
     }
 }

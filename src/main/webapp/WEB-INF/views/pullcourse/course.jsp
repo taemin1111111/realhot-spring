@@ -128,6 +128,35 @@
         </div>
     </div>
     
+    <!-- 검색 기능 -->
+    <div class="course-search-container">
+        <div class="course-search-box">
+            <div class="course-search-input-wrapper">
+                <input type="text" id="courseSearchInput" placeholder="코스 제목, 내용, 장소로 검색..." class="course-search-input">
+            </div>
+            <div class="course-search-button-wrapper">
+                <button type="button" id="courseSearchBtn" class="course-search-btn" onclick="performSearch()">
+                    <i class="fas fa-search"></i>
+                    <span class="btn-text">검색</span>
+                </button>
+            </div>
+        </div>
+        <div class="course-search-filters">
+            <div class="course-search-filter-group">
+                <label class="course-search-filter-label">검색 옵션:</label>
+                <label class="course-search-filter-option">
+                    <input type="checkbox" id="searchInTitle" checked> 제목
+                </label>
+                <label class="course-search-filter-option">
+                    <input type="checkbox" id="searchInContent" checked> 내용
+                </label>
+                <label class="course-search-filter-option">
+                    <input type="checkbox" id="searchInPlaces" checked> 장소
+                </label>
+            </div>
+        </div>
+    </div>
+    
     <!-- 코스 목록 -->
     <div class="course-hunting-list">
         <c:choose>
@@ -141,7 +170,7 @@
             <c:otherwise>
                 <div class="course-hunting-grid">
                                          <c:forEach var="course" items="${courseList}" varStatus="status">
-                         <div class="course-hunting-card" onclick="goToDetail(${course.id})">
+                         <div class="course-hunting-card" onclick="goToDetail('${course.id}')">
                              <!-- 제목 섹션 -->
                              <div class="course-hunting-card-title-section">
                                  <h3 class="course-hunting-card-title">
@@ -180,7 +209,9 @@
                              
                              <!-- 닉네임 -->
                              <div class="course-hunting-card-author-section">
-                                 <span class="course-hunting-card-nickname">${course.nickname}</span>
+                                 <span class="course-hunting-card-nickname" data-author-userid="${course.authorUserid}">
+                                     <i class="author-indicator bi bi-person-fill" style="display: none; color: #ff69b4; margin-right: 6px; font-size: 18px;"></i>${course.nickname}
+                                 </span>
                              </div>
                              
                              <!-- 하단 통계 -->
@@ -251,7 +282,7 @@
              
              <!-- 이전 페이지 버튼 -->
              <c:if test="${currentPage > 1}">
-                 <a href="javascript:void(0)" onclick="changePage(${currentPage - 1})" class="course-hunting-page-btn">
+                 <a href="javascript:void(0)" onclick="changePage('${currentPage - 1}')" class="course-hunting-page-btn">
                      &lt;
                  </a>
              </c:if>
@@ -271,7 +302,7 @@
                          <span class="course-hunting-page-btn active">${pageNum}</span>
                      </c:when>
                      <c:otherwise>
-                         <a href="javascript:void(0)" onclick="changePage(${pageNum})" class="course-hunting-page-btn">${pageNum}</a>
+                         <a href="javascript:void(0)" onclick="changePage('${pageNum}')" class="course-hunting-page-btn">${pageNum}</a>
                      </c:otherwise>
                  </c:choose>
              </c:forEach>
@@ -281,12 +312,12 @@
                  <c:if test="${endPage < totalPages - 1}">
                      <span class="course-hunting-page-dots">...</span>
                  </c:if>
-                 <a href="javascript:void(0)" onclick="changePage(${totalPages})" class="course-hunting-page-btn">${totalPages}</a>
+                 <a href="javascript:void(0)" onclick="changePage('${totalPages}')" class="course-hunting-page-btn">${totalPages}</a>
              </c:if>
              
              <!-- 다음 페이지 버튼 -->
              <c:if test="${currentPage < totalPages}">
-                 <a href="javascript:void(0)" onclick="changePage(${currentPage + 1})" class="course-hunting-page-btn">
+                 <a href="javascript:void(0)" onclick="changePage('${currentPage + 1}')" class="course-hunting-page-btn">
                      &gt;
                  </a>
              </c:if>
@@ -368,13 +399,36 @@
 
 <script>
 let currentSort = '${sort}' || '';
-let currentPage = ${currentPage} || 1;
+let currentPage = parseInt('${currentPage}') || 1;
 let currentSido = '${param.sido}' || '';
 let currentSigungu = '${param.sigungu}' || '';
 let currentDong = '${param.dong}' || '';
+let currentSearchKeyword = '${param.search}' || '';
 let stepCount = 1;
 
+// 페이지 로드 시 작성자 표시 로직 실행
+document.addEventListener('DOMContentLoaded', function() {
+    showAuthorIndicators();
+});
 
+// 작성자 표시 함수
+function showAuthorIndicators() {
+    try {
+        // 모든 닉네임 요소에 대해 작성자 확인
+        const nicknameElements = document.querySelectorAll('.course-hunting-card-nickname');
+        nicknameElements.forEach(function(element) {
+            const authorUserid = element.getAttribute('data-author-userid');
+            const authorIndicator = element.querySelector('.author-indicator');
+            
+            // author_userid가 "user"인 경우에만 이모티콘 표시
+            if (authorUserid === 'user' && authorIndicator) {
+                authorIndicator.style.display = 'inline';
+            }
+        });
+    } catch (error) {
+        console.log('작성자 표시 로직 실행 중 오류:', error);
+    }
+}
 
 // 시간 계산 함수
 function calculateTimeAgo(createdAt) {
@@ -457,7 +511,7 @@ function filterByRegion(sido, sigungu, dong) {
 
 // 페이지 변경
 function changePage(page) {
-    currentPage = page;
+    currentPage = parseInt(page);
     loadCourses();
 }
 
@@ -476,15 +530,47 @@ function loadCourses() {
         var encodedDong = window.encodeURIComponent(currentDong);
         url += '&dong=' + encodedDong;
     }
-    
-
+    if (currentSearchKeyword) {
+        var encodedSearch = window.encodeURIComponent(currentSearchKeyword);
+        url += '&search=' + encodedSearch;
+    }
     
     window.location.href = url;
 }
 
+// 검색 실행
+function performSearch() {
+    const searchInput = document.getElementById('courseSearchInput');
+    const keyword = searchInput.value.trim();
+    
+    currentSearchKeyword = keyword;
+    currentPage = 1; // 검색 시 첫 페이지로 이동
+    
+    // 검색어가 있으면 검색, 없으면 전체 목록 표시
+    loadCourses();
+}
+
+
+// 검색 입력 필드 이벤트 처리
+function setupSearchEvents() {
+    const searchInput = document.getElementById('courseSearchInput');
+    
+    // 엔터키로 검색
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+    
+    // 현재 검색어가 있으면 입력 필드에 표시
+    if (currentSearchKeyword) {
+        searchInput.value = currentSearchKeyword;
+    }
+}
+
 // 상세 페이지로 이동
 function goToDetail(courseId) {
-    window.location.href = '<%=root%>/course/' + courseId;
+    window.location.href = '<%=root%>/course/' + parseInt(courseId);
 }
 
 
@@ -882,6 +968,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 핫플레이스 검색 자동완성 이벤트 리스너 추가
     setupHotplaceAutocomplete();
+    
+    
+    // 검색 기능 이벤트 설정
+    setupSearchEvents();
 });
 
 // 핫플레이스 검색 자동완성 설정

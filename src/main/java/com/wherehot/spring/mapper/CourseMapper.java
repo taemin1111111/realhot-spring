@@ -72,4 +72,17 @@ public interface CourseMapper {
     
     // 코스 삭제 (논리적 삭제)
     int deleteCourse(@Param("id") int id);
+    
+    // 검색으로 최신글 조회
+    List<Course> getLatestCourseListBySearch(@Param("keyword") String keyword, 
+                                           @Param("offset") int offset, 
+                                           @Param("limit") int limit);
+    
+    // 검색으로 인기글 조회
+    List<Course> getPopularCourseListBySearch(@Param("keyword") String keyword, 
+                                            @Param("offset") int offset, 
+                                            @Param("limit") int limit);
+    
+    // 검색으로 코스 수 조회
+    int getCourseCountBySearch(@Param("keyword") String keyword);
 }

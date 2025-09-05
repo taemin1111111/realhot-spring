@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wherehot.spring.mapper.NoticeMapper">
+
+    <!-- Result Map 정의 -->
+    <resultMap id="noticeResultMap" type="com.wherehot.spring.entity.Notice">
+        <id property="noticeId" column="notice_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="photoUrl" column="photo_url"/>
+        <result property="writerUserid" column="writer_userid"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="isPinned" column="is_pinned"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 공통 SQL 조각들 -->
+    <sql id="noticeColumns">
+        notice_id, title, content, photo_url, writer_userid, view_count, 
+        is_pinned, status, created_at, updated_at
+    </sql>
+
+    <!-- PUBLIC 상태의 공지사항 목록 조회 (고정글 먼저, 그 다음 최신순) -->
+    <select id="findPublicNotices" resultMap="noticeResultMap">
+        SELECT <include refid="noticeColumns"/>
+        FROM notice 
+        WHERE status = 'PUBLIC'
+        ORDER BY is_pinned DESC, created_at DESC
+    </select>
+
+    <!-- ID로 공지사항 조회 -->
+    <select id="findById" parameterType="long" resultMap="noticeResultMap">
+        SELECT <include refid="noticeColumns"/>
+        FROM notice 
+        WHERE notice_id = #{noticeId}
+    </select>
+
+    <!-- 공지사항 작성 -->
+    <insert id="insert" parameterType="com.wherehot.spring.entity.Notice" useGeneratedKeys="true" keyProperty="noticeId">
+        INSERT INTO notice (
+            title, content, photo_url, writer_userid, view_count,
+            is_pinned, status
+        ) VALUES (
+            #{title}, #{content}, #{photoUrl}, #{writerUserid}, 0,
+            #{isPinned}, #{status}
+        )
+    </insert>
+
+    <!-- 공지사항 수정 -->
+    <update id="update" parameterType="com.wherehot.spring.entity.Notice">
+        UPDATE notice SET
+            title = #{title},
+            content = #{content},
+            photo_url = #{photoUrl},
+            is_pinned = #{isPinned},
+            status = #{status},
+            updated_at = #{updatedAt}
+        WHERE notice_id = #{noticeId}
+    </update>
+
+    <!-- 공지사항 삭제 (상태를 DELETED로 변경) -->
+    <update id="delete" parameterType="long">
+        UPDATE notice SET
+            status = 'DELETED',
+            updated_at = NOW()
+        WHERE notice_id = #{noticeId}
+    </update>
+
+    <!-- 조회수 증가 -->
+    <update id="incrementViewCount" parameterType="long">
+        UPDATE notice SET
+            view_count = view_count + 1
+        WHERE notice_id = #{noticeId}
+    </update>
+
+    <!-- 전체 공지사항 개수 조회 (PUBLIC 상태만) -->
+    <select id="countPublicNotices" resultType="int">
+        SELECT COUNT(*)
+        FROM notice 
+        WHERE status = 'PUBLIC'
+    </select>
+
+    <!-- 전체 공지사항 개수 조회 (모든 상태) -->
+    <select id="countAllNotices" resultType="int">
+        SELECT COUNT(*)
+        FROM notice
+    </select>
+
+    <!-- 관리자용: 모든 공지사항 조회 (삭제된 것 제외) -->
+    <select id="findAllForAdmin" resultMap="noticeResultMap">
+        SELECT <include refid="noticeColumns"/>
+        FROM notice 
+        WHERE status != 'DELETED'
+        ORDER BY is_pinned DESC, created_at DESC
+    </select>
+
+    <!-- 관리자용: 특정 상태의 공지사항 조회 -->
+    <select id="findByStatus" parameterType="string" resultMap="noticeResultMap">
+        SELECT <include refid="noticeColumns"/>
+        FROM notice 
+        WHERE status = #{status}
+        ORDER BY is_pinned DESC, created_at DESC
+    </select>
+
+</mapper>

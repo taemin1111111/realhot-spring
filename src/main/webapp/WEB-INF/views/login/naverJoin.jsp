@@ -3,14 +3,6 @@
 <%
 request.setCharacterEncoding("UTF-8");   
 String root = request.getContextPath();
-
-// 세션에서 네이버 데이터 꺼내기
-String naverId  = (String)session.getAttribute("naverId");
-String name     = (String)session.getAttribute("name");
-String email    = (String)session.getAttribute("email");
-String gender   = (String)session.getAttribute("gender");
-String birthyear= (String)session.getAttribute("birthyear");
-String birthday = (String)session.getAttribute("birthday");
 %>
 
 <!DOCTYPE html>
@@ -33,34 +25,24 @@ String birthday = (String)session.getAttribute("birthday");
         <div class="info-box mb-4">
             <div class="info-item mb-3">
                 <label>이름</label>
-                <div class="info-value"><%=name%></div>
+                <div class="info-value">${name}</div>
             </div>
 
             <div class="info-item mb-3">
                 <label>이메일</label>
-                <div class="info-value"><%=email%></div>
-            </div>
-
-            <div class="info-item mb-3">
-                <label>생년월일</label>
-                <div class="info-value"><%=birthyear%>-<%=birthday%></div>
+                <div class="info-value">${email}</div>
             </div>
 
             <div class="info-item mb-3">
                 <label>성별</label>
                 <div class="info-value">
-                    <%= "M".equals(gender) ? "남자" : ("F".equals(gender) ? "여자" : "미지정") %>
+                    ${gender == 'M' ? '남자' : (gender == 'F' ? '여자' : '미지정')}
                 </div>
             </div>
         </div>
 
-        <form method="post" action="<%=root%>/login/joinAction.jsp">
-            <input type="hidden" name="userid" value="<%=naverId%>">
-            <input type="hidden" name="name" value="<%=name%>">
-            <input type="hidden" name="email" value="<%=email%>">
-            <input type="hidden" name="birth" value="<%=birthyear%>-<%=birthday%>">
-            <input type="hidden" name="gender" value="<%=gender%>">
-            <input type="hidden" name="provider" value="naver">
+        <form method="post" action="<%=root%>/oauth2/signup/naver">
+            <input type="hidden" name="naverId" value="${naverId}">
 
             <!-- 닉네임 입력 + 중복확인 -->
             <div class="mb-4">
@@ -72,6 +54,13 @@ String birthday = (String)session.getAttribute("birthday");
                 </div>
                 <div class="form-text text-muted">닉네임은 2~7자 사이로 입력해주세요.</div>
                 <div id="nickResult" class="mt-2 small"></div>
+            </div>
+
+            <!-- 생년월일 입력 (선택사항) -->
+            <div class="mb-4">
+                <label for="birth" class="form-label">생년월일 (선택사항)</label>
+                <input type="date" name="birth" id="birth" class="form-control">
+                <div class="form-text text-muted">생년월일은 선택사항입니다.</div>
             </div>
 
             <button type="submit" class="submit-btn-custom w-100">회원가입 완료</button>
@@ -92,7 +81,7 @@ String birthday = (String)session.getAttribute("birthday");
                 return;
             }
 
-            fetch("<%=root%>/login/nickCheck.jsp?nickname=" + encodeURIComponent(nickname))
+            fetch("<%=root%>/api/auth/check-nickname?nickname=" + encodeURIComponent(nickname))
                 .then(res => res.text())
                 .then(result => {
                     if (result.trim() === "ok") {

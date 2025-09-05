@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface MdMapper {
@@ -30,7 +31,7 @@ public interface MdMapper {
     // MD 수정
     int updateMd(Md md);
     
-    // MD 삭제 (비활성화)
+    // MD 삭제
     int deleteMd(@Param("mdId") int mdId);
     
     // MD 찜하기 추가
@@ -47,4 +48,16 @@ public interface MdMapper {
     
     // 디버깅용: 모든 MD 조회
     List<Md> selectAllMds(@Param("userId") String userId);
+    
+    // 가게 목록 조회 (MD 추가용)
+    List<Map<String, Object>> selectHotplaceList();
+    
+    // 가게 검색 (MD 추가용)
+    List<Map<String, Object>> searchHotplaces(@Param("keyword") String keyword);
+    
+    // MD 찜 목록 삭제 (MD 삭제 시)
+    int deleteMdWishes(@Param("mdId") int mdId);
+    
+    // MD명 검색 (자동완성용)
+    List<Map<String, Object>> searchMdNames(@Param("keyword") String keyword);
 }

@@ -83,6 +83,22 @@ public class JwtUtils {
     }
     
     /**
+     * JWT 토큰에서 provider 추출
+     */
+    public String getProviderFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.get("provider", String.class);
+    }
+    
+    /**
+     * JWT 토큰에서 status 추출
+     */
+    public String getStatusFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.get("status", String.class);
+    }
+    
+    /**
      * JWT 토큰에서 클레임 추출
      */
     public Claims getClaimsFromToken(String token) {

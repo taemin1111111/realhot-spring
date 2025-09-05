@@ -6,7 +6,7 @@
 <div class="hotplace-popular-section">
     <div class="section-header">
         <h3 class="section-title">🔥 핫플썰 인기글</h3>
-        <a href="<%=root%>/community?sort=popular" class="view-all-link">전체보기 →</a>
+        <a href="<%=root%>/hpost?sort=popular" class="view-all-link">전체보기 →</a>
     </div>
     <div class="posts-table-header">
         <div class="col-rank">순위</div>
@@ -22,7 +22,11 @@
                     <div class="posts-table-row" onclick="location.href='<%=root%>/hpost/${post.id}'">
                         <div class="col-rank" style="color: #ff6b6b; font-weight: bold;">${status.index + 1}위</div>
                         <div class="col-nickname">
-                            <c:if test="${not empty post.userid and post.userid ne 'null'}">⭐ </c:if>
+                            <span style="display: inline-block; width: 24px; text-align: center;">
+                                <c:if test="${not empty post.userid and post.userid ne 'null'}">
+                                    <i class="bi bi-person-fill" style="color: #ff69b4; font-size: 18px;"></i>
+                                </c:if>
+                            </span>
                             <c:out value="${post.nickname}" />
                         </div>
                         <div class="col-title">

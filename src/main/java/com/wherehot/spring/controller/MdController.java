@@ -8,12 +8,21 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.ResponseEntity;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/md")
@@ -211,6 +220,136 @@ public class MdController {
         return response;
     }
 
+    // MD 추가 API (관리자용)
+    @PostMapping("/api/add")
+    @ResponseBody
+    public Map<String, Object> addMd(
+            @RequestParam("mdName") String mdName,
+            @RequestParam("placeId") int placeId,
+            @RequestParam(value = "contact", required = false) String contact,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "mdPhoto", required = false) MultipartFile mdPhoto,
+            @RequestParam(value = "isVisible", defaultValue = "true") boolean isVisible,
+            HttpServletRequest request) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 관리자 권한 확인
+            String userId = determineUserId(request);
+            if (userId == null) {
+                response.put("success", false);
+                response.put("message", "로그인이 필요합니다.");
+                return response;
+            }
+            
+            // JWT 토큰에서 관리자 권한 확인
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                try {
+                    if (jwtUtils.validateToken(token)) {
+                        String provider = jwtUtils.getProviderFromToken(token);
+                        String status = jwtUtils.getStatusFromToken(token);
+                        
+                        if (!"admin".equals(provider)) {
+                            response.put("success", false);
+                            response.put("message", "관리자 권한이 필요합니다.");
+                            return response;
+                        }
+                    }
+                } catch (Exception e) {
+                    response.put("success", false);
+                    response.put("message", "권한 확인에 실패했습니다.");
+                    return response;
+                }
+            }
+            
+            // 필수 필드 검증
+            if (mdName == null || mdName.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "MD 이름을 입력해주세요.");
+                return response;
+            }
+            
+            if (placeId <= 0) {
+                response.put("success", false);
+                response.put("message", "가게를 선택해주세요.");
+                return response;
+            }
+            
+            // MD 객체 생성
+            Md md = new Md();
+            md.setMdName(mdName.trim());
+            md.setContact(contact != null ? contact.trim() : null);
+            md.setDescription(description != null ? description.trim() : null);
+            md.setVisible(isVisible);
+            md.setCreatedAt(LocalDateTime.now());
+            
+            // 사진 업로드 처리
+            String photoPath = null;
+            if (mdPhoto != null && !mdPhoto.isEmpty()) {
+                photoPath = saveUploadedFile(mdPhoto);
+                if (photoPath != null) {
+                    md.setPhoto(photoPath);
+                }
+            }
+            
+            // 가게 정보 처리
+            md.setPlaceId(placeId);
+            
+            // MdService를 통해 MD 등록
+            boolean result = mdService.registerMd(md);
+            
+            if (result) {
+                response.put("success", true);
+                response.put("message", "MD가 성공적으로 추가되었습니다.");
+                response.put("mdId", md.getMdId());
+            } else {
+                response.put("success", false);
+                response.put("message", "MD 추가에 실패했습니다.");
+            }
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "MD 추가 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return response;
+    }
+    
+    // 파일 업로드 처리 메서드
+    private String saveUploadedFile(MultipartFile file) {
+        try {
+            // 업로드 디렉토리 생성
+            String uploadDir = "src/main/webapp/uploads/mdsave/";
+            File dir = new File(uploadDir);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            
+            // 파일명 생성 (UUID + 원본 파일명)
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String filename = UUID.randomUUID().toString() + extension;
+            
+            // 파일 저장
+            Path filePath = Paths.get(uploadDir + filename);
+            Files.copy(file.getInputStream(), filePath);
+            
+            // 웹 접근 가능한 경로 반환
+            return "/uploads/mdsave/" + filename;
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     // 검색 제안 API
     @GetMapping("/api/suggestions")
     @ResponseBody
@@ -245,6 +384,163 @@ public class MdController {
         return response;
     }
 
+    // 가게 목록 조회 API (MD 추가용)
+    @GetMapping("/api/hotplaces")
+    @ResponseBody
+    public Map<String, Object> getHotplaceList() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            List<Map<String, Object>> hotplaceList = mdService.getHotplaceList();
+            
+            response.put("success", true);
+            response.put("hotplaces", hotplaceList);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "가게 목록을 불러오는데 실패했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return response;
+    }
+
+    // 가게 검색 API (MD 추가용)
+    @GetMapping("/api/hotplaces/search")
+    @ResponseBody
+    public Map<String, Object> searchHotplaces(@RequestParam String keyword) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            List<Map<String, Object>> hotplaceList = mdService.searchHotplaces(keyword);
+            
+            response.put("success", true);
+            response.put("hotplaces", hotplaceList);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "가게 검색에 실패했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return response;
+    }
+
+    // MD 조회 API (수정용)
+    @GetMapping("/api/{mdId}")
+    @ResponseBody
+    public Map<String, Object> getMd(@PathVariable int mdId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            Md md = mdService.getMdById(mdId);
+            
+            if (md != null) {
+                response.put("success", true);
+                response.put("md", md);
+            } else {
+                response.put("success", false);
+                response.put("message", "MD를 찾을 수 없습니다.");
+            }
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "MD 조회 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return response;
+    }
+
+    // MD 수정 API (관리자용)
+    @PostMapping("/api/edit/{mdId}")
+    @ResponseBody
+    public Map<String, Object> editMd(
+            @PathVariable int mdId,
+            @RequestParam("editMdName") String mdName,
+            @RequestParam("placeId") int placeId,
+            @RequestParam(value = "editContact", required = false) String contact,
+            @RequestParam(value = "editDescription", required = false) String description,
+            @RequestParam(value = "editMdPhoto", required = false) MultipartFile mdPhoto,
+            @RequestParam(value = "editIsVisible", defaultValue = "true") boolean isVisible,
+            HttpServletRequest request) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // JWT 토큰에서 관리자 권한 확인
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("success", false);
+                response.put("message", "인증이 필요합니다.");
+                return response;
+            }
+            
+            String token = authHeader.substring(7);
+            String provider = jwtUtils.getProviderFromToken(token);
+            
+            if (!"admin".equals(provider)) {
+                response.put("success", false);
+                response.put("message", "관리자 권한이 필요합니다.");
+                return response;
+            }
+            
+            // 필수 필드 검증
+            if (mdName == null || mdName.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "MD 이름을 입력해주세요.");
+                return response;
+            }
+            
+            if (placeId <= 0) {
+                response.put("success", false);
+                response.put("message", "가게를 선택해주세요.");
+                return response;
+            }
+            
+            // 기존 MD 정보 조회
+            Md existingMd = mdService.getMdById(mdId);
+            if (existingMd == null) {
+                response.put("success", false);
+                response.put("message", "MD를 찾을 수 없습니다.");
+                return response;
+            }
+            
+            // MD 객체 업데이트
+            existingMd.setMdName(mdName.trim());
+            existingMd.setContact(contact != null ? contact.trim() : null);
+            existingMd.setDescription(description != null ? description.trim() : null);
+            existingMd.setVisible(isVisible);
+            existingMd.setPlaceId(placeId);
+            
+            // 사진 업로드 처리
+            if (mdPhoto != null && !mdPhoto.isEmpty()) {
+                String photoPath = saveUploadedFile(mdPhoto);
+                if (photoPath != null) {
+                    existingMd.setPhoto(photoPath);
+                }
+            }
+            
+            // MdService를 통해 MD 수정
+            boolean result = mdService.updateMd(existingMd);
+            
+            if (result) {
+                response.put("success", true);
+                response.put("message", "MD가 성공적으로 수정되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("message", "MD 수정에 실패했습니다.");
+            }
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "MD 수정 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return response;
+    }
+
     // 사용자 ID 결정 메서드 (JWT 토큰 기반)
     private String determineUserId(HttpServletRequest request) {
         // JWT 토큰에서 사용자 ID 추출
@@ -263,5 +559,79 @@ public class MdController {
             }
         }
         return null; // 로그인하지 않은 사용자
+    }
+    
+    // JWT 토큰 추출 메서드
+    private String extractTokenFromRequest(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
+    }
+    
+    // MD 삭제 API
+    @DeleteMapping("/api/delete/{mdId}")
+    public ResponseEntity<Map<String, Object>> deleteMd(@PathVariable int mdId, HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // JWT 토큰에서 사용자 정보 추출
+            String token = extractTokenFromRequest(request);
+            if (token == null) {
+                response.put("success", false);
+                response.put("message", "로그인이 필요합니다.");
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 관리자 권한 확인
+            String provider = jwtUtils.getProviderFromToken(token);
+            if (!"admin".equals(provider)) {
+                response.put("success", false);
+                response.put("message", "관리자 권한이 필요합니다.");
+                return ResponseEntity.status(403).body(response);
+            }
+            
+            // MD 삭제 실행
+            boolean success = mdService.deleteMd(mdId);
+            
+            if (success) {
+                response.put("success", true);
+                response.put("message", "MD가 성공적으로 삭제되었습니다.");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "MD 삭제에 실패했습니다.");
+                return ResponseEntity.status(500).body(response);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "MD 삭제 중 오류가 발생했습니다.");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+    
+    // 검색 자동완성 API
+    @GetMapping("/api/search-suggestions")
+    public ResponseEntity<Map<String, Object>> getSearchSuggestions(
+            @RequestParam String keyword,
+            @RequestParam String searchType) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            List<Map<String, Object>> suggestions = mdService.getSearchSuggestions(keyword, searchType);
+            
+            response.put("success", true);
+            response.put("suggestions", suggestions);
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "검색 자동완성을 불러오는데 실패했습니다.");
+            return ResponseEntity.status(500).body(response);
+        }
     }
 }

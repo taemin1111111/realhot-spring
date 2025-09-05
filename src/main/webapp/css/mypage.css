@@ -629,6 +629,28 @@ a.text-decoration-none:hover {
     background: linear-gradient(135deg, #8d6e63, #a1887f);
 }
 
+/* 게시글 타입별 카드 헤더 색상 */
+.posts-container .card-header.category-course {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important;
+}
+
+.posts-container .card-header.category-hottalk {
+    background: linear-gradient(135deg, #ff9ec7, #f48fb1) !important;
+}
+
+/* 게시글 타입별 버튼 색상 */
+.posts-container .btn.category-course {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important;
+    border-color: #007bff !important;
+    color: white !important;
+}
+
+.posts-container .btn.category-hottalk {
+    background: linear-gradient(135deg, #ff9ec7, #f48fb1) !important;
+    border-color: #f48fb1 !important;
+    color: white !important;
+}
+
 .wishlist-container .card-header h6 {
     color: white;
     font-weight: 600;
@@ -1192,7 +1214,7 @@ a.text-decoration-none:hover {
 .posts-container .post-type-filter-btn.marker-hottalk { 
     background: transparent;
     color: #6c757d;
-    border: 2px solid #ff6b9d;
+    border: 2px solid #f48fb1;
 }
 
 .posts-container .post-type-filter-btn:hover {
@@ -1219,16 +1241,16 @@ a.text-decoration-none:hover {
 
 /* 핫톡 버튼 호버 상태 */
 .posts-container .post-type-filter-btn.marker-hottalk:hover {
-    background: #ff6b9d !important;
+    background: #f48fb1 !important;
     color: #fff !important;
-    border-color: #ff6b9d !important;
+    border-color: #f48fb1 !important;
 }
 
 /* 핫톡 버튼 활성화 상태 */
 .posts-container .post-type-filter-btn.marker-hottalk.active {
-    background: #ff6b9d !important;
+    background: #f48fb1 !important;
     color: #fff !important;
-    border-color: #ff6b9d !important;
+    border-color: #f48fb1 !important;
 }
 
 /* 게시글 목록 카드 스타일 - 모던한 카드 디자인 */

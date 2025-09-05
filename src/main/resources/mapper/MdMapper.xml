@@ -114,16 +114,19 @@
     <!-- MD 상세 조회 -->
     <select id="selectMdById" resultType="com.wherehot.spring.entity.Md">
         SELECT 
-            md_id as mdId,
-            place_id as placeId,
-            md_name as mdName,
-            contact,
-            description,
-            photo,
-            created_at as createdAt,
-            is_visible as isVisible
-        FROM md_info
-        WHERE md_id = #{mdId} AND is_visible = true
+            m.md_id as mdId,
+            m.place_id as placeId,
+            m.md_name as mdName,
+            m.contact,
+            m.description,
+            m.photo,
+            m.created_at as createdAt,
+            m.is_visible as isVisible,
+            p.name as placeName,
+            p.address as placeAddress
+        FROM md_info m
+        LEFT JOIN hotplace_info p ON m.place_id = p.id
+        WHERE m.md_id = #{mdId}
     </select>
 
     <!-- MD 등록 -->
@@ -154,13 +157,11 @@
             md_name = #{mdName},
             contact = #{contact},
             description = #{description},
-            photo = #{photo}
+            <if test="photo != null">
+            photo = #{photo},
+            </if>
+            is_visible = #{isVisible}
         WHERE md_id = #{mdId}
-    </update>
-
-    <!-- MD 삭제 (비활성화) -->
-    <update id="deleteMd">
-        UPDATE md_info SET is_visible = false WHERE md_id = #{mdId}
     </update>
 
                            <!-- MD 찜하기 추가 -->
@@ -188,5 +189,50 @@
                FROM md_wish
                WHERE md_id = #{mdId}
            </select>
+
+           <!-- 가게 목록 조회 (MD 추가용) -->
+           <select id="selectHotplaceList" resultType="map">
+               SELECT 
+                   id as placeId,
+                   name as placeName,
+                   address as placeAddress
+               FROM hotplace_info
+               ORDER BY name ASC
+           </select>
+
+           <!-- 가게 검색 (MD 추가용) -->
+           <select id="searchHotplaces" resultType="map">
+               SELECT 
+                   id as placeId,
+                   name as placeName,
+                   address as placeAddress
+               FROM hotplace_info
+               WHERE name LIKE CONCAT('%', #{keyword}, '%')
+               ORDER BY name ASC
+               LIMIT 10
+           </select>
+
+    <!-- MD 찜 목록 삭제 -->
+    <delete id="deleteMdWishes" parameterType="int">
+        DELETE FROM md_wish WHERE md_id = #{mdId}
+    </delete>
+
+    <!-- MD 삭제 -->
+    <delete id="deleteMd" parameterType="int">
+        DELETE FROM md_info WHERE md_id = #{mdId}
+    </delete>
+
+    <!-- MD명 검색 (자동완성용) -->
+    <select id="searchMdNames" resultType="map">
+        SELECT DISTINCT
+            m.md_name as mdName,
+            p.name as placeName
+        FROM md_info m
+        LEFT JOIN hotplace_info p ON m.place_id = p.id
+        WHERE m.is_visible = true
+        AND m.md_name LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY m.md_name ASC
+        LIMIT 5
+    </select>
 
 </mapper>

@@ -203,80 +203,12 @@
       console.log('JWT 토큰을 localStorage와 쿠키에서 삭제 완료');
   }
   
-  // API 요청 시 JWT 토큰을 헤더에 포함하는 함수
-  async function fetchWithAuth(url, options = {}) {
-    const token = getToken();
-    console.log('fetchWithAuth - URL:', url);
-    console.log('fetchWithAuth - Token:', token ? token.substring(0, 20) + '...' : 'null');
-    
-    const defaultOptions = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
-        ...options.headers
-      }
-    };
-    
-    console.log('fetchWithAuth - Headers:', defaultOptions.headers);
-    
-    let response = await fetch(url, { ...defaultOptions, ...options });
-    
-    // 401 에러 시 토큰 갱신 시도
-    if (response.status === 401) {
-      console.log('토큰 만료, 갱신 시도...');
-      const refreshSuccess = await refreshAccessToken();
-      
-      if (refreshSuccess) {
-        const newToken = getToken();
-        const retryOptions = {
-          ...defaultOptions,
-          headers: {
-            ...defaultOptions.headers,
-            'Authorization': `Bearer ${newToken}`
-          }
-        };
-        response = await fetch(url, { ...retryOptions, ...options });
-      } else {
-        removeToken();
-        return response;
-      }
-    }
-    
-    return response;
-  }
+  // API 요청 시 JWT 토큰을 헤더에 포함하는 함수 (title.jsp의 함수를 사용)
   
-  // 토큰 갱신 함수
-  async function refreshAccessToken() {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
-      return false;
-    }
-    
-    try {
-      const response = await fetch(root + '/api/auth/refresh', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ refreshToken: refreshToken })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.accessToken) {
-          saveToken(data.accessToken, data.refreshToken);
-          return true;
-        }
-      }
-      return false;
-    } catch (error) {
-      console.error('토큰 갱신 실패:', error);
-      return false;
-    }
-  }
+  // 토큰 갱신 함수 (title.jsp의 함수를 사용)
   
   // 전역 함수로 설정
-  window.fetchWithAuth = fetchWithAuth;
+  // window.fetchWithAuth = fetchWithAuth; // title.jsp의 함수를 사용하므로 주석 처리
   
   // JWT 토큰에서 로그인 정보 확인 (title.jsp와 일관성 유지)
   function initAuthStatus() {
@@ -359,8 +291,11 @@
           
           // InfoWindow가 열려있다면 관리자 버튼들 추가
           setTimeout(function() {
-            const iw = hotplaceInfoWindows[idx].getContent();
-            if (iw && isAdmin) {
+            // InfoWindow의 DOM 요소를 직접 찾기
+            const infoWindowElements = document.getElementsByClassName('infoWindow');
+            if (infoWindowElements.length > 0 && isAdmin) {
+              const iw = infoWindowElements[0]; // 첫 번째 InfoWindow 요소 사용
+              
               // 기존 관리자 버튼들 제거
               const existingAddBtn = iw.querySelector('.admin-add-btn');
               const existingEditBtn = iw.querySelector('.admin-edit-btn');
@@ -405,6 +340,7 @@
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(11px, 2vw, 13px); word-break:break-word; line-height:1.3;">' + place.address + '</div>'
       + '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>'
       + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
+      + (place.categoryId === 1 ? '<a href="/clubtable" style="color:#9c27b0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f3e5f5; border-radius:8px; border:1px solid #e1bee7; margin-left:8px;">📅 테이블 예약</a>' : '')
       + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
       + '</div>'
       + '</div>';
@@ -520,6 +456,7 @@
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(11px, 2vw, 13px); word-break:break-word; line-height:1.3;">' + place.address + '</div>'
       + '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>'
       + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
+      + (place.categoryId === 1 ? '<a href="/clubtable" style="color:#9c27b0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f3e5f5; border-radius:8px; border:1px solid #e1bee7; margin-left:8px;">📅 테이블 예약</a>' : '')
       + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
       + '</div>'
       + '</div>';
@@ -834,6 +771,9 @@
                   heart.classList.remove('bi-heart');
                   heart.classList.add('bi-heart-fill');
                 }
+                
+                // 찜 개수 실시간 업데이트
+                updateWishCount(placeId);
               }
             });
         };
@@ -1390,6 +1330,41 @@
     });
   }
 
+  // 찜 개수 실시간 업데이트 함수
+  function updateWishCount(placeId) {
+    const wishCountElement = document.querySelector('.wish-count-' + placeId);
+    if (!wishCountElement) return;
+    
+    // Spring API 호출
+    fetch(root + '/api/main/wish-count', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'placeId=' + placeId
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // 애니메이션 효과와 함께 개수 업데이트
+        wishCountElement.style.transform = 'scale(1.2)';
+        wishCountElement.style.transition = 'transform 0.2s ease';
+        wishCountElement.textContent = data.count;
+        
+        // 애니메이션 완료 후 원래 크기로 복원
+        setTimeout(() => {
+          wishCountElement.style.transform = 'scale(1)';
+        }, 200);
+      } else {
+        wishCountElement.textContent = '0';
+      }
+    })
+    .catch(error => {
+      console.error('위시리스트 개수 업데이트 오류:', error);
+      wishCountElement.textContent = '0';
+    });
+  }
+
   // 투표 현황 로드 함수 (Spring API 호출)
   function loadVoteTrends(placeId) {
     const trendsElement = document.getElementById('voteTrends-' + placeId);
@@ -1590,17 +1565,213 @@
     });
   }
 
-  // 이미지 모달 (플레이스홀더)
+  // 이미지 모달 전역 변수
+  let modalData = {
+    placeId: null,
+    currentIndex: 0,
+    totalImages: 0,
+    images: []
+  };
+
+  // 이미지 모달 열기
   function openImageModal(imagePath, placeId, currentIndex) {
-    window.open(imagePath, '_blank');
+    // 해당 장소의 모든 이미지 정보 가져오기
+    fetch(root + '/api/main/place-images?placeId=' + placeId)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.images && data.images.length > 0) {
+          modalData = {
+            placeId: placeId,
+            currentIndex: currentIndex,
+            totalImages: data.images.length,
+            images: data.images
+          };
+          showImageModal(imagePath);
+        } else {
+          window.open(imagePath, '_blank');
+        }
+      })
+      .catch(error => {
+        console.error('이미지 로드 오류:', error);
+        window.open(imagePath, '_blank');
+      });
   }
 
+  // 이미지 모달 표시
+  function showImageModal(imagePath) {
+    // 기존 모달 제거
+    const existingModal = document.getElementById('imageModal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    // 모달 컨테이너 생성
+    const modal = document.createElement('div');
+    modal.id = 'imageModal';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 10000; display: flex; align-items: center; justify-content: center; cursor: pointer;';
+    modal.onclick = closeImageModal;
+
+    // 이미지 컨테이너 생성
+    const imageContainer = document.createElement('div');
+    imageContainer.style.cssText = 'position: relative; min-width: 500px; max-width: 90vw; min-height: 400px; max-height: 90vh; display: flex; align-items: center; justify-content: center;';
+    imageContainer.onclick = function(e) { e.stopPropagation(); };
+
+    // 이미지 생성
+    const img = document.createElement('img');
+    img.id = 'modalImage';
+    img.src = imagePath;
+    img.style.cssText = 'min-width: 500px; min-height: 400px; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);';
+    img.alt = '이미지';
+
+    // 이전 버튼 생성 (이미지가 2개 이상일 때만)
+    if (modalData.totalImages > 1) {
+      const prevBtn = document.createElement('button');
+      prevBtn.innerHTML = '‹';
+      prevBtn.style.cssText = 'position: absolute; left: -60px; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; cursor: pointer; z-index: 10001; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;';
+      prevBtn.onclick = function(e) { e.stopPropagation(); navigateModalImage(-1); };
+      imageContainer.appendChild(prevBtn);
+    }
+
+    // 다음 버튼 생성 (이미지가 2개 이상일 때만)
+    if (modalData.totalImages > 1) {
+      const nextBtn = document.createElement('button');
+      nextBtn.innerHTML = '›';
+      nextBtn.style.cssText = 'position: absolute; right: -60px; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; cursor: pointer; z-index: 10001; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;';
+      nextBtn.onclick = function(e) { e.stopPropagation(); navigateModalImage(1); };
+      imageContainer.appendChild(nextBtn);
+    }
+
+    // 닫기 버튼 생성
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '✕';
+    closeBtn.style.cssText = 'position: absolute; top: -50px; right: -10px; background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 10001; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;';
+    closeBtn.onclick = function(e) { e.stopPropagation(); closeImageModal(); };
+    imageContainer.appendChild(closeBtn);
+
+    // 이미지 카운터 생성 (이미지가 2개 이상일 때만)
+    if (modalData.totalImages > 1) {
+      const counter = document.createElement('div');
+      counter.innerHTML = (modalData.currentIndex + 1) + ' / ' + modalData.totalImages;
+      counter.style.cssText = 'position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px;';
+      imageContainer.appendChild(counter);
+    }
+
+    // 요소들 조립
+    imageContainer.appendChild(img);
+    modal.appendChild(imageContainer);
+    document.body.appendChild(modal);
+
+    // 키보드 이벤트 리스너 추가
+    document.addEventListener('keydown', handleModalKeydown);
+  }
+
+  // 모달에서 이미지 네비게이션
+  function navigateModalImage(direction) {
+    if (modalData.totalImages <= 1) return;
+    
+    let newIndex = modalData.currentIndex + direction;
+    
+    // 순환 처리
+    if (newIndex < 0) {
+      newIndex = modalData.totalImages - 1;
+    } else if (newIndex >= modalData.totalImages) {
+      newIndex = 0;
+    }
+    
+    modalData.currentIndex = newIndex;
+    
+    // 이미지 업데이트
+    const newImage = modalData.images[newIndex];
+    const modalImage = document.getElementById('modalImage');
+    const timestamp = Date.now();
+    
+    if (modalImage && newImage) {
+      modalImage.src = root + newImage.imagePath + '?t=' + timestamp;
+      
+      // 카운터 업데이트
+      const counter = document.querySelector('#imageModal div[style*="position: absolute; bottom: -40px"]');
+      if (counter) {
+        counter.textContent = (newIndex + 1) + ' / ' + modalData.totalImages;
+      }
+    }
+  }
+
+  // 모달 닫기
   function closeImageModal() {
-    // 플레이스홀더
+    const modal = document.getElementById('imageModal');
+    if (modal) {
+      modal.remove();
+    }
+    document.removeEventListener('keydown', handleModalKeydown);
+    modalData = { placeId: null, currentIndex: 0, totalImages: 0, images: [] };
+  }
+
+  // 키보드 이벤트 처리
+  function handleModalKeydown(event) {
+    if (event.key === 'Escape') {
+      closeImageModal();
+    } else if (event.key === 'ArrowLeft') {
+      navigateModalImage(-1);
+    } else if (event.key === 'ArrowRight') {
+      navigateModalImage(1);
+    }
   }
 
   function changeImage(placeId, totalImages, currentIndex, direction) {
-    // 플레이스홀더
+    // 현재 인덱스 계산
+    let newIndex = currentIndex + direction;
+    
+    // 인덱스 범위 체크 (순환)
+    if (newIndex < 0) {
+      newIndex = totalImages - 1;
+    } else if (newIndex >= totalImages) {
+      newIndex = 0;
+    }
+    
+    // 이미지 컨테이너 찾기
+    const containers = document.querySelectorAll('.place-images-container[data-place-id="' + placeId + '"]');
+    if (containers.length === 0) return;
+    
+    // 새로운 이미지 로드
+    fetch(root + '/api/main/place-images?placeId=' + placeId)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.images && data.images.length > newIndex) {
+          const newImage = data.images[newIndex];
+          const timestamp = Date.now();
+          
+          containers.forEach(container => {
+            const slider = container.querySelector('.place-image-slider');
+            if (slider) {
+              // 이미지 업데이트
+              const img = slider.querySelector('img');
+              if (img) {
+                img.src = root + newImage.imagePath + '?t=' + timestamp;
+                img.onclick = function() { openImageModal(root + newImage.imagePath, placeId, newIndex); };
+              }
+              
+              // 카운터 업데이트
+              const counter = slider.querySelector('div[style*="position:absolute; bottom:10px"]');
+              if (counter) {
+                counter.textContent = (newIndex + 1) + ' / ' + totalImages;
+              }
+              
+              // 버튼 onclick 이벤트 업데이트
+              const prevBtn = slider.querySelector('.prev-btn');
+              const nextBtn = slider.querySelector('.next-btn');
+              if (prevBtn) {
+                prevBtn.onclick = function() { changeImage(placeId, totalImages, newIndex, -1); };
+              }
+              if (nextBtn) {
+                nextBtn.onclick = function() { changeImage(placeId, totalImages, newIndex, 1); };
+              }
+            }
+          });
+        }
+      })
+      .catch(error => {
+        console.error('이미지 변경 오류:', error);
+      });
   }
 
   function changeModalImage(direction) {

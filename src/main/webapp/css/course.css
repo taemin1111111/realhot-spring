@@ -580,6 +580,164 @@ body:has(.course-hunting-container) {
     color: #495057;
 }
 
+/* 검색 기능 영역 */
+.course-search-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 25px;
+    border: 1px solid #e3e6ea;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(10px);
+}
+
+.course-search-box {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.course-search-input-wrapper {
+    flex: 0 0 60%;
+    position: relative;
+    background: #ffffff;
+    border: 2px solid #e9ecef;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.course-search-input-wrapper:focus-within {
+    border-color: #007bff;
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1), 0 4px 16px rgba(0, 123, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.course-search-input {
+    width: 100%;
+    padding: 18px 24px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: #2c3e50;
+    background: transparent;
+    font-weight: 400;
+}
+
+.course-search-button-wrapper {
+    flex-shrink: 0;
+}
+
+.course-search-input::placeholder {
+    color: #95a5a6;
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.course-search-btn {
+    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+    border: none;
+    color: white;
+    padding: 20px 32px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+}
+
+.course-search-btn:hover {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.3);
+}
+
+.course-search-btn:active {
+    transform: translateY(0);
+}
+
+.course-search-btn i {
+    font-size: 16px;
+    margin-right: 8px;
+}
+
+.course-search-btn .btn-text {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+
+
+.course-search-filters {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+.course-search-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.course-search-filter-label {
+    font-weight: 700;
+    color: #495057;
+    font-size: 15px;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.course-search-filter-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #495057;
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.course-search-filter-option:hover {
+    color: #007bff;
+    background: rgba(0, 123, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.course-search-filter-option input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #007bff;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.course-search-filter-option input[type="checkbox"]:checked {
+    background: #007bff;
+}
+
 /* 코스 목록 영역 */
 .course-hunting-list {
     margin-bottom: 40px;
@@ -1145,6 +1303,57 @@ body:has(.course-hunting-container) {
     .course-hunting-dong-item {
         padding: 5px 8px;
         font-size: 11px;
+    }
+    
+    /* 검색 기능 반응형 */
+    .course-search-container {
+        padding: 20px;
+        border-radius: 16px;
+    }
+    
+    .course-search-box {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .course-search-input-wrapper {
+        width: 100%;
+    }
+    
+    .course-search-input {
+        padding: 16px 20px;
+        font-size: 15px;
+    }
+    
+    .course-search-button-wrapper {
+        width: 100%;
+    }
+    
+    .course-search-btn {
+        width: 100%;
+        padding: 16px 18px;
+        min-width: auto;
+    }
+    
+    .course-search-btn .btn-text {
+        font-size: 13px;
+    }
+    
+    .course-search-filters {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        padding-top: 20px;
+    }
+    
+    .course-search-filter-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .course-search-filter-option {
+        padding: 6px 10px;
     }
 }
 

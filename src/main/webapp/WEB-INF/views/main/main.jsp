@@ -329,7 +329,7 @@
     const heartHtml = isLoggedIn ? `<i class="bi bi-heart wish-heart" data-place-id="${place.id}" style="position:absolute;top:12px;right:12px;z-index:10;"></i>` : '';
     
     return ''
-      + '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(12px, 2vw, 16px); line-height:1.4; border-radius:12px; overflow:hidden; box-sizing:border-box;">'
+      + '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(12px, 2vw, 16px); line-height:1.4; border-radius:0; overflow:visible; box-sizing:border-box;">'
       + '<div class="place-images-container" style="position:relative; width:100%; background:#f8f9fa; display:flex; align-items:center; justify-content:center; color:#6c757d; font-size:clamp(11px, 1.5vw, 13px);" data-place-id="' + place.id + '">이미지 로딩 중...</div>'
       + '<div style="padding:clamp(16px, 3vw, 20px);">'
       + '<div class="place-name-wish-container">'
@@ -340,7 +340,6 @@
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(11px, 2vw, 13px); word-break:break-word; line-height:1.3;">' + place.address + '</div>'
       + '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>'
       + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
-      + (place.categoryId === 1 ? '<a href="/clubtable" style="color:#9c27b0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f3e5f5; border-radius:8px; border:1px solid #e1bee7; margin-left:8px;">📅 테이블 예약</a>' : '')
       + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
       + '</div>'
       + '</div>';
@@ -445,7 +444,7 @@
     // 하트 아이콘(위시리스트) 추가: 오른쪽 위 (i 태그, .wish-heart)
     var heartHtml = isLoggedIn ? `<i class="bi bi-heart wish-heart" data-place-id="${place.id}" style="position:absolute;top:12px;right:12px;z-index:10;"></i>` : '';
     var infoContent = ''
-      + '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(12px, 2vw, 16px); line-height:1.4; border-radius:12px; overflow:hidden; box-sizing:border-box;">'
+      + '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(12px, 2vw, 16px); line-height:1.4; border-radius:0; overflow:visible; box-sizing:border-box;">'
       + '<div class="place-images-container" style="position:relative; width:100%; background:#f8f9fa; display:flex; align-items:center; justify-content:center; color:#6c757d; font-size:clamp(11px, 1.5vw, 13px);" data-place-id="' + place.id + '">이미지 로딩 중...</div>'
       + '<div style="padding:clamp(16px, 3vw, 20px);">'
       + '<div class="place-name-wish-container">'
@@ -456,7 +455,6 @@
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(11px, 2vw, 13px); word-break:break-word; line-height:1.3;">' + place.address + '</div>'
       + '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>'
       + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
-      + (place.categoryId === 1 ? '<a href="/clubtable" style="color:#9c27b0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f3e5f5; border-radius:8px; border:1px solid #e1bee7; margin-left:8px;">📅 테이블 예약</a>' : '')
       + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
       + '</div>'
       + '</div>';
@@ -1298,7 +1296,7 @@
       .catch(error => {
         console.error('이미지 로드 오류:', error);
         containers.forEach(container => {
-          container.innerHTML = '<div class="no-images" style="padding:20px; text-align:center; background:#f8f9fa; border-radius:8px; color:#6c757d; font-size:13px;">이미지 로드 실패</div>';
+          container.innerHTML = '<div class="no-images" style="padding:20px; text-align:center; background:#f8f9fa; border-radius:0; color:#6c757d; font-size:13px;">이미지 로드 실패</div>';
         });
       });
   }
@@ -1620,7 +1618,7 @@
     const img = document.createElement('img');
     img.id = 'modalImage';
     img.src = imagePath;
-    img.style.cssText = 'min-width: 500px; min-height: 400px; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);';
+    img.style.cssText = 'min-width: 500px; min-height: 400px; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);';
     img.alt = '이미지';
 
     // 이전 버튼 생성 (이미지가 2개 이상일 때만)
@@ -1809,7 +1807,7 @@
               '<button onclick="setAsMainImage(' + image.id + ', ' + placeId + ')" ' +
               'style="background:#28a745; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px; margin-left:4px;">대표사진</button>' : '';
             
-            imagesHtml += '<div style="position:relative; border:1px solid #ddd; border-radius:8px; overflow:hidden; background:#f8f9fa;">' +
+            imagesHtml += '<div style="position:relative; border:1px solid #ddd; border-radius:0; overflow:visible; background:#f8f9fa;">' +
               '<img src="' + root + image.imagePath + '?t=' + timestamp + '" ' +
                    'style="width:100%; height:150px; object-fit:cover;" alt="이미지 ' + (index + 1) + '">' +
               '<div style="padding:12px; text-align:center;">' +

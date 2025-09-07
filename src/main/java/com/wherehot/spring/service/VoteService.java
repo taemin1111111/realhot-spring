@@ -53,6 +53,7 @@ public interface VoteService {
     boolean addNowHotVote(int hotplaceId, String voterId, String congestion, String genderRatio, String waitTime);
     Map<String, Object> getNowHotVoteStats(int hotplaceId);
     Map<String, Object> getVoteTrends(int placeId);
+    int getVoteCount(int placeId);
     boolean isWished(int hotplaceId, String userid);
     boolean toggleWish(int hotplaceId, String userid);
     int getWishCount(int hotplaceId);

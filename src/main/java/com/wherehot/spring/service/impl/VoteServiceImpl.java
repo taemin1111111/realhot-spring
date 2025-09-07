@@ -399,6 +399,7 @@ public class VoteServiceImpl implements VoteService {
     @Transactional(readOnly = true)
     public Map<String, Object> getVoteTrends(int placeId) {
         try {
+            logger.info("=== getVoteTrends called with placeId: {} ===", placeId);
             Map<String, Object> trends = voteMapper.getVoteTrends(placeId);
             
             if (trends == null) {
@@ -409,12 +410,26 @@ public class VoteServiceImpl implements VoteService {
                 trends.put("waitTime", "");
             }
             
-            logger.info("Vote trends retrieved for place: {}", placeId);
+            logger.info("=== Vote trends retrieved for place: {} = {} ===", placeId, trends);
             return trends;
             
         } catch (Exception e) {
             logger.error("Error getting vote trends for place: {}", placeId, e);
             throw new RuntimeException("투표 현황 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public int getVoteCount(int placeId) {
+        try {
+            logger.info("=== getVoteCount called with placeId: {} ===", placeId);
+            int count = voteMapper.getVoteCount(placeId);
+            logger.info("=== Vote count retrieved for place: {} = {} ===", placeId, count);
+            return count;
+        } catch (Exception e) {
+            logger.error("Error getting vote count for place: {}", placeId, e);
+            return 0;
         }
     }
     
@@ -473,9 +488,11 @@ public class VoteServiceImpl implements VoteService {
     public Map<String, Object> getNowHotVoteStats(int placeId) {
         try {
             Map<String, Object> stats = new HashMap<>();
-            List<VoteNowHot> votes = voteMapper.findVoteNowHotByHotplace(placeId);
             
-            if (votes.isEmpty()) {
+            // getVoteCount와 동일한 방식으로 투표 수 조회
+            int totalVotes = voteMapper.getVoteCount(placeId);
+            
+            if (totalVotes == 0) {
                 stats.put("totalVotes", 0);
                 stats.put("congestionStats", new HashMap<>());
                 stats.put("genderStats", new HashMap<>());
@@ -483,18 +500,31 @@ public class VoteServiceImpl implements VoteService {
                 return stats;
             }
             
-            // 통계 계산
+            // 투표 트렌드에서 통계 정보 가져오기
+            Map<String, Object> trends = voteMapper.getVoteTrends(placeId);
+            
+            // 통계 계산 (단순화)
             Map<String, Integer> congestionStats = new HashMap<>();
             Map<String, Integer> genderStats = new HashMap<>();
             Map<String, Integer> waitStats = new HashMap<>();
             
-            for (VoteNowHot vote : votes) {
-                congestionStats.merge(vote.getCongestion(), 1, Integer::sum);
-                genderStats.merge(vote.getGenderRatio(), 1, Integer::sum);
-                waitStats.merge(vote.getWaitTime(), 1, Integer::sum);
+            if (trends != null) {
+                String congestion = (String) trends.get("congestion");
+                String genderRatio = (String) trends.get("genderRatio");
+                String waitTime = (String) trends.get("waitTime");
+                
+                if (congestion != null && !congestion.isEmpty()) {
+                    congestionStats.put(congestion, totalVotes);
+                }
+                if (genderRatio != null && !genderRatio.isEmpty()) {
+                    genderStats.put(genderRatio, totalVotes);
+                }
+                if (waitTime != null && !waitTime.isEmpty()) {
+                    waitStats.put(waitTime, totalVotes);
+                }
             }
             
-            stats.put("totalVotes", votes.size());
+            stats.put("totalVotes", totalVotes);
             stats.put("congestionStats", congestionStats);
             stats.put("genderStats", genderStats);
             stats.put("waitStats", waitStats);

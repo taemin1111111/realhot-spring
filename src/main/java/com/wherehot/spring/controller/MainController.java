@@ -328,6 +328,7 @@ public class MainController {
         Map<String, Object> response = new HashMap<>();
         
         try {
+            logger.info("=== /api/main/vote-trends called with placeId: {} ===", placeId);
             if (placeId != null) {
                 // 실제 데이터베이스에서 투표 트렌드 가져오기
                 Map<String, Object> trends = voteService.getVoteTrends(placeId);
@@ -342,6 +343,7 @@ public class MainController {
                 
                 response.put("success", true);
                 response.put("trends", trends);
+                logger.info("=== /api/main/vote-trends response: placeId={}, trends={} ===", placeId, trends);
             } else {
                 // 전체 투표 트렌드
                 Map<String, Object> trends = new HashMap<>();
@@ -358,6 +360,37 @@ public class MainController {
             logger.error("Vote trends error: ", e);
             response.put("success", false);
             response.put("error", "투표 트렌드 조회 중 오류가 발생했습니다.");
+            return org.springframework.http.ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    // 투표 수 API (POST만 사용) - 특정 장소의 총 투표 수 조회
+    @PostMapping("/api/main/vote-count")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> getVoteCount(@RequestParam(value = "placeId", required = true) Integer placeId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            logger.info("=== /api/main/vote-count called with placeId: {} ===", placeId);
+            if (placeId != null) {
+                // 실제 데이터베이스에서 투표 수 가져오기
+                int voteCount = voteService.getVoteCount(placeId);
+                
+                response.put("success", true);
+                response.put("voteCount", voteCount);
+                logger.info("=== /api/main/vote-count response: placeId={}, voteCount={} ===", placeId, voteCount);
+            } else {
+                response.put("success", false);
+                response.put("error", "placeId가 필요합니다.");
+                return org.springframework.http.ResponseEntity.badRequest().body(response);
+            }
+            
+            return org.springframework.http.ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Vote count error: ", e);
+            response.put("success", false);
+            response.put("error", "투표 수 조회 중 오류가 발생했습니다.");
             return org.springframework.http.ResponseEntity.internalServerError().body(response);
         }
     }

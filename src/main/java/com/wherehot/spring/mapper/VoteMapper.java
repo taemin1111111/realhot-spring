@@ -209,6 +209,11 @@ public interface VoteMapper {
      */
     Map<String, Object> getVoteTrends(@Param("placeId") int placeId);
     
+    /**
+     * 특정 장소의 총 투표 수 조회
+     */
+    int getVoteCount(@Param("placeId") int placeId);
+    
     // ========== 찜하기 관련 ==========
     
     /**

@@ -337,7 +337,7 @@
       + '<span style="color:#e91e63; font-size:clamp(12px, 2vw, 14px); white-space:nowrap;">💖<span class="wish-count-' + place.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명</span>'
       + '</div>'
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(10px, 1.8vw, 12px); word-break:break-word;" id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</div>'
-      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(11px, 2vw, 13px); word-break:break-word; line-height:1.3;">' + place.address + '</div>'
+      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(11px, 2vw, 13px); word-break:break-word; line-height:1.3; display:flex; align-items:center;">' + place.address + '<span onclick="copyAddress(\'' + place.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
       + '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>'
       + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
       + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
@@ -452,7 +452,7 @@
       + '<span style="color:#e91e63; font-size:clamp(12px, 2vw, 14px); white-space:nowrap;">💖<span class="wish-count-' + place.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명</span>'
       + '</div>'
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(10px, 1.8vw, 12px); word-break:break-word;" id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</div>'
-      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(11px, 2vw, 13px); word-break:break-word; line-height:1.3;">' + place.address + '</div>'
+      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(11px, 2vw, 13px); word-break:break-word; line-height:1.3; display:flex; align-items:center;">' + place.address + '<span onclick="copyAddress(\'' + place.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
       + '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>'
       + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
       + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
@@ -508,7 +508,7 @@
           
           // 투표 현황 로드
           setTimeout(function() {
-            loadVoteTrends(place.id);
+            loadVoteCount(place.id);
           }, 500);
           
           // 장르 정보 로드
@@ -884,6 +884,7 @@
 
   window.selectedDong = null;
   window.selectedCategory = null;
+  window.currentSortType = 'latest'; // 정렬 타입 저장
 
   // 검색 결과 렌더링 함수 추가
   document.addEventListener('DOMContentLoaded', function() {
@@ -959,7 +960,7 @@
             +     '<span class="hotplace-name" style="color:#1275E0; font-weight:600; cursor:pointer;">' + h.name + '</span>'
             +     '<span class="hotplace-category" style="color:#888; margin-left:4px;">' + (categoryMap[h.categoryId]||'') + '</span>'
             +   '</div>'
-            +   '<div class="hotplace-address" style="color:#666; margin-top:2px;">' + h.address + '</div>'
+            +   '<div class="hotplace-address" style="color:#666; margin-top:2px; display:flex; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + h.address + '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center; flex-shrink:0;" title="주소 복사"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
             + genreHtml
             + '</div>'
             + '<div class="hotplace-card-heart">' + heartHtml + '</div>'
@@ -989,10 +990,14 @@
             }
             var placeNameEl = card.querySelector('.hotplace-name');
             var placeCategoryEl = card.querySelector('.hotplace-category');
-            placeNameEl.style.cursor = 'pointer';
-            placeCategoryEl.style.cursor = 'pointer';
-            placeNameEl.onclick = moveToHotplace;
-            placeCategoryEl.onclick = moveToHotplace;
+            if (placeNameEl) {
+              placeNameEl.style.cursor = 'pointer';
+              placeNameEl.onclick = moveToHotplace;
+            }
+            if (placeCategoryEl) {
+              placeCategoryEl.style.cursor = 'pointer';
+              placeCategoryEl.onclick = moveToHotplace;
+            }
           });
         }, 100);
       }
@@ -1010,8 +1015,15 @@
     };
   });
 
-  // 전역에 선언: 동(지역)별 핫플 리스트 네이버 스타일로 출력
-  window.renderHotplaceListByDong = function(dong, categoryId) {
+  // 페이징 관련 전역 변수
+  window.currentPage = 1;
+  window.itemsPerPage = 12;
+  window.totalItems = 0;
+  window.totalPages = 0;
+  window.currentFilteredData = [];
+
+  // 전역에 선언: 동(지역)별 핫플 리스트 네이버 스타일로 출력 (페이징 처리 포함)
+  window.renderHotplaceListByDong = function(dong, categoryId, page) {
     window.selectedDong = dong;
     window.selectedCategory = categoryId || null;
     var regionId = window.dongToRegionId[dong];
@@ -1022,11 +1034,35 @@
       window.searchResultBox.innerHTML = '<div style="color:#bbb; text-align:center; padding:40px 0;">해당 지역의 핫플레이스가 없습니다.</div>';
       return;
     }
+    
     var filtered = window.hotplaces.filter(function(h) {
       if (h.regionId !== regionId) return false;
       if (categoryId && String(h.categoryId) !== String(categoryId)) return false;
       return true;
     });
+    
+    // 정렬 적용
+    filtered = sortHotplaceData(filtered, window.currentSortType);
+    
+    // 페이징 처리
+    window.currentFilteredData = filtered;
+    window.totalItems = filtered.length;
+    window.totalPages = Math.ceil(window.totalItems / window.itemsPerPage);
+    
+    // 페이지 파라미터가 있으면 해당 페이지로, 없으면 1페이지로
+    window.currentPage = page || 1;
+    if (window.currentPage > window.totalPages) {
+      window.currentPage = window.totalPages;
+    }
+    if (window.currentPage < 1) {
+      window.currentPage = 1;
+    }
+    
+    // 현재 페이지에 해당하는 데이터만 추출
+    var startIndex = (window.currentPage - 1) * window.itemsPerPage;
+    var endIndex = startIndex + window.itemsPerPage;
+    var currentPageData = filtered.slice(startIndex, endIndex);
+    
     // 카테고리별 개수는 항상 표시 (0이어도)
     var count = (window.regionCategoryCounts || []).find(function(c) { return String(c.region_id) === String(regionId); }) || {};
     var clubCount = (typeof count.clubCount === 'number') ? count.clubCount : 0;
@@ -1041,46 +1077,74 @@
       + '</div>';
     catBar.innerHTML = catHtml;
     catBar.style.display = 'flex';
+    
     // 카테고리 원 클릭 이벤트 바인딩
     Array.from(catBar.getElementsByClassName('category-ball')).forEach(function(ball) {
       ball.onclick = function() {
         var cat = ball.getAttribute('data-category');
         if (window.selectedCategory && String(window.selectedCategory) === String(cat)) {
-          window.renderHotplaceListByDong(dong, null); // 전체
+          window.renderHotplaceListByDong(dong, null, 1); // 전체, 1페이지로
         } else {
-          window.renderHotplaceListByDong(dong, cat);
+          window.renderHotplaceListByDong(dong, cat, 1); // 1페이지로
         }
       };
     });
     
-    var dongTitle = '<div style="font-size:1.13rem; font-weight:600; color:#1275E0; margin:14px 0 8px 0; display:flex; align-items:center;">지역: ' + dong + '</div>';
+    var latestActive = window.currentSortType === 'latest' ? 'active' : '';
+    var popularActive = window.currentSortType === 'popular' ? 'active' : '';
+    var latestStyle = window.currentSortType === 'latest' ? 'background:#1275E0; color:white;' : 'background:white; color:#666;';
+    var popularStyle = window.currentSortType === 'popular' ? 'background:#1275E0; color:white;' : 'background:white; color:#666;';
+    
+    var dongTitle = '<div style="font-size:1.13rem; font-weight:600; color:#1275E0; margin:14px 0 8px 0; display:flex; align-items:center;">지역: ' + dong + '</div>' +
+      '<div style="display:flex; gap:8px; margin:8px 0 16px 0;">' +
+        '<button id="sortLatest" class="sort-btn ' + latestActive + '" onclick="sortHotplaces(\'latest\')" style="padding:6px 12px; border:1px solid #ddd; ' + latestStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">최신등록</button>' +
+        '<button id="sortPopular" class="sort-btn ' + popularActive + '" onclick="sortHotplaces(\'popular\')" style="padding:6px 12px; border:1px solid #ddd; ' + popularStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기순</button>' +
+      '</div>';
+    
     if (filtered.length === 0) {
       window.searchResultBox.innerHTML = dongTitle + '<div style="color:#bbb; text-align:center; padding:40px 0;">해당 지역의 핫플레이스가 없습니다.</div>';
       return;
     }
+    
     var categoryMap = {1:'클럽',2:'헌팅',3:'라운지',4:'포차'};
-    window.searchResultBox.innerHTML = dongTitle + filtered.map(function(h) {
+    
+    // 가게 목록 HTML 생성
+    var hotplaceListHtml = currentPageData.map(function(h) {
       var heartHtml = isLoggedIn ? '<i class="bi bi-heart wish-heart" data-place-id="'+h.id+'" style="font-size:1.25rem; color:#e74c3c; cursor:pointer;"></i>' : '<i class="bi bi-heart wish-heart" style="font-size:1.25rem; color:#bbb; cursor:pointer;"></i>';
-      var voteButtonHtml = '<a href="#" onclick="showVoteSection(' + h.id + ', \'' + h.name + '\', \'' + h.address + '\', ' + h.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-size:0.95rem;">🔥 투표</a>';
-      var genreHtml = (h.genres && h.genres !== '') ? '<div style="color:#9c27b0; font-weight:600; margin-top:2px; font-size:0.9rem;">장르: ' + h.genres + '</div>' : '';
-      return '<div class="hotplace-list-card">'
-        + '<div style="flex:1; min-width:0;">'
-        +   '<div style="display:flex; align-items:center; gap:6px;">'
-        +     '<span class="hotplace-name" style="color:#1275E0; font-weight:600; cursor:pointer;">' + h.name + '</span>'
-        +     '<span class="hotplace-category" style="color:#888; margin-left:4px;">' + (categoryMap[h.categoryId]||'') + '</span>'
+      var voteButtonHtml = '<a href="#" onclick="showVoteSection(' + h.id + ', \'' + h.name + '\', \'' + h.address + '\', ' + h.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:0.9rem; white-space:nowrap; padding:8px 14px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>';
+      
+      return '<div class="hotplace-list-card" style="display:flex; flex-direction:column; padding:18px; margin-bottom:16px; background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); min-height:160px;">'
+        + '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">'
+        +   '<div style="flex:1; min-width:0;">'
+        +     '<div class="place-name-wish-container" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">'
+        +       '<strong style="font-size:1.1rem; word-break:break-word; color:#1275E0; cursor:pointer;" class="hotplace-name">' + h.name + '</strong>'
+        +       '<span style="color:#e91e63; font-size:0.9rem; white-space:nowrap;">💖<span class="wish-count-' + h.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명</span>'
+        +     '</div>'
+        +     '<div style="margin-bottom:8px; color:#888; font-size:0.85rem; word-break:break-word;" id="voteTrends-' + h.id + '">📊 역대 투표: 로딩중...</div>'
+        +     '<div style="color:#666; font-size:0.9rem; line-height:1.4; margin-bottom:8px; display:flex; align-items:flex-start; gap:6px;">'
+        +       '<div style="flex:1; word-break:break-word;">' + h.address + '</div>'
+        +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
+        +     '</div>'
+        +     '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>'
         +   '</div>'
-        +   '<div class="hotplace-address" style="color:#666; margin-top:2px;">' + h.address + '</div>'
-        + genreHtml
+        +   '<div style="margin-left:12px; position:relative;">' + heartHtml + '</div>'
         + '</div>'
-        + '<div class="hotplace-card-heart">' + heartHtml + '</div>'
-        + '<div class="hotplace-card-actions">' + voteButtonHtml + '</div>'
+        + '<div style="margin-top:auto; display:flex; justify-content:flex-end;">' + voteButtonHtml + '</div>'
         + '</div>';
     }).join('');
+    
+    // 페이징 HTML 생성
+    var paginationHtml = generatePaginationHtml(dong, categoryId);
+    
+    // 전체 HTML 조합
+    window.searchResultBox.innerHTML = dongTitle + hotplaceListHtml + paginationHtml;
+    
+    // 이벤트 바인딩
     setTimeout(function() {
       Array.from(document.getElementsByClassName('hotplace-list-card')).forEach(function(card) {
         var heart = card.querySelector('.wish-heart');
         var placeName = card.querySelector('.hotplace-name').textContent;
-        var place = filtered.find(function(h) { return h.name === placeName; });
+        var place = currentPageData.find(function(h) { return h.name === placeName; });
         if (!heart || !place) return;
         if (!isLoggedIn) {
           heart.onclick = function() {
@@ -1090,21 +1154,277 @@
           heart.setAttribute('data-place-id', place.id);
           setupWishHeartByClass(place.id);
         }
-        // 가게명/카테고리 클릭 시 지도 이동
+        // 가게명/카테고리 클릭 시 지도 이동 + 정보창 자동 열기
         function moveToHotplace(e) {
           e.stopPropagation();
           var latlng = new kakao.maps.LatLng(place.lat, place.lng);
           map.setLevel(5);
           map.setCenter(latlng);
+          
+          // 해당 가게의 마커와 정보창 찾기
+          setTimeout(function() {
+            var targetMarker = null;
+            var targetInfoWindow = null;
+            
+            // 정확한 위치로 마커 찾기
+            for (var i = 0; i < hotplaceMarkers.length; i++) {
+              var markerPos = hotplaceMarkers[i].getPosition();
+              if (Math.abs(markerPos.getLat() - place.lat) < 0.0001 && 
+                  Math.abs(markerPos.getLng() - place.lng) < 0.0001) {
+                targetMarker = hotplaceMarkers[i];
+                targetInfoWindow = hotplaceInfoWindows[i];
+                break;
+              }
+            }
+            
+            if (targetMarker && targetInfoWindow) {
+              // 기존 정보창 닫기
+              if (openInfoWindow) {
+                openInfoWindow.close();
+              }
+              
+              // 해당 마커의 정보창 열기
+              targetInfoWindow.open(map, targetMarker);
+              openInfoWindow = targetInfoWindow;
+              
+              // 정보창 내부 데이터 로드 (마커 클릭과 동일하게)
+              setTimeout(function() {
+                var iwEls = document.getElementsByClassName('infoWindow');
+                if (iwEls.length > 0) {
+                  var iw = iwEls[0];
+                  
+                  // DOM 요소가 완전히 렌더링되었는지 확인
+                  var checkElement = iw.querySelector('#voteTrends-' + place.id);
+                  if (!checkElement) {
+                    // 요소가 아직 렌더링되지 않았으면 다시 시도
+                    setTimeout(arguments.callee, 100);
+                    return;
+                  }
+                  
+                  
+                  // 하트 태그 설정
+                  var heart = iw.querySelector('.wish-heart');
+                  if (heart) {
+                    heart.setAttribute('data-place-id', place.id);
+                    if (!isLoggedIn) {
+                      heart.onclick = function() {
+                        showToast('위시리스트는 로그인 후 사용할 수 있어요. 간편하게 로그인하고 저장해보세요!', 'error');
+                      };
+                    } else {
+                      setupWishHeartByClass(place.id);
+                    }
+                  }
+                  
+                  // 이미지 로드
+                  const imageContainer = iw.querySelector('.place-images-container');
+                  if (imageContainer) {
+                    setTimeout(function() {
+                      loadPlaceImages(place.id);
+                    }, 200);
+                  }
+                  
+                  // 위시리스트 개수 로드 (정보창 내부 요소 직접 업데이트)
+                  setTimeout(function() {
+                    const wishCountElement = iw.querySelector('.wish-count-' + place.id);
+                    if (wishCountElement) {
+                      fetch(root + '/api/main/wish-count', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'placeId=' + place.id
+                      })
+                      .then(response => response.json())
+                      .then(data => {
+                        if (data.success) {
+                          wishCountElement.textContent = data.count;
+                        }
+                      });
+                    }
+                  }, 300);
+                  
+                  // 투표 현황 로드 (정보창 내부 요소 직접 업데이트)
+                  setTimeout(function() {
+                    const trendsElement = iw.querySelector('#voteTrends-' + place.id);
+                    if (trendsElement) {
+                      // 투표 수 가져오기
+                      fetch(root + '/api/main/vote-count', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'placeId=' + place.id
+                      })
+                      .then(response => response.json())
+                      .then(data => {
+                        if (data.success) {
+                          const voteCount = data.voteCount || 0;
+                          // 투표 트렌드 가져오기
+                          fetch(root + '/api/main/vote-trends', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: 'placeId=' + place.id
+                          })
+                          .then(response => response.json())
+                          .then(trendData => {
+                            if (trendData.success && trendData.trends) {
+                              const trends = trendData.trends;
+                              const congestionText = trends.congestion || '데이터없음';
+                              const genderRatioText = trends.genderRatio || '데이터없음';
+                              const waitTimeText = trends.waitTime || '데이터없음';
+                              
+                              trendsElement.innerHTML = 
+                                '<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">' +
+                                  '<div style="display:flex; gap:2px;">' +
+                                    '<div style="width:3px; height:12px; background:#ff6b6b; border-radius:1px;"></div>' +
+                                    '<div style="width:3px; height:8px; background:#4ecdc4; border-radius:1px;"></div>' +
+                                    '<div style="width:3px; height:10px; background:#45b7d1; border-radius:1px;"></div>' +
+                                  '</div>' +
+                                  '<span style="color:#888; font-size:0.85rem;">역대 투표: ' + voteCount + '개</span>' +
+                                '</div>' +
+                                '<div style="color:#888; font-size:0.8rem; line-height:1.3;">' +
+                                  '#혼잡도:' + congestionText + ' ' +
+                                  '#성비:' + genderRatioText + ' ' +
+                                  '#대기시간:' + waitTimeText +
+                                '</div>';
+                            }
+                          });
+                        }
+                      });
+                    }
+                  }, 400);
+                  
+                  // 장르 정보 로드 (정보창 내부 요소 직접 업데이트)
+                  setTimeout(function() {
+                    const genresElement = iw.querySelector('#genres-' + place.id);
+                    if (genresElement) {
+                      fetch(root + '/api/main/genre', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'action=getGenres&placeId=' + place.id
+                      })
+                      .then(response => response.json())
+                      .then(data => {
+                        if (data.success && data.genres) {
+                          const selectedGenres = data.genres.filter(genre => genre.isSelected);
+                          if (selectedGenres.length > 0) {
+                            const genreNames = selectedGenres.map(genre => genre.genreName).join(', ');
+                            genresElement.innerHTML = '🎵 장르: ' + genreNames;
+                          } else {
+                            genresElement.innerHTML = '🎵 장르: 미분류';
+                          }
+                        } else {
+                          genresElement.innerHTML = '🎵 장르: 미분류';
+                        }
+                      });
+                    }
+                  }, 500);
+                }
+              }, 500); // 정보창 렌더링 완료 대기 시간 증가
+              
+            }
+          }, 800); // 지도 이동 완료 후 실행 (시간 증가)
         }
         var placeNameEl = card.querySelector('.hotplace-name');
         var placeCategoryEl = card.querySelector('.hotplace-category');
-        placeNameEl.style.cursor = 'pointer';
-        placeCategoryEl.style.cursor = 'pointer';
-        placeNameEl.onclick = moveToHotplace;
-        placeCategoryEl.onclick = moveToHotplace;
+        if (placeNameEl) {
+          placeNameEl.style.cursor = 'pointer';
+          placeNameEl.onclick = moveToHotplace;
+        }
+        if (placeCategoryEl) {
+          placeCategoryEl.style.cursor = 'pointer';
+          placeCategoryEl.onclick = moveToHotplace;
+        }
       });
     }, 100);
+    
+    // 현재 페이지의 통계 데이터 로드
+    loadCurrentPageStats();
+    
+    // 검색 결과 목록의 상세 정보 로드
+    setTimeout(function() {
+      currentPageData.forEach(function(place) {
+        // 찜 수 로드
+        setTimeout(function() {
+          loadWishCount(place.id);
+        }, 100);
+        
+        // 투표 현황 로드
+        setTimeout(function() {
+          loadVoteCount(place.id);
+        }, 200);
+        
+        // 장르 정보 로드
+        setTimeout(function() {
+          loadGenreInfo(place.id);
+        }, 300);
+      });
+    }, 500);
+  }
+
+  // 페이징 HTML 생성 함수
+  function generatePaginationHtml(dong, categoryId) {
+    if (window.totalPages <= 1) {
+      return ''; // 페이지가 1개 이하면 페이징 표시 안함
+    }
+    
+    var paginationHtml = '<div class="pagination-container" style="margin-top:20px; padding:16px 0; border-top:1px solid #eee; display:flex; justify-content:center; align-items:center; gap:8px;">';
+    
+    // 이전 버튼
+    if (window.currentPage > 1) {
+      paginationHtml += '<button class="pagination-btn prev-btn" onclick="goToPage(\'' + dong + '\', ' + categoryId + ', ' + (window.currentPage - 1) + ')" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; gap:4px;">‹ 이전</button>';
+    } else {
+      paginationHtml += '<button class="pagination-btn prev-btn" disabled style="background:#ccc; color:#666; border:none; border-radius:6px; padding:8px 12px; cursor:not-allowed; font-size:14px; display:flex; align-items:center; gap:4px;">‹ 이전</button>';
+    }
+    
+    // 페이지 번호들
+    var startPage = Math.max(1, window.currentPage - 2);
+    var endPage = Math.min(window.totalPages, window.currentPage + 2);
+    
+    // 첫 페이지가 1이 아니면 ... 표시
+    if (startPage > 1) {
+      paginationHtml += '<button class="pagination-btn page-btn" onclick="goToPage(\'' + dong + '\', ' + categoryId + ', 1)" style="background:white; color:#1275E0; border:1px solid #ddd; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px;">1</button>';
+      if (startPage > 2) {
+        paginationHtml += '<span style="color:#999; padding:0 4px;">...</span>';
+      }
+    }
+    
+    // 페이지 번호들
+    for (var i = startPage; i <= endPage; i++) {
+      if (i === window.currentPage) {
+        paginationHtml += '<button class="pagination-btn page-btn active" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; font-weight:bold;">' + i + '</button>';
+      } else {
+        paginationHtml += '<button class="pagination-btn page-btn" onclick="goToPage(\'' + dong + '\', ' + categoryId + ', ' + i + ')" style="background:white; color:#1275E0; border:1px solid #ddd; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px;">' + i + '</button>';
+      }
+    }
+    
+    // 마지막 페이지가 totalPages가 아니면 ... 표시
+    if (endPage < window.totalPages) {
+      if (endPage < window.totalPages - 1) {
+        paginationHtml += '<span style="color:#999; padding:0 4px;">...</span>';
+      }
+      paginationHtml += '<button class="pagination-btn page-btn" onclick="goToPage(\'' + dong + '\', ' + categoryId + ', ' + window.totalPages + ')" style="background:white; color:#1275E0; border:1px solid #ddd; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px;">' + window.totalPages + '</button>';
+    }
+    
+    // 다음 버튼
+    if (window.currentPage < window.totalPages) {
+      paginationHtml += '<button class="pagination-btn next-btn" onclick="goToPage(\'' + dong + '\', ' + categoryId + ', ' + (window.currentPage + 1) + ')" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; gap:4px;">다음 ›</button>';
+    } else {
+      paginationHtml += '<button class="pagination-btn next-btn" disabled style="background:#ccc; color:#666; border:none; border-radius:6px; padding:8px 12px; cursor:not-allowed; font-size:14px; display:flex; align-items:center; gap:4px;">다음 ›</button>';
+    }
+    
+    // 페이지 정보 표시
+    paginationHtml += '<div style="margin-left:16px; color:#666; font-size:13px;">(' + window.currentPage + ' / ' + window.totalPages + ' 페이지, 총 ' + window.totalItems + '개)</div>';
+    
+    paginationHtml += '</div>';
+    
+    return paginationHtml;
+  }
+
+  // 페이지 이동 함수
+  window.goToPage = function(dong, categoryId, page) {
+    window.renderHotplaceListByDong(dong, categoryId, page);
+    // 스크롤을 맨 위로 이동
+    var searchResultBox = document.getElementById('searchResultBox');
+    if (searchResultBox) {
+      searchResultBox.scrollTop = 0;
+    }
   }
 
   // 스타일
@@ -1303,8 +1623,17 @@
 
   // 위시리스트 개수 로드 함수 (Spring API 호출)
   function loadWishCount(placeId) {
+    // 중복 호출 방지
+    if (window.loadingFlags['wishCount-' + placeId]) {
+      return;
+    }
+    window.loadingFlags['wishCount-' + placeId] = true;
+    
     const wishCountElement = document.querySelector('.wish-count-' + placeId);
-    if (!wishCountElement) return;
+    if (!wishCountElement) {
+      window.loadingFlags['wishCount-' + placeId] = false;
+      return;
+    }
     
     // Spring API 호출
     fetch(root + '/api/main/wish-count', {
@@ -1321,10 +1650,13 @@
       } else {
         wishCountElement.textContent = '0';
       }
+      // 플래그 해제
+      window.loadingFlags['wishCount-' + placeId] = false;
     })
     .catch(error => {
-      console.error('위시리스트 개수 로드 오류:', error);
       wishCountElement.textContent = '0';
+      // 플래그 해제
+      window.loadingFlags['wishCount-' + placeId] = false;
     });
   }
 
@@ -1363,10 +1695,70 @@
     });
   }
 
-  // 투표 현황 로드 함수 (Spring API 호출)
-  function loadVoteTrends(placeId) {
+  // 중복 호출 방지를 위한 플래그
+  window.loadingFlags = window.loadingFlags || {};
+  
+  // 투표 수 로드 함수
+  function loadVoteCount(placeId) {
+    // 중복 호출 방지
+    if (window.loadingFlags['voteCount-' + placeId]) {
+      return;
+    }
+    window.loadingFlags['voteCount-' + placeId] = true;
+    
     const trendsElement = document.getElementById('voteTrends-' + placeId);
-    if (!trendsElement) return;
+    if (!trendsElement) {
+      window.loadingFlags['voteCount-' + placeId] = false;
+      return;
+    }
+    
+    // Spring API 호출
+    fetch(root + '/api/main/vote-count', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'placeId=' + placeId
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const voteCount = data.voteCount || 0;
+        // 투표 수를 전역 변수에 저장 (인기순 정렬용)
+        if (window.hotplaces) {
+          const hotplace = window.hotplaces.find(h => h.id === placeId);
+          if (hotplace) {
+            hotplace.vote_count = voteCount;
+          }
+        }
+        
+        // 기존 트렌드 정보와 함께 업데이트
+        loadVoteTrends(placeId, voteCount);
+      } else {
+        loadVoteTrends(placeId, 0);
+      }
+      // 플래그 해제
+      window.loadingFlags['voteCount-' + placeId] = false;
+    })
+    .catch(error => {
+      loadVoteTrends(placeId, 0);
+      // 플래그 해제
+      window.loadingFlags['voteCount-' + placeId] = false;
+    });
+  }
+
+  // 투표 현황 로드 함수 (투표 수 포함)
+  function loadVoteTrends(placeId, voteCount = null) {
+    const trendsElement = document.getElementById('voteTrends-' + placeId);
+    if (!trendsElement) {
+      return;
+    }
+    
+    // 투표 수가 제공되지 않으면 별도로 가져오기
+    if (voteCount === null) {
+      loadVoteCount(placeId);
+      return;
+    }
     
     // Spring API 호출
     fetch(root + '/api/main/vote-trends', {
@@ -1385,26 +1777,59 @@
         const genderRatioText = trends.genderRatio || '데이터없음';
         const waitTimeText = trends.waitTime || '데이터없음';
         
-        trendsElement.innerHTML = '📊 역대 투표:<br>' +
-          '<span style="color:#888; font-size:11px;">' +
-          '#혼잡도:' + congestionText + ' ' +
-          '#성비:' + genderRatioText + ' ' +
-          '#대기시간:' + waitTimeText +
-          '</span>';
+        trendsElement.innerHTML = 
+          '<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">' +
+            '<div style="display:flex; gap:2px;">' +
+              '<div style="width:3px; height:12px; background:#ff6b6b; border-radius:1px;"></div>' +
+              '<div style="width:3px; height:8px; background:#4ecdc4; border-radius:1px;"></div>' +
+              '<div style="width:3px; height:10px; background:#45b7d1; border-radius:1px;"></div>' +
+            '</div>' +
+            '<span style="color:#888; font-size:0.85rem;">역대 투표: ' + voteCount + '개</span>' +
+          '</div>' +
+          '<div style="color:#888; font-size:0.8rem; line-height:1.3;">' +
+            '#혼잡도:' + congestionText + ' ' +
+            '#성비:' + genderRatioText + ' ' +
+            '#대기시간:' + waitTimeText +
+          '</div>';
       } else {
-        trendsElement.innerHTML = '📊 역대 투표: 투표 데이터 없음';
+        trendsElement.innerHTML = 
+          '<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">' +
+            '<div style="display:flex; gap:2px;">' +
+              '<div style="width:3px; height:12px; background:#ff6b6b; border-radius:1px;"></div>' +
+              '<div style="width:3px; height:8px; background:#4ecdc4; border-radius:1px;"></div>' +
+              '<div style="width:3px; height:10px; background:#45b7d1; border-radius:1px;"></div>' +
+            '</div>' +
+            '<span style="color:#888; font-size:0.85rem;">역대 투표: ' + voteCount + '개</span>' +
+          '</div>' +
+          '<div style="color:#888; font-size:0.8rem;">투표 데이터 없음</div>';
       }
     })
     .catch(error => {
-      console.error('투표 현황 로드 오류:', error);
-      trendsElement.innerHTML = '📊 역대 투표: 로드 실패';
+      trendsElement.innerHTML = 
+        '<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">' +
+          '<div style="display:flex; gap:2px;">' +
+            '<div style="width:3px; height:12px; background:#ff6b6b; border-radius:1px;"></div>' +
+            '<div style="width:3px; height:8px; background:#4ecdc4; border-radius:1px;"></div>' +
+            '<div style="width:3px; height:10px; background:#45b7d1; border-radius:1px;"></div>' +
+          '</div>' +
+          '<span style="color:#888; font-size:0.85rem;">역대 투표: ' + voteCount + '개</span>' +
+        '</div>';
     });
   }
 
   // 장르 정보 로드 함수 (Spring API 호출)
   function loadGenreInfo(placeId) {
+    // 중복 호출 방지
+    if (window.loadingFlags['genreInfo-' + placeId]) {
+      return;
+    }
+    window.loadingFlags['genreInfo-' + placeId] = true;
+    
     const genresElement = document.getElementById('genres-' + placeId);
-    if (!genresElement) return;
+    if (!genresElement) {
+      window.loadingFlags['genreInfo-' + placeId] = false;
+      return;
+    }
     
     // Spring API 호출
     fetch(root + '/api/main/genre', {
@@ -1429,10 +1854,13 @@
       } else {
         genresElement.innerHTML = '🎵 장르: 미분류';
       }
+      // 플래그 해제
+      window.loadingFlags['genreInfo-' + placeId] = false;
     })
     .catch(error => {
-      console.error('장르 정보 로드 오류:', error);
       genresElement.innerHTML = '🎵 장르: 로드 실패';
+      // 플래그 해제
+      window.loadingFlags['genreInfo-' + placeId] = false;
     });
   }
 
@@ -2126,4 +2554,175 @@
     font-size: 1.08rem;
     margin-right: 8px;
   }
+  
+  /* 페이징 버튼 스타일 */
+  .pagination-btn {
+    transition: all 0.2s ease;
+  }
+  .pagination-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .pagination-btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  .pagination-btn.active {
+    box-shadow: 0 2px 8px rgba(18, 117, 224, 0.3);
+  }
+  
+  /* 정렬 버튼 스타일 */
+  .sort-btn {
+    transition: all 0.2s ease;
+  }
+  .sort-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .sort-btn.active {
+    background: #1275E0 !important;
+    color: white !important;
+    border-color: #1275E0 !important;
+  }
 </style>
+
+<script>
+// 정렬 함수
+function sortHotplaces(sortType) {
+  window.currentSortType = sortType;
+  
+  // 버튼 활성화 상태 변경
+  document.getElementById('sortLatest').classList.remove('active');
+  document.getElementById('sortPopular').classList.remove('active');
+  document.getElementById('sort' + (sortType === 'latest' ? 'Latest' : 'Popular')).classList.add('active');
+  
+  // 현재 선택된 지역과 카테고리로 다시 렌더링
+  if (window.selectedDong) {
+    window.renderHotplaceListByDong(window.selectedDong, window.selectedCategory, 1);
+  }
+}
+
+// 가게 데이터 정렬 함수
+function sortHotplaceData(hotplaces, sortType) {
+  if (sortType === 'latest') {
+    // 최신등록순 (created_at 기준 내림차순)
+    return hotplaces.sort(function(a, b) {
+      return new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0);
+    });
+  } else if (sortType === 'popular') {
+    // 인기순 (찜 65% + 투표 35%)
+    return hotplaces.sort(function(a, b) {
+      var aWishCount = parseInt(a.wish_count || a.wishCount || 0);
+      var bWishCount = parseInt(b.wish_count || b.wishCount || 0);
+      var aVoteCount = parseInt(a.vote_count || a.voteCount || 0);
+      var bVoteCount = parseInt(b.vote_count || b.voteCount || 0);
+      
+      var aPopularity = (aWishCount * 0.65) + (aVoteCount * 0.35);
+      var bPopularity = (bWishCount * 0.65) + (bVoteCount * 0.35);
+      
+      return bPopularity - aPopularity;
+    });
+  }
+  return hotplaces;
+}
+
+// 현재 표시되는 가게들의 찜 수와 투표 수를 가져오는 함수
+function loadCurrentPageStats() {
+  if (!window.currentFilteredData || window.currentFilteredData.length === 0) return;
+  
+  // 현재 페이지의 가게들만 처리
+  var currentPageData = window.currentFilteredData.slice(
+    (window.currentPage - 1) * window.itemsPerPage, 
+    window.currentPage * window.itemsPerPage
+  );
+  
+  currentPageData.forEach(function(hotplace) {
+    // 찜 수 가져오기
+    fetch(root + '/api/main/wish-count', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'placeId=' + hotplace.id
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        hotplace.wish_count = data.count || 0;
+      } else {
+        hotplace.wish_count = 0;
+      }
+    })
+    .catch(error => {
+      console.error('찜 수 로드 실패:', error);
+      hotplace.wish_count = 0;
+    });
+    
+    // 투표 수 가져오기 (새로운 API 사용)
+    fetch(root + '/api/main/vote-count', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'placeId=' + hotplace.id
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        hotplace.vote_count = data.voteCount || 0;
+      } else {
+        hotplace.vote_count = 0;
+      }
+    })
+    .catch(error => {
+      console.error('투표 수 로드 실패:', error);
+      hotplace.vote_count = 0;
+    });
+  });
+}
+
+// 주소 복사 함수
+function copyAddress(address) {
+  if (navigator.clipboard && window.isSecureContext) {
+    // 최신 브라우저에서 지원하는 Clipboard API 사용
+    navigator.clipboard.writeText(address).then(function() {
+      showToast('주소가 클립보드에 복사되었습니다!', 'success');
+    }).catch(function(err) {
+      console.error('클립보드 복사 실패:', err);
+      fallbackCopyTextToClipboard(address);
+    });
+  } else {
+    // 구형 브라우저를 위한 fallback
+    fallbackCopyTextToClipboard(address);
+  }
+}
+
+// 구형 브라우저용 주소 복사 함수
+function fallbackCopyTextToClipboard(text) {
+  var textArea = document.createElement("textarea");
+  textArea.value = text;
+  
+  // 화면에서 보이지 않도록 설정
+  textArea.style.top = "0";
+  textArea.style.left = "0";
+  textArea.style.position = "fixed";
+  textArea.style.opacity = "0";
+  
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    var successful = document.execCommand('copy');
+    if (successful) {
+      showToast('주소가 클립보드에 복사되었습니다!', 'success');
+    } else {
+      showToast('주소 복사에 실패했습니다.', 'error');
+    }
+  } catch (err) {
+    console.error('Fallback 복사 실패:', err);
+    showToast('주소 복사에 실패했습니다.', 'error');
+  }
+  
+  document.body.removeChild(textArea);
+}
+</script>

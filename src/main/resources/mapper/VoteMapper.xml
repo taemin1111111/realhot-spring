@@ -69,7 +69,7 @@
 
     <!-- 핫플레이스별 현재 핫 투표 조회 (Model1 구조) -->
     <select id="findVoteNowHotByHotplace" parameterType="int" resultMap="VoteNowHotResultMap">
-        SELECT * FROM vote_nowhot
+        SELECT * FROM vote_nowhot_log
         WHERE place_id = #{hotplaceId}
         ORDER BY voted_at DESC
     </select>
@@ -93,14 +93,14 @@
     <!-- 핫플레이스별 평균 점수 조회 (Model1에서는 투표 수로 대체) -->
     <select id="getAverageScoreByHotplace" parameterType="int" resultType="double">
         SELECT COUNT(*) * 1.0
-        FROM vote_nowhot
+        FROM vote_nowhot_log
         WHERE place_id = #{hotplaceId}
     </select>
 
     <!-- 핫플레이스별 현재 핫 투표 수 조회 (Model1 구조) -->
     <select id="countVoteNowHotByHotplace" parameterType="int" resultType="int">
         SELECT COUNT(*)
-        FROM vote_nowhot
+        FROM vote_nowhot_log
         WHERE place_id = #{hotplaceId}
     </select>
 
@@ -425,12 +425,17 @@
     <!-- 특정 장소의 투표 트렌드 조회 (가장 많이 투표된 옵션들) -->
     <select id="getVoteTrends" resultType="map">
         SELECT 
-            (SELECT congestion FROM vote_nowhot_log WHERE place_id = #{placeId} 
+            (SELECT congestion FROM vote_nowhot_log WHERE place_id = #{placeId} AND congestion IS NOT NULL AND congestion != ''
              GROUP BY congestion ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as congestion,
-            (SELECT gender_ratio FROM vote_nowhot_log WHERE place_id = #{placeId} 
+            (SELECT gender_ratio FROM vote_nowhot_log WHERE place_id = #{placeId} AND gender_ratio IS NOT NULL AND gender_ratio != ''
              GROUP BY gender_ratio ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as genderRatio,
-            (SELECT wait_time FROM vote_nowhot_log WHERE place_id = #{placeId} 
+            (SELECT wait_time FROM vote_nowhot_log WHERE place_id = #{placeId} AND wait_time IS NOT NULL AND wait_time != ''
              GROUP BY wait_time ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as waitTime
+    </select>
+    
+    <!-- 특정 장소의 총 투표 수 조회 -->
+    <select id="getVoteCount" resultType="int">
+        SELECT COUNT(*) FROM vote_nowhot_log WHERE place_id = #{placeId}
     </select>
 
     <!-- ========== 찜하기 관련 ========== -->

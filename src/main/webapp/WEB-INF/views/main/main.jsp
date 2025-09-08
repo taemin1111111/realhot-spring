@@ -338,7 +338,7 @@
       + '</div>'
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(10px, 1.8vw, 12px); word-break:break-word;" id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</div>'
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(11px, 2vw, 13px); word-break:break-word; line-height:1.3; display:flex; align-items:center;">' + place.address + '<span onclick="copyAddress(\'' + place.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
-      + '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>'
+      + (place.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>' : '')
       + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
       + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
       + '</div>'
@@ -453,7 +453,7 @@
       + '</div>'
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(10px, 1.8vw, 12px); word-break:break-word;" id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</div>'
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(11px, 2vw, 13px); word-break:break-word; line-height:1.3; display:flex; align-items:center;">' + place.address + '<span onclick="copyAddress(\'' + place.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
-      + '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>'
+      + (place.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>' : '')
       + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
       + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
       + '</div>'
@@ -511,10 +511,12 @@
             loadVoteCount(place.id);
           }, 500);
           
-          // 장르 정보 로드
-          setTimeout(function() {
-            loadGenreInfo(place.id);
-          }, 600);
+          // 장르 정보 로드 (클럽에만 적용)
+          if (place.categoryId === 1) {
+            setTimeout(function() {
+              loadGenreInfo(place.id);
+            }, 600);
+          }
           
           // 관리자용 버튼들 추가 (하트와 같은 위치에)
           if (isAdmin) {
@@ -953,18 +955,28 @@
         searchResultBox.innerHTML = matchedHotplaces.map(function(h) {
           var heartHtml = isLoggedIn ? '<i class="bi bi-heart wish-heart" data-place-id="'+h.id+'" style="font-size:1.25rem; color:#e74c3c; cursor:pointer;"></i>' : '<i class="bi bi-heart wish-heart" style="font-size:1.25rem; color:#bbb; cursor:pointer;"></i>';
           var voteButtonHtml = '<a href="#" onclick="showVoteSection(' + h.id + ', \'' + h.name + '\', \'' + h.address + '\', ' + h.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-size:0.95rem;">🔥 투표</a>';
-          var genreHtml = (h.genres && h.genres !== '') ? '<div style="color:#9c27b0; font-weight:600; margin-top:2px; font-size:0.9rem;">🎵 장르: ' + h.genres + '</div>' : '';
-          return '<div class="hotplace-list-card">'
+          var genreHtml = (h.categoryId === 1 && h.genres && h.genres !== '') ? '<div style="color:#9c27b0; font-weight:600; margin-top:2px; font-size:0.9rem;">🎵 장르: ' + h.genres + '</div>' : '';
+          return '<div class="hotplace-list-card" style="display:flex; flex-direction:column; padding:18px; margin-bottom:16px; background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">'
             + '<div style="flex:1; min-width:0;">'
             +   '<div style="display:flex; align-items:center; gap:6px;">'
-            +     '<span class="hotplace-name" style="color:#1275E0; font-weight:600; cursor:pointer;">' + h.name + '</span>'
-            +     '<span class="hotplace-category" style="color:#888; margin-left:4px;">' + (categoryMap[h.categoryId]||'') + '</span>'
+            +     '<div style="flex:1; min-width:0;">'
+            +       '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">'
+            +         '<span class="hotplace-name" style="color:#1275E0; font-weight:600; cursor:pointer;">' + h.name + '</span>'
+            +         '<span style="color:#e91e63; font-size:0.9rem; white-space:nowrap;">💖<span class="wish-count-' + h.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명</span>'
+            +       '</div>'
+            +       '<div class="hotplace-category" style="color:#888; font-size:0.8rem; margin-top:2px;">' + (categoryMap[h.categoryId]||'') + '</div>'
+            +     '</div>'
             +   '</div>'
             +   '<div class="hotplace-address" style="color:#666; margin-top:2px; display:flex; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + h.address + '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center; flex-shrink:0;" title="주소 복사"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
             + genreHtml
             + '</div>'
-            + '<div class="hotplace-card-heart">' + heartHtml + '</div>'
-            + '<div class="hotplace-card-actions">' + voteButtonHtml + '</div>'
+            + '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-top:12px;">'
+            +   '<div style="flex:1;"></div>'
+            +   '<div style="display:flex; align-items:center; gap:12px;">'
+            +     '<div style="position:relative;">' + heartHtml + '</div>'
+            +     '<div>' + voteButtonHtml + '</div>'
+            +   '</div>'
+            + '</div>'
             + '</div>';
         }).join('');
         setTimeout(function() {
@@ -1113,19 +1125,24 @@
       var heartHtml = isLoggedIn ? '<i class="bi bi-heart wish-heart" data-place-id="'+h.id+'" style="font-size:1.25rem; color:#e74c3c; cursor:pointer;"></i>' : '<i class="bi bi-heart wish-heart" style="font-size:1.25rem; color:#bbb; cursor:pointer;"></i>';
       var voteButtonHtml = '<a href="#" onclick="showVoteSection(' + h.id + ', \'' + h.name + '\', \'' + h.address + '\', ' + h.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:0.9rem; white-space:nowrap; padding:8px 14px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>';
       
-      return '<div class="hotplace-list-card" style="display:flex; flex-direction:column; padding:18px; margin-bottom:16px; background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1); min-height:160px;">'
+      return '<div class="hotplace-list-card" style="display:flex; flex-direction:column; padding:18px; margin-bottom:16px; background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">'
         + '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">'
         +   '<div style="flex:1; min-width:0;">'
-        +     '<div class="place-name-wish-container" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">'
-        +       '<strong style="font-size:1.1rem; word-break:break-word; color:#1275E0; cursor:pointer;" class="hotplace-name">' + h.name + '</strong>'
-        +       '<span style="color:#e91e63; font-size:0.9rem; white-space:nowrap;">💖<span class="wish-count-' + h.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명</span>'
+        +     '<div class="place-name-wish-container" style="display:flex; align-items:center; margin-bottom:8px;">'
+        +       '<div style="flex:1; min-width:0;">'
+        +         '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">'
+        +           '<strong style="font-size:1.1rem; word-break:break-word; color:#1275E0; cursor:pointer;" class="hotplace-name">' + h.name + '</strong>'
+        +           '<span style="color:#e91e63; font-size:0.9rem; white-space:nowrap;">💖<span class="wish-count-' + h.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명</span>'
+        +         '</div>'
+        +         '<div style="color:#888; font-size:0.8rem; margin-top:2px;">' + (categoryMap[h.categoryId]||'') + '</div>'
+        +       '</div>'
         +     '</div>'
         +     '<div style="margin-bottom:8px; color:#888; font-size:0.85rem; word-break:break-word;" id="voteTrends-' + h.id + '">📊 역대 투표: 로딩중...</div>'
         +     '<div style="color:#666; font-size:0.9rem; line-height:1.4; margin-bottom:8px; display:flex; align-items:flex-start; gap:6px;">'
         +       '<div style="flex:1; word-break:break-word;">' + h.address + '</div>'
         +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
         +     '</div>'
-        +     '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>'
+        +     (h.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>' : '')
         +   '</div>'
         +   '<div style="margin-left:12px; position:relative;">' + heartHtml + '</div>'
         + '</div>'
@@ -1290,31 +1307,33 @@
                     }
                   }, 400);
                   
-                  // 장르 정보 로드 (정보창 내부 요소 직접 업데이트)
-                  setTimeout(function() {
-                    const genresElement = iw.querySelector('#genres-' + place.id);
-                    if (genresElement) {
-                      fetch(root + '/api/main/genre', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: 'action=getGenres&placeId=' + place.id
-                      })
-                      .then(response => response.json())
-                      .then(data => {
-                        if (data.success && data.genres) {
-                          const selectedGenres = data.genres.filter(genre => genre.isSelected);
-                          if (selectedGenres.length > 0) {
-                            const genreNames = selectedGenres.map(genre => genre.genreName).join(', ');
-                            genresElement.innerHTML = '🎵 장르: ' + genreNames;
+                  // 장르 정보 로드 (클럽에만 적용)
+                  if (place.categoryId === 1) {
+                    setTimeout(function() {
+                      const genresElement = iw.querySelector('#genres-' + place.id);
+                      if (genresElement) {
+                        fetch(root + '/api/main/genre', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                          body: 'action=getGenres&placeId=' + place.id
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                          if (data.success && data.genres) {
+                            const selectedGenres = data.genres.filter(genre => genre.isSelected);
+                            if (selectedGenres.length > 0) {
+                              const genreNames = selectedGenres.map(genre => genre.genreName).join(', ');
+                              genresElement.innerHTML = '🎵 장르: ' + genreNames;
+                            } else {
+                              genresElement.innerHTML = '🎵 장르: 미분류';
+                            }
                           } else {
                             genresElement.innerHTML = '🎵 장르: 미분류';
                           }
-                        } else {
-                          genresElement.innerHTML = '🎵 장르: 미분류';
-                        }
-                      });
-                    }
-                  }, 500);
+                        });
+                      }
+                    }, 500);
+                  }
                 }
               }, 500); // 정보창 렌더링 완료 대기 시간 증가
               

@@ -345,7 +345,7 @@
       + '</div>';
   }
   
-  var regionNameList = [<% for(int i=0;i<regionNameList.size();i++){ %>'<%=regionNameList.get(i).replace("'", "\\'")%>'<% if(i<regionNameList.size()-1){%>,<%}}%>];
+  var regionNameList = ['서울', <% for(int i=0;i<regionNameList.size();i++){ %>'<%=regionNameList.get(i).replace("'", "\\'")%>'<% if(i<regionNameList.size()-1){%>,<%}}%>];
   var hotplaceNameList = [<% for(int i=0;i<hotplaceNameList.size();i++){ %>'<%=hotplaceNameList.get(i).replace("'", "\\'")%>'<% if(i<hotplaceNameList.size()-1){%>,<%}}%>];
   
   // URL 파라미터에서 lat, lng 가져오기
@@ -800,6 +800,8 @@
       panel.style.transform = 'translateX(0)';
       openBtn.style.display = 'none';
       closeBtn.style.display = 'flex';
+      // 서울 전체 표시
+      window.renderHotplaceListBySido('서울', null);
     };
     closeBtn.onclick = function() {
       panel.style.transform = 'translateX(100%)';
@@ -881,7 +883,12 @@
     if (openBtn) openBtn.style.display = 'none';
     if (closeBtn) closeBtn.style.display = 'flex';
     
-    window.renderHotplaceListByDong(dong, null);
+    // dong이 없거나 빈 값이면 서울 전체 표시
+    if (!dong || dong.trim() === '') {
+      window.renderHotplaceListBySido('서울', null);
+    } else {
+      window.renderHotplaceListByDong(dong, null);
+    }
   }
 
   window.selectedDong = null;
@@ -920,16 +927,44 @@
       if (type === '지역') {
         // 지역명 리스트를 네이버 스타일로, 클릭 시 해당 지역의 핫플 리스트 출력
         searchResultBox.innerHTML = filtered.map(function(dong, idx) {
-          var regionId = dongToRegionId[dong];
-          var count = regionCategoryCounts.find(function(c) { return String(c.region_id) === String(regionId); });
           var countHtml = '';
-          if (count) {
+          
+          if (dong === '서울') {
+            // 서울의 경우 전체 카테고리 개수 계산
+            var seoulRegionIds = [];
+            regionCenters.forEach(function(rc) {
+              if (rc.sido === '서울') {
+                seoulRegionIds.push(rc.id);
+              }
+            });
+            
+            var seoulHotplaces = window.hotplaces.filter(function(h) {
+              return seoulRegionIds.indexOf(h.regionId) !== -1;
+            });
+            
+            var seoulClubCount = seoulHotplaces.filter(h => h.categoryId === 1).length;
+            var seoulHuntingCount = seoulHotplaces.filter(h => h.categoryId === 2).length;
+            var seoulLoungeCount = seoulHotplaces.filter(h => h.categoryId === 3).length;
+            var seoulPochaCount = seoulHotplaces.filter(h => h.categoryId === 4).length;
+            
             countHtml = '<span style="margin-left:10px; font-size:0.98rem; color:#888; display:inline-flex; gap:7px; align-items:center;">'
-              + '<span style="color:#9c27b0; font-weight:600;">C:' + (typeof count.clubCount === 'number' ? count.clubCount : 0) + '</span>'
-              + '<span style="color:#f44336; font-weight:600; margin-left:4px;">H:' + (typeof count.huntingCount === 'number' ? count.huntingCount : 0) + '</span>'
-              + '<span style="color:#4caf50; font-weight:600; margin-left:4px;">L:' + (typeof count.loungeCount === 'number' ? count.loungeCount : 0) + '</span>'
-              + '<span style="color:#8d6e63; font-weight:600; margin-left:4px;">P:' + (typeof count.pochaCount === 'number' ? count.pochaCount : 0) + '</span>'
+              + '<span style="color:#9c27b0; font-weight:600;">C:' + seoulClubCount + '</span>'
+              + '<span style="color:#f44336; font-weight:600; margin-left:4px;">H:' + seoulHuntingCount + '</span>'
+              + '<span style="color:#4caf50; font-weight:600; margin-left:4px;">L:' + seoulLoungeCount + '</span>'
+              + '<span style="color:#8d6e63; font-weight:600; margin-left:4px;">P:' + seoulPochaCount + '</span>'
               + '</span>';
+          } else {
+            // 기존 지역의 경우
+            var regionId = dongToRegionId[dong];
+            var count = regionCategoryCounts.find(function(c) { return String(c.region_id) === String(regionId); });
+            if (count) {
+              countHtml = '<span style="margin-left:10px; font-size:0.98rem; color:#888; display:inline-flex; gap:7px; align-items:center;">'
+                + '<span style="color:#9c27b0; font-weight:600;">C:' + (typeof count.clubCount === 'number' ? count.clubCount : 0) + '</span>'
+                + '<span style="color:#f44336; font-weight:600; margin-left:4px;">H:' + (typeof count.huntingCount === 'number' ? count.huntingCount : 0) + '</span>'
+                + '<span style="color:#4caf50; font-weight:600; margin-left:4px;">L:' + (typeof count.loungeCount === 'number' ? count.loungeCount : 0) + '</span>'
+                + '<span style="color:#8d6e63; font-weight:600; margin-left:4px;">P:' + (typeof count.pochaCount === 'number' ? count.pochaCount : 0) + '</span>'
+                + '</span>';
+            }
           }
           return '<div class="region-search-item" style="width:92%; margin:'
             + (idx === 0 ? '14px' : '0') + ' auto 10px auto; background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.04); padding:16px 18px; color:#222; font-size:1.08rem; display:flex; align-items:center; cursor:pointer; transition:background 0.13s;">'
@@ -943,7 +978,11 @@
           // 평점 부분 제거 (예: "홍대입구 (★ 5.0)" -> "홍대입구")
           dong = dong.replace(/\s*\([^)]*\)\s*$/, '');
           item.onclick = function() {
-            renderHotplaceListByDong(dong);
+            if (dong === '서울') {
+              renderHotplaceListBySido(dong);
+            } else {
+              renderHotplaceListByDong(dong);
+            }
           };
         });
       } else {
@@ -1033,6 +1072,362 @@
   window.totalItems = 0;
   window.totalPages = 0;
   window.currentFilteredData = [];
+
+  // 전역에 선언: 시도별 핫플 리스트 네이버 스타일로 출력 (페이징 처리 포함)
+  window.renderHotplaceListBySido = function(sido, categoryId, page) {
+    window.selectedDong = sido;
+    window.selectedCategory = categoryId || null;
+    
+    var catBar = document.getElementById('categoryCountsBar');
+    
+    // catBar가 없으면 생성
+    if (!catBar) {
+      catBar = document.createElement('div');
+      catBar.id = 'categoryCountsBar';
+      catBar.style.cssText = 'position:sticky; top:72px; z-index:1; background:#fff; padding:12px 20px 4px 20px; min-height:36px; display:flex; align-items:center; gap:18px; border-radius:0 0 16px 16px; box-shadow:0 2px 8px rgba(0,0,0,0.04);';
+      document.body.insertBefore(catBar, document.getElementById('searchResultBox'));
+    }
+    
+    // 서울에 속하는 모든 regionId 찾기
+    var seoulRegionIds = [];
+    if (sido === '서울') {
+      regionCenters.forEach(function(rc) {
+        if (rc.sido === '서울') {
+          seoulRegionIds.push(rc.id);
+        }
+      });
+    }
+    
+    var filtered = window.hotplaces.filter(function(h) {
+      if (sido === '서울') {
+        if (seoulRegionIds.indexOf(h.regionId) === -1) return false;
+      } else {
+        // 다른 시도는 기존 방식 유지 (필요시)
+        return false;
+      }
+      if (categoryId && String(h.categoryId) !== String(categoryId)) return false;
+      return true;
+    });
+    
+    // 정렬 적용
+    filtered = sortHotplaceData(filtered, window.currentSortType);
+    
+    // 페이징 처리
+    window.currentFilteredData = filtered;
+    window.totalItems = filtered.length;
+    window.totalPages = Math.ceil(window.totalItems / window.itemsPerPage);
+    
+    // 페이지 파라미터가 있으면 해당 페이지로, 없으면 1페이지로
+    window.currentPage = page || 1;
+    if (window.currentPage > window.totalPages) {
+      window.currentPage = window.totalPages;
+    }
+    if (window.currentPage < 1) {
+      window.currentPage = 1;
+    }
+    
+    // 현재 페이지에 해당하는 데이터만 추출
+    var startIndex = (window.currentPage - 1) * window.itemsPerPage;
+    var endIndex = startIndex + window.itemsPerPage;
+    var currentPageData = filtered.slice(startIndex, endIndex);
+    
+    // 카테고리별 개수 계산 (서울 전체)
+    var clubCount = filtered.filter(h => h.categoryId === 1).length;
+    var huntingCount = filtered.filter(h => h.categoryId === 2).length;
+    var loungeCount = filtered.filter(h => h.categoryId === 3).length;
+    var pochaCount = filtered.filter(h => h.categoryId === 4).length;
+    
+    var catHtml = '<div class="dong-category-counts-bar">'
+      + '<span class="category-ball marker-club' + (categoryId==1?' active':'') + '" data-category="1">C</span> <span class="cat-count-num" style="color:#9c27b0;">' + clubCount + '</span>'
+      + '<span class="category-ball marker-hunting' + (categoryId==2?' active':'') + '" data-category="2">H</span> <span class="cat-count-num" style="color:#f44336;">' + huntingCount + '</span>'
+      + '<span class="category-ball marker-lounge' + (categoryId==3?' active':'') + '" data-category="3">L</span> <span class="cat-count-num" style="color:#4caf50;">' + loungeCount + '</span>'
+      + '<span class="category-ball marker-pocha' + (categoryId==4?' active':'') + '" data-category="4">P</span> <span class="cat-count-num" style="color:#8d6e63;">' + pochaCount + '</span>'
+      + '</div>';
+    catBar.innerHTML = catHtml;
+    catBar.style.display = 'flex';
+    
+    // 카테고리 원 클릭 이벤트 바인딩
+    Array.from(catBar.getElementsByClassName('category-ball')).forEach(function(ball) {
+      ball.onclick = function() {
+        var cat = ball.getAttribute('data-category');
+        if (window.selectedCategory && String(window.selectedCategory) === String(cat)) {
+          window.renderHotplaceListBySido(sido, null, 1); // 전체, 1페이지로
+        } else {
+          window.renderHotplaceListBySido(sido, cat, 1); // 1페이지로
+        }
+      };
+    });
+    
+    var latestActive = window.currentSortType === 'latest' ? 'active' : '';
+    var popularActive = window.currentSortType === 'popular' ? 'active' : '';
+    var latestStyle = window.currentSortType === 'latest' ? 'background:#1275E0; color:white;' : 'background:white; color:#666;';
+    var popularStyle = window.currentSortType === 'popular' ? 'background:#1275E0; color:white;' : 'background:white; color:#666;';
+    
+    var dongTitle = '<div style="font-size:1.13rem; font-weight:600; color:#1275E0; margin:14px 0 8px 0; display:flex; align-items:center;">지역: ' + sido + ' 전체</div>' +
+      '<div style="display:flex; gap:8px; margin:8px 0 16px 0;">' +
+        '<button id="sortLatest" class="sort-btn ' + latestActive + '" onclick="sortHotplaces(\'latest\')" style="padding:6px 12px; border:1px solid #ddd; ' + latestStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">최신등록</button>' +
+        '<button id="sortPopular" class="sort-btn ' + popularActive + '" onclick="sortHotplaces(\'popular\')" style="padding:6px 12px; border:1px solid #ddd; ' + popularStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기순</button>' +
+      '</div>';
+    
+    if (filtered.length === 0) {
+      window.searchResultBox.innerHTML = dongTitle + '<div style="color:#bbb; text-align:center; padding:40px 0;">해당 지역의 핫플레이스가 없습니다.</div>';
+      return;
+    }
+    
+    var categoryMap = {1:'클럽',2:'헌팅',3:'라운지',4:'포차'};
+    
+    // 가게 목록 HTML 생성 (기존과 동일)
+    var hotplaceListHtml = currentPageData.map(function(h) {
+      var heartHtml = isLoggedIn ? '<i class="bi bi-heart wish-heart" data-place-id="'+h.id+'" style="font-size:1.25rem; color:#e74c3c; cursor:pointer;"></i>' : '<i class="bi bi-heart wish-heart" style="font-size:1.25rem; color:#bbb; cursor:pointer;"></i>';
+      var voteButtonHtml = '<a href="#" onclick="showVoteSection(' + h.id + ', \'' + h.name + '\', \'' + h.address + '\', ' + h.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:0.9rem; white-space:nowrap; padding:8px 14px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>';
+      
+      return '<div class="hotplace-list-card" style="display:flex; flex-direction:column; padding:18px; margin-bottom:16px; background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">'
+        + '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">'
+        +   '<div style="flex:1; min-width:0;">'
+        +     '<div class="place-name-wish-container" style="display:flex; align-items:center; margin-bottom:8px;">'
+        +       '<div style="flex:1; min-width:0;">'
+        +         '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">'
+        +           '<strong style="font-size:1.1rem; word-break:break-word; color:#1275E0; cursor:pointer;" class="hotplace-name">' + h.name + '</strong>'
+        +           '<span style="color:#e91e63; font-size:0.9rem; white-space:nowrap;">💖<span class="wish-count-' + h.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명</span>'
+        +         '</div>'
+        +         '<div style="color:#888; font-size:0.8rem; margin-top:2px;">' + (categoryMap[h.categoryId]||'') + '</div>'
+        +       '</div>'
+        +     '</div>'
+        +     '<div style="margin-bottom:8px; color:#888; font-size:0.85rem; word-break:break-word;" id="voteTrends-' + h.id + '">📊 역대 투표: 로딩중...</div>'
+        +     '<div style="color:#666; font-size:0.9rem; line-height:1.4; margin-bottom:8px; display:flex; align-items:flex-start; gap:6px;">'
+        +       '<div style="flex:1; word-break:break-word;">' + h.address + '</div>'
+        +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
+        +     '</div>'
+        +     (h.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>' : '')
+        +   '</div>'
+        +   '<div style="margin-left:12px; position:relative;">' + heartHtml + '</div>'
+        + '</div>'
+        + '<div style="margin-top:auto; display:flex; justify-content:flex-end;">' + voteButtonHtml + '</div>'
+        + '</div>';
+    }).join('');
+    
+    // 페이징 HTML 생성
+    var paginationHtml = generatePaginationHtml(sido, categoryId);
+    
+    // 전체 HTML 조합
+    window.searchResultBox.innerHTML = dongTitle + hotplaceListHtml + paginationHtml;
+    
+    // 이벤트 바인딩 (기존과 동일)
+    setTimeout(function() {
+      Array.from(document.getElementsByClassName('hotplace-list-card')).forEach(function(card) {
+        var heart = card.querySelector('.wish-heart');
+        var placeName = card.querySelector('.hotplace-name').textContent;
+        var place = currentPageData.find(function(h) { return h.name === placeName; });
+        if (!heart || !place) return;
+        if (!isLoggedIn) {
+          heart.onclick = function() {
+            showToast('위시리스트는 로그인 후 사용할 수 있어요. 간편하게 로그인하고 저장해보세요!', 'error');
+          };
+        } else {
+          heart.setAttribute('data-place-id', place.id);
+          setupWishHeartByClass(place.id);
+        }
+        // 가게명/카테고리 클릭 시 지도 이동 + 정보창 자동 열기
+        function moveToHotplace(e) {
+          e.stopPropagation();
+          var latlng = new kakao.maps.LatLng(place.lat, place.lng);
+          map.setLevel(5);
+          map.setCenter(latlng);
+          
+          // 해당 가게의 마커와 정보창 찾기
+          setTimeout(function() {
+            var targetMarker = null;
+            var targetInfoWindow = null;
+            
+            // 정확한 위치로 마커 찾기
+            for (var i = 0; i < hotplaceMarkers.length; i++) {
+              var markerPos = hotplaceMarkers[i].getPosition();
+              if (Math.abs(markerPos.getLat() - place.lat) < 0.0001 && 
+                  Math.abs(markerPos.getLng() - place.lng) < 0.0001) {
+                targetMarker = hotplaceMarkers[i];
+                targetInfoWindow = hotplaceInfoWindows[i];
+                break;
+              }
+            }
+            
+            if (targetMarker && targetInfoWindow) {
+              // 기존 정보창 닫기
+              if (openInfoWindow) {
+                openInfoWindow.close();
+              }
+              
+              // 해당 마커의 정보창 열기
+              targetInfoWindow.open(map, targetMarker);
+              openInfoWindow = targetInfoWindow;
+              
+              // 정보창 내부 데이터 로드 (마커 클릭과 동일하게)
+              setTimeout(function() {
+                var iwEls = document.getElementsByClassName('infoWindow');
+                if (iwEls.length > 0) {
+                  var iw = iwEls[0];
+                  
+                  // DOM 요소가 완전히 렌더링되었는지 확인
+                  var checkElement = iw.querySelector('#voteTrends-' + place.id);
+                  if (!checkElement) {
+                    // 요소가 아직 렌더링되지 않았으면 다시 시도
+                    setTimeout(arguments.callee, 100);
+                    return;
+                  }
+                  
+                  
+                  // 하트 태그 설정
+                  var heart = iw.querySelector('.wish-heart');
+                  if (heart) {
+                    heart.setAttribute('data-place-id', place.id);
+                    if (!isLoggedIn) {
+                      heart.onclick = function() {
+                        showToast('위시리스트는 로그인 후 사용할 수 있어요. 간편하게 로그인하고 저장해보세요!', 'error');
+                      };
+                    } else {
+                      setupWishHeartByClass(place.id);
+                    }
+                  }
+                  
+                  // 이미지 로드
+                  const imageContainer = iw.querySelector('.place-images-container');
+                  if (imageContainer) {
+                    setTimeout(function() {
+                      loadPlaceImages(place.id);
+                    }, 200);
+                  }
+                  
+                  // 위시리스트 개수 로드 (정보창 내부 요소 직접 업데이트)
+                  setTimeout(function() {
+                    const wishCountElement = iw.querySelector('.wish-count-' + place.id);
+                    if (wishCountElement) {
+                      fetch(root + '/api/main/wish-count', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'placeId=' + place.id
+                      })
+                      .then(response => response.json())
+                      .then(data => {
+                        if (data.success) {
+                          wishCountElement.textContent = data.count;
+                        }
+                      });
+                    }
+                  }, 300);
+                  
+                  // 투표 현황 로드 (정보창 내부 요소 직접 업데이트)
+                  setTimeout(function() {
+                    const trendsElement = iw.querySelector('#voteTrends-' + place.id);
+                    if (trendsElement) {
+                      // 투표 수 가져오기
+                      fetch(root + '/api/main/vote-count', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: 'placeId=' + place.id
+                      })
+                      .then(response => response.json())
+                      .then(data => {
+                        if (data.success) {
+                          const voteCount = data.voteCount || 0;
+                          // 투표 트렌드 가져오기
+                          fetch(root + '/api/main/vote-trends', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: 'placeId=' + place.id
+                          })
+                          .then(response => response.json())
+                          .then(trends => {
+                            if (trends && trends.congestion !== undefined) {
+                              const congestionText = trends.congestion || '데이터없음';
+                              const genderRatioText = trends.genderRatio || '데이터없음';
+                              const waitTimeText = trends.waitTime || '데이터없음';
+                              
+                              trendsElement.innerHTML = 
+                                '<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">' +
+                                  '<div style="display:flex; gap:2px;">' +
+                                    '<div style="width:3px; height:12px; background:#ff6b6b; border-radius:1px;"></div>' +
+                                    '<div style="width:3px; height:8px; background:#4ecdc4; border-radius:1px;"></div>' +
+                                    '<div style="width:3px; height:10px; background:#45b7d1; border-radius:1px;"></div>' +
+                                  '</div>' +
+                                  '<span style="color:#888; font-size:0.85rem;">역대 투표: ' + voteCount + '개</span>' +
+                                '</div>' +
+                                '<div style="color:#888; font-size:0.8rem; line-height:1.3;">' +
+                                  '#혼잡도:' + congestionText + ' ' +
+                                  '#성비:' + genderRatioText + ' ' +
+                                  '#대기시간:' + waitTimeText +
+                                '</div>';
+                            }
+                          });
+                        }
+                      });
+                    }
+                  }, 400);
+                  
+                  // 장르 정보 로드 (클럽에만 적용)
+                  if (place.categoryId === 1) {
+                    setTimeout(function() {
+                      const genresElement = iw.querySelector('#genres-' + place.id);
+                      if (genresElement) {
+                        fetch(root + '/api/main/genre', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                          body: 'action=getGenres&placeId=' + place.id
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                          if (data.success && data.genres) {
+                            const selectedGenres = data.genres.filter(genre => genre.isSelected);
+                            if (selectedGenres.length > 0) {
+                              const genreNames = selectedGenres.map(genre => genre.genreName).join(', ');
+                              genresElement.innerHTML = '🎵 장르: ' + genreNames;
+                            } else {
+                              genresElement.innerHTML = '🎵 장르: 미분류';
+                            }
+                          } else {
+                            genresElement.innerHTML = '🎵 장르: 미분류';
+                          }
+                        });
+                      }
+                    }, 500);
+                  }
+                }
+              }, 500); // 정보창 렌더링 완료 대기 시간 증가
+              
+            }
+          }, 800); // 지도 이동 완료 후 실행 (시간 증가)
+        }
+        var placeNameEl = card.querySelector('.hotplace-name');
+        if (placeNameEl) {
+          placeNameEl.style.cursor = 'pointer';
+          placeNameEl.onclick = moveToHotplace;
+        }
+      });
+    }, 100);
+    
+    // 현재 페이지의 통계 데이터 로드
+    loadCurrentPageStats();
+    
+    // 검색 결과 목록의 상세 정보 로드
+    setTimeout(function() {
+      currentPageData.forEach(function(place) {
+        // 찜 수 로드
+        setTimeout(function() {
+          loadWishCount(place.id);
+        }, 100);
+        
+        // 투표 현황 로드
+        setTimeout(function() {
+          loadVoteCount(place.id);
+        }, 200);
+        
+        // 장르 정보 로드 (클럽에만 적용)
+        if (place.categoryId === 1) {
+          setTimeout(function() {
+            loadGenreInfo(place.id);
+          }, 300);
+        }
+      });
+    }, 500);
+  };
 
   // 전역에 선언: 동(지역)별 핫플 리스트 네이버 스타일로 출력 (페이징 처리 포함)
   window.renderHotplaceListByDong = function(dong, categoryId, page) {
@@ -1378,7 +1773,7 @@
   }
 
   // 페이징 HTML 생성 함수
-  function generatePaginationHtml(dong, categoryId) {
+  function generatePaginationHtml(region, categoryId) {
     if (window.totalPages <= 1) {
       return ''; // 페이지가 1개 이하면 페이징 표시 안함
     }
@@ -1387,7 +1782,7 @@
     
     // 이전 버튼
     if (window.currentPage > 1) {
-      paginationHtml += '<button class="pagination-btn prev-btn" onclick="goToPage(\'' + dong + '\', ' + categoryId + ', ' + (window.currentPage - 1) + ')" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; gap:4px;">‹ 이전</button>';
+      paginationHtml += '<button class="pagination-btn prev-btn" onclick="goToPage(\'' + region + '\', ' + categoryId + ', ' + (window.currentPage - 1) + ')" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; gap:4px;">‹ 이전</button>';
     } else {
       paginationHtml += '<button class="pagination-btn prev-btn" disabled style="background:#ccc; color:#666; border:none; border-radius:6px; padding:8px 12px; cursor:not-allowed; font-size:14px; display:flex; align-items:center; gap:4px;">‹ 이전</button>';
     }
@@ -1398,7 +1793,7 @@
     
     // 첫 페이지가 1이 아니면 ... 표시
     if (startPage > 1) {
-      paginationHtml += '<button class="pagination-btn page-btn" onclick="goToPage(\'' + dong + '\', ' + categoryId + ', 1)" style="background:white; color:#1275E0; border:1px solid #ddd; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px;">1</button>';
+      paginationHtml += '<button class="pagination-btn page-btn" onclick="goToPage(\'' + region + '\', ' + categoryId + ', 1)" style="background:white; color:#1275E0; border:1px solid #ddd; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px;">1</button>';
       if (startPage > 2) {
         paginationHtml += '<span style="color:#999; padding:0 4px;">...</span>';
       }
@@ -1409,7 +1804,7 @@
       if (i === window.currentPage) {
         paginationHtml += '<button class="pagination-btn page-btn active" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; font-weight:bold;">' + i + '</button>';
       } else {
-        paginationHtml += '<button class="pagination-btn page-btn" onclick="goToPage(\'' + dong + '\', ' + categoryId + ', ' + i + ')" style="background:white; color:#1275E0; border:1px solid #ddd; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px;">' + i + '</button>';
+        paginationHtml += '<button class="pagination-btn page-btn" onclick="goToPage(\'' + region + '\', ' + categoryId + ', ' + i + ')" style="background:white; color:#1275E0; border:1px solid #ddd; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px;">' + i + '</button>';
       }
     }
     
@@ -1418,12 +1813,12 @@
       if (endPage < window.totalPages - 1) {
         paginationHtml += '<span style="color:#999; padding:0 4px;">...</span>';
       }
-      paginationHtml += '<button class="pagination-btn page-btn" onclick="goToPage(\'' + dong + '\', ' + categoryId + ', ' + window.totalPages + ')" style="background:white; color:#1275E0; border:1px solid #ddd; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px;">' + window.totalPages + '</button>';
+      paginationHtml += '<button class="pagination-btn page-btn" onclick="goToPage(\'' + region + '\', ' + categoryId + ', ' + window.totalPages + ')" style="background:white; color:#1275E0; border:1px solid #ddd; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px;">' + window.totalPages + '</button>';
     }
     
     // 다음 버튼
     if (window.currentPage < window.totalPages) {
-      paginationHtml += '<button class="pagination-btn next-btn" onclick="goToPage(\'' + dong + '\', ' + categoryId + ', ' + (window.currentPage + 1) + ')" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; gap:4px;">다음 ›</button>';
+      paginationHtml += '<button class="pagination-btn next-btn" onclick="goToPage(\'' + region + '\', ' + categoryId + ', ' + (window.currentPage + 1) + ')" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; gap:4px;">다음 ›</button>';
     } else {
       paginationHtml += '<button class="pagination-btn next-btn" disabled style="background:#ccc; color:#666; border:none; border-radius:6px; padding:8px 12px; cursor:not-allowed; font-size:14px; display:flex; align-items:center; gap:4px;">다음 ›</button>';
     }
@@ -1437,8 +1832,12 @@
   }
 
   // 페이지 이동 함수
-  window.goToPage = function(dong, categoryId, page) {
-    window.renderHotplaceListByDong(dong, categoryId, page);
+  window.goToPage = function(region, categoryId, page) {
+    if (region === '서울') {
+      window.renderHotplaceListBySido(region, categoryId, page);
+    } else {
+      window.renderHotplaceListByDong(region, categoryId, page);
+    }
     // 스크롤을 맨 위로 이동
     var searchResultBox = document.getElementById('searchResultBox');
     if (searchResultBox) {
@@ -2616,7 +3015,11 @@ function sortHotplaces(sortType) {
   
   // 현재 선택된 지역과 카테고리로 다시 렌더링
   if (window.selectedDong) {
-    window.renderHotplaceListByDong(window.selectedDong, window.selectedCategory, 1);
+    if (window.selectedDong === '서울') {
+      window.renderHotplaceListBySido(window.selectedDong, window.selectedCategory, 1);
+    } else {
+      window.renderHotplaceListByDong(window.selectedDong, window.selectedCategory, 1);
+    }
   }
 }
 

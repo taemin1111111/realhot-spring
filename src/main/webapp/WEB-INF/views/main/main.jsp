@@ -49,10 +49,16 @@
 
 <!-- Kakao Map SDK -->
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9c8d14f1fa7135d1f77778321b1e25fa&libraries=services"></script>
-<link rel="stylesheet" href="<%=request.getContextPath()%>/css/all.css">
 <link rel="stylesheet" href="<%=request.getContextPath()%>/css/main.css">
 
 <div class="main-container">
+  <!-- 오늘 핫 순위 섹션 -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <jsp:include page="todayHot.jsp" />
+    </div>
+  </div>
+  
   <div class="row gx-4 gy-4 align-items-stretch">
     <div class="col-md-9">
       <div class="card-box h-100" style="min-height:600px; display:flex; flex-direction:column; position:relative;">
@@ -136,8 +142,6 @@
     </div>
   </div>
 </div>
-
-<jsp:include page="todayHot.jsp" />
 
 <script>
   var root = '<%=root%>';
@@ -1338,7 +1342,7 @@
                           .then(trends => {
                             if (trends && trends.congestion !== undefined) {
                               const congestionText = trends.congestion || '데이터없음';
-                              const genderRatioText = trends.genderRatio || '데이터없음';
+                              const genderRatioText = formatGenderRatio(trends.genderRatio || '데이터없음');
                               const waitTimeText = trends.waitTime || '데이터없음';
                               
                               trendsElement.innerHTML = 
@@ -1678,7 +1682,7 @@
                             if (trendData.success && trendData.trends) {
                               const trends = trendData.trends;
                               const congestionText = trends.congestion || '데이터없음';
-                              const genderRatioText = trends.genderRatio || '데이터없음';
+                              const genderRatioText = formatGenderRatio(trends.genderRatio || '데이터없음');
                               const waitTimeText = trends.waitTime || '데이터없음';
                               
                               trendsElement.innerHTML = 
@@ -2192,7 +2196,7 @@
         const trends = data.trends;
         
         const congestionText = trends.congestion || '데이터없음';
-        const genderRatioText = trends.genderRatio || '데이터없음';
+        const genderRatioText = formatGenderRatio(trends.genderRatio || '데이터없음');
         const waitTimeText = trends.waitTime || '데이터없음';
         
         trendsElement.innerHTML = 
@@ -3147,4 +3151,25 @@ function fallbackCopyTextToClipboard(text) {
   
   document.body.removeChild(textArea);
 }
+
+// 성비 표시 포맷팅 함수
+function formatGenderRatio(genderRatio) {
+  if (!genderRatio || genderRatio === '정보 없음' || genderRatio === '데이터없음') {
+    return genderRatio;
+  }
+  
+  switch(genderRatio) {
+    case '남초':
+      return '남자↑';
+    case '여초':
+      return '여자↑';
+    case '반반':
+      return '반반';
+    default:
+      return genderRatio;
+  }
+}
+
+// 전역 함수로 노출
+window.formatGenderRatio = formatGenderRatio;
 </script>

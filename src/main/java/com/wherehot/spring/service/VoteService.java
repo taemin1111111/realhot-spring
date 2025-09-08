@@ -57,4 +57,7 @@ public interface VoteService {
     boolean isWished(int hotplaceId, String userid);
     boolean toggleWish(int hotplaceId, String userid);
     int getWishCount(int hotplaceId);
+    
+    // 오늘 핫 랭킹
+    List<Map<String, Object>> getTodayHotRanking();
 }

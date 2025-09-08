@@ -466,6 +466,27 @@
         WHERE hotplace_id = #{hotplaceId}
     </select>
     
+    <!-- 오늘 핫 랭킹 조회 (투표 수 기준 상위 10개 가게) -->
+    <select id="getTodayHotRanking" resultType="map">
+        SELECT 
+            h.id as placeId,
+            h.name as placeName,
+            COUNT(v.id) as voteCount,
+            ROUND((COUNT(v.id) * 100.0 / (SELECT COUNT(*) FROM vote_nowhot_log)), 1) as percentage,
+            (SELECT congestion FROM vote_nowhot_log WHERE place_id = h.id AND congestion IS NOT NULL AND congestion != ''
+             GROUP BY congestion ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as congestion,
+            (SELECT wait_time FROM vote_nowhot_log WHERE place_id = h.id AND wait_time IS NOT NULL AND wait_time != ''
+             GROUP BY wait_time ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as waitTime,
+            (SELECT gender_ratio FROM vote_nowhot_log WHERE place_id = h.id AND gender_ratio IS NOT NULL AND gender_ratio != ''
+             GROUP BY gender_ratio ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as genderRatio
+        FROM hotplace_info h
+        LEFT JOIN vote_nowhot_log v ON h.id = v.place_id
+        GROUP BY h.id, h.name
+        HAVING COUNT(v.id) > 0
+        ORDER BY voteCount DESC
+        LIMIT 10
+    </select>
+    
    
 
 </mapper>

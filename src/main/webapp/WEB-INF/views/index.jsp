@@ -42,6 +42,8 @@
 <link rel="stylesheet" href="<%=root%>/css/join.css">
 <!-- 네이버 가입 -->
 <link rel="stylesheet" href="<%=root%>/css/naverJoin.css">
+<!-- 오늘 핫 랭킹 -->
+<link rel="stylesheet" href="<%=root%>/css/todayhot.css">
 
 
 <style>

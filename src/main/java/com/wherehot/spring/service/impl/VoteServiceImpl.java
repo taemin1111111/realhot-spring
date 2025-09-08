@@ -579,4 +579,18 @@ public class VoteServiceImpl implements VoteService {
             return 0;
         }
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getTodayHotRanking() {
+        try {
+            logger.info("=== getTodayHotRanking called ===");
+            List<Map<String, Object>> rankings = voteMapper.getTodayHotRanking();
+            logger.info("=== Today hot ranking retrieved: {} places ===", rankings.size());
+            return rankings;
+        } catch (Exception e) {
+            logger.error("Error getting today hot ranking: ", e);
+            throw new RuntimeException("오늘 핫 랭킹 조회 중 오류가 발생했습니다.", e);
+        }
+    }
 }

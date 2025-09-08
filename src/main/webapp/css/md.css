@@ -723,29 +723,133 @@ body.clubmd-page footer .container {
 
 /* ========== 반응형 스타일 ========== */
 @media (max-width: 768px) {
+    /* MD 카드 그리드 레이아웃 - 한 줄로 배치 */
+    #mdListContainer {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+        padding: 0 10px;
+    }
+    
+    /* MD 카드 모바일 스타일 */
+    .clubmd-md-card {
+        padding: 15px !important;
+        margin-bottom: 15px !important;
+        min-height: auto;
+    }
+    
+    /* MD 사진 컨테이너 모바일 */
+    .clubmd-md-photo-container {
+        height: 80px;
+        margin-bottom: 0.8rem;
+    }
+    
+    /* MD 사진 모바일 */
+    .clubmd-md-photo {
+        width: 80px;
+        height: 80px;
+        border: 2px solid #fff;
+    }
+    
+    /* MD 사진 플레이스홀더 모바일 */
+    .clubmd-md-photo-placeholder {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .clubmd-md-photo-placeholder i {
+        font-size: 3.5rem;
+    }
+    
+    /* MD 정보 모바일 */
+    .clubmd-md-info {
+        padding: 10px;
+    }
+    
+    /* MD 이름 모바일 */
+    .clubmd-md-name {
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+    }
+    
+    /* MD 가게 정보 모바일 */
+    .clubmd-place-name {
+        font-size: 0.95rem;
+        margin-bottom: 2px;
+    }
+    
+    .clubmd-place-address {
+        font-size: 0.8rem;
+    }
+    
+    /* MD 연락처 모바일 */
+    .clubmd-md-contact {
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+    }
+    
+    /* MD 설명 모바일 */
+    .clubmd-md-description {
+        font-size: 0.8rem;
+        -webkit-line-clamp: 2;
+        margin-bottom: 8px;
+    }
+    
+    /* MD 등록일 모바일 */
+    .clubmd-md-date {
+        font-size: 0.75rem;
+        margin-top: 8px;
+    }
+    
+    /* 찜하기 버튼 모바일 */
     .clubmd-md-wish-btn {
-        top: 12px;
-        right: 12px;
+        top: 10px;
+        right: 10px;
     }
     
     .clubmd-md-wish-btn i {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
     }
     
+    /* 찜 개수 모바일 */
     .clubmd-md-wish-count {
-        top: 12px;
-        left: 12px;
-        font-size: 0.85rem;
+        top: 10px;
+        left: 10px;
+        font-size: 0.8rem;
     }
     
-    .clubmd-md-info h5 {
-        font-size: 1.1rem;
+    /* 검색 섹션 모바일 */
+    .card-box {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
     }
     
-    .clubmd-md-info p {
-        font-size: 0.85rem;
+    .card-box .row {
+        flex-direction: column;
+        gap: 10px;
     }
     
+    .card-box .col-md-4,
+    .card-box .col-md-6,
+    .card-box .col-md-2 {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    /* 정렬 버튼 모바일 */
+    .mb-3.d-flex {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+    
+    .mb-3.d-flex > div {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    /* 모달 모바일 */
     .modal-content {
         width: 95%;
         margin: 1rem;
@@ -759,19 +863,106 @@ body.clubmd-page footer .container {
 }
 
 @media (max-width: 576px) {
+    /* MD 카드 그리드 - 더 작은 화면에서 1-2개씩 */
+    #mdListContainer {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 12px;
+        padding: 0 8px;
+    }
+    
+    /* MD 카드 더 작은 화면 */
+    .clubmd-md-card {
+        padding: 12px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    /* MD 사진 더 작게 */
+    .clubmd-md-photo-container {
+        height: 70px;
+        margin-bottom: 0.6rem;
+    }
+    
+    .clubmd-md-photo {
+        width: 70px;
+        height: 70px;
+        border: 2px solid #fff;
+    }
+    
+    .clubmd-md-photo-placeholder {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .clubmd-md-photo-placeholder i {
+        font-size: 3rem;
+    }
+    
+    /* MD 정보 더 작게 */
+    .clubmd-md-info {
+        padding: 8px;
+    }
+    
+    .clubmd-md-name {
+        font-size: 1rem;
+        margin-bottom: 6px;
+    }
+    
+    .clubmd-place-name {
+        font-size: 0.9rem;
+        margin-bottom: 2px;
+    }
+    
+    .clubmd-place-address {
+        font-size: 0.75rem;
+    }
+    
+    .clubmd-md-contact {
+        font-size: 0.75rem;
+        margin-bottom: 6px;
+    }
+    
+    .clubmd-md-description {
+        font-size: 0.75rem;
+        -webkit-line-clamp: 2;
+        margin-bottom: 6px;
+    }
+    
+    .clubmd-md-date {
+        font-size: 0.7rem;
+        margin-top: 6px;
+    }
+    
+    /* 찜하기 버튼 더 작게 */
     .clubmd-md-wish-btn {
-        top: 10px;
-        right: 10px;
+        top: 8px;
+        right: 8px;
     }
     
     .clubmd-md-wish-btn i {
-        font-size: 1.1rem;
+        font-size: 1rem;
     }
     
+    /* 찜 개수 더 작게 */
     .clubmd-md-wish-count {
-        top: 10px;
-        left: 10px;
-        font-size: 0.8rem;
+        top: 8px;
+        left: 8px;
+        font-size: 0.75rem;
+    }
+    
+    /* 검색 섹션 더 작게 */
+    .card-box {
+        padding: 0.8rem !important;
+        margin-bottom: 0.8rem !important;
+    }
+    
+    /* 정렬 버튼 더 작게 */
+    .mb-3.d-flex > div {
+        gap: 8px;
+    }
+    
+    .btn-outline-secondary {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.8rem !important;
     }
 }
 

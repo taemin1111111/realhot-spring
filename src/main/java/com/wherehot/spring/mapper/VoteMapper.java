@@ -235,5 +235,10 @@ public interface VoteMapper {
      * 핫플레이스 찜 개수 조회
      */
     int getWishCount(@Param("hotplaceId") int hotplaceId);
+    
+    /**
+     * 오늘 핫 랭킹 조회 (투표 수 기준 상위 10개 가게)
+     */
+    List<Map<String, Object>> getTodayHotRanking();
 
 }

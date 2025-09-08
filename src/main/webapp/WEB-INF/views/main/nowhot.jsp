@@ -79,18 +79,18 @@
   <!-- 3번 질문 -->
   <div class="mb-3">
     <label class="form-label fw-bold">3. 남녀 성비 어때?</label>
-    <div>
-      <div class="form-check form-check-inline">
+    <div style="display: flex; gap: 20px; justify-content: center;">
+      <div class="form-check">
         <input class="form-check-input" type="radio" name="gender" id="gender1" value="1">
-        <label class="form-check-label" for="gender1">여초</label>
+        <label class="form-check-label" for="gender1">여자↑</label>
       </div>
-      <div class="form-check form-check-inline">
+      <div class="form-check">
         <input class="form-check-input" type="radio" name="gender" id="gender2" value="2">
         <label class="form-check-label" for="gender2">반반</label>
       </div>
-      <div class="form-check form-check-inline">
+      <div class="form-check">
         <input class="form-check-input" type="radio" name="gender" id="gender3" value="3">
-        <label class="form-check-label" for="gender3">남초</label>
+        <label class="form-check-label" for="gender3">남자↑</label>
       </div>
     </div>
   </div>

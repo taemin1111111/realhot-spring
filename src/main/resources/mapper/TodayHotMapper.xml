@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wherehot.spring.mapper.TodayHotMapper">
+
+    <!-- 오늘 핫 랭킹 조회 (투표 수 기준 상위 10개) -->
+    <select id="getTodayHotRanking" resultType="map">
+        SELECT 
+            h.id as placeId,
+            h.name as placeName,
+            COUNT(v.id) as voteCount,
+            ROUND((COUNT(v.id) * 100.0 / (SELECT COUNT(*) FROM vote_nowhot_log)), 1) as percentage,
+            (SELECT congestion FROM vote_nowhot_log WHERE place_id = h.id AND congestion IS NOT NULL AND congestion != ''
+             GROUP BY congestion ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as congestion,
+            (SELECT gender_ratio FROM vote_nowhot_log WHERE place_id = h.id AND gender_ratio IS NOT NULL AND gender_ratio != ''
+             GROUP BY gender_ratio ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as genderRatio,
+            (SELECT wait_time FROM vote_nowhot_log WHERE place_id = h.id AND wait_time IS NOT NULL AND wait_time != ''
+             GROUP BY wait_time ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as waitTime
+        FROM hotplace_info h
+        LEFT JOIN vote_nowhot_log v ON h.id = v.place_id
+        GROUP BY h.id, h.name
+        HAVING COUNT(v.id) > 0
+        ORDER BY voteCount DESC
+        LIMIT 10
+    </select>
+
+    <!-- 특정 가게의 오늘 투표 통계 조회 -->
+    <select id="getTodayVoteStats" parameterType="int" resultType="map">
+        SELECT 
+            h.id as placeId,
+            h.name as placeName,
+            COUNT(v.id) as totalVotes,
+            (SELECT congestion FROM vote_nowhot_log WHERE place_id = h.id AND congestion IS NOT NULL AND congestion != ''
+             GROUP BY congestion ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as congestion,
+            (SELECT gender_ratio FROM vote_nowhot_log WHERE place_id = h.id AND gender_ratio IS NOT NULL AND gender_ratio != ''
+             GROUP BY gender_ratio ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as genderRatio,
+            (SELECT wait_time FROM vote_nowhot_log WHERE place_id = h.id AND wait_time IS NOT NULL AND wait_time != ''
+             GROUP BY wait_time ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as waitTime
+        FROM hotplace_info h
+        LEFT JOIN vote_nowhot_log v ON h.id = v.place_id
+        WHERE h.id = #{placeId}
+        GROUP BY h.id, h.name
+    </select>
+
+    <!-- 오늘 핫 랭킹 캐시용 데이터 조회 (Redis 구현 시 사용) -->
+    <select id="getTodayHotRankingForCache" resultType="map">
+        SELECT 
+            h.id as placeId,
+            h.name as placeName,
+            COUNT(v.id) as voteCount,
+            ROUND((COUNT(v.id) * 100.0 / (SELECT COUNT(*) FROM vote_nowhot_log)), 1) as percentage,
+            (SELECT congestion FROM vote_nowhot_log WHERE place_id = h.id AND congestion IS NOT NULL AND congestion != ''
+             GROUP BY congestion ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as congestion,
+            (SELECT gender_ratio FROM vote_nowhot_log WHERE place_id = h.id AND gender_ratio IS NOT NULL AND gender_ratio != ''
+             GROUP BY gender_ratio ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as genderRatio,
+            (SELECT wait_time FROM vote_nowhot_log WHERE place_id = h.id AND wait_time IS NOT NULL AND wait_time != ''
+             GROUP BY wait_time ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as waitTime,
+            NOW() as cacheTimestamp
+        FROM hotplace_info h
+        LEFT JOIN vote_nowhot_log v ON h.id = v.place_id
+        GROUP BY h.id, h.name
+        HAVING COUNT(v.id) > 0
+        ORDER BY voteCount DESC
+        LIMIT 10
+    </select>
+
+</mapper>

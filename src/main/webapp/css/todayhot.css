@@ -1,0 +1,329 @@
+/* 오늘 핫 섹션 스타일 */
+.today-hot-section {
+    background: #ffffff; /* 흰색 배경으로 변경 */
+    border-radius: 15px;
+    padding: 15px;
+    margin: 10px 0;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    color: #000;
+    border: 1px solid #e0e0e0;
+}
+
+.today-hot-title {
+    color: #000; /* 검정색으로 변경 */
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 12px;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.rank-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+/* 순위 그리드 */
+.today-hot-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 5개씩 1줄로 배치 */
+    gap: 8px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.today-hot-grid.collapsed {
+    max-height: 600px;
+    overflow: hidden;
+}
+
+.today-hot-grid.expanded {
+    max-height: none;
+}
+
+/* 순위 카드 */
+.ranking-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    position: relative;
+    min-height: 90px;
+}
+
+/* 클릭 가능한 카드에만 호버 효과 적용 */
+.ranking-card.clickable {
+    cursor: pointer;
+}
+
+.ranking-card.clickable:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border-color: #ff6b9d;
+}
+
+/* 순위별 특별 스타일 */
+.ranking-card.rank-1 {
+    border-color: #ff6b9d; /* 핑크 */
+    background: linear-gradient(135deg, #ffeef4 0%, #ffffff 100%);
+}
+
+.ranking-card.rank-2 {
+    border-color: #4a90e2; /* 파랑 */
+    background: linear-gradient(135deg, #eef6ff 0%, #ffffff 100%);
+}
+
+.ranking-card.rank-3 {
+    border-color: #50c878; /* 초록 */
+    background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
+}
+
+/* 순위 헤더 */
+.rank-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.rank-number {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #ff6b9d; /* 핑크색으로 변경 */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.vote-percentage {
+    font-size: 0.8rem; /* 폰트 크기 작게 조정 */
+    font-weight: bold;
+    color: #000; /* 검정색으로 변경 */
+    background: rgba(255, 107, 157, 0.1);
+    padding: 3px 6px; /* 패딩도 작게 조정 */
+    border-radius: 10px; /* 둥근 모서리도 작게 조정 */
+}
+
+/* 장소명 */
+.place-name {
+    font-size: 0.9rem; /* 폰트 크기 작게 조정 */
+    font-weight: bold;
+    color: #000; /* 검정색으로 변경 */
+    margin-bottom: 6px;
+    text-align: center;
+    white-space: nowrap; /* 한 줄로 표시 */
+    overflow: hidden; /* 넘치는 텍스트 숨김 */
+    text-overflow: ellipsis; /* 넘치는 텍스트 ...으로 표시 */
+}
+
+/* 투표 통계 */
+.vote-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stat-item {
+    font-size: 0.7rem;
+    color: #666; /* 회색으로 변경 */
+    background: none; /* 배경 제거 */
+    padding: 0; /* 패딩 제거 */
+    border-radius: 0; /* 둥근 모서리 제거 */
+    text-align: left; /* 왼쪽 정렬 */
+    font-weight: normal;
+}
+
+/* 투표 버튼 제거됨 */
+
+/* 펼치기/접기 버튼 */
+.toggle-button {
+    background: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: normal;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 0 auto;
+    box-shadow: none;
+}
+
+.toggle-button:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.toggle-button.expanded .icon {
+    transform: rotate(180deg);
+}
+
+.toggle-button .icon {
+    transition: transform 0.2s ease;
+    font-size: 1rem;
+}
+
+/* 로딩 상태 */
+.loading-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 90px;
+    color: #000; /* 검정색으로 변경 */
+}
+
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255, 107, 157, 0.3);
+    border-top: 3px solid #ff6b9d;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 에러 상태 */
+.error-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 90px;
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+/* 빈 순위 카드 */
+.ranking-card.empty {
+    background: rgba(255, 255, 255, 0.7);
+    border: 2px solid #ccc;
+}
+
+.ranking-card.empty .place-name {
+    color: #999;
+    font-style: italic;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+    .today-hot-grid {
+        grid-template-columns: repeat(5, 1fr); /* 5개씩 유지 */
+        gap: 6px;
+    }
+    
+    .ranking-card {
+        padding: 8px;
+        min-height: 85px;
+    }
+    
+    .place-name {
+        font-size: 0.8rem;
+    }
+    
+    .stat-item {
+        font-size: 0.65rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .today-hot-grid {
+        grid-template-columns: repeat(5, 1fr); /* 5개씩 유지 */
+        gap: 5px;
+    }
+    
+    .ranking-card {
+        padding: 6px;
+        min-height: 80px;
+    }
+    
+    .today-hot-title {
+        font-size: 1.2rem;
+    }
+    
+    .rank-logo {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .rank-number {
+        font-size: 0.9rem;
+    }
+    
+    .place-name {
+        font-size: 0.75rem;
+    }
+    
+    .vote-percentage {
+        font-size: 0.7rem;
+        padding: 2px 4px;
+    }
+    
+    .stat-item {
+        font-size: 0.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .today-hot-section {
+        padding: 10px 8px;
+        margin: 8px 0;
+    }
+    
+    .today-hot-grid {
+        grid-template-columns: repeat(5, 1fr); /* 5개씩 유지 */
+        gap: 4px;
+    }
+    
+    .ranking-card {
+        padding: 5px;
+        min-height: 75px;
+    }
+    
+    .today-hot-title {
+        font-size: 1.1rem;
+    }
+    
+    .rank-logo {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .rank-number {
+        font-size: 0.8rem;
+    }
+    
+    .place-name {
+        font-size: 0.7rem;
+        margin-bottom: 4px;
+    }
+    
+    .vote-percentage {
+        font-size: 0.65rem;
+        padding: 2px 4px;
+    }
+    
+    .stat-item {
+        font-size: 0.6rem;
+    }
+    
+    .toggle-button {
+        padding: 8px 16px;
+        font-size: 0.8rem;
+    }
+}

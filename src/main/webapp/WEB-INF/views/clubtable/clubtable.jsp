@@ -28,6 +28,18 @@
     
     <!-- 클럽 테이블 이미지 (배경 밖에) -->
     <div style="margin-top: 30px; margin-bottom: 30px; text-align: center;">
+        <!-- 카카오톡 오픈채팅방 링크 -->
+        <div style="margin-bottom: 20px;">
+            <a href="https://open.kakao.com/o/sPL1TWQh" target="_blank" 
+               style="display: inline-block; background: linear-gradient(45deg, #FEE500, #FF6B6B); 
+                      color: #333; text-decoration: none; padding: 15px 30px; 
+                      border-radius: 25px; font-weight: bold; font-size: 16px;
+                      box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s ease;
+                      border: 2px solid #FEE500;">
+                <i class="bi bi-chat-dots" style="margin-right: 8px;"></i>
+                카카오톡 오픈채팅방 문의하기
+            </a>
+        </div>
         <img src="<%=root%>/logo/clubtable.png" alt="클럽 테이블" style="width: 600px; height: auto;">
     </div>
 </div>
@@ -61,5 +73,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // body에 클래스 추가
     document.body.classList.add('clubtable-page');
+    
+    // 카카오톡 링크 호버 효과
+    const kakaoLink = document.querySelector('a[href="https://open.kakao.com/o/sPL1TWQh"]');
+    if (kakaoLink) {
+        kakaoLink.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-3px)';
+            this.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3)';
+        });
+        
+        kakaoLink.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+        });
+    }
 });
 </script>

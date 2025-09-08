@@ -201,11 +201,20 @@ async function handleLogin(event) {
             loginModal.hide();
             
             // 즉시 title UI 업데이트
+            if (window.updateTitleUI) {
+                const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+                if (userInfo) {
+                    window.updateTitleUI(userInfo);
+                    console.log('로그인 후 즉시 UI 업데이트 완료');
+                }
+            }
+            
+            // 모바일 메뉴도 별도로 업데이트
             if (window.updateTitleUIFromSavedInfo) {
                 const userInfo = JSON.parse(localStorage.getItem('userInfo'));
                 if (userInfo) {
                     window.updateTitleUIFromSavedInfo(userInfo);
-                    console.log('로그인 후 즉시 UI 업데이트 완료');
+                    console.log('로그인 후 모바일 메뉴 업데이트 완료');
                 }
             }
             

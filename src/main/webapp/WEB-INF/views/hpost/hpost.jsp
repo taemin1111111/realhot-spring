@@ -37,16 +37,15 @@
         </form>
     </div>
     
-    <!-- 정렬 드롭다운과 글쓰기 버튼 -->
+    <!-- 정렬 버튼과 글쓰기 버튼 -->
     <div class="hpost-controls">
-        <div class="hpost-sort-dropdown">
-            <button class="btn btn-link dropdown-toggle ${sort == 'popular' ? 'popular-active' : ''}" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-arrow-down-up"></i> ${sort == 'latest' || empty sort ? '최신순' : '인기순'}
+        <div class="hpost-sort-buttons">
+            <button class="hpost-sort-btn ${sort == 'latest' || empty sort ? 'active' : ''}" onclick="changeSort('latest')">
+                최신순
             </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="<c:url value='/hpost?sort=latest'/>">최신순</a></li>
-                <li><a class="dropdown-item" href="<c:url value='/hpost?sort=popular'/>">인기순</a></li>
-            </ul>
+            <button class="hpost-sort-btn ${sort == 'popular' ? 'active' : ''}" onclick="changeSort('popular')">
+                인기순
+            </button>
         </div>
         <div class="hpost-write-btn">
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#writePostModal">
@@ -230,6 +229,72 @@
 </div>
 
 <script>
+// 정렬 변경 함수
+function changeSort(sortType) {
+    const currentUrl = new URL(window.location);
+    currentUrl.searchParams.set('sort', sortType);
+    window.location.href = currentUrl.toString();
+}
+
+// 아이폰 Chrome 감지 및 스타일 강제 적용
+function detectAndApplyIPhoneStyles() {
+    const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent) || 
+                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+                     (window.innerWidth <= 991 && navigator.maxTouchPoints > 0);
+    
+    if (isIPhone) {
+        console.log('아이폰 감지됨 - 스타일 강제 적용');
+        
+        // 동적 스타일 태그 생성
+        const style = document.createElement('style');
+        style.textContent = `
+            .hpost-sort-btn {
+                padding: 14px 22px !important;
+                font-size: 18px !important;
+                min-height: 52px !important;
+                min-width: 90px !important;
+                border-width: 2px !important;
+                cursor: pointer !important;
+                -webkit-tap-highlight-color: rgba(0, 123, 255, 0.3) !important;
+            }
+            .hpost-sort-btn:hover {
+                background: #f8f9fa !important;
+                border-color: #adb5bd !important;
+            }
+            .hpost-sort-btn.active {
+                background: #007bff !important;
+                color: white !important;
+                border-color: #007bff !important;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // 직접 DOM 요소에 스타일 적용
+        setTimeout(() => {
+            const sortButtons = document.querySelectorAll('.hpost-sort-btn');
+            sortButtons.forEach(btn => {
+                btn.style.setProperty('padding', '14px 22px', 'important');
+                btn.style.setProperty('font-size', '18px', 'important');
+                btn.style.setProperty('min-height', '52px', 'important');
+                btn.style.setProperty('min-width', '90px', 'important');
+                btn.style.setProperty('border-width', '2px', 'important');
+                btn.style.setProperty('cursor', 'pointer', 'important');
+                btn.style.setProperty('-webkit-tap-highlight-color', 'rgba(0, 123, 255, 0.3)', 'important');
+            });
+        }, 100);
+    }
+}
+
+// 페이지 로드 시 아이폰 스타일 적용
+document.addEventListener('DOMContentLoaded', function() {
+    detectAndApplyIPhoneStyles();
+});
+
+// 추가로 window load 이벤트에서도 실행 (이미지 등 모든 리소스 로드 후)
+window.addEventListener('load', function() {
+    detectAndApplyIPhoneStyles();
+});
+
 // 모달이 열릴 때 로그인 상태 확인 및 필드 설정
 document.getElementById('writePostModal').addEventListener('show.bs.modal', function () {
     const userInfo = getUserInfoFromToken();

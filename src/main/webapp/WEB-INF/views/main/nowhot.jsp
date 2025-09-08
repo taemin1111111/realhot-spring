@@ -8,19 +8,20 @@
     }
 %>
 
-<h5 class="fw-bold mb-3">🔥 지금 핫한 투표</h5>
+<h5 class="fw-bold mb-3">
+  <img src="<%=root %>/logo/lank.png" alt="랭크 로고" class="rank-logo" style="margin-right: 8px; vertical-align: middle;">
+  오늘 핫 투표
+</h5>
 
 <!-- 클럽 정보 부분 (동적으로 변경됨) -->
 <div id="hotplaceInfoSection">
   <div id="voteGuide" class="vote-guide-container">
     <i class="bi bi-geo-alt vote-guide-icon"></i>
-    <div class="vote-guide-title">먼저 지도를 클릭해서</div>
-    <div class="vote-guide-title">위치를 선택해주세요 !!</div>
-    <div class="vote-guide-subtitle">(위치를 선택해야 투표가 가능합니다)</div>
-    <button id="pickLocationBtn" class="pick-location-btn">
-      <i class="bi bi-geo-alt-fill"></i>
-      지정하기
-    </button>
+    <div class="vote-guide-title">지도 속</div>
+    <div class="vote-guide-title">해당 가게에서</div>
+    <div class="vote-guide-title">투표 하기 버튼을</div>
+    <div class="vote-guide-title">눌러 주세요</div>
+    <div style="margin-top: 15px; margin-bottom: 3px;"></div>
   </div>
   
   <div id="hotplaceInfo" class="hotplace-info mb-3 p-3 rounded" style="display: none;">
@@ -35,68 +36,69 @@
   <input type="hidden" id="voteHotplaceId" name="hotplaceId">
   
   <!-- 1번 질문 -->
-  <div class="mb-3">
-    <label class="form-label fw-bold">1. 지금 사람 많음?</label>
-    <div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" name="crowd" id="crowd1" value="1">
-        <label class="form-check-label" for="crowd1">한산함</label>
+  <div class="mb-4">
+    <label class="form-label fw-bold" style="font-size: 1.2rem;">1. 지금 사람 많음?</label>
+    <div class="d-flex flex-column gap-2">
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="crowd" id="crowd1" value="1" style="transform: scale(1.3);">
+        <label class="form-check-label" for="crowd1" style="font-size: 1.1rem;">한산함</label>
       </div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" name="crowd" id="crowd2" value="2">
-        <label class="form-check-label" for="crowd2">적당함</label>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="crowd" id="crowd2" value="2" style="transform: scale(1.3);">
+        <label class="form-check-label" for="crowd2" style="font-size: 1.1rem;">적당함</label>
       </div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" name="crowd" id="crowd3" value="3">
-        <label class="form-check-label" for="crowd3">붐빔</label>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="crowd" id="crowd3" value="3" style="transform: scale(1.3);">
+        <label class="form-check-label" for="crowd3" style="font-size: 1.1rem;">붐빔</label>
       </div>
     </div>
   </div>
 
   <!-- 2번 질문 -->
-  <div class="mb-3">
-    <label class="form-label fw-bold">2. 줄 서야 함? (대기 있음?)</label>
-    <div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" name="wait" id="wait1" value="1">
-        <label class="form-check-label" for="wait1">바로입장</label>
+  <div class="mb-4">
+    <label class="form-label fw-bold" style="font-size: 1.2rem;">2. 줄 서야 함?</label>
+    <div style="font-size: 1.2rem; color: #666; margin-bottom: 10px;">(대기 있음?)</div>
+    <div class="d-flex flex-column gap-2">
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="wait" id="wait1" value="1" style="transform: scale(1.3);">
+        <label class="form-check-label" for="wait1" style="font-size: 1.1rem;">바로입장</label>
       </div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" name="wait" id="wait2" value="2">
-        <label class="form-check-label" for="wait2">10분정도</label>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="wait" id="wait2" value="2" style="transform: scale(1.3);">
+        <label class="form-check-label" for="wait2" style="font-size: 1.1rem;">10분정도</label>
       </div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" name="wait" id="wait3" value="3">
-        <label class="form-check-label" for="wait3">30분</label>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="wait" id="wait3" value="3" style="transform: scale(1.3);">
+        <label class="form-check-label" for="wait3" style="font-size: 1.1rem;">30분</label>
       </div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" name="wait" id="wait4" value="4">
-        <label class="form-check-label" for="wait4">1시간 이상</label>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="wait" id="wait4" value="4" style="transform: scale(1.3);">
+        <label class="form-check-label" for="wait4" style="font-size: 1.1rem;">1시간 이상</label>
       </div>
     </div>
   </div>
 
   <!-- 3번 질문 -->
-  <div class="mb-3">
-    <label class="form-label fw-bold">3. 남녀 성비 어때?</label>
-    <div style="display: flex; gap: 20px; justify-content: center;">
+  <div class="mb-4">
+    <label class="form-label fw-bold" style="font-size: 1.2rem;">3. 남녀 성비 어때?</label>
+    <div class="d-flex flex-column gap-2">
       <div class="form-check">
-        <input class="form-check-input" type="radio" name="gender" id="gender1" value="1">
-        <label class="form-check-label" for="gender1">여자↑</label>
+        <input class="form-check-input" type="radio" name="gender" id="gender1" value="1" style="transform: scale(1.3);">
+        <label class="form-check-label" for="gender1" style="font-size: 1.1rem;">여자↑</label>
       </div>
       <div class="form-check">
-        <input class="form-check-input" type="radio" name="gender" id="gender2" value="2">
-        <label class="form-check-label" for="gender2">반반</label>
+        <input class="form-check-input" type="radio" name="gender" id="gender2" value="2" style="transform: scale(1.3);">
+        <label class="form-check-label" for="gender2" style="font-size: 1.1rem;">반반</label>
       </div>
       <div class="form-check">
-        <input class="form-check-input" type="radio" name="gender" id="gender3" value="3">
-        <label class="form-check-label" for="gender3">남자↑</label>
+        <input class="form-check-input" type="radio" name="gender" id="gender3" value="3" style="transform: scale(1.3);">
+        <label class="form-check-label" for="gender3" style="font-size: 1.1rem;">남자↑</label>
       </div>
     </div>
   </div>
 
-  <button type="submit" class="btn btn-primary btn-sm w-100">
-    <i class="bi bi-fire"></i> 투표하기
+  <button type="submit" class="btn w-100" style="padding: 20px; font-size: 1.2rem; font-weight: 600; background: linear-gradient(135deg, rgba(255, 105, 180, 0.8) 0%, rgba(255, 20, 147, 0.7) 100%); border: 2px solid rgba(255,255,255,0.4); color: white; border-radius: 25px;">
+    <i class="bi bi-fire" style="font-size: 1.3rem;"></i> 투표하기
   </button>
 </form>
 
@@ -214,15 +216,6 @@ function showVoteForm(hotplaceId, name, address, categoryId) {
     document.getElementById('hotplaceInfo').style.display = 'block';
 }
 
-// 위치 선택 버튼 이벤트
-document.getElementById('pickLocationBtn').addEventListener('click', function() {
-    if (typeof showVoteSection === 'function') {
-        // main.jsp의 showVoteSection 함수 호출 (지도 표시)
-        alert('지도에서 장소를 클릭해주세요.');
-    } else {
-        alert('지도 기능을 사용할 수 없습니다.');
-    }
-});
 </script>
 
 <!-- CSS는 all.css에서 통합 관리됩니다 -->

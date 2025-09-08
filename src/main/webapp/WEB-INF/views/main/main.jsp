@@ -61,7 +61,7 @@
   
   <div class="row gx-4 gy-4 align-items-stretch">
     <div class="col-md-9">
-      <div class="card-box h-100" style="min-height:600px; display:flex; flex-direction:column; position:relative;">
+      <div class="card-box h-100" style="min-height:800px; display:flex; flex-direction:column; position:relative;">
         <div style="text-align: center;">
           <img src="<%=root%>/logo/hotmap.png" alt="핫플 지도" style="max-width: 70px; height: auto; object-fit: contain; margin-bottom: 0; margin-top: -16px; display: block; margin-left: auto; margin-right: auto;">
           <p class="text-muted-small mb-3" style="display: inline-block; margin-top: -8px;">지금 가장 핫한 장소들을 지도로 한눈에 확인해보세요.</p>
@@ -70,7 +70,7 @@
           <i class="bi bi-crosshair"></i>
           내 위치
         </button>
-        <div id="map" style="width:100%; height:600px; border-radius:12px; position:relative;">
+        <div id="map" style="width:100%; height:800px; border-radius:12px; position:relative;">
           <div id="categoryFilterBar" style="position:absolute; top:16px; left:16px; z-index:10; display:flex; gap:8px;">
             <button class="category-filter-btn active" data-category="all">전체</button>
             <button class="category-filter-btn marker-club" data-category="1">C</button>
@@ -129,7 +129,7 @@
     
     <!-- 투표 섹션 -->
     <div class="col-md-3">
-      <div class="card-box h-100" style="min-height:600px;">
+      <div class="card-box h-100" style="min-height:800px;">
         <jsp:include page="nowhot.jsp" />
       </div>
     </div>

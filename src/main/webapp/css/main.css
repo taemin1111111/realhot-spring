@@ -240,17 +240,110 @@
 }
 
 .vote-guide-title {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: white;
   margin-bottom: 5px;
   line-height: 1.4;
 }
 
+/* 데스크탑에서는 원래 크기 유지 - 인라인 스타일이 없는 경우에만 */
+@media (min-width: 992px) {
+  .vote-guide-title:not([style*="font-size"]) {
+    font-size: 1.4rem;
+  }
+}
+
 .vote-guide-subtitle {
   font-size: 0.9rem;
-  color: rgba(255,255,255,0.9);
-  margin-bottom: 20px;
+  color: #666;
+  margin-bottom: 3px;
+}
+
+/* 모바일과 아이폰에서도 동일한 스타일 적용 */
+@media (max-width: 991px) {
+  .vote-guide-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 3px;
+  }
+  
+  /* 모바일에서 vote-guide-title 크기 줄이기 */
+  .vote-guide-title {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .vote-guide-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 3px;
+  }
+  
+  /* 중간 모바일에서 vote-guide-title 크기 줄이기 */
+  .vote-guide-title {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .vote-guide-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 3px;
+  }
+  
+  /* 작은 모바일에서 vote-guide-title 크기 줄이기 */
+  .vote-guide-title {
+    font-size: 0.9rem;
+  }
+}
+
+/* 아이폰 Safari 전용 스타일 - 더 구체적인 선택자와 !important 사용 */
+@supports (-webkit-touch-callout: none) {
+  .vote-guide-container .vote-guide-subtitle {
+    font-size: 0.9rem !important;
+    color: #666 !important;
+    margin-bottom: 3px !important;
+    margin-top: 0 !important;
+  }
+  
+  /* 아이폰에서 vote-guide-title 크기 줄이기 - 더 강력한 선택자 */
+  .vote-guide-title,
+  .vote-guide-container .vote-guide-title,
+  #voteGuide .vote-guide-title,
+  div.vote-guide-title {
+    font-size: 1.1rem !important;
+  }
+  
+  /* 아이폰에서 더 강력한 우선순위로 적용 */
+  #voteGuide .vote-guide-subtitle {
+    color: #666 !important;
+    margin-bottom: 3px !important;
+    margin-top: 0 !important;
+  }
+  
+  /* 아이폰에서 모든 vote-guide-subtitle 강제 적용 */
+  div.vote-guide-subtitle {
+    color: #666 !important;
+    margin-bottom: 3px !important;
+    margin-top: 0 !important;
+  }
+  
+  /* 아이폰에서 컨테이너의 color 상속 무시 */
+  .vote-guide-container div.vote-guide-subtitle {
+    color: #666 !important;
+    margin-bottom: 3px !important;
+    margin-top: 0 !important;
+  }
+  
+  /* 아이폰에서 가장 강력한 선택자 */
+  #voteGuide div.vote-guide-subtitle {
+    color: #666 !important;
+    margin-bottom: 3px !important;
+    margin-top: 0 !important;
+  }
 }
 
 /* 지정하기 버튼 스타일 */
@@ -627,4 +720,79 @@
     content: "🎵 ";
     color: #9c27b0;
     margin-right: 4px;
+}
+
+/* 아이폰에서 vote-guide-subtitle 강제 적용 - 파일 맨 끝에 추가 */
+@supports (-webkit-touch-callout: none) {
+    .vote-guide-subtitle,
+    div.vote-guide-subtitle,
+    .vote-guide-container .vote-guide-subtitle,
+    #voteGuide .vote-guide-subtitle,
+    #voteGuide div.vote-guide-subtitle {
+        color: #666 !important;
+        margin-bottom: 3px !important;
+        margin-top: 0 !important;
+    }
+    
+    /* 아이폰에서 vote-guide-title 크기 강제 적용 - 파일 맨 끝에 추가 */
+    .vote-guide-title,
+    div.vote-guide-title,
+    .vote-guide-container .vote-guide-title,
+    #voteGuide .vote-guide-title,
+    #voteGuide div.vote-guide-title {
+        font-size: 1.1rem !important;
+    }
+    
+    /* 아이폰에서 데스크탑 미디어 쿼리 무시하고 강제 적용 */
+    @media (min-width: 992px) {
+        .vote-guide-title,
+        div.vote-guide-title,
+        .vote-guide-container .vote-guide-title,
+        #voteGuide .vote-guide-title,
+        #voteGuide div.vote-guide-title {
+            font-size: 1.1rem !important;
+        }
+    }
+}
+
+/* 아이폰 Chrome/네이버 앱 전용 - User Agent 기반 */
+@media screen and (-webkit-min-device-pixel-ratio: 2) and (max-width: 991px) {
+    .vote-guide-subtitle,
+    div.vote-guide-subtitle,
+    .vote-guide-container .vote-guide-subtitle,
+    #voteGuide .vote-guide-subtitle,
+    #voteGuide div.vote-guide-subtitle {
+        color: #666 !important;
+        margin-bottom: 3px !important;
+        margin-top: 0 !important;
+    }
+    
+    .vote-guide-title,
+    div.vote-guide-title,
+    .vote-guide-container .vote-guide-title,
+    #voteGuide .vote-guide-title,
+    #voteGuide div.vote-guide-title {
+        font-size: 1.1rem !important;
+    }
+}
+
+/* 아이폰 모든 브라우저 전용 - 더 강력한 선택자 */
+@media only screen and (max-width: 991px) and (-webkit-min-device-pixel-ratio: 2) {
+    .vote-guide-subtitle,
+    div.vote-guide-subtitle,
+    .vote-guide-container .vote-guide-subtitle,
+    #voteGuide .vote-guide-subtitle,
+    #voteGuide div.vote-guide-subtitle {
+        color: #666 !important;
+        margin-bottom: 3px !important;
+        margin-top: 0 !important;
+    }
+    
+    .vote-guide-title,
+    div.vote-guide-title,
+    .vote-guide-container .vote-guide-title,
+    #voteGuide .vote-guide-title,
+    #voteGuide div.vote-guide-title {
+        font-size: 1.1rem !important;
+    }
 }

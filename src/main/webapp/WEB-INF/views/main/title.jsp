@@ -221,29 +221,780 @@
     gap: 8px;
 }
 
-/* 반응형 디자인 */
+/* 모바일 반응형 스타일 */
+.logo-img {
+    height: 60px;
+    transition: height 0.3s ease;
+}
+
+/* 햄버거 메뉴 버튼 - 아이폰 호환성을 위해 기본적으로 표시 */
+.mobile-hamburger-btn {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* 헤더 기본 스타일 */
+#main-header {
+    padding: 30px 15px !important;
+    min-height: 100px !important;
+}
+
+/* 아이폰이 아닌 모바일에서 헤더 레이아웃 완전히 수정 */
+@media (max-width: 991px) {
+    /* 헤더 높이와 패딩 조정 - 더 길게 */
+    #main-header {
+        padding: 45px 20px !important;
+        min-height: 130px !important;
+    }
+    
+    /* 헤더 전체 컨테이너 */
+    .container-fluid {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    
+    /* 헤더 row를 relative로 설정 */
+    .row {
+        position: relative !important;
+    }
+    
+    /* 로고 컨테이너 - 왼쪽 끝에 강제 고정, 확실히 아래로 이동 */
+    .col-6.col-md-3:first-child {
+        position: absolute !important;
+        left: 20px !important;
+        top: 80% !important;
+        transform: none !important;
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        flex: none !important;
+        z-index: 10 !important;
+    }
+    
+    /* 로고 크기 대폭 확대 */
+    .logo-img {
+        height: 65px !important;
+    }
+    
+    /* 우측 요소들 컨테이너 - 오른쪽에 강제 고정, 확실히 아래로 이동 */
+    .col-6.col-md-3:last-child {
+        position: absolute !important;
+        right: 20px !important;
+        top: 80% !important;
+        transform: none !important;
+        width: auto !important;
+        max-width: none !important;
+        flex: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        z-index: 10 !important;
+    }
+    
+    /* 모바일에서 닉네임 드롭다운 숨기기 */
+    .dropdown-menu,
+    .dropdown-menu.dropdown-menu-end {
+        display: none !important;
+    }
+    
+    /* 닉네임 클릭 비활성화 */
+    .dropdown-toggle {
+        pointer-events: none !important;
+        cursor: default !important;
+    }
+    
+    /* 드롭다운 화살표 숨기기 */
+    .dropdown-toggle::after {
+        display: none !important;
+    }
+    
+    /* 드롭다운 화살표 완전히 제거 */
+    .dropdown-toggle:after {
+        content: none !important;
+    }
+    
+    /* 우측 요소들 내부 정렬 */
+    .col-6.col-md-3:last-child .d-flex {
+        position: relative !important;
+        right: 0 !important;
+        top: 0 !important;
+        transform: none !important;
+        width: auto !important;
+    }
+}
+
+/* 데스크톱에서만 햄버거 메뉴 숨김 */
+@media (min-width: 992px) {
+    .mobile-hamburger-btn {
+        display: none !important;
+    }
+}
+
+/* 아이폰이 아닌 태블릿 크기에서도 데스크톱 메뉴 숨기기 */
+@media (max-width: 991px) {
+    /* 데스크톱 메뉴 완전히 숨기기 */
+    .d-none.d-md-block {
+        display: none !important;
+    }
+    
+    /* 헤더 네비게이션 숨기기 */
+    .header-nav {
+        display: none !important;
+    }
+    
+    /* 햄버거 메뉴 버튼 확실히 표시 */
+    .mobile-hamburger-btn {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* 헤더 우측 영역을 오른쪽 끝으로 강제 이동 */
+    .col-6.col-md-3 {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+    
+    /* 우측 컨테이너 강제 오른쪽 정렬 */
+    .col-6.col-md-3 .d-flex {
+        justify-content: flex-end !important;
+        width: 100% !important;
+        margin-left: auto !important;
+    }
+    
+    /* 햄버거 버튼을 맨 오른쪽으로 */
+    .mobile-hamburger-btn {
+        margin-left: auto !important;
+    }
+    
+    /* 태블릿에서도 우측 요소들 크기 조정 - 조금 줄임 */
+    .notification-bell {
+        font-size: 20px !important;
+        padding: 6px !important;
+    }
+    
+    .notification-badge {
+        font-size: 10px !important;
+        min-width: 18px !important;
+        height: 18px !important;
+        line-height: 18px !important;
+    }
+    
+    #user-icon {
+        font-size: 28px !important;
+        margin-right: 10px !important;
+    }
+    
+    #user-nickname {
+        font-size: 20px !important;
+        font-weight: 600 !important;
+    }
+    
+    /* 님 텍스트 크기 조정 */
+    .dropdown-toggle {
+        font-size: 20px !important;
+    }
+    
+    .mobile-hamburger-btn {
+        font-size: 36px !important;
+        padding: 16px !important;
+        min-width: 68px !important;
+        min-height: 68px !important;
+    }
+    
+    .mobile-hamburger-btn i {
+        font-size: 36px !important;
+    }
+}
+
+/* 아이폰이 아닌 모바일에서 로고 크기 조정 */
 @media (max-width: 768px) {
+    .logo-img {
+        height: 45px;
+    }
+    
+    /* 햄버거 메뉴 버튼 확실히 표시 및 크기 확대 */
+    .mobile-hamburger-btn {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-size: 32px !important;
+        padding: 12px !important;
+        min-width: 52px !important;
+        min-height: 52px !important;
+    }
+    
+    /* 우측 요소들 크기 조정 - 조금 줄임 */
+    .notification-bell {
+        font-size: 24px !important;
+        padding: 8px !important;
+    }
+    
+    .notification-badge {
+        font-size: 12px !important;
+        min-width: 20px !important;
+        height: 20px !important;
+        line-height: 20px !important;
+    }
+    
+    #user-icon {
+        font-size: 30px !important;
+        margin-right: 12px !important;
+    }
+    
+    #user-nickname {
+        font-size: 22px !important;
+        font-weight: 600 !important;
+    }
+    
+    /* 님 텍스트 크기 조정 */
+    .dropdown-toggle {
+        font-size: 22px !important;
+    }
+    
+    .mobile-hamburger-btn {
+        font-size: 40px !important;
+        padding: 18px !important;
+        min-width: 76px !important;
+        min-height: 76px !important;
+    }
+    
+    .mobile-hamburger-btn i {
+        font-size: 40px !important;
+    }
+    
+    /* 데스크톱 메뉴 완전히 숨기기 */
+    .d-none.d-md-block {
+        display: none !important;
+    }
+    
+    /* 헤더 네비게이션 숨기기 */
+    .header-nav {
+        display: none !important;
+    }
+    
+    /* 헤더 우측 영역을 오른쪽 끝으로 강제 이동 */
+    .col-6.col-md-3 {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+    
+    /* 우측 컨테이너 강제 오른쪽 정렬 */
+    .col-6.col-md-3 .d-flex {
+        justify-content: flex-end !important;
+        width: 100% !important;
+        margin-left: auto !important;
+    }
+    
+    /* 우측 요소들 간격 조정 */
+    #auth-area {
+        margin-right: 8px !important;
+    }
+    
+    /* 햄버거 버튼을 맨 오른쪽으로 */
+    .mobile-hamburger-btn {
+        margin-left: auto !important;
+    }
+    
     .notification-dropdown {
         width: 300px;
         right: -50px;
     }
+    
+    /* 헤더 패딩 조정 */
+    header {
+        padding: 0.75rem 1rem !important;
+    }
+    
+    /* 햄버거 메뉴 스타일 */
+    .offcanvas {
+        width: 280px !important;
+    }
+    
+    .offcanvas-header {
+        padding: 1rem;
+        border-bottom: 1px solid #333;
+    }
+    
+    .offcanvas-body {
+        background-color: #f8f9fa;
+    }
+    
+    /* 모바일 메뉴 아이템 스타일 - 크기 확대 */
+    .list-group-item {
+        border: none;
+        padding: 1rem 1.25rem;
+        font-size: 1.1rem;
+        min-height: 56px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .list-group-item:hover {
+        background-color: #e9ecef;
+    }
+    
+    .list-group-item-action {
+        color: #495057;
+        text-decoration: none;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+    
+    .list-group-item-action:hover {
+        color: #007bff;
+        background-color: #e9ecef;
+    }
+    
+    /* 모바일 사용자 정보 영역 */
+    .list-group-item.bg-light {
+        background-color: #f8f9fa !important;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    /* 모바일 알림 배지 */
+    .badge {
+        font-size: 0.75rem;
+    }
 }
+
+/* 아이폰이 아닌 매우 작은 화면 (320px 이하) */
+@media (max-width: 480px) {
+    /* 헤더 높이 더 크게 */
+    #main-header {
+        padding: 50px 25px !important;
+        min-height: 140px !important;
+    }
+    
+    .logo-img {
+        height: 60px !important;
+    }
+    
+    /* 햄버거 버튼 더 크게 */
+    .mobile-hamburger-btn {
+        font-size: 44px !important;
+        padding: 20px !important;
+        min-width: 84px !important;
+        min-height: 84px !important;
+    }
+    
+    .mobile-hamburger-btn i {
+        font-size: 44px !important;
+    }
+    
+    /* 매우 작은 화면에서 우측 요소들 크기 조정 - 조금 줄임 */
+    .notification-bell {
+        font-size: 26px !important;
+        padding: 10px !important;
+    }
+    
+    .notification-badge {
+        font-size: 14px !important;
+        min-width: 22px !important;
+        height: 22px !important;
+        line-height: 22px !important;
+    }
+    
+    #user-icon {
+        font-size: 32px !important;
+        margin-right: 14px !important;
+    }
+    
+    #user-nickname {
+        font-size: 24px !important;
+        font-weight: 600 !important;
+    }
+    
+    /* 님 텍스트 크기 조정 */
+    .dropdown-toggle {
+        font-size: 24px !important;
+    }
+    
+    /* 모바일 메뉴 아이템 더 크게 */
+    .mobile-menu-item {
+        padding: 1.25rem 1.5rem;
+        font-size: 1.2rem;
+        min-height: 64px;
+    }
+    
+    .mobile-menu-user-info {
+        padding: 1.5rem;
+        min-height: 90px;
+    }
+    
+    .mobile-menu-user-info .fw-bold {
+        font-size: 1.3rem;
+    }
+    
+    .offcanvas {
+        width: 100% !important;
+    }
+    
+    header {
+        padding: 0.5rem 0.75rem !important;
+    }
+}
+
+/* 태블릿 크기 (768px ~ 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .logo-img {
+        height: 55px;
+    }
+}
+
+/* 커스텀 모바일 메뉴 스타일 */
+.mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    justify-content: flex-end;
+    align-items: stretch;
+}
+
+.mobile-menu-content {
+    width: 280px;
+    max-width: 90vw;
+    height: 100%;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -2px 0 16px rgba(0, 0, 0, 0.1);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.mobile-menu-overlay.show .mobile-menu-content {
+    transform: translateX(0);
+}
+
+.mobile-menu-header {
+    background-color: #1a1a1a;
+    color: white;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+}
+
+.mobile-menu-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.mobile-menu-close:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-menu-body {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+    padding: 0;
+}
+
+.mobile-menu-section {
+    padding: 0.75rem 1rem 0.5rem 1rem;
+}
+
+.mobile-menu-title {
+    color: #007bff;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.mobile-menu-item {
+    display: block;
+    padding: 1rem 1.25rem;
+    color: #495057;
+    text-decoration: none;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-size: 1.1rem;
+    font-weight: 500;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+}
+
+.mobile-menu-item:hover {
+    background-color: #e9ecef;
+    color: #007bff;
+    text-decoration: none;
+}
+
+.mobile-menu-item.text-danger:hover {
+    color: #dc3545 !important;
+}
+
+.mobile-menu-divider {
+    margin: 0.5rem 0;
+    border: none;
+    border-top: 1px solid #dee2e6;
+}
+
+.mobile-menu-user-info {
+    background-color: #f8f9fa;
+    padding: 1.25rem;
+    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 0.5rem;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+}
+
+.mobile-menu-user-info .d-flex {
+    width: 100%;
+}
+
+.mobile-menu-user-info .fw-bold {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.mobile-menu-user-info small {
+    font-size: 0.9rem;
+    color: #666;
+    margin-left: 4px;
+}
+
+/* 아이폰 Safari 전용 스타일 - 표준적인 우선순위 방법 */
+@supports (-webkit-touch-callout: none) {
+    .mobile-menu-overlay {
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .mobile-menu-content {
+        -webkit-transform: translateX(100%);
+        -webkit-transition: -webkit-transform 0.3s ease;
+    }
+    
+    .mobile-menu-overlay.show .mobile-menu-content {
+        -webkit-transform: translateX(0);
+    }
+    
+    /* 아이폰에서 햄버거 버튼 확실히 표시 */
+    .mobile-hamburger-btn {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+}
+
+/* 아이폰에서 헤더 레이아웃 강제 수정 - 더 구체적인 선택자 사용 */
+@supports (-webkit-touch-callout: none) and (max-width: 991px) {
+    #main-header {
+        padding: 65px 20px !important;
+        min-height: 170px !important;
+    }
+    
+    .row {
+        position: relative !important;
+    }
+    
+    /* 더 구체적인 선택자로 우선순위 높임 */
+    .container-fluid .row .col-6.col-md-3:first-child {
+        position: absolute !important;
+        left: 20px !important;
+        top: 80% !important;
+        -webkit-transform: translateY(-35%) !important;
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        flex: none !important;
+        z-index: 10 !important;
+    }
+    
+    .container-fluid .row .col-6.col-md-3:last-child {
+        position: absolute !important;
+        right: 20px !important;
+        top: 80% !important;
+        -webkit-transform: translateY(-35%) !important;
+        width: auto !important;
+        max-width: none !important;
+        flex: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        z-index: 10 !important;
+    }
+    
+    /* 아이폰에서도 드롭다운 숨기기 - 더 구체적인 선택자 */
+    .container-fluid .row .col-6.col-md-3:last-child .dropdown-menu,
+    .container-fluid .row .col-6.col-md-3:last-child .dropdown-menu.dropdown-menu-end {
+        display: none !important;
+    }
+    
+    .container-fluid .row .col-6.col-md-3:last-child .dropdown-toggle {
+        pointer-events: none !important;
+        cursor: default !important;
+    }
+    
+    .container-fluid .row .col-6.col-md-3:last-child .dropdown-toggle::after {
+        display: none !important;
+    }
+    
+    .container-fluid .row .col-6.col-md-3:last-child .dropdown-toggle:after {
+        content: none !important;
+    }
+    
+    /* 아이폰에서 우측 요소들 크기 대폭 확대 */
+    .container-fluid .row .col-6.col-md-3:last-child .notification-bell {
+        font-size: 36px !important;
+        padding: 16px !important;
+    }
+    
+    .container-fluid .row .col-6.col-md-3:last-child .notification-badge {
+        font-size: 20px !important;
+        min-width: 32px !important;
+        height: 32px !important;
+        line-height: 32px !important;
+    }
+    
+    .container-fluid .row .col-6.col-md-3:last-child #user-icon {
+        font-size: 48px !important;
+        margin-right: 20px !important;
+    }
+    
+    .container-fluid .row .col-6.col-md-3:last-child #user-nickname {
+        font-size: 32px !important;
+        font-weight: 600 !important;
+    }
+    
+    .container-fluid .row .col-6.col-md-3:last-child .dropdown-toggle {
+        font-size: 32px !important;
+    }
+    
+    .container-fluid .row .col-6.col-md-3:last-child .mobile-hamburger-btn {
+        font-size: 64px !important;
+        padding: 28px !important;
+        min-width: 100px !important;
+        min-height: 100px !important;
+    }
+    
+    .container-fluid .row .col-6.col-md-3:last-child .mobile-hamburger-btn i {
+        font-size: 64px !important;
+    }
+    
+    .container-fluid .row .col-6.col-md-3:first-child .logo-img {
+        height: 100px !important;
+    }
+    
+    /* 아이폰에서 햄버거 메뉴 안 요소들 크기 대폭 확대 */
+    .mobile-menu-item {
+        padding: 2rem 2.5rem !important;
+        font-size: 2rem !important;
+        min-height: 80px !important;
+    }
+    
+    .mobile-menu-title {
+        font-size: 1.4rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .mobile-menu-user-info {
+        padding: 2rem !important;
+        min-height: 120px !important;
+    }
+    
+    /* 사용자 정보 영역은 원래 크기로 */
+    .mobile-menu-user-info .fw-bold {
+        font-size: 1.2rem !important;
+    }
+    
+    .mobile-menu-user-info small {
+        font-size: 0.9rem !important;
+    }
+    
+    .mobile-menu-user-info i {
+        font-size: 24px !important;
+    }
+    
+    .mobile-menu-item i {
+        font-size: 28px !important;
+        margin-right: 12px !important;
+    }
+    
+    .mobile-menu-close i {
+        font-size: 36px !important;
+    }
+    
+    .mobile-menu-header img {
+        height: 60px !important;
+    }
+    
+    .mobile-menu-header {
+        padding: 1.5rem !important;
+    }
+    
+    /* 특정 메뉴 아이템들만 크기 조정 */
+    .mobile-menu-item[href*="/md"] {
+        font-size: 1.5rem !important;
+    }
+    
+    .mobile-menu-item[href*="/clubtable"] {
+        font-size: 1.5rem !important;
+    }
+    
+    .mobile-menu-item[href*="/course"] {
+        font-size: 1.5rem !important;
+    }
+    
+    .mobile-menu-item[href*="/notice"] {
+        font-size: 1.5rem !important;
+    }
+    
+    .mobile-menu-item[href*="/hpost"] {
+        font-size: 1.5rem !important;
+    }
+}
+
 </style>
 
 
-<!-- ✅ title.jsp - 상단 헤더 영역 -->
-<header style="background-color: #1a1a1a;" class="text-white py-3 px-4 shadow-sm">
-    <div class="container d-flex justify-content-between align-items-center">
-        
-        <!--  로고 -->
+<!-- ✅ title.jsp - 상단 헤더 영역 (모바일 반응형) -->
+<header style="background-color: #1a1a1a;" class="text-white shadow-sm" id="main-header">
+    <div class="container-fluid">
+        <div class="row align-items-center" style="position: relative;">
+            <!-- 로고 (모바일에서 작게) -->
+            <div class="col-6 col-md-3">
         <div class="logo-box" style="cursor: pointer;">
             <a href="<%=root%>/">
-                <img src="<%=root %>/logo/mainlogo2.png" alt="어디핫 로고" style="height: 60px;">
+                        <img src="<%=root %>/logo/mainlogo2.png" alt="어디핫 로고" class="logo-img">
             </a>
+                </div>
         </div>
 
-        <!--  중앙 메뉴 -->
-        <nav class="flex-grow-1 text-center header-nav">
+            <!-- 데스크톱 메뉴 (모바일에서 숨김) -->
+            <div class="col-md-6 d-none d-md-block">
+                <nav class="text-center header-nav">
             <ul class="nav justify-content-center">
                 <!-- 📌 코스 추천 -->
                 <li class="nav-item dropdown">
@@ -281,13 +1032,18 @@
                 </li>
             </ul>
         </nav>
+            </div>
 
+            <!-- 우측 영역 (로그인/햄버거) -->
+            <div class="col-6 col-md-3">
+                <div class="d-flex justify-content-end align-items-center w-100">
         <!-- 🙋 로그인/회원가입 or 마이페이지 - JWT 기반 동적 처리 -->
-        <div class="ms-3" id="auth-area">
+                    <div class="me-3" id="auth-area">
             <!-- 로그인 전 -->
             <div id="login-section">
                 <a href="#" class="text-white text-decoration-none" data-bs-toggle="modal" data-bs-target="#loginModal">
-                    로그인 / 회원가입
+                                <span class="d-none d-sm-inline">로그인 / 회원가입</span>
+                                <span class="d-inline d-sm-none">로그인</span>
                 </a>
             </div>
             
@@ -295,7 +1051,7 @@
             <div id="user-section" style="display: none;">
                 <div class="d-flex align-items-center">
                     <!-- 알림 벨 (일반 사용자만 표시) -->
-                    <div id="notification-container" class="notification-container me-3" style="display: none;">
+                                <div id="notification-container" class="notification-container me-2" style="display: none;">
                         <div class="notification-bell" onclick="toggleNotifications()">
                             🔔
                             <span id="notification-badge" class="notification-badge">0</span>
@@ -314,10 +1070,11 @@
                         </div>
                     </div>
                     
-                    <!-- 사용자 정보 -->
+                                <!-- 사용자 정보 (모바일에서 닉네임 숨김) -->
                     <div class="dropdown">
                         <a href="#" class="text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                            <i id="user-icon" class="bi bi-person-fill" style="color: #ff69b4; margin-right: 6px; font-size: 18px;"></i> <span id="user-nickname">사용자</span>님
+                                        <i id="user-icon" class="bi bi-person-fill" style="color: #ff69b4; margin-right: 6px; font-size: 18px;"></i> 
+                                        <span id="user-nickname" class="d-none d-sm-inline">사용자</span>님
                         </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li id="mypage-menu"><a class="dropdown-item" href="<%=root%>/mypage">마이페이지</a></li>
@@ -331,9 +1088,109 @@
             </div>
         </div>
 
-
+                    <!-- 햄버거 메뉴 버튼 (모바일에서만 표시) -->
+                    <button class="btn btn-link text-white mobile-hamburger-btn p-0" type="button" onclick="toggleMobileMenu()" id="hamburgerBtn">
+                        <i class="bi bi-list" style="font-size: 24px;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </header>
+
+<!-- 모바일 햄버거 메뉴 (커스텀) -->
+<div id="mobileMenu" class="mobile-menu-overlay" style="display: none;">
+    <div class="mobile-menu-content">
+        <!-- 헤더 -->
+        <div class="mobile-menu-header">
+            <img src="<%=root %>/logo/mainlogo2.png" alt="어디핫 로고" style="height: 40px;">
+            <button type="button" onclick="closeMobileMenu()" class="mobile-menu-close">
+                <i class="bi bi-x" style="font-size: 24px;"></i>
+            </button>
+        </div>
+        
+        <!-- 메뉴 리스트 -->
+        <div class="mobile-menu-body">
+            <!-- 코스 추천 -->
+            <div class="mobile-menu-section">
+                <h6 class="mobile-menu-title" style="font-size: 1.4rem !important;">
+                    <img src="<%=root %>/logo/map.png" alt="맵 로고" class="rank-logo" style="margin-right: 8px; vertical-align: middle; width: 24px !important; height: 24px !important;">
+                    코스 추천
+                </h6>
+                <a href="<%=root%>/course" class="mobile-menu-item" onclick="closeMobileMenu()">
+                    지역별 코스 추천
+                </a>
+            </div>
+
+            <!-- 썰 게시판 -->
+            <div class="mobile-menu-section">
+                <h6 class="mobile-menu-title" style="font-size: 1.4rem !important;">
+                    <img src="<%=root %>/logo/talkhothot.png" alt="썰 게시판" style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle;"> 썰 게시판
+                </h6>
+                <a href="<%=root%>/hpost" class="mobile-menu-item" onclick="closeMobileMenu()">
+                    핫플썰
+                </a>
+            </div>
+
+            <!-- 클럽 MD -->
+            <a href="<%=root%>/md" class="mobile-menu-item" onclick="closeMobileMenu()">
+                <i class="bi bi-person-heart me-2"></i>MD 문의
+            </a>
+
+            <!-- 테이블 예약 -->
+            <a href="<%=root%>/clubtable" class="mobile-menu-item" onclick="closeMobileMenu()">
+                <i class="bi bi-calendar-check me-2"></i>테이블 예약
+            </a>
+
+            <!-- 공지사항 -->
+            <a href="<%=root%>/notice" class="mobile-menu-item" onclick="closeMobileMenu()">
+                <i class="bi bi-megaphone me-2"></i>공지사항
+            </a>
+
+            <!-- 구분선 -->
+            <hr class="mobile-menu-divider">
+
+            <!-- 로그인 전 메뉴 -->
+            <div id="mobile-login-section">
+                <a href="#" class="mobile-menu-item" data-bs-toggle="modal" data-bs-target="#loginModal" onclick="closeMobileMenu()">
+                    <i class="bi bi-person-plus me-2"></i>로그인 / 회원가입
+                </a>
+            </div>
+
+            <!-- 로그인 후 메뉴 -->
+            <div id="mobile-user-section" style="display: none;">
+                <!-- 사용자 정보 -->
+                <div class="mobile-menu-user-info">
+                    <div class="d-flex align-items-center">
+                        <i id="mobile-user-icon" class="bi bi-person-fill me-3" style="color: #ff69b4; font-size: 24px;"></i>
+                        <div>
+                            <div class="fw-bold" id="mobile-user-nickname">사용자님 환영합니다!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 마이페이지 -->
+                <a href="<%=root%>/mypage" class="mobile-menu-item" id="mobile-mypage-menu" onclick="closeMobileMenu()">
+                    <i class="bi bi-person-circle me-2"></i>마이페이지
+                </a>
+
+                <!-- 관리자 메뉴들 -->
+                <a href="#" class="mobile-menu-item" id="mobile-admin-menu1" style="display: none;" onclick="goToAdminPage('/admin/hpost'); closeMobileMenu(); return false;">
+                    <i class="bi bi-gear me-2"></i>핫플썰 관리
+                </a>
+                <a href="#" class="mobile-menu-item" id="mobile-admin-menu2" style="display: none;" onclick="goToAdminPage('/admin/course'); closeMobileMenu(); return false;">
+                    <i class="bi bi-gear me-2"></i>코스 관리
+                </a>
+
+
+                <!-- 로그아웃 -->
+                <a href="#" class="mobile-menu-item text-danger" onclick="logout(); closeMobileMenu();">
+                    <i class="bi bi-box-arrow-right me-2"></i>로그아웃
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- ✅ 로그인 모달 JSP include -->
 <jsp:include page="../login/loginModal.jsp" />
@@ -359,19 +1216,30 @@ function updateTitleUI(userInfo) {
             return;
         }
         
+        // 데스크톱 UI 요소들
         const loginSection = document.getElementById('login-section');
         const userSection = document.getElementById('user-section');
         const userNickname = document.getElementById('user-nickname');
         const userIcon = document.getElementById('user-icon');
         
+        // 모바일 UI 요소들
+        const mobileLoginSection = document.getElementById('mobile-login-section');
+        const mobileUserSection = document.getElementById('mobile-user-section');
+        const mobileUserNickname = document.getElementById('mobile-user-nickname');
+        const mobileUserIcon = document.getElementById('mobile-user-icon');
+        
         console.log('updateTitleUI 실행 - DOM 요소들:', {
             loginSection: !!loginSection,
             userSection: !!userSection,
             userNickname: !!userNickname,
-            userIcon: !!userIcon
+            userIcon: !!userIcon,
+            mobileLoginSection: !!mobileLoginSection,
+            mobileUserSection: !!mobileUserSection,
+            mobileUserNickname: !!mobileUserNickname,
+            mobileUserIcon: !!mobileUserIcon
         });
         
-        // 각 요소가 존재하는지 확인하고 안전하게 처리
+        // 데스크톱 UI 업데이트
         if (loginSection && loginSection.style) {
             try {
                 loginSection.style.display = 'none';
@@ -394,7 +1262,30 @@ function updateTitleUI(userInfo) {
             }
         }
         
-        // 이모티콘 설정
+        // 모바일 UI 업데이트
+        if (mobileLoginSection && mobileLoginSection.style) {
+            try {
+                mobileLoginSection.style.display = 'none';
+            } catch (e) {
+                console.warn('mobileLoginSection 스타일 변경 실패:', e);
+            }
+        }
+        if (mobileUserSection && mobileUserSection.style) {
+            try {
+                mobileUserSection.style.display = 'block';
+            } catch (e) {
+                console.warn('mobileUserSection 스타일 변경 실패:', e);
+            }
+        }
+        if (mobileUserNickname) {
+            try {
+                mobileUserNickname.textContent = (userInfo.nickname || userInfo.userid) + '님 환영합니다!';
+            } catch (e) {
+                console.warn('mobileUserNickname 텍스트 변경 실패:', e);
+            }
+        }
+        
+        // 이모티콘 설정 (데스크톱)
         if (userIcon) {
             try {
                 if (userInfo.provider === 'admin') {
@@ -409,8 +1300,25 @@ function updateTitleUI(userInfo) {
             }
         }
         
+        // 이모티콘 설정 (모바일)
+        if (mobileUserIcon) {
+            try {
+                if (userInfo.provider === 'admin') {
+                    mobileUserIcon.className = 'bi bi-gear-fill me-2';
+                    mobileUserIcon.style.cssText = 'color: #ffc107; font-size: 20px;';
+                } else {
+                    mobileUserIcon.className = 'bi bi-person-fill me-2';
+                    mobileUserIcon.style.cssText = 'color: #ff69b4; font-size: 20px;';
+                }
+            } catch (e) {
+                console.warn('mobileUserIcon 이모티콘 변경 실패:', e);
+            }
+        }
+        
         // 알림 벨 표시/숨김 설정
         const notificationContainer = document.getElementById('notification-container');
+        const mobileNotificationContainer = document.getElementById('mobile-notification-container');
+        
         if (notificationContainer) {
             try {
                 if (userInfo.provider === 'admin') {
@@ -423,7 +1331,19 @@ function updateTitleUI(userInfo) {
             }
         }
         
-        // 관리자 메뉴들 표시
+        if (mobileNotificationContainer) {
+            try {
+                if (userInfo.provider === 'admin') {
+                    mobileNotificationContainer.style.display = 'none'; // 관리자는 알림 벨 숨김
+                } else {
+                    mobileNotificationContainer.style.display = 'block'; // 일반 사용자는 알림 벨 표시
+                }
+            } catch (e) {
+                console.warn('모바일 알림 벨 표시 설정 실패:', e);
+            }
+        }
+        
+        // 관리자 메뉴들 표시 (데스크톱)
         const adminMenu1 = document.getElementById('admin-menu1');
         const adminMenu2 = document.getElementById('admin-menu2');
         
@@ -442,13 +1362,42 @@ function updateTitleUI(userInfo) {
             }
         }
         
-        // 관리자일 때는 마이페이지 메뉴 숨기기
+        // 관리자 메뉴들 표시 (모바일)
+        const mobileAdminMenu1 = document.getElementById('mobile-admin-menu1');
+        const mobileAdminMenu2 = document.getElementById('mobile-admin-menu2');
+        
+        if (mobileAdminMenu1 && mobileAdminMenu1.style) {
+            try {
+                mobileAdminMenu1.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
+            } catch (e) {
+                console.warn('mobileAdminMenu1 스타일 변경 실패:', e);
+            }
+        }
+        if (mobileAdminMenu2 && mobileAdminMenu2.style) {
+            try {
+                mobileAdminMenu2.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
+            } catch (e) {
+                console.warn('mobileAdminMenu2 스타일 변경 실패:', e);
+            }
+        }
+        
+        // 관리자일 때는 마이페이지 메뉴 숨기기 (데스크톱)
         const mypageMenu = document.getElementById('mypage-menu');
         if (mypageMenu && mypageMenu.style) {
             try {
                 mypageMenu.style.display = (userInfo.provider === 'admin') ? 'none' : 'block';
             } catch (e) {
                 console.warn('mypageMenu 스타일 변경 실패:', e);
+            }
+        }
+        
+        // 관리자일 때는 마이페이지 메뉴 숨기기 (모바일)
+        const mobileMypageMenu = document.getElementById('mobile-mypage-menu');
+        if (mobileMypageMenu && mobileMypageMenu.style) {
+            try {
+                mobileMypageMenu.style.display = (userInfo.provider === 'admin') ? 'none' : 'block';
+            } catch (e) {
+                console.warn('mobileMypageMenu 스타일 변경 실패:', e);
             }
         }
         
@@ -470,22 +1419,36 @@ function showLoggedOutUI() {
             return;
         }
         
+        // 데스크톱 UI 요소들
         const loginSection = document.getElementById('login-section');
         const userSection = document.getElementById('user-section');
         const adminMenu1 = document.getElementById('admin-menu1');
         const adminMenu2 = document.getElementById('admin-menu2');
         const mypageMenu = document.getElementById('mypage-menu');
         
+        // 모바일 UI 요소들
+        const mobileLoginSection = document.getElementById('mobile-login-section');
+        const mobileUserSection = document.getElementById('mobile-user-section');
+        const mobileAdminMenu1 = document.getElementById('mobile-admin-menu1');
+        const mobileAdminMenu2 = document.getElementById('mobile-admin-menu2');
+        const mobileMypageMenu = document.getElementById('mobile-mypage-menu');
+        const mobileNotificationContainer = document.getElementById('mobile-notification-container');
+        
         console.log('showLoggedOutUI 실행 - DOM 요소들:', {
             loginSection: !!loginSection,
             userSection: !!userSection,
             adminMenu1: !!adminMenu1,
             adminMenu2: !!adminMenu2,
-            adminMenu3: !!adminMenu3,
-            mypageMenu: !!mypageMenu
+            mypageMenu: !!mypageMenu,
+            mobileLoginSection: !!mobileLoginSection,
+            mobileUserSection: !!mobileUserSection,
+            mobileAdminMenu1: !!mobileAdminMenu1,
+            mobileAdminMenu2: !!mobileAdminMenu2,
+            mobileMypageMenu: !!mobileMypageMenu,
+            mobileNotificationContainer: !!mobileNotificationContainer
         });
         
-        // 각 요소가 존재하는지 확인하고 안전하게 처리
+        // 데스크톱 UI 업데이트
         if (loginSection && loginSection.style) {
             try {
                 loginSection.style.display = 'block';
@@ -514,18 +1477,55 @@ function showLoggedOutUI() {
                 console.warn('adminMenu2 스타일 변경 실패:', e);
             }
         }
-        if (adminMenu3 && adminMenu3.style) {
-            try {
-                adminMenu3.style.display = 'none';
-            } catch (e) {
-                console.warn('adminMenu3 스타일 변경 실패:', e);
-            }
-        }
         if (mypageMenu && mypageMenu.style) {
             try {
                 mypageMenu.style.display = 'none';
             } catch (e) {
                 console.warn('mypageMenu 스타일 변경 실패:', e);
+            }
+        }
+        
+        // 모바일 UI 업데이트
+        if (mobileLoginSection && mobileLoginSection.style) {
+            try {
+                mobileLoginSection.style.display = 'block';
+            } catch (e) {
+                console.warn('mobileLoginSection 스타일 변경 실패:', e);
+            }
+        }
+        if (mobileUserSection && mobileUserSection.style) {
+            try {
+                mobileUserSection.style.display = 'none';
+            } catch (e) {
+                console.warn('mobileUserSection 스타일 변경 실패:', e);
+            }
+        }
+        if (mobileAdminMenu1 && mobileAdminMenu1.style) {
+            try {
+                mobileAdminMenu1.style.display = 'none';
+            } catch (e) {
+                console.warn('mobileAdminMenu1 스타일 변경 실패:', e);
+            }
+        }
+        if (mobileAdminMenu2 && mobileAdminMenu2.style) {
+            try {
+                mobileAdminMenu2.style.display = 'none';
+            } catch (e) {
+                console.warn('mobileAdminMenu2 스타일 변경 실패:', e);
+            }
+        }
+        if (mobileMypageMenu && mobileMypageMenu.style) {
+            try {
+                mobileMypageMenu.style.display = 'none';
+            } catch (e) {
+                console.warn('mobileMypageMenu 스타일 변경 실패:', e);
+            }
+        }
+        if (mobileNotificationContainer && mobileNotificationContainer.style) {
+            try {
+                mobileNotificationContainer.style.display = 'none';
+            } catch (e) {
+                console.warn('mobileNotificationContainer 스타일 변경 실패:', e);
             }
         }
         
@@ -537,6 +1537,46 @@ function showLoggedOutUI() {
 
 // DOM 로드 시 초기 상태 확인 (coursedetail 방식)
 document.addEventListener('DOMContentLoaded', function() {
+    // 아이폰에서 햄버거 메뉴 강제 표시 및 데스크톱 메뉴 숨기기
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const desktopMenu = document.querySelector('.d-none.d-md-block');
+    const headerNav = document.querySelector('.header-nav');
+    
+    if (hamburgerBtn) {
+        const isMobile = window.innerWidth <= 991 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        console.log('햄버거 메뉴 초기화:', { 
+            isMobile: isMobile, 
+            windowWidth: window.innerWidth, 
+            userAgent: navigator.userAgent 
+        });
+        
+        if (isMobile) {
+            // 햄버거 메뉴 표시
+            hamburgerBtn.style.display = 'block';
+            hamburgerBtn.style.visibility = 'visible';
+            hamburgerBtn.style.opacity = '1';
+            
+            // 데스크톱 메뉴 숨기기
+            if (desktopMenu) {
+                desktopMenu.style.display = 'none';
+            }
+            if (headerNav) {
+                headerNav.style.display = 'none';
+            }
+        } else {
+            // 데스크톱에서는 햄버거 메뉴 숨기기
+            hamburgerBtn.style.display = 'none';
+            
+            // 데스크톱 메뉴 표시
+            if (desktopMenu) {
+                desktopMenu.style.display = 'block';
+            }
+            if (headerNav) {
+                headerNav.style.display = 'block';
+            }
+        }
+    }
+    
     // OAuth2 로그인 후 URL 파라미터에서 토큰 처리
     handleOAuth2Login();
     
@@ -547,6 +1587,47 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         showLoggedOutUI();
     }
+    
+    // 화면 크기 변경 시 햄버거 메뉴 재설정
+    window.addEventListener('resize', function() {
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const desktopMenu = document.querySelector('.d-none.d-md-block');
+        const headerNav = document.querySelector('.header-nav');
+        
+        if (hamburgerBtn) {
+            const isMobile = window.innerWidth <= 991 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            console.log('화면 크기 변경 - 햄버거 메뉴 재설정:', { 
+                isMobile: isMobile, 
+                windowWidth: window.innerWidth 
+            });
+            
+            if (isMobile) {
+                // 햄버거 메뉴 표시
+                hamburgerBtn.style.display = 'block';
+                hamburgerBtn.style.visibility = 'visible';
+                hamburgerBtn.style.opacity = '1';
+                
+                // 데스크톱 메뉴 숨기기
+                if (desktopMenu) {
+                    desktopMenu.style.display = 'none';
+                }
+                if (headerNav) {
+                    headerNav.style.display = 'none';
+                }
+            } else {
+                // 데스크톱에서는 햄버거 메뉴 숨기기
+                hamburgerBtn.style.display = 'none';
+                
+                // 데스크톱 메뉴 표시
+                if (desktopMenu) {
+                    desktopMenu.style.display = 'block';
+                }
+                if (headerNav) {
+                    headerNav.style.display = 'block';
+                }
+            }
+        }
+    });
 });
 
 // OAuth2 로그인 후 URL 파라미터 처리
@@ -844,6 +1925,56 @@ function updateTitleUIFromSavedInfo(userInfo) {
             }
         }
         
+        // 📱 모바일 햄버거 메뉴 업데이트 (즉시)
+        const mobileLoginSection = document.getElementById('mobile-login-section');
+        const mobileUserSection = document.getElementById('mobile-user-section');
+        const mobileUserNickname = document.getElementById('mobile-user-nickname');
+        const mobileUserIcon = document.getElementById('mobile-user-icon');
+        const mobileAdminMenu1 = document.getElementById('mobile-admin-menu1');
+        const mobileAdminMenu2 = document.getElementById('mobile-admin-menu2');
+        const mobileMypageMenu = document.getElementById('mobile-mypage-menu');
+        
+        if (mobileLoginSection && mobileUserSection) {
+            // 로그인 전 메뉴 숨기기
+            mobileLoginSection.style.display = 'none';
+            // 로그인 후 메뉴 표시
+            mobileUserSection.style.display = 'block';
+            console.log('updateTitleUIFromSavedInfo: 모바일 메뉴 - 로그인 상태로 변경');
+        }
+        
+        if (mobileUserNickname) {
+            try {
+                mobileUserNickname.textContent = (userInfo.nickname || userInfo.userid) + '님 환영합니다!';
+                console.log('updateTitleUIFromSavedInfo: 모바일 닉네임 업데이트 완료');
+            } catch (e) {
+                console.warn('updateTitleUIFromSavedInfo: 모바일 닉네임 텍스트 변경 실패:', e);
+            }
+        }
+        
+        // 모바일 관리자 메뉴 처리
+        if (mobileAdminMenu1 && mobileAdminMenu2) {
+            if (userInfo.provider === 'admin') {
+                mobileAdminMenu1.style.display = 'block';
+                mobileAdminMenu2.style.display = 'block';
+                console.log('updateTitleUIFromSavedInfo: 모바일 관리자 메뉴 활성화');
+            } else {
+                mobileAdminMenu1.style.display = 'none';
+                mobileAdminMenu2.style.display = 'none';
+                console.log('updateTitleUIFromSavedInfo: 모바일 일반 사용자 메뉴 설정');
+            }
+        }
+        
+        // 모바일 마이페이지 메뉴 처리
+        if (mobileMypageMenu) {
+            if (userInfo.provider === 'admin') {
+                mobileMypageMenu.style.display = 'none';
+                console.log('updateTitleUIFromSavedInfo: 모바일 관리자 - 마이페이지 메뉴 숨김');
+            } else {
+                mobileMypageMenu.style.display = 'block';
+                console.log('updateTitleUIFromSavedInfo: 모바일 일반 사용자 - 마이페이지 메뉴 표시');
+            }
+        }
+        
         console.log('즉시 UI 업데이트 완료:', userInfo.nickname || userInfo.userid);
     } catch (error) {
         console.warn('updateTitleUIFromSavedInfo 실행 중 오류:', error);
@@ -975,6 +2106,26 @@ function showLoggedOutUI() {
     const adminMenu2 = document.getElementById('admin-menu2');
     if (adminMenu1) adminMenu1.style.display = 'none';
     if (adminMenu2) adminMenu2.style.display = 'none';
+    
+    // 📱 모바일 햄버거 메뉴 로그아웃 상태로 업데이트
+    const mobileLoginSection = document.getElementById('mobile-login-section');
+    const mobileUserSection = document.getElementById('mobile-user-section');
+    const mobileAdminMenu1 = document.getElementById('mobile-admin-menu1');
+    const mobileAdminMenu2 = document.getElementById('mobile-admin-menu2');
+    const mobileMypageMenu = document.getElementById('mobile-mypage-menu');
+    
+    if (mobileLoginSection && mobileUserSection) {
+        // 로그인 전 메뉴 표시
+        mobileLoginSection.style.display = 'block';
+        // 로그인 후 메뉴 숨기기
+        mobileUserSection.style.display = 'none';
+        console.log('showLoggedOutUI: 모바일 메뉴 - 로그아웃 상태로 변경');
+    }
+    
+    // 모바일 관리자 메뉴들 숨기기
+    if (mobileAdminMenu1) mobileAdminMenu1.style.display = 'none';
+    if (mobileAdminMenu2) mobileAdminMenu2.style.display = 'none';
+    if (mobileMypageMenu) mobileMypageMenu.style.display = 'none';
 }
 
 // 로그아웃 함수
@@ -1275,8 +2426,10 @@ async function markAllAsRead() {
 // 알림 개수 업데이트
 async function updateNotificationBadge() {
     const badge = document.getElementById('notification-badge');
-    if (!badge) {
-        console.error('notification-badge 요소를 찾을 수 없습니다.');
+    const mobileBadge = document.getElementById('mobile-notification-badge');
+    
+    if (!badge && !mobileBadge) {
+        console.error('알림 배지 요소를 찾을 수 없습니다.');
         return;
     }
     
@@ -1291,19 +2444,46 @@ async function updateNotificationBadge() {
             const count = data.count || 0;
             console.log('받은 알림 개수:', count);
             
-            // 항상 배지 표시 (0개여도 +0으로 표시)
+            // 데스크톱 배지 업데이트
+            if (badge) {
             badge.textContent = '+' + count;
             badge.style.display = 'flex';
+            }
+            
+            // 모바일 배지 업데이트
+            if (mobileBadge) {
+                mobileBadge.textContent = count;
+                mobileBadge.style.display = count > 0 ? 'inline-block' : 'none';
+            }
         } else {
             console.error('알림 개수 API 실패:', response.status);
+            
+            // 데스크톱 배지 업데이트
+            if (badge) {
             badge.textContent = '+0';
             badge.style.display = 'flex';
+            }
+            
+            // 모바일 배지 업데이트
+            if (mobileBadge) {
+                mobileBadge.textContent = '0';
+                mobileBadge.style.display = 'none';
+            }
         }
     } catch (error) {
         console.error('알림 개수 업데이트 오류:', error);
-        // 오류 시에도 +0 표시
+        
+        // 데스크톱 배지 업데이트
+        if (badge) {
         badge.textContent = '+0';
         badge.style.display = 'flex';
+        }
+        
+        // 모바일 배지 업데이트
+        if (mobileBadge) {
+            mobileBadge.textContent = '0';
+            mobileBadge.style.display = 'none';
+        }
     }
 }
 
@@ -1599,7 +2779,58 @@ async function deleteNotificationFromModal(notificationId) {
     }
 }
 
+// 모바일 메뉴 제어 함수들
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileMenu) {
+        mobileMenu.style.display = 'flex';
+        // 약간의 지연 후 애니메이션 클래스 추가 (아이폰 호환성)
+        setTimeout(() => {
+            mobileMenu.classList.add('show');
+        }, 10);
+        
+        // body 스크롤 방지
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileMenu) {
+        mobileMenu.classList.remove('show');
+        // 애니메이션 완료 후 숨기기
+        setTimeout(() => {
+            mobileMenu.style.display = 'none';
+        }, 300);
+        
+        // body 스크롤 복원
+        document.body.style.overflow = '';
+    }
+}
+
+// 모바일 메뉴 외부 클릭 시 닫기
+document.addEventListener('click', function(event) {
+    const mobileMenu = document.getElementById('mobileMenu');
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    
+    if (mobileMenu && mobileMenu.style.display === 'flex') {
+        // 햄버거 버튼이나 메뉴 내용이 아닌 곳을 클릭했을 때
+        if (!mobileMenu.contains(event.target) && !hamburgerBtn.contains(event.target)) {
+            closeMobileMenu();
+        }
+    }
+});
+
+// ESC 키로 모바일 메뉴 닫기
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeMobileMenu();
+    }
+});
+
 // 전역 함수로 노출
+window.toggleMobileMenu = toggleMobileMenu;
+window.closeMobileMenu = closeMobileMenu;
 window.toggleNotifications = toggleNotifications;
 window.markNotificationAsRead = markNotificationAsRead;
 window.markAllAsRead = markAllAsRead;

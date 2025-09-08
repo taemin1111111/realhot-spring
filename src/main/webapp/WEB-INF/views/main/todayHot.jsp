@@ -31,6 +31,111 @@
 </div>
 
 <script>
+// 아이폰 감지 및 스타일 강제 적용
+function detectAndApplyIPhoneStyles() {
+    const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent) || 
+                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    
+    if (isIPhone || window.innerWidth <= 500) {
+        console.log('아이폰 감지됨 - 스타일 강제 적용');
+        
+        // CSS 스타일 강제 적용
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .today-hot-section .place-name {
+                font-size: 1.4rem !important;
+            }
+            .today-hot-section .stat-item {
+                font-size: 1.2rem !important;
+            }
+            .today-hot-section .today-hot-title {
+                font-size: 2.0rem !important;
+            }
+            .today-hot-section .rank-logo {
+                width: 48px !important;
+                height: 48px !important;
+            }
+            .today-hot-section .rank-number {
+                font-size: 1.2rem !important;
+            }
+            .today-hot-section .vote-percentage {
+                font-size: 0.9rem !important;
+            }
+            .today-hot-section .toggle-button {
+                font-size: 1.2rem !important;
+            }
+            .today-hot-section .today-hot-grid {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .today-hot-section .ranking-card {
+                width: 100% !important;
+                min-width: 0 !important;
+                flex: 1 1 33.333% !important;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // DOM 요소에 직접 스타일 적용 (더 강력한 방법)
+        setTimeout(() => {
+            const placeNames = document.querySelectorAll('.place-name');
+            const statItems = document.querySelectorAll('.stat-item');
+            const titles = document.querySelectorAll('.today-hot-title');
+            const rankNumbers = document.querySelectorAll('.rank-number');
+            const votePercentages = document.querySelectorAll('.vote-percentage');
+            const toggleButtons = document.querySelectorAll('.toggle-button');
+            const grids = document.querySelectorAll('.today-hot-grid');
+            const cards = document.querySelectorAll('.ranking-card');
+            
+            placeNames.forEach(el => {
+                el.style.setProperty('font-size', '1.4rem', 'important');
+            });
+            statItems.forEach(el => {
+                el.style.setProperty('font-size', '1.2rem', 'important');
+            });
+            titles.forEach(el => {
+                el.style.setProperty('font-size', '2.0rem', 'important');
+            });
+            
+            // 로고 크기 강제 적용
+            const logos = document.querySelectorAll('.rank-logo');
+            logos.forEach(el => {
+                el.style.setProperty('width', '48px', 'important');
+                el.style.setProperty('height', '48px', 'important');
+            });
+            rankNumbers.forEach(el => {
+                el.style.setProperty('font-size', '1.2rem', 'important');
+            });
+            votePercentages.forEach(el => {
+                el.style.setProperty('font-size', '0.9rem', 'important');
+            });
+            toggleButtons.forEach(el => {
+                el.style.setProperty('font-size', '1.2rem', 'important');
+            });
+            
+            // 그리드 스타일 강제 적용
+            grids.forEach(el => {
+                el.style.setProperty('display', 'grid', 'important');
+                el.style.setProperty('grid-template-columns', 'repeat(3, 1fr)', 'important');
+                el.style.setProperty('width', '100%', 'important');
+                el.style.setProperty('max-width', '100%', 'important');
+            });
+            
+            // 카드 스타일 강제 적용
+            cards.forEach(el => {
+                el.style.setProperty('width', '100%', 'important');
+                el.style.setProperty('min-width', '0', 'important');
+                el.style.setProperty('flex', '1 1 33.333%', 'important');
+            });
+        }, 100);
+    }
+}
+
+// 페이지 로드 시 아이폰 스타일 적용
+document.addEventListener('DOMContentLoaded', detectAndApplyIPhoneStyles);
+
 // 오늘 핫 순위 데이터 로드
 async function loadTodayHotRanking() {
     const grid = document.getElementById('todayHotGrid');
@@ -39,7 +144,7 @@ async function loadTodayHotRanking() {
     try {
         // 로딩 상태 표시
         grid.innerHTML = '';
-        for (let i = 1; i <= 10; i++) {
+        for (let i = 1; i <= 12; i++) {
             const loadingCard = document.createElement('div');
             loadingCard.className = 'ranking-card loading-card';
             loadingCard.innerHTML = `
@@ -52,20 +157,22 @@ async function loadTodayHotRanking() {
         // 실제 API 호출
         const rankingData = await fetchRealTodayHotData();
         
-        // 그리드 업데이트 (10개 순위 모두 표시)
+        // 그리드 업데이트 (12개 순위 모두 표시)
         grid.innerHTML = '';
         
-        // 1-10위까지 모두 렌더링 (데이터가 없으면 빈 카드 표시)
-        for (let i = 0; i < 10; i++) {
+        // 1-12위까지 모두 렌더링 (데이터가 없으면 빈 카드 표시)
+        for (let i = 0; i < 12; i++) {
             const rank = i + 1;
             const item = rankingData[i] || null;
             const card = createRankingCard(rank, item);
             grid.appendChild(card);
         }
         
-        // 초기에는 5위까지만 보이도록 설정
+        // 초기에는 3위까지만 보이도록 설정
         setTimeout(() => {
-            showTop5Only();
+            showTop3Only();
+            // 데이터 로드 후 아이폰 스타일 다시 적용
+            detectAndApplyIPhoneStyles();
         }, 100);
         
     } catch (error) {
@@ -192,14 +299,14 @@ async function fetchRealTodayHotData() {
 }
 
 // 5위까지만 보이기
-function showTop5Only() {
+function showTop3Only() {
     const grid = document.getElementById('todayHotGrid');
     const toggleButton = document.getElementById('toggleButton');
     const cards = grid.querySelectorAll('.ranking-card');
     
-    // 모든 카드를 숨기고 1-5위만 보이게 하기
+    // 모든 카드를 숨기고 1-3위만 보이게 하기
     cards.forEach((card, index) => {
-        if (index < 5) {
+        if (index < 3) {
             card.style.display = 'block';
         } else {
             card.style.display = 'none';
@@ -210,12 +317,12 @@ function showTop5Only() {
     grid.classList.add('collapsed');
     
     // 버튼 텍스트 변경
-    toggleButton.querySelector('.text').textContent = '더 보기 (6-10위)';
+    toggleButton.querySelector('.text').textContent = '더 보기 (4-12위)';
     toggleButton.classList.remove('expanded');
 }
 
-// 10위까지 모두 보이기
-function showAll10() {
+// 12위까지 모두 보이기
+function showAll12() {
     const grid = document.getElementById('todayHotGrid');
     const toggleButton = document.getElementById('toggleButton');
     const cards = grid.querySelectorAll('.ranking-card');
@@ -229,7 +336,7 @@ function showAll10() {
     grid.classList.add('expanded');
     
     // 버튼 텍스트 변경
-    toggleButton.querySelector('.text').textContent = '접기 (1-5위만)';
+    toggleButton.querySelector('.text').textContent = '접기 (1-3위만)';
     toggleButton.classList.add('expanded');
 }
 
@@ -238,10 +345,15 @@ function toggleRanking() {
     const grid = document.getElementById('todayHotGrid');
     
     if (grid.classList.contains('collapsed')) {
-        showAll10();
+        showAll12();
     } else {
-        showTop5Only();
+        showTop3Only();
     }
+    
+    // 토글 후 아이폰 스타일 다시 적용
+    setTimeout(() => {
+        detectAndApplyIPhoneStyles();
+    }, 50);
 }
 
 // 성비 표시 포맷팅 함수

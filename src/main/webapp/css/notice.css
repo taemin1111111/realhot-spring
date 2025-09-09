@@ -40,7 +40,7 @@ body:has(.notice-page) {
 .notice-content-wrapper .main-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 10px;
 }
 
 /* 공지사항 상세 페이지 */
@@ -78,7 +78,7 @@ body:has(.notice-detail-page) {
 .notice-detail-content-wrapper .main-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 10px;
 }
 
 /* 공지사항 제목 */
@@ -107,6 +107,7 @@ body:has(.notice-detail-page) {
     background: transparent;
     padding: 0;
     margin-bottom: 20px;
+    width: 100%;
 }
 
 .notice-list-header {
@@ -126,9 +127,9 @@ body:has(.notice-detail-page) {
 }
 
 .notice-write-btn {
-    font-size: 14px;
-    padding: 8px 16px;
-    border-radius: 6px;
+    font-size: 18px;
+    padding: 12px 24px;
+    border-radius: 8px;
     background: #6c757d;
     border: none;
     color: white;
@@ -138,7 +139,7 @@ body:has(.notice-detail-page) {
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .notice-write-btn:hover {
@@ -151,25 +152,26 @@ body:has(.notice-detail-page) {
 
 .notice-count {
     color: #666666;
-    font-size: 16px;
-    margin-bottom: 20px;
+    font-size: 20px;
+    margin-bottom: 25px;
     font-weight: bold;
 }
 
 /* 게시글 목록 헤더 */
 .notice-header {
     margin: 20px 0 5px 0;
+    width: 100%;
 }
 
 .notice-header .row {
     color: #000000;
     font-weight: bold;
-    font-size: 16px;
+    font-size: 20px;
 }
 
 .notice-header .row > div {
     text-align: center;
-    padding: 12px 5px;
+    padding: 16px 4px;
     color: #000000;
     font-weight: bold;
 }
@@ -185,11 +187,12 @@ body:has(.notice-detail-page) {
 /* 게시글 목록 영역 */
 .notice-content {
     min-height: 300px;
+    width: 100%;
 }
 
 /* 게시글 아이템 */
 .notice-item {
-    padding: 8px 0;
+    padding: 12px 0;
     border-bottom: 1px solid #f0f0f0;
     transition: background-color 0.2s ease;
     cursor: pointer;
@@ -206,8 +209,17 @@ body:has(.notice-detail-page) {
 
 .notice-item > div {
     text-align: center;
-    padding: 6px 5px;
+    padding: 10px 4px;
     color: #000000;
+    font-size: 16px;
+}
+
+/* 제목 컬럼 특별 스타일 */
+.notice-item .col-6 {
+    text-align: left !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    color: #000000 !important;
 }
 
 /* 제목 텍스트 스타일 */
@@ -217,12 +229,14 @@ body:has(.notice-detail-page) {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+    font-size: 18px;
+    font-weight: 600;
 }
 
 /* 작성일 회색 스타일 */
 .notice-date {
     color: #666666 !important;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 /* 게시글 아이템 구분선 */
@@ -252,7 +266,7 @@ body:has(.notice-detail-page) {
     background-color: #ffffff;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 15px;
+    padding: 0 5px;
 }
 
 /* 공지사항 상세 스타일 */
@@ -505,12 +519,12 @@ textarea.form-control {
     background: transparent;
     color: #007bff;
     padding: 0;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
-    margin-left: 5px;
+    margin-left: 8px;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
 }
 
 /* 반응형 디자인 */
@@ -547,8 +561,8 @@ textarea.form-control {
     }
     
     .notice-header .row > div {
-        font-size: 14px;
-        padding: 8px 2px;
+        font-size: 16px;
+        padding: 12px 2px;
     }
     
     .notice-title h2 {
@@ -556,7 +570,11 @@ textarea.form-control {
     }
     
     .notice-item > div {
-        font-size: 14px;
-        padding: 4px 2px;
+        font-size: 15px;
+        padding: 8px 2px;
+    }
+    
+    .notice-item .col-6 {
+        font-size: 16px !important;
     }
 }

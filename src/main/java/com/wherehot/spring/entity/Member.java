@@ -191,10 +191,10 @@ public class Member {
     
     /**
      * 계정이 활성화 상태인지 확인
-     * Model1 호환성: 'A'(정상), 'C'(정지)
+     * Model1 호환성: 'A'(정상), 'B'(경고), 'C'(정지), 'W'(탈퇴)
      */
     public boolean isActive() {
-        return "A".equals(status) || "정상".equals(status);
+        return "A".equals(status) || "B".equals(status) || "정상".equals(status);
     }
     
     /**

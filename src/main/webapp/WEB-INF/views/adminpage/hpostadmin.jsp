@@ -187,6 +187,10 @@ function displayReportedPosts(posts) {
                             '<i class="bi bi-chevron-down"></i>' +
                             '신고 상세보기' +
                         '</button>' +
+                        '<button class="report-status-btn" onclick="showMemberStatusModal(\'' + (post.userid || '') + '\', \'' + (post.nickname || '') + '\', \'' + (post.status || 'A') + '\')" title="회원 상태 변경">' +
+                            '<i class="bi bi-person-gear"></i>' +
+                            '정지' +
+                        '</button>' +
                         '<button class="report-delete-btn" onclick="deleteHpost(' + postId + ')" title="게시물 삭제">' +
                             '<i class="bi bi-trash"></i>' +
                             '삭제' +
@@ -388,4 +392,148 @@ async function deleteHpost(postId) {
         alert('게시물 삭제 중 오류가 발생했습니다: ' + error.message);
     }
 }
+
+// 회원 상태 변경 모달 표시
+function showMemberStatusModal(userid, nickname, currentStatus) {
+    // 안전한 값 처리
+    const safeUserid = userid || '알 수 없음';
+    const safeNickname = nickname || '알 수 없음';
+    const safeStatus = currentStatus || 'A';
+    
+    document.getElementById('statusModalUserid').textContent = safeUserid;
+    document.getElementById('statusModalNickname').textContent = safeNickname;
+    document.getElementById('statusModalCurrentStatus').textContent = getStatusText(safeStatus);
+    
+    // 현재 상태에 따라 라디오 버튼 선택
+    const statusRadios = document.querySelectorAll('input[name="newStatus"]');
+    statusRadios.forEach(radio => {
+        radio.checked = radio.value === safeStatus;
+    });
+    
+    $('#memberStatusModal').modal('show');
+}
+
+// 상태 텍스트 변환
+function getStatusText(status) {
+    switch(status) {
+        case 'A': return '정상';
+        case 'B': return '경고';
+        case 'C': return '정지';
+        case 'W': return '삭제';
+        default: return status;
+    }
+}
+
+// 회원 상태 변경 실행
+async function changeMemberStatus() {
+    const userid = document.getElementById('statusModalUserid').textContent;
+    const nickname = document.getElementById('statusModalNickname').textContent;
+    const newStatus = document.querySelector('input[name="newStatus"]:checked').value;
+    
+    // 유효성 검사
+    if (!userid || userid === '알 수 없음') {
+        alert('회원 정보를 찾을 수 없습니다.');
+        return;
+    }
+    
+    const statusText = getStatusText(newStatus);
+    if (!confirm('정말로 ' + userid + '(' + nickname + ')의 상태를 ' + statusText + '로 변경하시겠습니까?')) {
+        return;
+    }
+    
+    try {
+        const baseUrl = '<%=root%>';
+        const url = baseUrl + '/admin/member/status';
+        
+        const response = await fetchWithAuth(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userid: userid,
+                status: newStatus
+            })
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('회원 상태가 성공적으로 변경되었습니다.');
+            $('#memberStatusModal').modal('hide');
+            // 목록 새로고침
+            loadReportsByCount();
+        } else {
+            alert(data.message || '회원 상태 변경에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('회원 상태 변경 오류:', error);
+        alert('회원 상태 변경 중 오류가 발생했습니다: ' + error.message);
+    }
+}
 </script>
+
+<!-- 회원 상태 변경 모달 -->
+<div class="modal fade" id="memberStatusModal" tabindex="-1" aria-labelledby="memberStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="memberStatusModalLabel">회원 상태 변경</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">회원 정보</label>
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="mb-1"><strong>아이디:</strong> <span id="statusModalUserid"></span></p>
+                            <p class="mb-1"><strong>닉네임:</strong> <span id="statusModalNickname"></span></p>
+                            <p class="mb-0"><strong>현재 상태:</strong> <span id="statusModalCurrentStatus"></span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">새로운 상태 선택</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="newStatus" id="statusA" value="A">
+                        <label class="form-check-label" for="statusA">
+                            <span class="badge bg-success">A - 정상</span>
+                            <small class="text-muted d-block">모든 기능 사용 가능</small>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="newStatus" id="statusB" value="B">
+                        <label class="form-check-label" for="statusB">
+                            <span class="badge bg-warning">B - 경고</span>
+                            <small class="text-muted d-block">로그인 가능, 일부 기능 제한</small>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="newStatus" id="statusC" value="C">
+                        <label class="form-check-label" for="statusC">
+                            <span class="badge bg-danger">C - 정지</span>
+                            <small class="text-muted d-block">로그인 불가, 계정 정지</small>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="newStatus" id="statusW" value="W">
+                        <label class="form-check-label" for="statusW">
+                            <span class="badge bg-secondary">W - 삭제</span>
+                            <small class="text-muted d-block">계정 삭제, 로그인 불가</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary" onclick="changeMemberStatus()">상태 변경</button>
+            </div>
+        </div>
+    </div>
+</div>

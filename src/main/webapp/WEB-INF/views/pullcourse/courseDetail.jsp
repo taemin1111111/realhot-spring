@@ -128,6 +128,12 @@ if (typeof window.fetchWithAuth === 'undefined') {
                             ${step.placeName}
                             <c:if test="${not empty step.placeAddress}">
                                 <span class="course-detail-step-address">(${step.placeAddress})</span>
+                                <span onclick="copyAddress('${step.placeAddress}')" class="course-detail-copy-btn" title="주소 복사">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                </span>
                             </c:if>
                         </span>
                     </div>
@@ -1671,6 +1677,50 @@ function confirmReport() {
         console.error('신고 오류:', error);
         showCourseMessage('신고 중 오류가 발생했습니다.', 'error');
     });
+}
+
+// 주소 복사 함수
+function copyAddress(address) {
+    if (navigator.clipboard && window.isSecureContext) {
+        // 최신 브라우저에서 지원하는 Clipboard API 사용
+        navigator.clipboard.writeText(address).then(function() {
+            showCourseMessage('주소가 클립보드에 복사되었습니다!', 'success');
+        }).catch(function(err) {
+            console.error('클립보드 복사 실패:', err);
+            fallbackCopyTextToClipboard(address);
+        });
+    } else {
+        // 구형 브라우저용 fallback
+        fallbackCopyTextToClipboard(address);
+    }
+}
+
+// 구형 브라우저용 주소 복사 함수
+function fallbackCopyTextToClipboard(text) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        var successful = document.execCommand('copy');
+        if (successful) {
+            showCourseMessage('주소가 클립보드에 복사되었습니다!', 'success');
+        } else {
+            showCourseMessage('주소 복사에 실패했습니다.', 'error');
+        }
+    } catch (err) {
+        console.error('Fallback 복사 실패:', err);
+        showCourseMessage('주소 복사에 실패했습니다.', 'error');
+    }
+    
+    document.body.removeChild(textArea);
 }
 
 // 페이지 클릭 시 메뉴 닫기

@@ -57,7 +57,12 @@ public class AuthServiceImpl implements AuthService {
             logger.info("User found: {}, provider: {}, status: {}", member.getUserid(), member.getProvider(), member.getStatus());
             
             // 계정 상태 확인
-            if (!member.isActive()) {
+            String status = member.getStatus();
+            if ("C".equals(status)) {
+                throw new BadCredentialsException("정지된 회원입니다.");
+            } else if ("W".equals(status)) {
+                throw new BadCredentialsException("삭제된 회원입니다.");
+            } else if (!"A".equals(status) && !"B".equals(status)) {
                 throw new BadCredentialsException("정지된 계정입니다. 관리자에게 문의하세요.");
             }
             
@@ -235,8 +240,18 @@ public class AuthServiceImpl implements AuthService {
             
             // 사용자 정보 조회
             Optional<Member> memberOpt = memberMapper.findByUserid(userid);
-            if (memberOpt.isEmpty() || !memberOpt.get().isActive()) {
-                throw new IllegalArgumentException("사용자를 찾을 수 없거나 비활성 상태입니다.");
+            if (memberOpt.isEmpty()) {
+                throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+            }
+            
+            Member member = memberOpt.get();
+            String status = member.getStatus();
+            if ("C".equals(status)) {
+                throw new IllegalArgumentException("정지된 회원입니다.");
+            } else if ("W".equals(status)) {
+                throw new IllegalArgumentException("삭제된 회원입니다.");
+            } else if (!"A".equals(status) && !"B".equals(status)) {
+                throw new IllegalArgumentException("비활성 상태입니다.");
             }
             
             // 새 액세스 토큰 생성

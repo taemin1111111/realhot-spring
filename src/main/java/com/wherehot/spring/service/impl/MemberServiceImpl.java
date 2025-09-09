@@ -368,10 +368,20 @@ public class MemberServiceImpl implements MemberService {
         try {
             Map<String, Object> statistics = new HashMap<>();
             
-            // 기본 통계
+            // 기본 통계 - status별 회원 수
             statistics.put("totalMembers", memberMapper.countMembers());
-            statistics.put("activeMembers", memberMapper.countActiveMembers());
-            statistics.put("dormantMembers", memberMapper.countDormantMembers(90)); // 90일 이상 미접속
+            statistics.put("normal", memberMapper.countActiveMembers());      // A - 정상
+            statistics.put("warning", memberMapper.countWarningMembers());    // B - 경고
+            statistics.put("suspended", memberMapper.countSuspendedMembers()); // C - 정지
+            statistics.put("withdrawn", memberMapper.countWithdrawnMembers()); // W - 탈퇴
+            
+            // 휴면 회원 수 (90일 이상 미접속)
+            try {
+                statistics.put("dormantMembers", memberMapper.countDormantMembers(90));
+            } catch (Exception e) {
+                logger.warn("휴면 회원 수 조회 실패, 0으로 설정", e);
+                statistics.put("dormantMembers", 0);
+            }
             
             // 월별 가입자 수
             statistics.put("monthlyStats", memberMapper.getMemberStatsByMonth());
@@ -434,6 +444,18 @@ public class MemberServiceImpl implements MemberService {
         } catch (Exception e) {
             logger.error("Error getting member stats by age", e);
             throw new RuntimeException("연령대별 회원 통계 조회 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<Member> findMembersByStatus(String status, int page, int size) {
+        try {
+            int offset = page * size;
+            return memberMapper.findMembersByStatus(status, offset, size);
+        } catch (Exception e) {
+            logger.error("Error finding members by status: status={}, page={}, size={}", status, page, size, e);
+            throw new RuntimeException("상태별 회원 조회 중 오류가 발생했습니다.", e);
         }
     }
 }

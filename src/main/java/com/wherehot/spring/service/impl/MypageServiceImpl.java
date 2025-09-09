@@ -342,19 +342,76 @@ public class MypageServiceImpl implements MypageService {
                 return false;
             }
             
-            // 비밀번호 확인
-            if (!passwordEncoder.matches(password, member.getPassword())) {
-                logger.error("Password does not match for userid: {}", userid);
-                return false;
+            // 네이버 로그인 사용자가 아닌 경우에만 비밀번호 확인
+            if (!"naver".equals(member.getProvider())) {
+                if (password == null || password.trim().isEmpty()) {
+                    logger.error("Password is required for non-Naver users: {}", userid);
+                    return false;
+                }
+                
+                // 비밀번호 확인
+                if (!passwordEncoder.matches(password, member.getPassword())) {
+                    logger.error("Password does not match for userid: {}", userid);
+                    return false;
+                }
             }
             
-            // 회원 탈퇴 처리 (상태를 'withdrawn'으로 변경)
-            int result = mypageMapper.updateMemberStatus(userid, "withdrawn");
-            return result > 0;
+            // 탈퇴 시 관련 데이터 삭제 처리
+            deleteUserRelatedData(userid);
+            
+            // 회원 탈퇴 처리 (상태를 'W'로 변경 - Withdrawn)
+            int result = mypageMapper.updateMemberStatus(userid, "W");
+            
+            if (result > 0) {
+                logger.info("Member withdrawal completed successfully: {}", userid);
+                return true;
+            } else {
+                logger.error("Failed to update member status for userid: {}", userid);
+                return false;
+            }
             
         } catch (Exception e) {
             logger.error("Error withdrawing member for userid: {}", userid, e);
             return false;
+        }
+    }
+    
+    /**
+     * 탈퇴 시 사용자 관련 데이터 삭제
+     */
+    private void deleteUserRelatedData(String userid) {
+        try {
+            logger.info("Deleting related data for user: {}", userid);
+            
+            // 1. 찜 목록 삭제
+            mypageMapper.deleteAllWishlistByUserid(userid);
+            
+            // 2. MD 찜 목록 삭제
+            mypageMapper.deleteAllMdWishlistByUserid(userid);
+            
+            // 3. 게시글 삭제
+            mypageMapper.deleteAllCoursePostsByUserid(userid);
+            mypageMapper.deleteAllHottalkPostsByUserid(userid);
+            
+            // 4. 댓글 삭제
+            mypageMapper.deleteAllHottalkCommentsByUserid(userid);
+            mypageMapper.deleteAllCourseCommentsByUserid(userid);
+            
+            // 5. 투표 기록 삭제
+            mypageMapper.deleteAllHottalkVotesByUserid(userid);
+            mypageMapper.deleteAllHottalkCommentVotesByUserid(userid);
+            mypageMapper.deleteAllCourseReactionsByUserid(userid);
+            mypageMapper.deleteAllCourseCommentReactionsByUserid(userid);
+            
+            // 6. 신고 기록 삭제
+            mypageMapper.deleteAllHottalkReportsByUserid(userid);
+            mypageMapper.deleteAllCourseReportsByUserid(userid);
+            
+            logger.info("Related data deletion completed for user: {}", userid);
+            
+        } catch (Exception e) {
+            logger.error("Error deleting related data for user: {}", userid, e);
+            // 데이터 삭제 실패해도 탈퇴는 진행 (로깅만)
         }
     }
     

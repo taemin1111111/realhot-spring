@@ -158,6 +158,26 @@ public interface MemberMapper {
     int countDormantMembers(@Param("days") int days);
     
     /**
+     * 경고 회원 수 조회
+     */
+    int countWarningMembers();
+    
+    /**
+     * 정지 회원 수 조회
+     */
+    int countSuspendedMembers();
+    
+    /**
+     * 탈퇴 회원 수 조회
+     */
+    int countWithdrawnMembers();
+    
+    /**
+     * 상태별 회원 목록 조회
+     */
+    List<Member> findMembersByStatus(@Param("status") String status, @Param("offset") int offset, @Param("limit") int limit);
+    
+    /**
      * 월별 가입자 수 통계
      */
     List<Map<String, Object>> getMemberStatsByMonth();

@@ -150,4 +150,9 @@ public interface MemberService {
      * 연령대별 통계
      */
     List<Map<String, Object>> getMemberStatsByAge();
+    
+    /**
+     * 상태별 회원 목록 조회
+     */
+    List<Member> findMembersByStatus(String status, int page, int size);
 }

@@ -225,10 +225,19 @@
                 </div>
                 <div class="modal-body">
                     <form id="withdrawForm">
-                        <div class="mb-3">
-                            <label class="form-label">비밀번호 확인</label>
-                            <input type="password" class="form-control" id="withdrawPassword" required>
+                        <!-- 네이버 로그인 사용자용 메시지 -->
+                        <div id="naverWithdrawMessage" class="alert alert-warning" style="display: none;">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>네이버 로그인 사용자</strong><br>
+                            탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.
                         </div>
+                        
+                        <!-- 일반 로그인 사용자용 비밀번호 입력 -->
+                        <div id="passwordInputSection" class="mb-3" style="display: none;">
+                            <label class="form-label">비밀번호 확인</label>
+                            <input type="password" class="form-control" id="withdrawPassword">
+                        </div>
+                        
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="withdrawConfirm" required>
                             <label class="form-check-label" for="withdrawConfirm">
@@ -619,9 +628,60 @@
             window.location.href = '<%=root%>/mypage/posts';
         }
 
+        // 전역 변수로 사용자 정보 저장
+        let currentUserInfo = null;
+
         // 회원 탈퇴 모달 표시
         function showWithdraw() {
-            $('#withdrawModal').modal('show');
+            // 사용자 정보가 없으면 먼저 로드
+            if (!currentUserInfo) {
+                loadUserInfo().then(() => {
+                    setupWithdrawModal();
+                    $('#withdrawModal').modal('show');
+                });
+            } else {
+                setupWithdrawModal();
+                $('#withdrawModal').modal('show');
+            }
+        }
+
+        // 사용자 정보 로드
+        function loadUserInfo() {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: '<%=root%>/mypage/api/user-info-for-withdraw',
+                    method: 'GET',
+                    headers: getRequestHeaders(),
+                    success: function(response) {
+                        currentUserInfo = response;
+                        resolve(response);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('사용자 정보 로드 오류:', error);
+                        reject(error);
+                    }
+                });
+            });
+        }
+
+        // 탈퇴 모달 설정
+        function setupWithdrawModal() {
+            if (!currentUserInfo) return;
+
+            // 모달 초기화
+            $('#withdrawPassword').val('');
+            $('#withdrawConfirm').prop('checked', false);
+
+            // 네이버 로그인 사용자인지 확인
+            if (currentUserInfo.provider === 'naver') {
+                $('#naverWithdrawMessage').show();
+                $('#passwordInputSection').hide();
+                $('#withdrawPassword').removeAttr('required');
+            } else {
+                $('#naverWithdrawMessage').hide();
+                $('#passwordInputSection').show();
+                $('#withdrawPassword').attr('required', 'required');
+            }
         }
 
         // 회원 탈퇴
@@ -629,30 +689,44 @@
             const password = $('#withdrawPassword').val();
             const confirmed = $('#withdrawConfirm').is(':checked');
 
-            if (!password) {
-                alert('비밀번호를 입력하세요.');
-                return;
-            }
-
             if (!confirmed) {
                 alert('탈퇴 동의에 체크해주세요.');
                 return;
             }
 
-            if (!confirm('정말로 탈퇴하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+            // 일반 로그인 사용자는 비밀번호 확인
+            if (currentUserInfo && currentUserInfo.provider !== 'naver') {
+                if (!password || password.trim() === '') {
+                    alert('비밀번호를 입력하세요.');
+                    return;
+                }
+            }
+
+            // 최종 확인
+            const confirmMessage = currentUserInfo && currentUserInfo.provider === 'naver' 
+                ? '정말로 탈퇴하시겠습니까?\n모든 데이터가 삭제되며 복구할 수 없습니다.'
+                : '정말로 탈퇴하시겠습니까?\n이 작업은 되돌릴 수 없습니다.';
+
+            if (!confirm(confirmMessage)) {
                 return;
+            }
+
+            // 탈퇴 요청 데이터 준비
+            const withdrawData = {};
+            if (currentUserInfo && currentUserInfo.provider !== 'naver') {
+                withdrawData.password = password;
             }
 
             $.ajax({
                 url: '<%=root%>/mypage/api/withdraw',
                 method: 'POST',
                 headers: getRequestHeaders(),
-                data: JSON.stringify({
-                    password: password
-                }),
+                data: JSON.stringify(withdrawData),
                 success: function(response) {
                     alert(response.message);
                     localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('userInfo');
                     window.location.href = '<%=root%>/';
                 },
                 error: function(xhr, status, error) {
@@ -660,7 +734,7 @@
                     if (xhr.responseJSON && xhr.responseJSON.error) {
                         alert('오류: ' + xhr.responseJSON.error);
                     } else {
-                        alert('서버 오류가 발생했습니다.');
+                        alert('탈퇴 처리 중 오류가 발생했습니다.');
                     }
                 }
             });

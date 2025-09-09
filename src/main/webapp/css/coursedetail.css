@@ -256,8 +256,8 @@ body.course-detail-page {
 
 /* 제목 */
 .course-detail-title {
-    font-size: 28px;
-    font-weight: 600;
+    font-size: 36px;
+    font-weight: 700;
     color: #000000;
     line-height: 1.3;
     text-align: left;
@@ -277,8 +277,9 @@ body.course-detail-page {
 }
 
 .course-detail-nickname {
-    font-weight: 600;
+    font-weight: 700;
     color: #495057;
+    font-size: 20px;
 }
 
 .course-detail-time {
@@ -342,8 +343,8 @@ body.course-detail-page {
 }
 
 .course-detail-step-place {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 24px;
+    font-weight: 700;
     color: #333333;
     text-align: left;
     word-wrap: break-word;
@@ -355,10 +356,27 @@ body.course-detail-page {
 }
 
 .course-detail-step-address {
-    font-size: 14px;
-    font-weight: 400;
+    font-size: 18px;
+    font-weight: 500;
     color: #888888;
     margin-left: 8px;
+}
+
+.course-detail-copy-btn {
+    cursor: pointer;
+    color: #1275E0;
+    margin-left: 6px;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    padding: 2px;
+    border-radius: 3px;
+}
+
+.course-detail-copy-btn:hover {
+    color: #0d5bb8;
+    background-color: rgba(18, 117, 224, 0.1);
+    transform: scale(1.1);
 }
 
 .course-detail-step-photo {
@@ -428,9 +446,9 @@ body.course-detail-page {
 .course-detail-summary p {
     color: #333333;
     line-height: 1.6;
-    font-size: 20px;
+    font-size: 24px;
     text-align: center;
-    font-weight: 400;
+    font-weight: 500;
 }
 
 /* 좋아요/싫어요 버튼 */
@@ -983,7 +1001,7 @@ body.course-detail-page {
     }
     
     .course-detail-title {
-        font-size: 24px;
+        font-size: 28px;
     }
     
     .comment-input-row {

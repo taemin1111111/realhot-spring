@@ -114,4 +114,20 @@ public interface MypageMapper {
      * MD 찜 해제
      */
     int removeMdWish(@Param("userid") String userid, @Param("wishId") int wishId);
+    
+    /**
+     * 탈퇴 시 사용자 관련 데이터 삭제 메서드들
+     */
+    int deleteAllWishlistByUserid(@Param("userid") String userid);
+    int deleteAllMdWishlistByUserid(@Param("userid") String userid);
+    int deleteAllCoursePostsByUserid(@Param("userid") String userid);
+    int deleteAllHottalkPostsByUserid(@Param("userid") String userid);
+    int deleteAllHottalkCommentsByUserid(@Param("userid") String userid);
+    int deleteAllCourseCommentsByUserid(@Param("userid") String userid);
+    int deleteAllHottalkVotesByUserid(@Param("userid") String userid);
+    int deleteAllHottalkCommentVotesByUserid(@Param("userid") String userid);
+    int deleteAllCourseReactionsByUserid(@Param("userid") String userid);
+    int deleteAllCourseCommentReactionsByUserid(@Param("userid") String userid);
+    int deleteAllHottalkReportsByUserid(@Param("userid") String userid);
+    int deleteAllCourseReportsByUserid(@Param("userid") String userid);
 }

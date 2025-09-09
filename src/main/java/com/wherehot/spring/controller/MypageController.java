@@ -558,6 +558,40 @@ public class MypageController {
     }
     
     /**
+     * 사용자 정보 조회 (탈퇴 모달용)
+     */
+    @GetMapping("/api/user-info-for-withdraw")
+    @ResponseBody
+    public ResponseEntity<?> getUserInfoForWithdraw(HttpServletRequest request) {
+        try {
+            String token = extractTokenFromRequest(request);
+            if (token == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "인증 토큰이 필요합니다."));
+            }
+            
+            Member member = authService.getUserFromToken(token);
+            if (member == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "유효하지 않은 토큰입니다."));
+            }
+            
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("userid", member.getUserid());
+            userInfo.put("nickname", member.getNickname());
+            userInfo.put("provider", member.getProvider());
+            userInfo.put("status", member.getStatus());
+            
+            return ResponseEntity.ok(userInfo);
+            
+        } catch (Exception e) {
+            logger.error("Error getting user info: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "사용자 정보 조회 중 오류가 발생했습니다."));
+        }
+    }
+    
+    /**
      * 회원 탈퇴
      */
     @PostMapping("/api/withdraw")
@@ -577,13 +611,33 @@ public class MypageController {
                     .body(Map.of("error", "유효하지 않은 토큰입니다."));
             }
             
+            // 관리자 계정 탈퇴 방지
+            if ("admin".equals(member.getUserid())) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "관리자 계정은 탈퇴할 수 없습니다."));
+            }
+            
             String password = withdrawData.get("password");
-            if (password == null) {
+            boolean withdrawn = false;
+            
+            // 네이버 로그인 사용자는 비밀번호 확인 없이 바로 탈퇴
+            if ("naver".equals(member.getProvider())) {
+                withdrawn = mypageService.withdrawMember(member.getUserid(), null);
+                if (withdrawn) {
+                    return ResponseEntity.ok(Map.of("message", "회원 탈퇴가 완료되었습니다."));
+                } else {
+                    return ResponseEntity.badRequest()
+                        .body(Map.of("error", "회원 탈퇴 처리 중 오류가 발생했습니다."));
+                }
+            }
+            
+            // 일반 로그인 사용자는 비밀번호 확인 필요
+            if (password == null || password.trim().isEmpty()) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("error", "비밀번호 확인이 필요합니다."));
             }
             
-            boolean withdrawn = mypageService.withdrawMember(member.getUserid(), password);
+            withdrawn = mypageService.withdrawMember(member.getUserid(), password);
             if (withdrawn) {
                 return ResponseEntity.ok(Map.of("message", "회원 탈퇴가 완료되었습니다."));
             } else {

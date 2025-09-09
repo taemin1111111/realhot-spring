@@ -14,11 +14,14 @@
             p.likes,
             p.dislikes,
             p.created_at,
+            p.userid,
+            m.status,
             COUNT(r.id) as report_count,
             MAX(r.report_time) as latest_report_time
         FROM hottalk_post p
         INNER JOIN hottalk_report r ON p.id = r.post_id
-        GROUP BY p.id, p.title, p.nickname, p.content, p.views, p.likes, p.dislikes, p.created_at
+        LEFT JOIN member m ON p.userid = m.userid
+        GROUP BY p.id, p.title, p.nickname, p.content, p.views, p.likes, p.dislikes, p.created_at, p.userid, m.status
         ORDER BY report_count DESC, latest_report_time DESC
     </select>
     
@@ -34,11 +37,14 @@
             p.likes,
             p.dislikes,
             p.created_at,
+            p.userid,
+            m.status,
             COUNT(r.id) as report_count,
             MAX(r.report_time) as latest_report_time
         FROM hottalk_post p
         INNER JOIN hottalk_report r ON p.id = r.post_id
-        GROUP BY p.id, p.title, p.nickname, p.content, p.views, p.likes, p.dislikes, p.created_at
+        LEFT JOIN member m ON p.userid = m.userid
+        GROUP BY p.id, p.title, p.nickname, p.content, p.views, p.likes, p.dislikes, p.created_at, p.userid, m.status
         ORDER BY latest_report_time DESC, report_count DESC
     </select>
     

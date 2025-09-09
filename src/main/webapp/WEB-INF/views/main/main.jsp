@@ -1304,16 +1304,34 @@
                   setTimeout(function() {
                     const wishCountElement = iw.querySelector('.wish-count-' + place.id);
                     if (wishCountElement) {
+                      // 타임아웃 설정 (5초)
+                      const wishTimeoutId = setTimeout(() => {
+                        wishCountElement.textContent = '?';
+                      }, 5000);
+                      
                       fetch(root + '/api/main/wish-count', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: 'placeId=' + place.id
                       })
-                      .then(response => response.json())
+                      .then(response => {
+                        if (!response.ok) {
+                          throw new Error('위시리스트 조회 실패: ' + response.status);
+                        }
+                        return response.json();
+                      })
                       .then(data => {
+                        clearTimeout(wishTimeoutId);
                         if (data.success) {
                           wishCountElement.textContent = data.count;
+                        } else {
+                          wishCountElement.textContent = '?';
                         }
+                      })
+                      .catch(error => {
+                        clearTimeout(wishTimeoutId);
+                        console.error('위시리스트 개수 로드 오류:', error);
+                        wishCountElement.textContent = '?';
                       });
                     }
                   }, 300);
@@ -1371,13 +1389,27 @@
                     setTimeout(function() {
                       const genresElement = iw.querySelector('#genres-' + place.id);
                       if (genresElement) {
+                        // 로딩 상태 표시
+                        genresElement.innerHTML = '🎵 장르: 로딩 중...';
+                        
+                        // 타임아웃 설정 (8초)
+                        const genreTimeoutId = setTimeout(() => {
+                          genresElement.innerHTML = '🎵 장르: 로드 실패';
+                        }, 8000);
+                        
                         fetch(root + '/api/main/genre', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                           body: 'action=getGenres&placeId=' + place.id
                         })
-                        .then(response => response.json())
+                        .then(response => {
+                          if (!response.ok) {
+                            throw new Error('장르 조회 실패: ' + response.status);
+                          }
+                          return response.json();
+                        })
                         .then(data => {
+                          clearTimeout(genreTimeoutId);
                           if (data.success && data.genres) {
                             const selectedGenres = data.genres.filter(genre => genre.isSelected);
                             if (selectedGenres.length > 0) {
@@ -1389,6 +1421,12 @@
                           } else {
                             genresElement.innerHTML = '🎵 장르: 미분류';
                           }
+                        })
+                        .catch(error => {
+                          clearTimeout(genreTimeoutId);
+                          console.error('장르 정보 로드 오류:', error);
+                          // 모바일에서 네트워크 불안정 시 재시도 버튼 제공
+                          genresElement.innerHTML = '🎵 장르: 로드 실패 <button onclick="retryGenreInfo(' + place.id + ')" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:0.7rem; margin-left:4px; cursor:pointer;">재시도</button>';
                         });
                       }
                     }, 500);
@@ -1643,16 +1681,34 @@
                   setTimeout(function() {
                     const wishCountElement = iw.querySelector('.wish-count-' + place.id);
                     if (wishCountElement) {
+                      // 타임아웃 설정 (5초)
+                      const wishTimeoutId = setTimeout(() => {
+                        wishCountElement.textContent = '?';
+                      }, 5000);
+                      
                       fetch(root + '/api/main/wish-count', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: 'placeId=' + place.id
                       })
-                      .then(response => response.json())
+                      .then(response => {
+                        if (!response.ok) {
+                          throw new Error('위시리스트 조회 실패: ' + response.status);
+                        }
+                        return response.json();
+                      })
                       .then(data => {
+                        clearTimeout(wishTimeoutId);
                         if (data.success) {
                           wishCountElement.textContent = data.count;
+                        } else {
+                          wishCountElement.textContent = '?';
                         }
+                      })
+                      .catch(error => {
+                        clearTimeout(wishTimeoutId);
+                        console.error('위시리스트 개수 로드 오류:', error);
+                        wishCountElement.textContent = '?';
                       });
                     }
                   }, 300);
@@ -1661,24 +1717,43 @@
                   setTimeout(function() {
                     const trendsElement = iw.querySelector('#voteTrends-' + place.id);
                     if (trendsElement) {
+                      // 로딩 상태 표시
+                      trendsElement.innerHTML = '<div style="color:#888; font-size:0.8rem;">📊 역대 투표: 로딩 중...</div>';
+                      
+                      // 타임아웃 설정 (10초)
+                      const timeoutId = setTimeout(() => {
+                        trendsElement.innerHTML = '<div style="color:#888; font-size:0.8rem;">📊 역대 투표: 로드 실패</div>';
+                      }, 10000);
+                      
                       // 투표 수 가져오기
                       fetch(root + '/api/main/vote-count', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: 'placeId=' + place.id
                       })
-                      .then(response => response.json())
+                      .then(response => {
+                        if (!response.ok) {
+                          throw new Error('투표 수 조회 실패: ' + response.status);
+                        }
+                        return response.json();
+                      })
                       .then(data => {
                         if (data.success) {
                           const voteCount = data.voteCount || 0;
                           // 투표 트렌드 가져오기
-                          fetch(root + '/api/main/vote-trends', {
+                          return fetch(root + '/api/main/vote-trends', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                             body: 'placeId=' + place.id
                           })
-                          .then(response => response.json())
+                          .then(response => {
+                            if (!response.ok) {
+                              throw new Error('투표 트렌드 조회 실패: ' + response.status);
+                            }
+                            return response.json();
+                          })
                           .then(trendData => {
+                            clearTimeout(timeoutId);
                             if (trendData.success && trendData.trends) {
                               const trends = trendData.trends;
                               const congestionText = trends.congestion || '데이터없음';
@@ -1699,9 +1774,21 @@
                                   '#성비:' + genderRatioText + ' ' +
                                   '#대기시간:' + waitTimeText +
                                 '</div>';
+                            } else {
+                              clearTimeout(timeoutId);
+                              trendsElement.innerHTML = '<div style="color:#888; font-size:0.8rem;">📊 역대 투표: ' + voteCount + '개 (데이터 없음)</div>';
                             }
                           });
+                        } else {
+                          clearTimeout(timeoutId);
+                          trendsElement.innerHTML = '<div style="color:#888; font-size:0.8rem;">📊 역대 투표: 조회 실패</div>';
                         }
+                      })
+                      .catch(error => {
+                        clearTimeout(timeoutId);
+                        console.error('투표 현황 로드 오류:', error);
+                        // 모바일에서 네트워크 불안정 시 재시도 버튼 제공
+                        trendsElement.innerHTML = '<div style="color:#888; font-size:0.8rem;">📊 역대 투표: 로드 실패 <button onclick="retryVoteTrends(' + place.id + ')" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:0.7rem; margin-left:4px; cursor:pointer;">재시도</button></div>';
                       });
                     }
                   }, 400);
@@ -1711,13 +1798,27 @@
                     setTimeout(function() {
                       const genresElement = iw.querySelector('#genres-' + place.id);
                       if (genresElement) {
+                        // 로딩 상태 표시
+                        genresElement.innerHTML = '🎵 장르: 로딩 중...';
+                        
+                        // 타임아웃 설정 (8초)
+                        const genreTimeoutId = setTimeout(() => {
+                          genresElement.innerHTML = '🎵 장르: 로드 실패';
+                        }, 8000);
+                        
                         fetch(root + '/api/main/genre', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                           body: 'action=getGenres&placeId=' + place.id
                         })
-                        .then(response => response.json())
+                        .then(response => {
+                          if (!response.ok) {
+                            throw new Error('장르 조회 실패: ' + response.status);
+                          }
+                          return response.json();
+                        })
                         .then(data => {
+                          clearTimeout(genreTimeoutId);
                           if (data.success && data.genres) {
                             const selectedGenres = data.genres.filter(genre => genre.isSelected);
                             if (selectedGenres.length > 0) {
@@ -1729,6 +1830,12 @@
                           } else {
                             genresElement.innerHTML = '🎵 장르: 미분류';
                           }
+                        })
+                        .catch(error => {
+                          clearTimeout(genreTimeoutId);
+                          console.error('장르 정보 로드 오류:', error);
+                          // 모바일에서 네트워크 불안정 시 재시도 버튼 제공
+                          genresElement.innerHTML = '🎵 장르: 로드 실패 <button onclick="retryGenreInfo(' + place.id + ')" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:0.7rem; margin-left:4px; cursor:pointer;">재시도</button>';
                         });
                       }
                     }, 500);
@@ -1996,10 +2103,38 @@
       return;
     }
     
+    // 로딩 상태 표시
+    containers.forEach(container => {
+      container.innerHTML = '<div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#f8f9fa; color:#6c757d; font-size:13px;">' +
+        '<div style="text-align:center;">' +
+          '<div style="font-size:24px; margin-bottom:8px;">⏳</div>' +
+          '<div>이미지 로딩 중...</div>' +
+        '</div>' +
+      '</div>';
+    });
+    
+    // 타임아웃 설정 (15초)
+    const imageTimeoutId = setTimeout(() => {
+      containers.forEach(container => {
+        container.innerHTML = '<div class="no-images" style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#f8f9fa; color:#6c757d; font-size:13px;">' +
+          '<div style="text-align:center;">' +
+            '<div style="font-size:48px; margin-bottom:8px;">❌</div>' +
+            '<div>이미지 로드 실패</div>' +
+          '</div>' +
+        '</div>';
+      });
+    }, 15000);
+    
     // Spring API 호출
     fetch(root + '/api/main/place-images?placeId=' + placeId)
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('이미지 조회 실패: ' + response.status);
+        }
+        return response.json();
+      })
       .then(data => {
+        clearTimeout(imageTimeoutId);
         containers.forEach(container => {
           if (data.success && data.images && data.images.length > 0) {
             // 이미지가 있는 경우 - 대표 이미지 표시
@@ -2036,11 +2171,142 @@
         });
       })
       .catch(error => {
+        clearTimeout(imageTimeoutId);
         console.error('이미지 로드 오류:', error);
         containers.forEach(container => {
-          container.innerHTML = '<div class="no-images" style="padding:20px; text-align:center; background:#f8f9fa; border-radius:0; color:#6c757d; font-size:13px;">이미지 로드 실패</div>';
+          container.innerHTML = '<div class="no-images" style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#f8f9fa; color:#6c757d; font-size:13px;">' +
+            '<div style="text-align:center;">' +
+              '<div style="font-size:48px; margin-bottom:8px;">❌</div>' +
+              '<div>이미지 로드 실패</div>' +
+            '</div>' +
+          '</div>';
         });
       });
+  }
+
+  // 투표 현황 재시도 함수
+  
+  function retryVoteTrends(placeId) {
+    const trendsElement = document.querySelector('#voteTrends-' + placeId);
+    if (!trendsElement) return;
+    
+    // 로딩 상태 표시
+    trendsElement.innerHTML = '<div style="color:#888; font-size:0.8rem;">📊 역대 투표: 재시도 중...</div>';
+    
+    // 타임아웃 설정 (10초)
+    const timeoutId = setTimeout(() => {
+      trendsElement.innerHTML = '<div style="color:#888; font-size:0.8rem;">📊 역대 투표: 로드 실패 <button onclick="retryVoteTrends(' + placeId + ')" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:0.7rem; margin-left:4px; cursor:pointer;">재시도</button></div>';
+    }, 10000);
+    
+    // 투표 수 가져오기
+    fetch(root + '/api/main/vote-count', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'placeId=' + placeId
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('투표 수 조회 실패: ' + response.status);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.success) {
+        const voteCount = data.voteCount || 0;
+        // 투표 트렌드 가져오기
+        return fetch(root + '/api/main/vote-trends', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'placeId=' + placeId
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('투표 트렌드 조회 실패: ' + response.status);
+          }
+          return response.json();
+        })
+        .then(trendData => {
+          clearTimeout(timeoutId);
+          if (trendData.success && trendData.trends) {
+            const trends = trendData.trends;
+            const congestionText = trends.congestion || '데이터없음';
+            const genderRatioText = formatGenderRatio(trends.genderRatio || '데이터없음');
+            const waitTimeText = trends.waitTime || '데이터없음';
+            
+            trendsElement.innerHTML = 
+              '<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">' +
+                '<div style="display:flex; gap:2px;">' +
+                  '<div style="width:3px; height:12px; background:#ff6b6b; border-radius:1px;"></div>' +
+                  '<div style="width:3px; height:8px; background:#4ecdc4; border-radius:1px;"></div>' +
+                  '<div style="width:3px; height:10px; background:#45b7d1; border-radius:1px;"></div>' +
+                '</div>' +
+                '<span style="color:#888; font-size:0.85rem;">역대 투표: ' + voteCount + '개</span>' +
+              '</div>' +
+              '<div style="color:#888; font-size:0.8rem; line-height:1.3;">' +
+                '#혼잡도:' + congestionText + ' ' +
+                '#성비:' + genderRatioText + ' ' +
+                '#대기시간:' + waitTimeText +
+              '</div>';
+          } else {
+            clearTimeout(timeoutId);
+            trendsElement.innerHTML = '<div style="color:#888; font-size:0.8rem;">📊 역대 투표: ' + voteCount + '개 (데이터 없음)</div>';
+          }
+        });
+      } else {
+        clearTimeout(timeoutId);
+        trendsElement.innerHTML = '<div style="color:#888; font-size:0.8rem;">📊 역대 투표: 조회 실패</div>';
+      }
+    })
+    .catch(error => {
+      clearTimeout(timeoutId);
+      console.error('투표 현황 재시도 오류:', error);
+      trendsElement.innerHTML = '<div style="color:#888; font-size:0.8rem;">📊 역대 투표: 로드 실패 <button onclick="retryVoteTrends(' + placeId + ')" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:0.7rem; margin-left:4px; cursor:pointer;">재시도</button></div>';
+    });
+  }
+
+  // 장르 정보 재시도 함수
+  function retryGenreInfo(placeId) {
+    const genresElement = document.querySelector('#genres-' + placeId);
+    if (!genresElement) return;
+    
+    // 로딩 상태 표시
+    genresElement.innerHTML = '🎵 장르: 재시도 중...';
+    
+    // 타임아웃 설정 (8초)
+    const genreTimeoutId = setTimeout(() => {
+      genresElement.innerHTML = '🎵 장르: 로드 실패 <button onclick="retryGenreInfo(' + placeId + ')" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:0.7rem; margin-left:4px; cursor:pointer;">재시도</button>';
+    }, 8000);
+    
+    fetch(root + '/api/main/genre', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'action=getGenres&placeId=' + placeId
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('장르 조회 실패: ' + response.status);
+      }
+      return response.json();
+    })
+    .then(data => {
+      clearTimeout(genreTimeoutId);
+      if (data.success && data.genres) {
+        const selectedGenres = data.genres.filter(genre => genre.isSelected);
+        if (selectedGenres.length > 0) {
+          const genreNames = selectedGenres.map(genre => genre.genreName).join(', ');
+          genresElement.innerHTML = '🎵 장르: ' + genreNames;
+        } else {
+          genresElement.innerHTML = '🎵 장르: 미분류';
+        }
+      } else {
+        genresElement.innerHTML = '🎵 장르: 미분류';
+      }
+    })
+    .catch(error => {
+      clearTimeout(genreTimeoutId);
+      console.error('장르 정보 재시도 오류:', error);
+      genresElement.innerHTML = '🎵 장르: 로드 실패 <button onclick="retryGenreInfo(' + placeId + ')" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:0.7rem; margin-left:4px; cursor:pointer;">재시도</button>';
+    });
   }
 
   // 위시리스트 개수 로드 함수 (Spring API 호출)

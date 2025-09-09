@@ -239,5 +239,69 @@
         WHERE wish_id = #{wishId} 
         AND userid = #{userid}
     </delete>
+    
+    <!-- 탈퇴 시 사용자 관련 데이터 삭제 쿼리들 -->
+    
+    <!-- 사용자 찜 목록 전체 삭제 -->
+    <delete id="deleteAllWishlistByUserid">
+        DELETE FROM wishlist 
+        WHERE userid = #{userid}
+    </delete>
+    
+    <!-- 사용자 MD 찜 목록 전체 삭제 -->
+    <delete id="deleteAllMdWishlistByUserid">
+        DELETE FROM md_wish 
+        WHERE userid = #{userid}
+    </delete>
+    
+    <!-- 사용자 게시글 전체 삭제 (course) -->
+    <delete id="deleteAllCoursePostsByUserid">
+        DELETE FROM course WHERE user_id = #{userid}
+    </delete>
+    
+    <!-- 사용자 게시글 전체 삭제 (hottalk_post) -->
+    <delete id="deleteAllHottalkPostsByUserid">
+        DELETE FROM hottalk_post WHERE userid = #{userid}
+    </delete>
+    
+    <!-- 사용자 댓글 전체 삭제 (hottalk_comment) -->
+    <delete id="deleteAllHottalkCommentsByUserid">
+        DELETE FROM hottalk_comment WHERE id_address = #{userid}
+    </delete>
+    
+    <!-- 사용자 댓글 전체 삭제 (course_comment) -->
+    <delete id="deleteAllCourseCommentsByUserid">
+        DELETE FROM course_comment WHERE author_userid = #{userid}
+    </delete>
+    
+    <!-- 사용자 투표 기록 전체 삭제 (hottalk_vote) -->
+    <delete id="deleteAllHottalkVotesByUserid">
+        DELETE FROM hottalk_vote WHERE userid = #{userid}
+    </delete>
+    
+    <!-- 사용자 투표 기록 전체 삭제 (hottalk_comment_vote) -->
+    <delete id="deleteAllHottalkCommentVotesByUserid">
+        DELETE FROM hottalk_comment_vote WHERE user_id = #{userid}
+    </delete>
+    
+    <!-- 사용자 투표 기록 전체 삭제 (course_reaction) -->
+    <delete id="deleteAllCourseReactionsByUserid">
+        DELETE FROM course_reaction WHERE user_key = #{userid}
+    </delete>
+    
+    <!-- 사용자 투표 기록 전체 삭제 (course_comment_reaction) -->
+    <delete id="deleteAllCourseCommentReactionsByUserid">
+        DELETE FROM course_comment_reaction WHERE user_key = #{userid}
+    </delete>
+    
+    <!-- 사용자 신고 기록 전체 삭제 (hottalk_report) -->
+    <delete id="deleteAllHottalkReportsByUserid">
+        DELETE FROM hottalk_report WHERE user_id = #{userid}
+    </delete>
+    
+    <!-- 사용자 신고 기록 전체 삭제 (course_report) -->
+    <delete id="deleteAllCourseReportsByUserid">
+        DELETE FROM course_report WHERE user_key = #{userid}
+    </delete>
 
 </mapper>

@@ -14,6 +14,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import com.wherehot.spring.mapper.MemberMapper;
+import com.wherehot.spring.entity.Member;
+import java.util.Optional;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -33,6 +36,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
+    
+    @Autowired
+    private MemberMapper memberMapper;
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, 
@@ -62,6 +68,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String provider = jwtUtils.getClaimsFromToken(jwt).get("provider", String.class);
                 
                 logger.info("JWT 인증 성공 - 사용자 ID: {}, 제공자: {}", userid, provider);
+                
+                // 사용자 상태 확인
+                Optional<Member> memberOpt = memberMapper.findByUserid(userid);
+                if (memberOpt.isPresent()) {
+                    Member member = memberOpt.get();
+                    String status = member.getStatus();
+                    
+                    // 탈퇴된 회원이나 정지된 회원은 인증 실패
+                    if ("W".equals(status)) {
+                        logger.warn("탈퇴된 회원의 토큰 시도: {}", userid);
+                        filterChain.doFilter(request, response);
+                        return;
+                    } else if ("C".equals(status)) {
+                        logger.warn("정지된 회원의 토큰 시도: {}", userid);
+                        filterChain.doFilter(request, response);
+                        return;
+                    } else if (!"A".equals(status) && !"B".equals(status)) {
+                        logger.warn("비활성 회원의 토큰 시도: {} (status: {})", userid, status);
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+                } else {
+                    logger.warn("존재하지 않는 회원의 토큰 시도: {}", userid);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
                 
                 // 권한 설정
                 SimpleGrantedAuthority authority;

@@ -191,7 +191,7 @@
           document.cookie = `refreshToken=${refreshToken}; expires=${refreshExpires.toUTCString()}; path=/; SameSite=Strict`;
       }
       
-      console.log('JWT 토큰을 localStorage와 쿠키에 저장 완료');
+      // JWT 토큰 저장 완료
   }
   
   function removeToken() {
@@ -204,7 +204,7 @@
       document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       
-      console.log('JWT 토큰을 localStorage와 쿠키에서 삭제 완료');
+      // JWT 토큰 삭제 완료
   }
   
   // API 요청 시 JWT 토큰을 헤더에 포함하는 함수 (title.jsp의 함수를 사용)
@@ -225,7 +225,7 @@
         if (payload.exp > currentTime) {
           isLoggedIn = true;
           loginUserId = payload.sub || '';
-          console.log('로그인 상태 확인:', loginUserId);
+          // 로그인 상태 확인
           
           // 관리자 확인을 위한 서버 API 호출 (자동 토큰 갱신 포함)
           let adminCheckPromise;
@@ -234,19 +234,19 @@
           
           adminCheckPromise
           .then(response => {
-            console.log('관리자 확인 API 응답 상태:', response.status);
+            // 관리자 확인 API 응답 상태
             return response.json();
           })
           .then(data => {
-            console.log('관리자 확인 API 응답 데이터:', data);
+            // 관리자 확인 API 응답 데이터
             if (data.isAdmin) {
               isAdmin = true;
-              console.log('관리자 권한 확인됨:', data);
+              // 관리자 권한 확인됨
               
               // 관리자 UI 요소들 활성화
               updateAdminUI();
             } else {
-              console.log('일반 사용자:', data);
+              // 일반 사용자
               isAdmin = false;
             }
           })
@@ -262,7 +262,7 @@
           isAdmin = false;
         }
       } catch (error) {
-        console.log('JWT 토큰 파싱 오류:', error);
+        // JWT 토큰 파싱 오류
         localStorage.removeItem('accessToken');
         isLoggedIn = false;
         loginUserId = '';
@@ -282,7 +282,7 @@
   // 관리자 UI 업데이트 함수
   function updateAdminUI() {
     // InfoWindow에서 관리자 버튼들이 제대로 표시되도록 설정
-    console.log('관리자 UI 활성화, isAdmin:', isAdmin);
+    // 관리자 UI 활성화
     
     // 기존 InfoWindow들을 재설정하여 관리자 버튼이 나타나도록 함
     hotplaceMarkers.forEach(function(marker, idx) {
@@ -359,7 +359,7 @@
   
   // URL 파라미터가 있으면 해당 위치로 이동할 준비
   if (targetLat && targetLng) {
-    console.log('URL 파라미터 감지: lat=' + targetLat + ', lng=' + targetLng);
+    // URL 파라미터 감지
   }
   
   // 평점 관련 데이터 제거
@@ -399,7 +399,7 @@
 	   var map = new kakao.maps.Map(mapContainer, mapOptions);
   // URL 파라미터가 있으면 해당 위치로 이동
   if (targetLat && targetLng) {
-    console.log('URL 파라미터 감지: lat=' + targetLat + ', lng=' + targetLng);
+    // URL 파라미터 감지
     var targetPosition = new kakao.maps.LatLng(parseFloat(targetLat), parseFloat(targetLng));
     map.setCenter(targetPosition);
     map.setLevel(5); // 줌 레벨 조정
@@ -554,7 +554,7 @@
     var placeIdParam = urlParams.get('placeId');
     if (placeIdParam) {
       var selectedPlaceId = parseInt(placeIdParam);
-      console.log('Selected place ID:', selectedPlaceId);
+      // 선택된 장소 ID
       
       // 선택된 장소를 핫플레이스 목록에서 찾기
       var selectedPlace = hotplaces.find(function(place) {
@@ -567,7 +567,7 @@
         map.setCenter(selectedPosition);
         map.setLevel(3); // 더 자세한 줌 레벨
         
-        console.log('Selected place found:', selectedPlace);
+        // 선택된 장소 찾음
         
         // 해당 장소의 마커 찾기
         var targetMarker = null;
@@ -579,11 +579,11 @@
         }
         
         if (targetMarker) {
-          console.log('Target marker found, triggering click event');
+          // 타겟 마커 찾음, 클릭 이벤트 트리거
           // 마커 클릭 이벤트 트리거 (기존 마커 클릭과 동일한 동작)
           kakao.maps.event.trigger(targetMarker, 'click');
         } else {
-          console.log('Target marker not found');
+          // 타겟 마커를 찾을 수 없음
         }
       }
     }

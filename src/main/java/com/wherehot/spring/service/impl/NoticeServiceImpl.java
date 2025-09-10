@@ -51,4 +51,10 @@ public class NoticeServiceImpl implements NoticeService {
     public int getTotalNoticeCount() {
         return noticeMapper.countPublicNotices();
     }
+    
+    @Override
+    public boolean togglePinned(Long noticeId, Boolean isPinned) {
+        int result = noticeMapper.togglePinned(noticeId, isPinned);
+        return result > 0;
+    }
 }

@@ -38,4 +38,7 @@ public interface NoticeMapper {
     
     // 관리자용: 특정 상태의 공지사항 조회
     List<Notice> findByStatus(@Param("status") String status);
+    
+    // 공지사항 고정/고정취소
+    int togglePinned(@Param("noticeId") Long noticeId, @Param("isPinned") Boolean isPinned);
 }

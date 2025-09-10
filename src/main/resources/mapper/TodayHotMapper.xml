@@ -9,15 +9,15 @@
             h.id as placeId,
             h.name as placeName,
             COUNT(v.id) as voteCount,
-            ROUND((COUNT(v.id) * 100.0 / (SELECT COUNT(*) FROM vote_nowhot_log)), 1) as percentage,
-            (SELECT congestion FROM vote_nowhot_log WHERE place_id = h.id AND congestion IS NOT NULL AND congestion != ''
+            ROUND((COUNT(v.id) * 100.0 / (SELECT COUNT(*) FROM vote_nowhot WHERE DATE(voted_at) = CURDATE())), 1) as percentage,
+            (SELECT congestion FROM vote_nowhot WHERE place_id = h.id AND congestion IS NOT NULL AND congestion != ''
              GROUP BY congestion ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as congestion,
-            (SELECT gender_ratio FROM vote_nowhot_log WHERE place_id = h.id AND gender_ratio IS NOT NULL AND gender_ratio != ''
+            (SELECT gender_ratio FROM vote_nowhot WHERE place_id = h.id AND gender_ratio IS NOT NULL AND gender_ratio != ''
              GROUP BY gender_ratio ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as genderRatio,
-            (SELECT wait_time FROM vote_nowhot_log WHERE place_id = h.id AND wait_time IS NOT NULL AND wait_time != ''
+            (SELECT wait_time FROM vote_nowhot WHERE place_id = h.id AND wait_time IS NOT NULL AND wait_time != ''
              GROUP BY wait_time ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as waitTime
         FROM hotplace_info h
-        LEFT JOIN vote_nowhot_log v ON h.id = v.place_id
+        LEFT JOIN vote_nowhot v ON h.id = v.place_id AND DATE(v.voted_at) = CURDATE()
         GROUP BY h.id, h.name
         HAVING COUNT(v.id) > 0
         ORDER BY voteCount DESC
@@ -30,14 +30,14 @@
             h.id as placeId,
             h.name as placeName,
             COUNT(v.id) as totalVotes,
-            (SELECT congestion FROM vote_nowhot_log WHERE place_id = h.id AND congestion IS NOT NULL AND congestion != ''
+            (SELECT congestion FROM vote_nowhot WHERE place_id = h.id AND congestion IS NOT NULL AND congestion != '' AND DATE(voted_at) = CURDATE()
              GROUP BY congestion ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as congestion,
-            (SELECT gender_ratio FROM vote_nowhot_log WHERE place_id = h.id AND gender_ratio IS NOT NULL AND gender_ratio != ''
+            (SELECT gender_ratio FROM vote_nowhot WHERE place_id = h.id AND gender_ratio IS NOT NULL AND gender_ratio != '' AND DATE(voted_at) = CURDATE()
              GROUP BY gender_ratio ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as genderRatio,
-            (SELECT wait_time FROM vote_nowhot_log WHERE place_id = h.id AND wait_time IS NOT NULL AND wait_time != ''
+            (SELECT wait_time FROM vote_nowhot WHERE place_id = h.id AND wait_time IS NOT NULL AND wait_time != '' AND DATE(voted_at) = CURDATE()
              GROUP BY wait_time ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as waitTime
         FROM hotplace_info h
-        LEFT JOIN vote_nowhot_log v ON h.id = v.place_id
+        LEFT JOIN vote_nowhot v ON h.id = v.place_id AND DATE(v.voted_at) = CURDATE()
         WHERE h.id = #{placeId}
         GROUP BY h.id, h.name
     </select>
@@ -48,16 +48,16 @@
             h.id as placeId,
             h.name as placeName,
             COUNT(v.id) as voteCount,
-            ROUND((COUNT(v.id) * 100.0 / (SELECT COUNT(*) FROM vote_nowhot_log)), 1) as percentage,
-            (SELECT congestion FROM vote_nowhot_log WHERE place_id = h.id AND congestion IS NOT NULL AND congestion != ''
+            ROUND((COUNT(v.id) * 100.0 / (SELECT COUNT(*) FROM vote_nowhot WHERE DATE(voted_at) = CURDATE())), 1) as percentage,
+            (SELECT congestion FROM vote_nowhot WHERE place_id = h.id AND congestion IS NOT NULL AND congestion != '' AND DATE(voted_at) = CURDATE()
              GROUP BY congestion ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as congestion,
-            (SELECT gender_ratio FROM vote_nowhot_log WHERE place_id = h.id AND gender_ratio IS NOT NULL AND gender_ratio != ''
+            (SELECT gender_ratio FROM vote_nowhot WHERE place_id = h.id AND gender_ratio IS NOT NULL AND gender_ratio != '' AND DATE(voted_at) = CURDATE()
              GROUP BY gender_ratio ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as genderRatio,
-            (SELECT wait_time FROM vote_nowhot_log WHERE place_id = h.id AND wait_time IS NOT NULL AND wait_time != ''
+            (SELECT wait_time FROM vote_nowhot WHERE place_id = h.id AND wait_time IS NOT NULL AND wait_time != '' AND DATE(voted_at) = CURDATE()
              GROUP BY wait_time ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as waitTime,
             NOW() as cacheTimestamp
         FROM hotplace_info h
-        LEFT JOIN vote_nowhot_log v ON h.id = v.place_id
+        LEFT JOIN vote_nowhot v ON h.id = v.place_id AND DATE(v.voted_at) = CURDATE()
         GROUP BY h.id, h.name
         HAVING COUNT(v.id) > 0
         ORDER BY voteCount DESC

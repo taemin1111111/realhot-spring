@@ -137,10 +137,7 @@ async function initializeAdminPage() {
     }
 }
 
-// 디버깅을 위한 토큰 상태 확인
-console.log('JWT 토큰 상태 확인:');
-console.log('localStorage accessToken:', localStorage.getItem('accessToken'));
-console.log('쿠키 accessToken:', document.cookie.includes('accessToken'));
+// 토큰 상태 확인 (운영 환경에서는 제거됨)
 
 // 페이지 로드 시 자동 실행
 document.addEventListener('DOMContentLoaded', initializeAdminPage);

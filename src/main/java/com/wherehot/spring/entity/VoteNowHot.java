@@ -15,6 +15,11 @@ public class VoteNowHot {
     private String waitTime;
     private LocalDateTime votedAt;
     
+    // 보안 강화를 위한 추가 컬럼들
+    private String userAgentHash;
+    private boolean isVpnProxy;
+    private int riskScore;
+    
     // 기본 생성자
     public VoteNowHot() {}
     
@@ -59,5 +64,30 @@ public class VoteNowHot {
     }
     public void setVotedAt(LocalDateTime votedAt) {
         this.votedAt = votedAt;
+    }
+    
+    // 보안 강화 컬럼들의 getter/setter
+    public String getUserAgentHash() {
+        return userAgentHash;
+    }
+    
+    public void setUserAgentHash(String userAgentHash) {
+        this.userAgentHash = userAgentHash;
+    }
+    
+    public boolean isVpnProxy() {
+        return isVpnProxy;
+    }
+    
+    public void setVpnProxy(boolean isVpnProxy) {
+        this.isVpnProxy = isVpnProxy;
+    }
+    
+    public int getRiskScore() {
+        return riskScore;
+    }
+    
+    public void setRiskScore(int riskScore) {
+        this.riskScore = riskScore;
     }
 }

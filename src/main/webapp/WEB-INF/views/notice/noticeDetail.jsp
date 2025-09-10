@@ -46,7 +46,9 @@
 <script>
 // 전역 변수
 var rootPath = '<%=root%>';
-var noticeId = <%=noticeId != null ? noticeId : "null"%>;
+var noticeId = '<%=noticeId != null ? noticeId : ""%>';
+if (noticeId === '') noticeId = null;
+else noticeId = parseInt(noticeId);
 
 // 별 생성 함수 제거 (흰색 배경 사용)
 
@@ -100,7 +102,17 @@ function loadNoticeDetail() {
             // 제목과 고정 배지
             html += '<div class="notice-detail-header">';
             html += '  <h1 class="notice-detail-title">' + notice.title + '</h1>';
-            html += '  ' + isPinned;
+            html += '  <div class="notice-detail-header-right">';
+            html += '    ' + isPinned;
+            html += '    <div id="admin-buttons" class="admin-buttons" style="display: none;">';
+            html += '      <button type="button" class="btn btn-warning btn-sm" onclick="togglePinned(' + notice.noticeId + ', ' + !notice.isPinned + ')">';
+            html += '        <i class="bi ' + (notice.isPinned ? 'bi-pin-angle' : 'bi-pin-angle-fill') + '"></i> ' + (notice.isPinned ? '고정 취소' : '고정');
+            html += '      </button>';
+            html += '      <button type="button" class="btn btn-danger btn-sm" onclick="deleteNotice(' + notice.noticeId + ')">';
+            html += '        <i class="bi bi-trash"></i> 삭제';
+            html += '      </button>';
+            html += '    </div>';
+            html += '  </div>';
             html += '</div>';
             
             // 작성자, 날짜, 조회수
@@ -119,6 +131,9 @@ function loadNoticeDetail() {
             html += '</div>';
             
             detailContent.innerHTML = html;
+            
+            // 관리자 권한 확인 후 버튼 표시
+            checkAdminPermission();
         } else {
             detailContent.innerHTML = '<div class="text-center" style="color: #666666; padding: 40px;"><i class="bi bi-exclamation-triangle" style="font-size: 3rem; margin-bottom: 20px; color: #dee2e6;"></i><p>공지사항을 찾을 수 없습니다.</p></div>';
         }
@@ -126,6 +141,111 @@ function loadNoticeDetail() {
     .catch(error => {
         console.error('공지사항 상세 로드 실패:', error);
         document.getElementById('notice-detail-content').innerHTML = '<div class="text-center" style="color: #666666; padding: 40px;"><i class="bi bi-exclamation-triangle" style="font-size: 3rem; margin-bottom: 20px; color: #dee2e6;"></i><p>공지사항을 불러오는 중 오류가 발생했습니다.</p></div>';
+    });
+}
+
+// 관리자 권한 확인
+function checkAdminPermission() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        console.log('토큰이 없음 - 관리자 버튼 숨김');
+        return;
+    }
+    
+    try {
+        // JWT 토큰 파싱
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        console.log('JWT 토큰 payload:', payload);
+        
+        // 관리자 권한 확인 (provider가 'admin'인 경우만)
+        const isAdmin = payload.provider === 'admin';
+        
+        if (isAdmin) {
+            console.log('관리자 권한 확인됨');
+            const adminButtons = document.getElementById('admin-buttons');
+            if (adminButtons) {
+                adminButtons.style.display = 'block';
+            }
+        } else {
+            console.log('일반 사용자 - 관리자 버튼 숨김');
+        }
+    } catch (error) {
+        console.error('JWT 토큰 파싱 실패:', error);
+    }
+}
+
+// 공지사항 고정/고정취소
+function togglePinned(noticeId, isPinned) {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+    }
+    
+    const confirmMessage = isPinned ? '이 공지사항을 고정하시겠습니까?' : '이 공지사항의 고정을 취소하시겠습니까?';
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    const apiUrl = rootPath + '/notice/api/toggle-pinned/' + noticeId;
+    
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'isPinned=' + isPinned
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            // 페이지 새로고침
+            loadNoticeDetail();
+        } else {
+            alert(data.message || '처리에 실패했습니다.');
+        }
+    })
+    .catch(error => {
+        console.error('고정/고정취소 실패:', error);
+        alert('처리 중 오류가 발생했습니다.');
+    });
+}
+
+// 공지사항 삭제
+function deleteNotice(noticeId) {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+    }
+    
+    if (!confirm('정말로 이 공지사항을 삭제하시겠습니까?\n삭제된 공지사항은 복구할 수 없습니다.')) {
+        return;
+    }
+    
+    const apiUrl = rootPath + '/notice/api/delete/' + noticeId;
+    
+    fetch(apiUrl, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            // 공지사항 목록으로 이동
+            window.location.href = rootPath + '/notice';
+        } else {
+            alert(data.message || '삭제에 실패했습니다.');
+        }
+    })
+    .catch(error => {
+        console.error('삭제 실패:', error);
+        alert('삭제 중 오류가 발생했습니다.');
     });
 }
 
@@ -186,6 +306,55 @@ document.addEventListener('DOMContentLoaded', function() {
     justify-content: space-between;
     align-items: flex-start;
     gap: 20px;
+}
+
+/* 공지사항 헤더 오른쪽 영역 */
+.notice-detail-header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+/* 관리자 버튼들 */
+.admin-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.admin-buttons .btn {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.admin-buttons .btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+
+.admin-buttons .btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+    color: #000;
+    transform: translateY(-1px);
+}
+
+.admin-buttons .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+.admin-buttons .btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+    color: #fff;
+    transform: translateY(-1px);
 }
 
 /* 공지사항 상세 제목 */
@@ -273,6 +442,21 @@ document.addEventListener('DOMContentLoaded', function() {
         flex-direction: column;
         align-items: flex-start;
         gap: 15px;
+    }
+    
+    .notice-detail-header-right {
+        align-items: flex-start;
+        width: 100%;
+    }
+    
+    .admin-buttons {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .admin-buttons .btn {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
     }
     
     .notice-detail-title {

@@ -260,4 +260,109 @@ public class NoticeController {
             return null;
         }
     }
+    
+    // 공지사항 고정/고정취소 API
+    @PostMapping(value = "/api/toggle-pinned/{noticeId}", 
+                 consumes = "application/x-www-form-urlencoded", 
+                 produces = "application/json")
+    @ResponseBody
+    public Map<String, Object> togglePinned(@PathVariable Long noticeId, 
+                                           @RequestParam Boolean isPinned,
+                                           @RequestHeader("Authorization") String authHeader) {
+        Map<String, Object> response = new HashMap<>();
+        
+        logger.info("togglePinned method called with noticeId: {}, isPinned: {}", noticeId, isPinned);
+        
+        try {
+            // 관리자 권한 확인
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("success", false);
+                response.put("message", "인증이 필요합니다.");
+                return response;
+            }
+            
+            String token = authHeader.substring(7);
+            if (!jwtUtils.validateToken(token)) {
+                response.put("success", false);
+                response.put("message", "유효하지 않은 토큰입니다.");
+                return response;
+            }
+            
+            String username = jwtUtils.getUseridFromToken(token);
+            if (!"admin".equals(username)) {
+                response.put("success", false);
+                response.put("message", "관리자만 이 기능을 사용할 수 있습니다.");
+                return response;
+            }
+            
+            // 고정/고정취소 처리
+            boolean result = noticeService.togglePinned(noticeId, isPinned);
+            
+            if (result) {
+                response.put("success", true);
+                response.put("message", isPinned ? "공지사항이 고정되었습니다." : "공지사항 고정이 취소되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("message", "처리에 실패했습니다.");
+            }
+            
+        } catch (Exception e) {
+            logger.error("공지사항 고정/고정취소 중 오류 발생", e);
+            response.put("success", false);
+            response.put("message", "처리 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    // 공지사항 삭제 API
+    @DeleteMapping(value = "/api/delete/{noticeId}", produces = "application/json")
+    @ResponseBody
+    public Map<String, Object> deleteNotice(@PathVariable Long noticeId,
+                                           @RequestHeader("Authorization") String authHeader) {
+        Map<String, Object> response = new HashMap<>();
+        
+        logger.info("deleteNotice method called with noticeId: {}", noticeId);
+        
+        try {
+            // 관리자 권한 확인
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("success", false);
+                response.put("message", "인증이 필요합니다.");
+                return response;
+            }
+            
+            String token = authHeader.substring(7);
+            if (!jwtUtils.validateToken(token)) {
+                response.put("success", false);
+                response.put("message", "유효하지 않은 토큰입니다.");
+                return response;
+            }
+            
+            String username = jwtUtils.getUseridFromToken(token);
+            if (!"admin".equals(username)) {
+                response.put("success", false);
+                response.put("message", "관리자만 이 기능을 사용할 수 있습니다.");
+                return response;
+            }
+            
+            // 삭제 처리
+            boolean result = noticeService.deleteNotice(noticeId);
+            
+            if (result) {
+                response.put("success", true);
+                response.put("message", "공지사항이 삭제되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("message", "삭제에 실패했습니다.");
+            }
+            
+        } catch (Exception e) {
+            logger.error("공지사항 삭제 중 오류 발생", e);
+            response.put("success", false);
+            response.put("message", "삭제 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
 }

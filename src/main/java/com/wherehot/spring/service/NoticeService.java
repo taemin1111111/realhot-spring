@@ -25,4 +25,7 @@ public interface NoticeService {
     
     // 전체 공지사항 개수 조회
     int getTotalNoticeCount();
+    
+    // 공지사항 고정/고정취소
+    boolean togglePinned(Long noticeId, Boolean isPinned);
 }

@@ -422,6 +422,29 @@
     background-color: rgba(255, 255, 255, 0.9) !important;
 }
 
+/* 카카오톡 오픈채팅 버튼 스타일 */
+.btn-success {
+    background: linear-gradient(135deg, #fee500, #ffc107) !important;
+    border: 2px solid #fee500 !important;
+    color: #3c1e1e !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(254, 229, 0, 0.3) !important;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #ffc107, #ff8f00) !important;
+    border-color: #ffc107 !important;
+    color: #3c1e1e !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(254, 229, 0, 0.4) !important;
+}
+
+.btn-success:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 8px rgba(254, 229, 0, 0.3) !important;
+}
+
 /* ========== 페이지네이션 스타일 ========== */
 .clubmd-pagination .page-link {
     color: #ff4d94;
@@ -961,6 +984,12 @@ body.clubmd-page footer .container {
     }
     
     .btn-outline-secondary {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* 카카오톡 버튼 모바일 스타일 */
+    .btn-success {
         padding: 0.4rem 0.8rem !important;
         font-size: 0.8rem !important;
     }

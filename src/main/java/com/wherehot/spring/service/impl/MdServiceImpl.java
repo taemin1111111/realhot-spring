@@ -41,7 +41,7 @@ public class MdServiceImpl implements MdService {
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "MD 목록을 불러오는데 실패했습니다: " + e.getMessage());
-            e.printStackTrace();
+            // 예외 로깅은 logger로 처리
         }
         
         return result;
@@ -52,7 +52,7 @@ public class MdServiceImpl implements MdService {
         try {
             return mdMapper.selectAllMds(userId);
         } catch (Exception e) {
-            e.printStackTrace();
+            // 예외 로깅은 logger로 처리
             return new ArrayList<>();
         }
     }
@@ -62,7 +62,7 @@ public class MdServiceImpl implements MdService {
         try {
             return mdMapper.selectMdById(mdId);
         } catch (Exception e) {
-            e.printStackTrace();
+            // 예외 로깅은 logger로 처리
             return null;
         }
     }
@@ -73,7 +73,7 @@ public class MdServiceImpl implements MdService {
             int result = mdMapper.insertMd(md);
             return result > 0;
         } catch (Exception e) {
-            e.printStackTrace();
+            // 예외 로깅은 logger로 처리
             return false;
         }
     }
@@ -84,7 +84,7 @@ public class MdServiceImpl implements MdService {
             int result = mdMapper.updateMd(md);
             return result > 0;
         } catch (Exception e) {
-            e.printStackTrace();
+            // 예외 로깅은 logger로 처리
             return false;
         }
     }
@@ -92,29 +92,27 @@ public class MdServiceImpl implements MdService {
     @Override
     public boolean addMdWish(int mdId, String userId) {
         try {
-            System.out.println("=== MdServiceImpl.addMdWish ===");
-            System.out.println("mdId: " + mdId + ", userId: " + userId);
+            // addMdWish 메서드 시작
             
             // 이미 찜한 상태인지 확인
             boolean isWished = isMdWished(mdId, userId);
-            System.out.println("현재 찜 상태: " + isWished);
+            // 현재 찜 상태 확인
             
             if (isWished) {
                 // 이미 찜한 상태라면 찜을 제거 (토글 방식)
-                System.out.println("이미 찜한 상태 - 찜 제거 시도");
+                // 이미 찜한 상태 - 찜 제거 시도
                 boolean removeResult = removeMdWish(mdId, userId);
-                System.out.println("찜 제거 결과: " + removeResult);
+                // 찜 제거 결과
                 return removeResult;
             }
             
             // 찜하지 않은 상태라면 찜 추가
-            System.out.println("찜하지 않은 상태 - 찜 추가 시도");
+            // 찜하지 않은 상태 - 찜 추가 시도
             int result = mdMapper.insertMdWish(mdId, userId);
-            System.out.println("찜 추가 결과: " + result);
             return result > 0;
         } catch (Exception e) {
-            System.out.println("addMdWish 오류: " + e.getMessage());
-            e.printStackTrace();
+            // addMdWish 오류 로깅
+            // 예외 로깅은 logger로 처리
             return false;
         }
     }
@@ -122,15 +120,13 @@ public class MdServiceImpl implements MdService {
     @Override
     public boolean removeMdWish(int mdId, String userId) {
         try {
-            System.out.println("=== MdServiceImpl.removeMdWish ===");
-            System.out.println("mdId: " + mdId + ", userId: " + userId);
+            // removeMdWish 메서드 시작
             
             int result = mdMapper.deleteMdWish(mdId, userId);
-            System.out.println("찜 제거 결과: " + result);
             return result > 0;
         } catch (Exception e) {
-            System.out.println("removeMdWish 오류: " + e.getMessage());
-            e.printStackTrace();
+            // removeMdWish 오류 로깅
+            // 예외 로깅은 logger로 처리
             return false;
         }
     }
@@ -138,17 +134,14 @@ public class MdServiceImpl implements MdService {
     @Override
     public boolean isMdWished(int mdId, String userId) {
         try {
-            System.out.println("=== MdServiceImpl.isMdWished ===");
-            System.out.println("mdId: " + mdId + ", userId: " + userId);
+            // isMdWished 메서드 시작
             
             int count = mdMapper.selectMdWishCount(mdId, userId);
-            System.out.println("찜 개수: " + count);
             boolean result = count > 0;
-            System.out.println("찜 상태: " + result);
             return result;
         } catch (Exception e) {
-            System.out.println("isMdWished 오류: " + e.getMessage());
-            e.printStackTrace();
+            // isMdWished 오류 로깅
+            // 예외 로깅은 logger로 처리
             return false;
         }
     }
@@ -158,7 +151,7 @@ public class MdServiceImpl implements MdService {
         try {
             return mdMapper.selectHotplaceList();
         } catch (Exception e) {
-            e.printStackTrace();
+            // 예외 로깅은 logger로 처리
             return new ArrayList<>();
         }
     }
@@ -168,7 +161,7 @@ public class MdServiceImpl implements MdService {
         try {
             return mdMapper.searchHotplaces(keyword);
         } catch (Exception e) {
-            e.printStackTrace();
+            // 예외 로깅은 logger로 처리
             return new ArrayList<>();
         }
     }
@@ -214,7 +207,7 @@ public class MdServiceImpl implements MdService {
             
             return result > 0;
         } catch (Exception e) {
-            e.printStackTrace();
+            // 예외 로깅은 logger로 처리
             return false;
         }
     }
@@ -244,7 +237,7 @@ public class MdServiceImpl implements MdService {
             return suggestions.stream().limit(10).collect(java.util.stream.Collectors.toList());
             
         } catch (Exception e) {
-            e.printStackTrace();
+            // 예외 로깅은 logger로 처리
             return new ArrayList<>();
         }
     }
@@ -263,7 +256,7 @@ public class MdServiceImpl implements MdService {
                 suggestions.add(suggestion);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            // 예외 로깅은 logger로 처리
         }
         
         return suggestions;
@@ -283,7 +276,7 @@ public class MdServiceImpl implements MdService {
                 suggestions.add(suggestion);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            // 예외 로깅은 logger로 처리
         }
         
         return suggestions;

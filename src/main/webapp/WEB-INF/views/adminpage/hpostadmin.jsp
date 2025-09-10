@@ -133,12 +133,10 @@ function displayReportedPosts(posts) {
     
     let html = '';
     posts.forEach(post => {
-        // postId 값 확인 및 로깅
+        // postId 값 확인
         const postId = post.id || post.post_id;
-        console.log('Processing post:', post, 'postId:', postId);
         
         if (!postId) {
-            console.error('postId is missing for post:', post);
             return; // 이 게시물은 건너뛰기
         }
         

@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
-@SpringBootApplication(scanBasePackages = {"com.wherehot.spring", "DB", "hotplace_info", "Member", "hpost", "review", "Category", "Map", "wishList", "VoteNowHot", "EmailVerification", "Join", "Notice", "MD", "CCategory", "ClubGenre", "content_images", "content_info", "hottalk_comment", "hottalk_comment_vote", "hottalk_report", "hottalk_vote", "VoteHeatmap", "VoteToday"})
+@SpringBootApplication(scanBasePackages = {"com.wherehot.spring", "DB", "hotplace_info", "Member", "hpost", "review", "Category", "Map", "wishList", "VoteNowHot", "EmailVerification", "Join", "Notice", "MD", "CCategory", "ClubGenre", "content_images", "content_info", "hottalk_comment", "hottalk_comment_vote", "hottalk_report", "hottalk_vote", "VoteHeatmap"})
 @MapperScan("com.wherehot.spring.mapper")
 public class TaeminspringApplication extends SpringBootServletInitializer {
 

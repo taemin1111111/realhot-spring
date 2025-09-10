@@ -1,8 +1,6 @@
 package com.wherehot.spring.mapper;
 
 import com.wherehot.spring.entity.VoteNowHot;
-import com.wherehot.spring.entity.VoteToday;
-import com.wherehot.spring.entity.VoteTodayLog;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -66,104 +64,6 @@ public interface VoteMapper {
     List<Map<String, Object>> findPopularHotplacesByRegion(@Param("region") String region, 
                                                           @Param("limit") int limit);
     
-    // ========== VoteToday 관련 ==========
-    
-    /**
-     * 오늘의 핫플레이스 투표 등록
-     */
-    int insertVoteToday(VoteToday vote);
-    
-    /**
-     * 사용자별 오늘의 투표 조회
-     */
-    Optional<VoteToday> findVoteTodayByUserAndDate(@Param("userId") String userId, 
-                                                   @Param("voteDate") LocalDate voteDate);
-    
-    /**
-     * 날짜별 투표 목록 조회
-     */
-    List<VoteToday> findVoteTodayByDate(@Param("voteDate") LocalDate voteDate);
-    
-    /**
-     * 핫플레이스별 오늘의 투표 조회
-     */
-    List<VoteToday> findVoteTodayByHotplaceAndDate(@Param("hotplaceId") int hotplaceId, 
-                                                   @Param("voteDate") LocalDate voteDate);
-    
-    /**
-     * 오늘의 핫플레이스 투표 수정
-     */
-    int updateVoteToday(VoteToday vote);
-    
-    /**
-     * 오늘의 핫플레이스 투표 삭제
-     */
-    int deleteVoteToday(@Param("id") int id);
-    
-    /**
-     * 날짜별 핫플레이스 투표 수 조회
-     */
-    int countVoteTodayByHotplaceAndDate(@Param("hotplaceId") int hotplaceId, 
-                                       @Param("voteDate") LocalDate voteDate);
-    
-    /**
-     * 날짜별 총 투표 수 조회
-     */
-    int countVoteTodayByDate(@Param("voteDate") LocalDate voteDate);
-    
-    /**
-     * 오늘의 인기 핫플레이스 조회
-     */
-    List<Map<String, Object>> findTodayPopularHotplaces(@Param("voteDate") LocalDate voteDate, 
-                                                        @Param("limit") int limit);
-    
-    // ========== VoteTodayLog 관련 ==========
-    
-    /**
-     * 오늘의 핫플레이스 로그 등록
-     */
-    int insertVoteTodayLog(VoteTodayLog log);
-    
-    /**
-     * 날짜별 로그 조회
-     */
-    List<VoteTodayLog> findVoteTodayLogByDate(@Param("logDate") LocalDate logDate);
-    
-    /**
-     * 핫플레이스별 로그 조회
-     */
-    List<VoteTodayLog> findVoteTodayLogByHotplace(@Param("hotplaceId") int hotplaceId,
-                                                 @Param("offset") int offset,
-                                                 @Param("size") int size);
-    
-    /**
-     * 기간별 로그 조회
-     */
-    List<VoteTodayLog> findVoteTodayLogByDateRange(@Param("startDate") LocalDate startDate,
-                                                  @Param("endDate") LocalDate endDate);
-    
-    /**
-     * 로그 수정
-     */
-    int updateVoteTodayLog(VoteTodayLog log);
-    
-    /**
-     * 로그 삭제
-     */
-    int deleteVoteTodayLog(@Param("id") int id);
-    
-    /**
-     * 날짜별 랭킹 조회
-     */
-    List<VoteTodayLog> findTodayRanking(@Param("logDate") LocalDate logDate, 
-                                       @Param("limit") int limit);
-    
-    /**
-     * 월간 인기 핫플레이스 조회
-     */
-    List<Map<String, Object>> findMonthlyPopularHotplaces(@Param("year") int year, 
-                                                          @Param("month") int month, 
-                                                          @Param("limit") int limit);
     
     /**
      * 지역별 투표 통계
@@ -240,5 +140,22 @@ public interface VoteMapper {
      * 오늘 핫 랭킹 조회 (투표 수 기준 상위 10개 가게)
      */
     List<Map<String, Object>> getTodayHotRanking();
+
+    // ========== 보안 분석용 메서드들 ==========
+    
+    /**
+     * User-Agent 해시별 투표 수 조회 (봇 감지용)
+     */
+    int getVoteCountByUserAgentHash(@Param("userAgentHash") String userAgentHash);
+    
+    /**
+     * 의심스러운 User-Agent 해시 목록 조회
+     */
+    List<Map<String, Object>> getSuspiciousUserAgentHashes();
+    
+    /**
+     * IP별 투표 패턴 분석
+     */
+    Map<String, Object> getVotePatternByIp(@Param("voterId") String voterId);
 
 }

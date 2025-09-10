@@ -47,7 +47,10 @@
     <div class="mb-3 d-flex justify-content-between align-items-center">
         <div>
             <button type="button" id="sortLatest" class="btn btn-outline-secondary me-2" onclick="loadMds(1, 'latest')">전체</button>
-            <button type="button" id="sortPopular" class="btn btn-outline-secondary" onclick="loadMds(1, 'popular')">인기순</button>
+            <button type="button" id="sortPopular" class="btn btn-outline-secondary me-2" onclick="loadMds(1, 'popular')">인기순</button>
+            <button type="button" class="btn btn-success" onclick="openKakaoChat()">
+                <i class="bi bi-chat-dots"></i> MD 등록 문의
+            </button>
         </div>
         
         <!-- 관리자만 보이는 MD 추가 버튼 (완전 오른쪽 끝) -->
@@ -1265,6 +1268,12 @@
         });
     }
     
+    // 카카오톡 오픈채팅 링크 열기
+    function openKakaoChat() {
+        const kakaoChatUrl = 'https://open.kakao.com/o/s5nnTWQh';
+        window.open(kakaoChatUrl, '_blank');
+    }
+
     // 연락처 클릭 처리 (카카오톡 오픈채팅 등)
     function openContact(contact) {
         if (!contact) {

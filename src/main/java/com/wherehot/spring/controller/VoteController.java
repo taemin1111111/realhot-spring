@@ -3,6 +3,7 @@ package com.wherehot.spring.controller;
 import com.wherehot.spring.entity.Member;
 import com.wherehot.spring.service.VoteService;
 import com.wherehot.spring.service.AuthService;
+import com.wherehot.spring.service.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ public class VoteController {
     @Autowired
     private AuthService authService;
     
+    @Autowired
+    private SecurityUtils securityUtils;
+    
     /**
      * 현재 핫플레이스 투표 (JWT 토큰 기반)
      */
@@ -47,32 +51,63 @@ public class VoteController {
             logger.info("🔥 투표 API 호출 - hotplaceId: {}, crowd: {}, gender: {}, wait: {}", 
                        hotplaceId, congestion, genderRatio, waitTime);
             
-            // 1. 투표자 식별 (JWT 토큰 또는 IP)
+            // 1. 보안 정보 수집
+            String userAgent = request.getHeader("User-Agent");
+            String ipAddress = getClientIpAddress(request);
+            
+            // 2. 투표자 식별 (JWT 토큰 또는 IP)
             String voterId = null;
             if (token != null && token.startsWith("Bearer ")) {
                 try {
                     Member member = authService.getUserFromToken(token.substring(7));
                     voterId = member.getUserid();
-                    logger.info("로그인 사용자 투표: {}", voterId);
+                    logger.info("로그인 사용자 투표: {}, IP: {}", voterId, ipAddress);
                 } catch (Exception e) {
                     logger.warn("JWT 토큰 검증 실패, 익명 투표로 처리");
                 }
             }
             
             if (voterId == null) {
-                voterId = request.getRemoteAddr(); // 비로그인 시 IP
-                logger.info("익명 사용자 투표: {}", voterId);
+                // 비로그인 시: 디바이스 핑거프린트로 고유 식별자 생성
+                String deviceFingerprint = securityUtils.generateDeviceFingerprint(request);
+                voterId = "anonymous|" + deviceFingerprint;
+                logger.info("익명 사용자 투표: {}, IP: {}, DeviceFP: {}", voterId, ipAddress, deviceFingerprint);
             }
             
-            // 2. 입력값 검증
+            // 3. User-Agent 기반 봇 감지
+            if (securityUtils.isBotUserAgent(userAgent)) {
+                logger.warn("봇 User-Agent 감지: IP={}, User-Agent={}", ipAddress, userAgent);
+                response.put("success", false);
+                response.put("message", "봇으로 의심되는 접근입니다.");
+                return ResponseEntity.status(403).body(response);
+            }
+            
+            // 4. 보안 검증
+            boolean isVpnProxy = securityUtils.isVpnOrProxy(ipAddress);
+            int riskScore = securityUtils.calculateRiskScore(ipAddress, userAgent, isVpnProxy);
+            
+            if (isVpnProxy) {
+                logger.warn("VPN/Proxy 사용자 감지: IP={}, User-Agent={}", ipAddress, userAgent);
+                // VPN 사용자에 대한 추가 검증 또는 제한 로직
+            }
+            
+            if (riskScore > 70) {
+                logger.warn("높은 위험도 점수: {}, IP={}, User-Agent={}", riskScore, ipAddress, userAgent);
+                response.put("success", false);
+                response.put("message", "보안상의 이유로 투표가 제한되었습니다.");
+                return ResponseEntity.status(403).body(response);
+            }
+            
+            // 4. 입력값 검증
             if (congestion == null || genderRatio == null || waitTime == null) {
                 response.put("success", false);
                 response.put("message", "잘못된 입력값입니다.");
                 return ResponseEntity.badRequest().body(response);
             }
             
-            // 3. 투표 처리
-            boolean success = voteService.addNowHotVote(hotplaceId, voterId, congestion, genderRatio, waitTime);
+            // 5. 투표 처리 (보안 정보 포함)
+            boolean success = ((com.wherehot.spring.service.impl.VoteServiceImpl) voteService)
+                .addNowHotVoteWithSecurity(hotplaceId, voterId, congestion, genderRatio, waitTime, userAgent, ipAddress);
             
             if (success) {
                 response.put("success", true);
@@ -102,6 +137,23 @@ public class VoteController {
             response.put("message", "투표 처리 중 오류가 발생했습니다.");
             return ResponseEntity.internalServerError().body(response);
         }
+    }
+    
+    /**
+     * 클라이언트 IP 주소 추출
+     */
+    private String getClientIpAddress(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isEmpty() && !"unknown".equalsIgnoreCase(xRealIp)) {
+            return xRealIp;
+        }
+        
+        return request.getRemoteAddr();
     }
     
     /**

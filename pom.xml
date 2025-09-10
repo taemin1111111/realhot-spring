@@ -148,6 +148,13 @@
 			<version>1.1.1</version>
 		</dependency>
 		
+		<!-- Apache Commons Codec for hashing -->
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.15</version>
+		</dependency>
+		
 		<!-- 개발 도구 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

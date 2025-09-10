@@ -104,4 +104,12 @@
         ORDER BY is_pinned DESC, created_at DESC
     </select>
 
+    <!-- 공지사항 고정/고정취소 -->
+    <update id="togglePinned" parameterType="map">
+        UPDATE notice SET
+            is_pinned = #{isPinned},
+            updated_at = NOW()
+        WHERE notice_id = #{noticeId}
+    </update>
+
 </mapper>

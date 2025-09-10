@@ -1,24 +1,20 @@
 package com.wherehot.spring.service.impl;
 
 import com.wherehot.spring.entity.VoteNowHot;
-import com.wherehot.spring.entity.VoteToday;
-import com.wherehot.spring.entity.VoteTodayLog;
 import com.wherehot.spring.mapper.VoteMapper;
 import com.wherehot.spring.service.VoteService;
+import com.wherehot.spring.service.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.time.LocalDate;
 
 @Service
 @Transactional
@@ -28,6 +24,9 @@ public class VoteServiceImpl implements VoteService {
     
     @Autowired
     private VoteMapper voteMapper;
+    
+    @Autowired
+    private SecurityUtils securityUtils;
     
     // VoteNowHot 관련
     @Override
@@ -98,32 +97,33 @@ public class VoteServiceImpl implements VoteService {
                 logger.info("VoteNowHot deleted successfully: {}", id);
                 return true;
             } else {
+                logger.warn("VoteNowHot not found for deletion: {}", id);
                 return false;
             }
         } catch (Exception e) {
             logger.error("Error deleting VoteNowHot: {}", id, e);
-            return false;
+            throw new RuntimeException("현재 핫 투표 삭제 중 오류가 발생했습니다.", e);
         }
     }
     
     @Override
     @Transactional(readOnly = true)
-    public Double getAverageScoreByHotplace(int placeId) {
+    public Double getAverageScoreByHotplace(int hotplaceId) {
         try {
-            return voteMapper.getAverageScoreByHotplace(placeId);
+            return voteMapper.getAverageScoreByHotplace(hotplaceId);
         } catch (Exception e) {
-            logger.error("Error getting average score by hotplace: {}", placeId, e);
-            return null;
+            logger.error("Error getting average score by hotplace: {}", hotplaceId, e);
+            return 0.0;
         }
     }
     
     @Override
     @Transactional(readOnly = true)
-    public int getVoteNowHotCountByHotplace(int placeId) {
+    public int getVoteNowHotCountByHotplace(int hotplaceId) {
         try {
-            return voteMapper.countVoteNowHotByHotplace(placeId);
+            return voteMapper.countVoteNowHotByHotplace(hotplaceId);
         } catch (Exception e) {
-            logger.error("Error getting VoteNowHot count by hotplace: {}", placeId, e);
+            logger.error("Error getting vote count by hotplace: {}", hotplaceId, e);
             return 0;
         }
     }
@@ -136,286 +136,6 @@ public class VoteServiceImpl implements VoteService {
         } catch (Exception e) {
             logger.error("Error getting popular hotplaces by region: {}", region, e);
             throw new RuntimeException("지역별 인기 핫플레이스 조회 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    // VoteToday 관련
-    @Override
-    public VoteToday saveVoteToday(VoteToday vote) {
-        try {
-            vote.setVotedAt(LocalDateTime.now());
-            
-            int result = voteMapper.insertVoteToday(vote);
-            if (result > 0) {
-                logger.info("VoteToday saved successfully: voterId={}, placeId={}", 
-                    vote.getVoterId(), vote.getPlaceId());
-                return vote;
-            } else {
-                throw new RuntimeException("오늘의 투표 저장에 실패했습니다.");
-            }
-        } catch (Exception e) {
-            logger.error("Error saving VoteToday: voterId={}, placeId={}", 
-                vote.getVoterId(), vote.getPlaceId(), e);
-            throw new RuntimeException("오늘의 투표 저장 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<VoteToday> findVoteTodayByUserAndDate(String userId, LocalDate voteDate) {
-        try {
-            return voteMapper.findVoteTodayByUserAndDate(userId, voteDate);
-        } catch (Exception e) {
-            logger.error("Error finding VoteToday by user and date: userId={}, voteDate={}", userId, voteDate, e);
-            return Optional.empty();
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<VoteToday> findVoteTodayByDate(LocalDate voteDate) {
-        try {
-            return voteMapper.findVoteTodayByDate(voteDate);
-        } catch (Exception e) {
-            logger.error("Error finding VoteToday by date: {}", voteDate, e);
-            throw new RuntimeException("날짜별 오늘의 투표 조회 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<VoteToday> findVoteTodayByHotplaceAndDate(int hotplaceId, LocalDate voteDate) {
-        try {
-            return voteMapper.findVoteTodayByHotplaceAndDate(hotplaceId, voteDate);
-        } catch (Exception e) {
-            logger.error("Error finding VoteToday by hotplace and date: hotplaceId={}, voteDate={}", hotplaceId, voteDate, e);
-            throw new RuntimeException("핫플레이스별 오늘의 투표 조회 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    @Override
-    public VoteToday updateVoteToday(VoteToday vote) {
-        try {
-            // VoteToday Entity에는 updatedAt 필드가 없음 (votedAt만 있음)
-            
-            int result = voteMapper.updateVoteToday(vote);
-            if (result > 0) {
-                logger.info("VoteToday updated successfully: {}", vote.getId());
-                return vote;
-            } else {
-                throw new RuntimeException("오늘의 투표 수정에 실패했습니다.");
-            }
-        } catch (Exception e) {
-            logger.error("Error updating VoteToday: {}", vote.getId(), e);
-            throw new RuntimeException("오늘의 투표 수정 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    @Override
-    public boolean deleteVoteToday(int id) {
-        try {
-            int result = voteMapper.deleteVoteToday(id);
-            if (result > 0) {
-                logger.info("VoteToday deleted successfully: {}", id);
-                return true;
-            } else {
-                return false;
-            }
-        } catch (Exception e) {
-            logger.error("Error deleting VoteToday: {}", id, e);
-            return false;
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public int getVoteTodayCountByHotplaceAndDate(int hotplaceId, LocalDate voteDate) {
-        try {
-            return voteMapper.countVoteTodayByHotplaceAndDate(hotplaceId, voteDate);
-        } catch (Exception e) {
-            logger.error("Error getting VoteToday count by hotplace and date: hotplaceId={}, voteDate={}", hotplaceId, voteDate, e);
-            return 0;
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public int getVoteTodayCountByDate(LocalDate voteDate) {
-        try {
-            return voteMapper.countVoteTodayByDate(voteDate);
-        } catch (Exception e) {
-            logger.error("Error getting VoteToday count by date: {}", voteDate, e);
-            return 0;
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> getTodayPopularHotplaces(LocalDate voteDate, int limit) {
-        try {
-            return voteMapper.findTodayPopularHotplaces(voteDate, limit);
-        } catch (Exception e) {
-            logger.error("Error getting today popular hotplaces: voteDate={}", voteDate, e);
-            throw new RuntimeException("오늘의 인기 핫플레이스 조회 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    // VoteTodayLog 관련
-    @Override
-    public VoteTodayLog saveVoteTodayLog(VoteTodayLog log) {
-        try {
-            log.setVotedAt(LocalDateTime.now());
-            
-            int result = voteMapper.insertVoteTodayLog(log);
-            if (result > 0) {
-                logger.info("VoteTodayLog saved successfully: placeId={}, voterId={}", 
-                    log.getPlaceId(), log.getVoterId());
-                return log;
-            } else {
-                throw new RuntimeException("오늘의 투표 로그 저장에 실패했습니다.");
-            }
-        } catch (Exception e) {
-            logger.error("Error saving VoteTodayLog: placeId={}, voterId={}", 
-                log.getPlaceId(), log.getVoterId(), e);
-            throw new RuntimeException("오늘의 투표 로그 저장 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<VoteTodayLog> findVoteTodayLogByDate(LocalDate logDate) {
-        try {
-            return voteMapper.findVoteTodayLogByDate(logDate);
-        } catch (Exception e) {
-            logger.error("Error finding VoteTodayLog by date: {}", logDate, e);
-            throw new RuntimeException("날짜별 투표 로그 조회 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<VoteTodayLog> findVoteTodayLogByHotplace(int hotplaceId, int page, int size) {
-        try {
-            int offset = (page - 1) * size;
-            return voteMapper.findVoteTodayLogByHotplace(hotplaceId, offset, size);
-        } catch (Exception e) {
-            logger.error("Error finding VoteTodayLog by hotplace: {}", hotplaceId, e);
-            throw new RuntimeException("핫플레이스별 투표 로그 조회 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<VoteTodayLog> findVoteTodayLogByDateRange(LocalDate startDate, LocalDate endDate) {
-        try {
-            return voteMapper.findVoteTodayLogByDateRange(startDate, endDate);
-        } catch (Exception e) {
-            logger.error("Error finding VoteTodayLog by date range: startDate={}, endDate={}", startDate, endDate, e);
-            throw new RuntimeException("기간별 투표 로그 조회 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    @Override
-    public VoteTodayLog updateVoteTodayLog(VoteTodayLog log) {
-        try {
-            // VoteTodayLog Entity에는 updatedAt 필드가 없음 (votedAt만 있음)
-            
-            int result = voteMapper.updateVoteTodayLog(log);
-            if (result > 0) {
-                logger.info("VoteTodayLog updated successfully: {}", log.getId());
-                return log;
-            } else {
-                throw new RuntimeException("투표 로그 수정에 실패했습니다.");
-            }
-        } catch (Exception e) {
-            logger.error("Error updating VoteTodayLog: {}", log.getId(), e);
-            throw new RuntimeException("투표 로그 수정 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    @Override
-    public boolean deleteVoteTodayLog(int id) {
-        try {
-            int result = voteMapper.deleteVoteTodayLog(id);
-            if (result > 0) {
-                logger.info("VoteTodayLog deleted successfully: {}", id);
-                return true;
-            } else {
-                return false;
-            }
-        } catch (Exception e) {
-            logger.error("Error deleting VoteTodayLog: {}", id, e);
-            return false;
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<VoteTodayLog> getTodayRanking(LocalDate logDate, int limit) {
-        try {
-            return voteMapper.findTodayRanking(logDate, limit);
-        } catch (Exception e) {
-            logger.error("Error getting today ranking: logDate={}", logDate, e);
-            throw new RuntimeException("오늘의 랭킹 조회 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> getMonthlyPopularHotplaces(int year, int month, int limit) {
-        try {
-            return voteMapper.findMonthlyPopularHotplaces(year, month, limit);
-        } catch (Exception e) {
-            logger.error("Error getting monthly popular hotplaces: year={}, month={}", year, month, e);
-            throw new RuntimeException("월별 인기 핫플레이스 조회 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> getVoteStatisticsByRegion(LocalDate startDate, LocalDate endDate) {
-        try {
-            return voteMapper.findVoteStatisticsByRegion(startDate, endDate);
-        } catch (Exception e) {
-            logger.error("Error getting vote statistics by region: startDate={}, endDate={}", startDate, endDate, e);
-            throw new RuntimeException("지역별 투표 통계 조회 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> getVoteStatisticsByCategory(LocalDate startDate, LocalDate endDate) {
-        try {
-            return voteMapper.findVoteStatisticsByCategory(startDate, endDate);
-        } catch (Exception e) {
-            logger.error("Error getting vote statistics by category: startDate={}, endDate={}", startDate, endDate, e);
-            throw new RuntimeException("카테고리별 투표 통계 조회 중 오류가 발생했습니다.", e);
-        }
-    }
-    
-    // ========== 투표 제출 및 현황 조회 ==========
-    
-    @Override
-    @Transactional(readOnly = true)
-    public Map<String, Object> getVoteTrends(int placeId) {
-        try {
-            logger.info("=== getVoteTrends called with placeId: {} ===", placeId);
-            Map<String, Object> trends = voteMapper.getVoteTrends(placeId);
-            
-            if (trends == null) {
-                // 투표 데이터가 없는 경우 기본값 반환
-                trends = new HashMap<>();
-                trends.put("congestion", "");
-                trends.put("genderRatio", "");
-                trends.put("waitTime", "");
-            }
-            
-            logger.info("=== Vote trends retrieved for place: {} = {} ===", placeId, trends);
-            return trends;
-            
-        } catch (Exception e) {
-            logger.error("Error getting vote trends for place: {}", placeId, e);
-            throw new RuntimeException("투표 현황 조회 중 오류가 발생했습니다.", e);
         }
     }
     
@@ -436,6 +156,14 @@ public class VoteServiceImpl implements VoteService {
     // VoteController에서 필요한 메서드들 구현
     @Override
     public boolean addNowHotVote(int hotplaceId, String voterId, String congestion, String genderRatio, String waitTime) {
+        return addNowHotVoteWithSecurity(hotplaceId, voterId, congestion, genderRatio, waitTime, null, null);
+    }
+    
+    /**
+     * 보안 정보를 포함한 투표 추가
+     */
+    public boolean addNowHotVoteWithSecurity(int hotplaceId, String voterId, String congestion, 
+                                           String genderRatio, String waitTime, String userAgent, String ipAddress) {
         try {
             // 1. 중복 투표 방지 (같은 가게에 하루 1번) - 날짜 조건 포함
             Optional<VoteNowHot> existingVote = voteMapper.findVoteNowHotByUserAndHotplace(voterId, hotplaceId);
@@ -444,13 +172,35 @@ public class VoteServiceImpl implements VoteService {
                 throw new RuntimeException("이미 오늘 이 장소에 투표하셨습니다.");
             }
             
-            // 2. 하루 4곳 제한
-            if (voteMapper.getTodayVotePlaceCount(voterId) >= 4) {
-                logger.warn("User/IP {} exceeded daily vote limit (4 places)", voterId);
-                throw new RuntimeException("하루 최대 4곳까지만 투표 가능합니다.");
+            // 2. 동적 투표 제한 (IP별 상황에 맞는 제한)
+            String userAgentHash = securityUtils.generateUserAgentHash(userAgent);
+            int maxVotes = securityUtils.calculateMaxVotesByIp(ipAddress, userAgentHash);
+            int currentVoteCount = voteMapper.getTodayVotePlaceCount(voterId);
+            
+            if (currentVoteCount >= maxVotes) {
+                logger.warn("User/IP {} exceeded dynamic vote limit ({} places, current: {})", 
+                           voterId, maxVotes, currentVoteCount);
+                throw new RuntimeException(String.format("하루 최대 %d곳까지만 투표 가능합니다.", maxVotes));
             }
             
-            // 3. 새 투표 생성
+            // 3. 보안 정보 처리
+            boolean isVpnProxy = securityUtils.isVpnOrProxy(ipAddress);
+            int riskScore = securityUtils.calculateRiskScore(ipAddress, userAgent, isVpnProxy);
+            
+            // 3-1. User-Agent 해시 기반 추가 검증
+            if (securityUtils.isSuspiciousUserAgentHash(userAgentHash)) {
+                logger.warn("의심스러운 User-Agent 해시 감지: {}, voterId={}", userAgentHash, voterId);
+                riskScore += 20; // 위험도 점수 추가
+            }
+            
+            // 3-2. 동일 User-Agent 해시로 과도한 투표 체크
+            int userAgentVoteCount = voteMapper.getVoteCountByUserAgentHash(userAgentHash);
+            if (userAgentVoteCount > 5) {
+                logger.warn("동일 User-Agent로 과도한 투표: {}, count={}", userAgentHash, userAgentVoteCount);
+                riskScore += 15; // 위험도 점수 추가
+            }
+            
+            // 4. 새 투표 생성
             VoteNowHot vote = new VoteNowHot();
             vote.setVoterId(voterId);
             vote.setPlaceId(hotplaceId);
@@ -459,15 +209,21 @@ public class VoteServiceImpl implements VoteService {
             vote.setWaitTime(waitTime);
             vote.setVotedAt(LocalDateTime.now());
             
-            // 4. vote_nowhot 테이블에 저장
+            // 보안 정보 설정
+            vote.setUserAgentHash(userAgentHash);
+            vote.setVpnProxy(isVpnProxy);
+            vote.setRiskScore(riskScore);
+            
+            // 5. vote_nowhot 테이블에 저장
             int result1 = voteMapper.insertVoteNowHot(vote);
             
-            // 5. vote_nowhot_log 테이블에 저장 (히스토리용)
+            // 6. vote_nowhot_log 테이블에 저장 (히스토리용)
             int result2 = voteMapper.insertVoteNowHotLog(vote);
             
             boolean success = result1 > 0 && result2 > 0;
             if (success) {
-                logger.info("Vote added successfully: placeId={}, voterId={}", hotplaceId, voterId);
+                logger.info("Vote added successfully: placeId={}, voterId={}, riskScore={}, isVpn={}", 
+                           hotplaceId, voterId, riskScore, isVpnProxy);
                 return true;
             } else {
                 logger.error("Failed to insert vote: placeId={}, voterId={}, result1={}, result2={}", 
@@ -485,112 +241,76 @@ public class VoteServiceImpl implements VoteService {
     }
     
     @Override
-    public Map<String, Object> getNowHotVoteStats(int placeId) {
+    public Map<String, Object> getNowHotVoteStats(int hotplaceId) {
+        Map<String, Object> stats = new HashMap<>();
         try {
-            Map<String, Object> stats = new HashMap<>();
-            
-            // getVoteCount와 동일한 방식으로 투표 수 조회
-            int totalVotes = voteMapper.getVoteCount(placeId);
-            
-            if (totalVotes == 0) {
-                stats.put("totalVotes", 0);
-                stats.put("congestionStats", new HashMap<>());
-                stats.put("genderStats", new HashMap<>());
-                stats.put("waitStats", new HashMap<>());
-                return stats;
-            }
-            
-            // 투표 트렌드에서 통계 정보 가져오기
-            Map<String, Object> trends = voteMapper.getVoteTrends(placeId);
-            
-            // 통계 계산 (단순화)
-            Map<String, Integer> congestionStats = new HashMap<>();
-            Map<String, Integer> genderStats = new HashMap<>();
-            Map<String, Integer> waitStats = new HashMap<>();
-            
-            if (trends != null) {
-                String congestion = (String) trends.get("congestion");
-                String genderRatio = (String) trends.get("genderRatio");
-                String waitTime = (String) trends.get("waitTime");
-                
-                if (congestion != null && !congestion.isEmpty()) {
-                    congestionStats.put(congestion, totalVotes);
-                }
-                if (genderRatio != null && !genderRatio.isEmpty()) {
-                    genderStats.put(genderRatio, totalVotes);
-                }
-                if (waitTime != null && !waitTime.isEmpty()) {
-                    waitStats.put(waitTime, totalVotes);
-                }
-            }
-            
+            int totalVotes = voteMapper.getVoteCount(hotplaceId);
             stats.put("totalVotes", totalVotes);
-            stats.put("congestionStats", congestionStats);
-            stats.put("genderStats", genderStats);
-            stats.put("waitStats", waitStats);
-            
-            return stats;
-            
+            stats.put("success", true);
         } catch (Exception e) {
-            logger.error("Error getting vote stats for hotplace: {}", placeId, e);
+            logger.error("Error getting vote stats for hotplace: {}", hotplaceId, e);
+            stats.put("success", false);
+            stats.put("error", "통계 조회 중 오류가 발생했습니다.");
+        }
+        return stats;
+    }
+    
+    @Override
+    public Map<String, Object> getVoteTrends(int placeId) {
+        try {
+            return voteMapper.getVoteTrends(placeId);
+        } catch (Exception e) {
+            logger.error("Error getting vote trends for place: {}", placeId, e);
             return new HashMap<>();
         }
     }
     
     @Override
-    public boolean isWished(int placeId, String userid) {
+    public boolean isWished(int hotplaceId, String userid) {
         try {
-            return voteMapper.isWished(userid, placeId);
+            return voteMapper.isWished(userid, hotplaceId);
         } catch (Exception e) {
-            logger.error("Error checking wish status: placeId={}, userid={}", placeId, userid, e);
+            logger.error("Error checking wish status: hotplaceId={}, userid={}", hotplaceId, userid, e);
             return false;
         }
     }
     
     @Override
-    public boolean toggleWish(int placeId, String userid) {
+    public boolean toggleWish(int hotplaceId, String userid) {
         try {
-            boolean isCurrentlyWished = voteMapper.isWished(userid, placeId);
-            
-            if (isCurrentlyWished) {
-                // 찜 해제
-                int result = voteMapper.deleteWishlist(userid, placeId);
-                logger.info("Wish removed: placeId={}, userid={}, result={}", placeId, userid, result);
-                return false; // 찜 해제됨
+            boolean isWished = voteMapper.isWished(userid, hotplaceId);
+            if (isWished) {
+                voteMapper.deleteWishlist(userid, hotplaceId);
+                logger.info("Wish removed: hotplaceId={}, userid={}", hotplaceId, userid);
+                return false;
             } else {
-                // 찜 추가
-                int result = voteMapper.insertWishlist(userid, placeId);
-                logger.info("Wish added: placeId={}, userid={}, result={}", placeId, userid, result);
-                return true; // 찜 추가됨
+                voteMapper.insertWishlist(userid, hotplaceId);
+                logger.info("Wish added: hotplaceId={}, userid={}", hotplaceId, userid);
+                return true;
             }
-            
         } catch (Exception e) {
-            logger.error("Error toggling wish: placeId={}, userid={}", placeId, userid, e);
-            throw new RuntimeException("찜하기 처리 중 오류가 발생했습니다.", e);
+            logger.error("Error toggling wish: hotplaceId={}, userid={}", hotplaceId, userid, e);
+            throw new RuntimeException("위시리스트 처리 중 오류가 발생했습니다.", e);
         }
     }
     
     @Override
-    public int getWishCount(int placeId) {
+    public int getWishCount(int hotplaceId) {
         try {
-            return voteMapper.getWishCount(placeId);
+            return voteMapper.getWishCount(hotplaceId);
         } catch (Exception e) {
-            logger.error("Error getting wish count for hotplace: {}", placeId, e);
+            logger.error("Error getting wish count: hotplaceId={}", hotplaceId, e);
             return 0;
         }
     }
     
     @Override
-    @Transactional(readOnly = true)
     public List<Map<String, Object>> getTodayHotRanking() {
         try {
-            logger.info("=== getTodayHotRanking called ===");
-            List<Map<String, Object>> rankings = voteMapper.getTodayHotRanking();
-            logger.info("=== Today hot ranking retrieved: {} places ===", rankings.size());
-            return rankings;
+            return voteMapper.getTodayHotRanking();
         } catch (Exception e) {
-            logger.error("Error getting today hot ranking: ", e);
-            throw new RuntimeException("오늘 핫 랭킹 조회 중 오류가 발생했습니다.", e);
+            logger.error("Error getting today hot ranking", e);
+            return List.of();
         }
     }
 }

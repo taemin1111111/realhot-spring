@@ -79,9 +79,11 @@
             <button class="category-filter-btn marker-pocha" data-category="4">P</button>
           </div>
           <!-- 오른쪽 패널 토글 버튼 및 패널 -->
-          <button id="rightPanelToggleBtn" style="position:absolute; top:50%; right:0; transform:translateY(-50%); z-index:20; background:#fff; border-radius:8px 0 0 8px; border:1.5px solid #ddd; border-right:none; width:36px; height:56px; box-shadow:0 2px 8px rgba(0,0,0,0.10); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; transition:background 0.15s;">&lt;</button>
+          <div class="toggle-button-area">
+            <button id="rightPanelToggleBtn" style="position:absolute; top:50%; right:0; transform:translateY(-50%); z-index:1000; background:#fff; border-radius:8px 0 0 8px; border:1.5px solid #ddd; border-right:none; width:36px; height:56px; box-shadow:0 2px 8px rgba(0,0,0,0.10); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; transition:background 0.15s; pointer-events:auto;">&lt;</button>
+          </div>
           <div id="rightPanel" style="position:absolute; top:0; right:0; height:100%; width:360px; max-width:90vw; background:#fff; box-shadow:-2px 0 16px rgba(0,0,0,0.10); z-index:30; border-radius:16px 0 0 16px; transform:translateX(100%); transition:transform 0.35s cubic-bezier(.77,0,.18,1); display:flex; flex-direction:column;">
-            <button id="rightPanelCloseBtn" style="position:absolute; left:-36px; top:50%; transform:translateY(-50%); width:36px; height:56px; background:#fff; border-radius:8px 0 0 8px; border:1.5px solid #ddd; border-left:none; box-shadow:0 2px 8px rgba(0,0,0,0.10); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; display:none;">&gt;</button>
+            <button id="rightPanelCloseBtn" style="position:absolute; left:-36px; top:50%; transform:translateY(-50%); width:36px; height:56px; background:#fff; border-radius:8px 0 0 8px; border:1.5px solid #ddd; border-left:none; box-shadow:0 2px 8px rgba(0,0,0,0.10); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; display:none; z-index:1001; pointer-events:auto;">&gt;</button>
             <!-- 검색창 -->
             <div id="searchBar" style="position:sticky; top:0; background:#fff; z-index:10; padding:24px 20px 12px 20px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
               <!-- 검색 타입 드롭다운 -->
@@ -94,6 +96,16 @@
                 .search-type-list.show { display:flex; }
                 .search-type-item { padding:6px 14px; font-size:0.93rem; color:#222; background:none; border:none; text-align:left; cursor:pointer; transition:background 0.13s; white-space:nowrap; }
                 .search-type-item:hover, .search-type-item.selected { background:#f0f4fa; color:#1275E0; }
+                .toggle-button-area {
+                    position: absolute;
+                    top: 50%;
+                    right: 0;
+                    transform: translateY(-50%);
+                    width: 50px;
+                    height: 60px;
+                    z-index: 1000;
+                    pointer-events: auto;
+                }
               </style>
               <form style="display:flex; align-items:center; gap:8px; position:relative; min-width:0;" onsubmit="return false;">
                   <div class="search-type-dropdown" id="searchTypeDropdown" style="flex:0 0 60px; min-width:54px; max-width:70px;">
@@ -819,18 +831,39 @@
     openBtn.style.display = 'flex';
     closeBtn.style.display = 'none';
     openBtn.innerHTML = '&lt;';
-    openBtn.onclick = function() {
-      panel.style.transform = 'translateX(0)';
-      openBtn.style.display = 'none';
-      closeBtn.style.display = 'flex';
-      // 서울 전체 표시
-      window.renderHotplaceListBySido('서울', null);
-    };
-    closeBtn.onclick = function() {
-      panel.style.transform = 'translateX(100%)';
-      closeBtn.style.display = 'none';
-      setTimeout(function() { openBtn.style.display = 'flex'; }, 350);
-    };
+    // 토글 버튼 영역 클릭 차단
+    var toggleArea = document.querySelector('.toggle-button-area');
+    if (toggleArea) {
+        toggleArea.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
+        });
+    }
+    
+    // 더 강력한 이벤트 처리
+    openBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        panel.style.transform = 'translateX(0)';
+        openBtn.style.display = 'none';
+        closeBtn.style.display = 'flex';
+        // 서울 전체 표시
+        window.renderHotplaceListBySido('서울', null);
+        return false;
+    });
+    
+    closeBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        panel.style.transform = 'translateX(100%)';
+        closeBtn.style.display = 'none';
+        setTimeout(function() { openBtn.style.display = 'flex'; }, 350);
+        return false;
+    });
     
     // 검색 타입 드롭다운 동작
     var searchTypeBtn = document.getElementById('searchTypeBtn');

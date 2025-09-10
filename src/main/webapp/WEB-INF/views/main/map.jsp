@@ -77,6 +77,19 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            z-index: 1;
+        }
+        
+        /* 토글 버튼 영역 클릭 차단 */
+        .toggle-button-area {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 60px;
+            z-index: 1000;
+            pointer-events: auto;
         }
         
         #map {
@@ -316,9 +329,11 @@
             <div id="map"></div>
             
             <!-- 오른쪽 패널 토글 버튼 및 패널 -->
-            <button id="rightPanelToggleBtn" style="position:absolute; top:50%; right:0; transform:translateY(-50%); z-index:20; background:#fff; border-radius:8px 0 0 8px; border:1.5px solid #ddd; border-right:none; width:36px; height:56px; box-shadow:0 2px 8px rgba(0,0,0,0.10); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; transition:background 0.15s;">&lt;</button>
+            <div class="toggle-button-area">
+                <button id="rightPanelToggleBtn" style="position:absolute; top:50%; right:0; transform:translateY(-50%); z-index:1000; background:#fff; border-radius:8px 0 0 8px; border:1.5px solid #ddd; border-right:none; width:36px; height:56px; box-shadow:0 2px 8px rgba(0,0,0,0.10); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; transition:background 0.15s; pointer-events:auto;">&lt;</button>
+            </div>
             <div id="rightPanel" style="position:absolute; top:0; right:0; height:100%; width:360px; max-width:90vw; background:#fff; box-shadow:-2px 0 16px rgba(0,0,0,0.10); z-index:30; border-radius:16px 0 0 16px; transform:translateX(100%); transition:transform 0.35s cubic-bezier(.77,0,.18,1); display:flex; flex-direction:column;">
-                <button id="rightPanelCloseBtn" style="position:absolute; left:-36px; top:50%; transform:translateY(-50%); width:36px; height:56px; background:#fff; border-radius:8px 0 0 8px; border:1.5px solid #ddd; border-left:none; box-shadow:0 2px 8px rgba(0,0,0,0.10); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; display:none;">&gt;</button>
+                <button id="rightPanelCloseBtn" style="position:absolute; left:-36px; top:50%; transform:translateY(-50%); width:36px; height:56px; background:#fff; border-radius:8px 0 0 8px; border:1.5px solid #ddd; border-left:none; box-shadow:0 2px 8px rgba(0,0,0,0.10); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; display:none; z-index:1001; pointer-events:auto;">&gt;</button>
                 <!-- 검색창 -->
                 <div id="searchBar" style="position:sticky; top:0; background:#fff; z-index:10; padding:24px 20px 12px 20px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
                     <!-- 검색 타입 드롭다운 -->
@@ -382,7 +397,7 @@
             </div>
             
             <!-- 뒤로가기 버튼 -->
-            <a href="<%=root%>/main" class="back-button">
+            <a href="<%=root%>/" class="back-button">
                 <i class="bi bi-arrow-left"></i> 메인으로
             </a>
         </div>
@@ -434,7 +449,7 @@
         function checkAdminStatus() {
             if (!isLoggedIn) return;
             
-            fetch(root + '/api/member/admin-check', {
+            fetch(root + '/api/auth/check-admin', {
                 method: 'GET',
                 headers: {
                     'Authorization': 'Bearer ' + getToken(),
@@ -572,6 +587,9 @@
                         var heart = iw.querySelector('.wish-heart');
                         
                         if (heart) {
+                            // data-place-id 속성 설정
+                            heart.setAttribute('data-place-id', place.id);
+                            
                             if (!isLoggedIn) {
                                 heart.onclick = function() {
                                     showToast('위시리스트는 로그인 후 사용할 수 있어요. 간편하게 로그인하고 저장해보세요!', 'error');
@@ -684,19 +702,43 @@
             closeBtn.style.display = 'none';
             openBtn.innerHTML = '&lt;';
             
-            openBtn.onclick = function() {
+            // 기존 이벤트 리스너 제거
+            openBtn.onclick = null;
+            closeBtn.onclick = null;
+            
+            // 토글 버튼 영역 클릭 차단
+            var toggleArea = document.querySelector('.toggle-button-area');
+            if (toggleArea) {
+                toggleArea.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                });
+            }
+            
+            // 더 강력한 이벤트 처리
+            openBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
                 panel.style.transform = 'translateX(0)';
                 openBtn.style.display = 'none';
                 closeBtn.style.display = 'flex';
                 // 서울 전체 표시
                 window.renderHotplaceListBySido('서울', null);
-            };
+                return false;
+            });
             
-            closeBtn.onclick = function() {
+            closeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
                 panel.style.transform = 'translateX(100%)';
                 closeBtn.style.display = 'none';
                 setTimeout(function() { openBtn.style.display = 'flex'; }, 350);
-            };
+                return false;
+            });
             
             // 검색 타입 드롭다운 동작
             var searchTypeBtn = document.getElementById('searchTypeBtn');
@@ -1451,8 +1493,8 @@
 
         // 투표 섹션 표시 함수
         function showVoteSection(placeId, placeName, placeAddress, categoryId) {
-            // 투표 모달이나 섹션을 표시하는 로직
-            showToast('투표 기능은 메인 페이지에서 이용하실 수 있습니다.', 'info');
+            // 투표 모달 표시
+            showVoteModal(placeId, placeName, placeAddress, categoryId);
         }
 
         // 장르 편집 모달 열기 함수
@@ -1875,6 +1917,215 @@
         
         // 전역 함수로 노출
         window.formatGenderRatio = formatGenderRatio;
+        
+        // 투표 모달 표시 함수
+        function showVoteModal(hotplaceId, name, address, categoryId) {
+            // 모달이 이미 있으면 제거
+            const existingModal = document.getElementById('voteModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // 모달 HTML 생성
+            const modalHtml = 
+                '<div id="voteModal" class="modal fade" tabindex="-1" style="display: block !important; background: rgba(0,0,0,0.8) !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; visibility: visible !important; opacity: 1 !important;">' +
+                    '<div class="modal-dialog modal-dialog-centered" style="z-index: 100000;">' +
+                        '<div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">' +
+                            '<div class="modal-header" style="border-bottom: none; padding: 25px 25px 10px 25px;">' +
+                                '<h5 class="modal-title fw-bold" style="color: #333; font-size: 1.4rem;">' +
+                                    '<i class="bi bi-fire" style="color: #ff6b35; margin-right: 8px;"></i>' +
+                                    '오늘 핫 투표' +
+                                '</h5>' +
+                                '<button type="button" class="btn-close" onclick="closeVoteModal()" style="font-size: 1.2rem;"></button>' +
+                            '</div>' +
+                            '<div class="modal-body" style="padding: 10px 25px 25px 25px;">' +
+                                '<!-- 가게 정보 -->' +
+                                '<div class="hotplace-info mb-4 p-3 rounded" style="background: #f8f9fa; border-radius: 12px;">' +
+                                    '<h6 class="fw-bold mb-1" style="color: #1275E0; font-size: 1.1rem;">' + name + '</h6>' +
+                                    '<p class="mb-2 small text-muted">' + address + '</p>' +
+                                    '<span class="badge bg-light text-dark">' + getCategoryName(categoryId) + '</span>' +
+                                '</div>' +
+                                '<!-- 투표 폼 -->' +
+                                '<form id="voteForm">' +
+                                    '<input type="hidden" id="voteHotplaceId" name="hotplaceId" value="' + hotplaceId + '">' +
+                                    '<!-- 1번 질문 -->' +
+                                    '<div class="mb-4">' +
+                                        '<label class="form-label fw-bold" style="font-size: 1.2rem;">1. 지금 사람 많음?</label>' +
+                                        '<div class="d-flex flex-column gap-2">' +
+                                            '<div class="form-check">' +
+                                                '<input class="form-check-input" type="radio" name="crowd" id="crowd1" value="1" style="transform: scale(1.3);">' +
+                                                '<label class="form-check-label" for="crowd1" style="font-size: 1.1rem;">한산함</label>' +
+                                            '</div>' +
+                                            '<div class="form-check">' +
+                                                '<input class="form-check-input" type="radio" name="crowd" id="crowd2" value="2" style="transform: scale(1.3);">' +
+                                                '<label class="form-check-label" for="crowd2" style="font-size: 1.1rem;">적당함</label>' +
+                                            '</div>' +
+                                            '<div class="form-check">' +
+                                                '<input class="form-check-input" type="radio" name="crowd" id="crowd3" value="3" style="transform: scale(1.3);">' +
+                                                '<label class="form-check-label" for="crowd3" style="font-size: 1.1rem;">붐빔</label>' +
+                                            '</div>' +
+                                        '</div>' +
+                                    '</div>' +
+                                    '<!-- 2번 질문 -->' +
+                                    '<div class="mb-4">' +
+                                        '<label class="form-label fw-bold" style="font-size: 1.2rem;">2. 줄 서야 함?</label>' +
+                                        '<div style="font-size: 1.2rem; color: #666; margin-bottom: 10px;">(대기 있음?)</div>' +
+                                        '<div class="d-flex flex-column gap-2">' +
+                                            '<div class="form-check">' +
+                                                '<input class="form-check-input" type="radio" name="wait" id="wait1" value="1" style="transform: scale(1.3);">' +
+                                                '<label class="form-check-label" for="wait1" style="font-size: 1.1rem;">바로입장</label>' +
+                                            '</div>' +
+                                            '<div class="form-check">' +
+                                                '<input class="form-check-input" type="radio" name="wait" id="wait2" value="2" style="transform: scale(1.3);">' +
+                                                '<label class="form-check-label" for="wait2" style="font-size: 1.1rem;">10분정도</label>' +
+                                            '</div>' +
+                                            '<div class="form-check">' +
+                                                '<input class="form-check-input" type="radio" name="wait" id="wait3" value="3" style="transform: scale(1.3);">' +
+                                                '<label class="form-check-label" for="wait3" style="font-size: 1.1rem;">30분</label>' +
+                                            '</div>' +
+                                            '<div class="form-check">' +
+                                                '<input class="form-check-input" type="radio" name="wait" id="wait4" value="4" style="transform: scale(1.3);">' +
+                                                '<label class="form-check-label" for="wait4" style="font-size: 1.1rem;">1시간 이상</label>' +
+                                            '</div>' +
+                                        '</div>' +
+                                    '</div>' +
+                                    '<!-- 3번 질문 -->' +
+                                    '<div class="mb-4">' +
+                                        '<label class="form-label fw-bold" style="font-size: 1.2rem;">3. 남녀 성비 어때?</label>' +
+                                        '<div class="d-flex flex-column gap-2">' +
+                                            '<div class="form-check">' +
+                                                '<input class="form-check-input" type="radio" name="gender" id="gender1" value="1" style="transform: scale(1.3);">' +
+                                                '<label class="form-check-label" for="gender1" style="font-size: 1.1rem;">여자↑</label>' +
+                                            '</div>' +
+                                            '<div class="form-check">' +
+                                                '<input class="form-check-input" type="radio" name="gender" id="gender2" value="2" style="transform: scale(1.3);">' +
+                                                '<label class="form-check-label" for="gender2" style="font-size: 1.1rem;">반반</label>' +
+                                            '</div>' +
+                                            '<div class="form-check">' +
+                                                '<input class="form-check-input" type="radio" name="gender" id="gender3" value="3" style="transform: scale(1.3);">' +
+                                                '<label class="form-check-label" for="gender3" style="font-size: 1.1rem;">남자↑</label>' +
+                                            '</div>' +
+                                        '</div>' +
+                                    '</div>' +
+                                    '<button type="submit" class="btn w-100" style="padding: 20px; font-size: 1.2rem; font-weight: 600; background: linear-gradient(135deg, rgba(255, 105, 180, 0.8) 0%, rgba(255, 20, 147, 0.7) 100%); border: 2px solid rgba(255,255,255,0.4); color: white; border-radius: 25px;">' +
+                                        '<i class="bi bi-fire" style="font-size: 1.3rem;"></i> 투표하기' +
+                                    '</button>' +
+                                '</form>' +
+                                '<!-- 상태 메시지 -->' +
+                                '<div id="voteStatusMessage" class="mt-3"></div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            
+            // 모달을 body에 추가
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            // 폼 이벤트 리스너 추가
+            setupVoteForm();
+        }
+        
+        // 카테고리 이름 가져오기 함수
+        function getCategoryName(categoryId) {
+            const categoryNames = {1: '클럽', 2: '헌팅포차', 3: '라운지', 4: '포차'};
+            return categoryNames[categoryId] || '기타';
+        }
+        
+        // 투표 모달 닫기 함수
+        function closeVoteModal() {
+            const modal = document.getElementById('voteModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // 투표 폼 설정 함수
+        function setupVoteForm() {
+            const form = document.getElementById('voteForm');
+            const statusMessage = document.getElementById('voteStatusMessage');
+            
+            if (!form) return;
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(form);
+                const hotplaceId = formData.get('hotplaceId');
+                const crowd = formData.get('crowd');
+                const wait = formData.get('wait');
+                const gender = formData.get('gender');
+                
+                // 검증
+                if (!hotplaceId) {
+                    showVoteMessage('먼저 지도에서 장소를 선택해주세요.', 'warning');
+                    return;
+                }
+                
+                if (!crowd || !wait || !gender) {
+                    showVoteMessage('모든 질문에 답변해주세요.', 'warning');
+                    return;
+                }
+                
+                // JWT 토큰 가져오기
+                const token = getToken();
+                
+                // Spring API 호출 (JWT 토큰 포함)
+                const data = new URLSearchParams();
+                data.append('hotplaceId', hotplaceId);
+                data.append('crowd', crowd);
+                data.append('gender', gender);
+                data.append('wait', wait);
+                
+                const headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                };
+                
+                // 토큰이 있으면 Authorization 헤더 추가
+                if (token) {
+                    headers['Authorization'] = 'Bearer ' + token;
+                }
+                
+                fetch(root + '/api/vote/now-hot', {
+                    method: 'POST',
+                    headers: headers,
+                    body: data
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showVoteMessage('투표가 완료되었습니다! 감사합니다.', 'success');
+                        // 투표 완료 후 모달 닫기
+                        setTimeout(() => {
+                            closeVoteModal();
+                            // 투표 정보 업데이트
+                            loadVoteTrends(hotplaceId);
+                        }, 1500);
+                    } else {
+                        showVoteMessage(result.message || '투표 처리 중 오류가 발생했습니다.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Vote error:', error);
+                    showVoteMessage('네트워크 오류가 발생했습니다.', 'error');
+                });
+            });
+        }
+        
+        // 투표 상태 메시지 표시 함수
+        function showVoteMessage(message, type) {
+            const statusMessage = document.getElementById('voteStatusMessage');
+            if (!statusMessage) return;
+            
+            let alertClass = 'alert-info';
+            if (type === 'success') alertClass = 'alert-success';
+            else if (type === 'error') alertClass = 'alert-danger';
+            else if (type === 'warning') alertClass = 'alert-warning';
+            
+            statusMessage.innerHTML = 
+                '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                    message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                '</div>';
+        }
     </script>
 </body>
 </html>

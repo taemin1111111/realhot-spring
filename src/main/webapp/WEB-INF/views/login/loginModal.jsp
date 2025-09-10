@@ -10,10 +10,10 @@
             <!-- 닫기 버튼 -->
             <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
 
-            <div class="row">
+            <div class="row" id="modalRow">
 
                 <!-- 왼쪽 폼 영역 -->
-                <div class="col-md-7">
+                <div class="col-md-7" id="formArea">
 
                     <!-- ✅ 로그인 폼 -->
                     <div id="loginForm">
@@ -31,8 +31,8 @@
                                 <input type="checkbox" class="form-check-input" id="rememberId">
                                 <label class="form-check-label" for="rememberId">아이디 저장</label>
                                 <span class="ms-3 small"> 
-                                    <a href="#">아이디 찾기</a> | 
-                                    <a href="#">비밀번호 재설정</a> | 
+                                    <a href="<%=root%>/idsearch">아이디 찾기</a> | 
+                                    <a href="<%=root%>/passsearch">비밀번호 재설정</a> | 
                                     <a href="#" onclick="showJoin()">회원가입</a>
                                 </span>
                             </div>
@@ -73,15 +73,153 @@
                 </div>
 
                 <!-- 오른쪽 이미지 영역 -->
-                <div class="col-md-5 d-flex align-items-center justify-content-center">
-                    <img src="#" alt="안내 이미지" style="max-width: 100%; height: auto;">
+                <div id="imageArea" class="col-md-5 d-flex align-items-center justify-content-center">
+                    <div class="login-image-container" style="position: relative; width: 100%; height: 400px; overflow: hidden; border-radius: 10px;">
+                        <img id="loginImage" src="<%=root%>/logo/loginman.png?v=<%=System.currentTimeMillis()%>" alt="로그인 이미지" 
+                             style="width: 100%; height: 100%; object-fit: cover; transition: opacity 1s ease-in-out;">
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+/* 회원가입 관련 화면에서 이미지 영역 강제 숨김 */
+#modalRow.hide-image #imageArea {
+    display: none !important;
+}
+
+/* 회원가입 관련 화면에서 폼 영역 전체 너비 */
+#modalRow.hide-image #formArea {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+}
+</style>
+
 <script>
+// 로그인 이미지 슬라이드 기능
+let currentImageIndex = 0;
+const loginImages = [
+    '<%=root%>/logo/loginman.png',
+    '<%=root%>/logo/logingirl.png'
+];
+
+function startImageSlide() {
+    const imageElement = document.getElementById('loginImage');
+    if (!imageElement) return;
+    
+    // 초기 이미지를 loginman.png로 설정하고 캐시 우회
+    imageElement.src = loginImages[0] + '?v=' + Date.now();
+    
+    setInterval(() => {
+        // 페이드 아웃
+        imageElement.style.opacity = '0';
+        
+        setTimeout(() => {
+            // 다음 이미지로 변경 (캐시 우회를 위해 타임스탬프 추가)
+            currentImageIndex = (currentImageIndex + 1) % loginImages.length;
+            imageElement.src = loginImages[currentImageIndex] + '?v=' + Date.now();
+            
+            // 페이드 인
+            imageElement.style.opacity = '1';
+        }, 1000); // 1초 후 이미지 변경
+    }, 5000); // 5초마다 변경
+}
+
+// 페이지 로드 시 이미지 슬라이드 시작
+document.addEventListener('DOMContentLoaded', function() {
+    startImageSlide();
+});
+
+// 회원가입 폼 표시 시 이미지 영역 숨기기
+function showNormalJoin() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('joinSelectForm').style.display = 'none';
+    document.getElementById('joinForm').style.display = 'block';
+    
+    // 이미지 영역 완전히 숨기기 - 여러 방법으로 확실하게
+    const imageArea = document.getElementById('imageArea');
+    if (imageArea) {
+        imageArea.style.display = 'none !important';
+        imageArea.style.visibility = 'hidden';
+        imageArea.style.opacity = '0';
+        imageArea.style.width = '0';
+        imageArea.style.height = '0';
+        imageArea.style.padding = '0';
+        imageArea.style.margin = '0';
+        imageArea.className = 'd-none';
+    }
+    
+    // 폼 영역을 전체 너비로 확장
+    const formArea = document.getElementById('formArea');
+    if (formArea) {
+        formArea.style.width = '100% !important';
+        formArea.style.flex = '0 0 100% !important';
+        formArea.style.maxWidth = '100% !important';
+        formArea.className = 'col-12';
+    }
+}
+
+// 로그인 폼으로 돌아가기
+function showLogin() {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('joinSelectForm').style.display = 'none';
+    document.getElementById('joinForm').style.display = 'none';
+    
+    // 이미지 영역 다시 표시 - 모든 스타일 초기화
+    const imageArea = document.getElementById('imageArea');
+    if (imageArea) {
+        imageArea.style.display = '';
+        imageArea.style.visibility = '';
+        imageArea.style.opacity = '';
+        imageArea.style.width = '';
+        imageArea.style.height = '';
+        imageArea.style.padding = '';
+        imageArea.style.margin = '';
+        imageArea.className = 'col-md-5 d-flex align-items-center justify-content-center';
+    }
+    
+    // 폼 영역을 원래 크기로 복원
+    const formArea = document.getElementById('formArea');
+    if (formArea) {
+        formArea.style.width = '';
+        formArea.style.flex = '';
+        formArea.style.maxWidth = '';
+        formArea.className = 'col-md-7';
+    }
+}
+
+// 회원가입 선택 화면 표시
+function showJoin() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('joinSelectForm').style.display = 'block';
+    document.getElementById('joinForm').style.display = 'none';
+    
+    // 이미지 영역 완전히 숨기기 - 여러 방법으로 확실하게
+    const imageArea = document.getElementById('imageArea');
+    if (imageArea) {
+        imageArea.style.display = 'none !important';
+        imageArea.style.visibility = 'hidden';
+        imageArea.style.opacity = '0';
+        imageArea.style.width = '0';
+        imageArea.style.height = '0';
+        imageArea.style.padding = '0';
+        imageArea.style.margin = '0';
+        imageArea.className = 'd-none';
+    }
+    
+    // 폼 영역을 전체 너비로 확장
+    const formArea = document.getElementById('formArea');
+    if (formArea) {
+        formArea.style.width = '100% !important';
+        formArea.style.flex = '0 0 100% !important';
+        formArea.style.maxWidth = '100% !important';
+        formArea.className = 'col-12';
+    }
+}
+
 // API 요청 시 JWT 토큰을 헤더에 포함하는 함수 (자동 갱신 포함)
 async function fetchWithAuth(url, options = {}) {
     const token = getToken();

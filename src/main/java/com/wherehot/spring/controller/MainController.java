@@ -90,6 +90,16 @@ public class MainController {
     }
     
     /**
+     * 지도 전체 보기 페이지
+     */
+    @GetMapping("/map")
+    public String mapPage(Model model) {
+        loadMainPageData(model);
+        model.addAttribute("mainPage", "main/map.jsp");
+        return "index";
+    }
+    
+    /**
      * main.jsp에 필요한 데이터 로드
      */
     private void loadMainPageData(Model model) {

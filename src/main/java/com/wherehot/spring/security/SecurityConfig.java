@@ -158,8 +158,18 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // 허용할 오리진 설정
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        // 허용할 오리진 설정 (환경변수 또는 기본값 사용)
+        String allowedOrigins = System.getenv("CORS_ALLOWED_ORIGINS");
+        if (allowedOrigins != null && !allowedOrigins.isEmpty()) {
+            configuration.setAllowedOriginPatterns(Arrays.asList(allowedOrigins.split(",")));
+        } else {
+            // 개발환경 기본값
+            configuration.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:8083", 
+                "http://127.0.0.1:8083",
+                "https://localhost:8083"
+            ));
+        }
         
         // 허용할 HTTP 메서드
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));

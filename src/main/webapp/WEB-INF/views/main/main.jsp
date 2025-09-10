@@ -122,7 +122,7 @@
           </div>
         </div>
         <div class="text-end mt-2">
-          <a href="<%=root%>/map/full.jsp" class="text-info">지도 전체 보기 →</a>
+          <a href="<%=root%>/map" class="text-info">지도 전체 보기 →</a>
         </div>
       </div>
     </div>
@@ -722,72 +722,91 @@
 
   // 하트 상태 동기화 및 클릭 이벤트 (class 기반)
   function setupWishHeartByClass(placeId, retryCount = 0) {
-    var hearts = document.getElementsByClassName('wish-heart');
-    var found = false;
-    Array.from(hearts).forEach(function(heart) {
-      if (heart.getAttribute('data-place-id') == placeId) {
-        found = true;
-        // JWT 토큰 가져오기
-        var token = localStorage.getItem('accessToken');
+    const hearts = document.querySelectorAll('.wish-heart[data-place-id="' + placeId + '"]');
+    if (hearts.length === 0) {
+      if (retryCount < 5) {
+        setTimeout(function() {
+          setupWishHeartByClass(placeId, retryCount + 1);
+        }, 100);
+      }
+      return;
+    }
+    
+    hearts.forEach(heart => {
+      // 기존 이벤트 리스너 제거
+      heart.onclick = null;
+      
+      // JWT 토큰 가져오기
+      var token = localStorage.getItem('accessToken');
+      
+      // 찜 여부 확인 (Spring API 호출)
+      fetch(rootPath + '/api/main/wish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': token ? 'Bearer ' + token : ''
+        },
+        body: 'action=check&placeId=' + placeId
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.result === true) {
+            heart.classList.add('on');
+            heart.classList.remove('bi-heart');
+            heart.classList.add('bi-heart-fill');
+            heart.style.color = '#e91e63';
+          } else {
+            heart.classList.remove('on');
+            heart.classList.remove('bi-heart-fill');
+            heart.classList.add('bi-heart');
+            heart.style.color = '#ccc';
+          }
+        })
+        .catch(error => {
+          console.error('Wish check error:', error);
+        });
         
-        // 찜 여부 확인 (Spring API 호출)
+      // 찜/찜 해제 이벤트
+      heart.onclick = function() {
+        var isWished = heart.classList.contains('on');
+        var action = isWished ? 'remove' : 'add';
         fetch(rootPath + '/api/main/wish', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'Authorization': token ? 'Bearer ' + token : ''
           },
-          body: 'action=check&placeId=' + placeId
+          body: 'action=' + action + '&placeId=' + placeId
         })
           .then(res => res.json())
           .then(data => {
             if (data.result === true) {
-              heart.classList.add('on');
-              heart.classList.remove('bi-heart');
-              heart.classList.add('bi-heart-fill');
-            } else {
-              heart.classList.remove('on');
-              heart.classList.remove('bi-heart-fill');
-              heart.classList.add('bi-heart');
-            }
-          });
-        // 찜/찜 해제 이벤트
-        heart.onclick = function() {
-          var isWished = heart.classList.contains('on');
-          var action = isWished ? 'remove' : 'add';
-          fetch(rootPath + '/api/main/wish', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'Authorization': token ? 'Bearer ' + token : ''
-            },
-            body: 'action=' + action + '&placeId=' + placeId
-          })
-            .then(res => res.json())
-            .then(data => {
-              if (data.result === true) {
-                if (isWished) {
-                  heart.classList.remove('on');
-                  heart.classList.remove('bi-heart-fill');
-                  heart.classList.add('bi-heart');
-                } else {
-                  heart.classList.add('on');
-                  heart.classList.remove('bi-heart');
-                  heart.classList.add('bi-heart-fill');
-                }
-                
-                // 찜 개수 실시간 업데이트
-                updateWishCount(placeId);
+              if (isWished) {
+                heart.classList.remove('on');
+                heart.classList.remove('bi-heart-fill');
+                heart.classList.add('bi-heart');
+                heart.style.color = '#ccc';
+                showToast('위시리스트에서 제거되었습니다.', 'success');
+              } else {
+                heart.classList.add('on');
+                heart.classList.remove('bi-heart');
+                heart.classList.add('bi-heart-fill');
+                heart.style.color = '#e91e63';
+                showToast('위시리스트에 추가되었습니다!', 'success');
               }
-            });
-        };
-      }
+              
+              // 찜 개수 실시간 업데이트
+              updateWishCount(placeId);
+            } else {
+              showToast('처리 중 오류가 발생했습니다.', 'error');
+            }
+          })
+          .catch(error => {
+            console.error('Wish action error:', error);
+            showToast('처리 중 오류가 발생했습니다.', 'error');
+          });
+      };
     });
-    if (!found && retryCount < 5) {
-      setTimeout(function() {
-        setupWishHeartByClass(placeId, retryCount + 1);
-      }, 100);
-    }
   }
 
   // 오른쪽 패널 토글 기능 (버튼 위치 동적 변경)
@@ -2311,15 +2330,20 @@
 
   // 위시리스트 개수 로드 함수 (Spring API 호출)
   function loadWishCount(placeId) {
-    // 중복 호출 방지
-    if (window.loadingFlags['wishCount-' + placeId]) {
+    const wishCountElements = document.querySelectorAll('.wish-count-' + placeId);
+    if (wishCountElements.length === 0) {
       return;
     }
-    window.loadingFlags['wishCount-' + placeId] = true;
     
-    const wishCountElement = document.querySelector('.wish-count-' + placeId);
-    if (!wishCountElement) {
-      window.loadingFlags['wishCount-' + placeId] = false;
+    // 모든 요소가 이미 숫자가 로드되어 있으면 중복 로딩 방지
+    let allLoaded = true;
+    for (let element of wishCountElements) {
+      if (isNaN(element.textContent) || element.textContent === '') {
+        allLoaded = false;
+        break;
+      }
+    }
+    if (allLoaded) {
       return;
     }
     
@@ -2333,25 +2357,24 @@
     })
     .then(response => response.json())
     .then(data => {
-      if (data.success) {
-        wishCountElement.textContent = data.count;
-      } else {
-        wishCountElement.textContent = '0';
-      }
-      // 플래그 해제
-      window.loadingFlags['wishCount-' + placeId] = false;
+      const count = data.success ? data.count : '0';
+      // 모든 해당 요소에 동시에 업데이트
+      wishCountElements.forEach(element => {
+        element.textContent = count;
+      });
     })
     .catch(error => {
-      wishCountElement.textContent = '0';
-      // 플래그 해제
-      window.loadingFlags['wishCount-' + placeId] = false;
+      // 모든 해당 요소에 동시에 업데이트
+      wishCountElements.forEach(element => {
+        element.textContent = '0';
+      });
     });
   }
 
   // 찜 개수 실시간 업데이트 함수
   function updateWishCount(placeId) {
-    const wishCountElement = document.querySelector('.wish-count-' + placeId);
-    if (!wishCountElement) return;
+    const wishCountElements = document.querySelectorAll('.wish-count-' + placeId);
+    if (wishCountElements.length === 0) return;
     
     // Spring API 호출
     fetch(root + '/api/main/wish-count', {
@@ -2364,22 +2387,30 @@
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        // 애니메이션 효과와 함께 개수 업데이트
-        wishCountElement.style.transform = 'scale(1.2)';
-        wishCountElement.style.transition = 'transform 0.2s ease';
-        wishCountElement.textContent = data.count;
-        
-        // 애니메이션 완료 후 원래 크기로 복원
-        setTimeout(() => {
-          wishCountElement.style.transform = 'scale(1)';
-        }, 200);
+        // 모든 해당 요소에 동시에 업데이트 (애니메이션 효과 포함)
+        wishCountElements.forEach(element => {
+          element.style.transform = 'scale(1.2)';
+          element.style.transition = 'transform 0.2s ease';
+          element.textContent = data.count;
+          
+          // 애니메이션 완료 후 원래 크기로 복원
+          setTimeout(() => {
+            element.style.transform = 'scale(1)';
+          }, 200);
+        });
       } else {
-        wishCountElement.textContent = '0';
+        // 모든 해당 요소에 동시에 업데이트
+        wishCountElements.forEach(element => {
+          element.textContent = '0';
+        });
       }
     })
     .catch(error => {
       console.error('위시리스트 개수 업데이트 오류:', error);
-      wishCountElement.textContent = '0';
+      // 모든 해당 요소에 동시에 업데이트
+      wishCountElements.forEach(element => {
+        element.textContent = '0';
+      });
     });
   }
 
@@ -2437,85 +2468,94 @@
 
   // 투표 현황 로드 함수 (투표 수 포함)
   function loadVoteTrends(placeId, voteCount = null) {
-    const trendsElement = document.getElementById('voteTrends-' + placeId);
-    if (!trendsElement) {
+    const trendsElements = document.querySelectorAll('#voteTrends-' + placeId);
+    const detailsElements = document.querySelectorAll('#voteDetails-' + placeId);
+    if (trendsElements.length === 0) return;
+    
+    // 모든 요소가 이미 로드되어 있으면 중복 로딩 방지
+    let allLoaded = true;
+    for (let element of trendsElements) {
+      if (!element.textContent.includes('회') || element.textContent.includes('로딩중')) {
+        allLoaded = false;
+        break;
+      }
+    }
+    if (allLoaded) {
       return;
     }
     
-    // 투표 수가 제공되지 않으면 별도로 가져오기
-    if (voteCount === null) {
-      loadVoteCount(placeId);
-      return;
-    }
-    
-    // Spring API 호출
-    fetch(root + '/api/main/vote-trends', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: 'placeId=' + placeId
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success && data.trends) {
-        const trends = data.trends;
-        
+    // 투표 수와 상세 정보를 동시에 로드
+    Promise.all([
+      fetch(root + '/api/main/vote-count', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'placeId=' + placeId
+      }).then(response => response.json()),
+      fetch(root + '/api/main/vote-trends', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'placeId=' + placeId
+      }).then(response => response.json())
+    ])
+    .then(([voteData, trendsData]) => {
+      // 역대 투표 수 표시
+      const voteCountValue = voteCount || (voteData.success ? voteData.voteCount : 0) || 0;
+      const trendsText = '📊 역대 투표: ' + voteCountValue + '회';
+      
+      // 모든 trends 요소에 동시에 업데이트
+      trendsElements.forEach(element => {
+        element.textContent = trendsText;
+      });
+      
+      // 상세 정보 표시
+      let detailsText = '#혼잡도 #성비 #대기시간';
+      if (trendsData.success && trendsData.trends) {
+        const trends = trendsData.trends;
         const congestionText = trends.congestion || '데이터없음';
         const genderRatioText = formatGenderRatio(trends.genderRatio || '데이터없음');
         const waitTimeText = trends.waitTime || '데이터없음';
         
-        trendsElement.innerHTML = 
-          '<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">' +
-            '<div style="display:flex; gap:2px;">' +
-              '<div style="width:3px; height:12px; background:#ff6b6b; border-radius:1px;"></div>' +
-              '<div style="width:3px; height:8px; background:#4ecdc4; border-radius:1px;"></div>' +
-              '<div style="width:3px; height:10px; background:#45b7d1; border-radius:1px;"></div>' +
-            '</div>' +
-            '<span style="color:#888; font-size:0.85rem;">역대 투표: ' + voteCount + '개</span>' +
-          '</div>' +
-          '<div style="color:#888; font-size:0.8rem; line-height:1.3;">' +
-            '#혼잡도:' + congestionText + ' ' +
-            '#성비:' + genderRatioText + ' ' +
-            '#대기시간:' + waitTimeText +
-          '</div>';
-      } else {
-        trendsElement.innerHTML = 
-          '<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">' +
-            '<div style="display:flex; gap:2px;">' +
-              '<div style="width:3px; height:12px; background:#ff6b6b; border-radius:1px;"></div>' +
-              '<div style="width:3px; height:8px; background:#4ecdc4; border-radius:1px;"></div>' +
-              '<div style="width:3px; height:10px; background:#45b7d1; border-radius:1px;"></div>' +
-            '</div>' +
-            '<span style="color:#888; font-size:0.85rem;">역대 투표: ' + voteCount + '개</span>' +
-          '</div>' +
-          '<div style="color:#888; font-size:0.8rem;">투표 데이터 없음</div>';
+        detailsText = 
+          '#혼잡도:' + congestionText + ' ' +
+          '#성비:' + genderRatioText + ' ' +
+          '#대기시간:' + waitTimeText;
       }
+      
+      // 모든 details 요소에 동시에 업데이트
+      detailsElements.forEach(element => {
+        element.textContent = detailsText;
+      });
     })
     .catch(error => {
-      trendsElement.innerHTML = 
-        '<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">' +
-          '<div style="display:flex; gap:2px;">' +
-            '<div style="width:3px; height:12px; background:#ff6b6b; border-radius:1px;"></div>' +
-            '<div style="width:3px; height:8px; background:#4ecdc4; border-radius:1px;"></div>' +
-            '<div style="width:3px; height:10px; background:#45b7d1; border-radius:1px;"></div>' +
-          '</div>' +
-          '<span style="color:#888; font-size:0.85rem;">역대 투표: ' + voteCount + '개</span>' +
-        '</div>';
+      const trendsText = '📊 역대 투표: 0회';
+      const detailsText = '#혼잡도 #성비 #대기시간';
+      
+      // 모든 요소에 동시에 업데이트
+      trendsElements.forEach(element => {
+        element.textContent = trendsText;
+      });
+      detailsElements.forEach(element => {
+        element.textContent = detailsText;
+      });
     });
   }
 
   // 장르 정보 로드 함수 (Spring API 호출)
   function loadGenreInfo(placeId) {
-    // 중복 호출 방지
-    if (window.loadingFlags['genreInfo-' + placeId]) {
+    const genresElements = document.querySelectorAll('#genres-' + placeId);
+    if (genresElements.length === 0) {
       return;
     }
-    window.loadingFlags['genreInfo-' + placeId] = true;
     
-    const genresElement = document.getElementById('genres-' + placeId);
-    if (!genresElement) {
-      window.loadingFlags['genreInfo-' + placeId] = false;
+    // 모든 요소가 이미 장르 정보가 로드되어 있으면 중복 로딩 방지
+    let allLoaded = true;
+    for (let element of genresElements) {
+      if (!element.innerHTML.includes('장르:') || element.innerHTML.includes('로딩중')) {
+        allLoaded = false;
+        break;
+      }
+    }
+    if (allLoaded) {
       return;
     }
     
@@ -2529,26 +2569,27 @@
     })
     .then(response => response.json())
     .then(data => {
+      let genreText = '🎵 장르: 미분류';
       if (data.success && data.genres) {
         // 선택된 장르들만 필터링
         const selectedGenres = data.genres.filter(genre => genre.isSelected);
         
         if (selectedGenres.length > 0) {
           const genreNames = selectedGenres.map(genre => genre.genreName).join(', ');
-          genresElement.innerHTML = '🎵 장르: ' + genreNames;
-        } else {
-          genresElement.innerHTML = '🎵 장르: 미분류';
+          genreText = '🎵 장르: ' + genreNames;
         }
-      } else {
-        genresElement.innerHTML = '🎵 장르: 미분류';
       }
-      // 플래그 해제
-      window.loadingFlags['genreInfo-' + placeId] = false;
+      
+      // 모든 해당 요소에 동시에 업데이트
+      genresElements.forEach(element => {
+        element.innerHTML = genreText;
+      });
     })
     .catch(error => {
-      genresElement.innerHTML = '🎵 장르: 로드 실패';
-      // 플래그 해제
-      window.loadingFlags['genreInfo-' + placeId] = false;
+      // 모든 해당 요소에 동시에 업데이트
+      genresElements.forEach(element => {
+        element.innerHTML = '🎵 장르: 로드 실패';
+      });
     });
   }
 

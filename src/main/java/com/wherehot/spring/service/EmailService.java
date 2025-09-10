@@ -24,4 +24,24 @@ public interface EmailService {
      * 비밀번호 재설정 이메일 발송
      */
     boolean sendPasswordResetEmail(String email);
+    
+    /**
+     * 아이디 찾기 인증코드 발송
+     */
+    boolean sendIdSearchCode(String email);
+    
+    /**
+     * 아이디 찾기 인증코드 확인
+     */
+    boolean verifyIdSearchCode(String email, String code);
+    
+    /**
+     * 비밀번호 찾기 인증코드 발송
+     */
+    boolean sendPasswordResetCode(String email);
+    
+    /**
+     * 비밀번호 찾기 인증코드 확인
+     */
+    boolean verifyPasswordResetCode(String email, String code);
 }

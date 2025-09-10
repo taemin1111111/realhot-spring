@@ -69,4 +69,22 @@
         AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
     </select>
 
+    <!-- 오늘 아이디 찾기를 이미 했는지 확인 -->
+    <select id="hasIdSearchToday" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM email_verification 
+        WHERE email = #{email} 
+        AND ip_address = 'id_search'
+        AND is_verified = 1 
+        AND DATE(created_at) = CURDATE()
+    </select>
+
+    <!-- 오늘 비밀번호 찾기를 이미 했는지 확인 -->
+    <select id="hasPasswordResetToday" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM email_verification 
+        WHERE email = #{email} 
+        AND ip_address = 'password_reset'
+        AND is_verified = 1 
+        AND DATE(created_at) = CURDATE()
+    </select>
+
 </mapper>

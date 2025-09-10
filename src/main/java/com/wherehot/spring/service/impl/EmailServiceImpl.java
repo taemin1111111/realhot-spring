@@ -139,6 +139,162 @@ public class EmailServiceImpl implements EmailService {
         return sb.toString();
     }
     
+    @Override
+    public boolean sendIdSearchCode(String email) {
+        try {
+            logger.info("Starting ID search email verification for: {}", email);
+            
+            // 6자리 랜덤 인증번호 생성
+            String verificationCode = String.format("%06d", new Random().nextInt(1000000));
+            logger.info("Generated ID search verification code for {}: {}", email, verificationCode);
+            
+            // 기존 인증 정보 삭제 (새 인증 요청 시)
+            emailVerificationMapper.deleteByEmail(email);
+            
+            // DB에 인증번호 저장 (10분 유효, 아이디 찾기용으로 구분)
+            EmailVerification emailVerification = new EmailVerification(email, verificationCode, "id_search");
+            emailVerificationMapper.insertEmailVerification(emailVerification);
+            logger.info("ID search verification code saved to database for: {}", email);
+            
+            // 이메일 발송
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("chotaemin0920@gmail.com");
+            message.setTo(email);
+            message.setSubject("[어디핫?] 아이디 찾기 인증번호");
+            message.setText(createIdSearchEmailContent(verificationCode));
+            
+            logger.info("Attempting to send ID search email to: {}", email);
+            mailSender.send(message);
+            logger.info("ID search email successfully sent to: {}", email);
+            
+            return true;
+            
+        } catch (Exception e) {
+            logger.error("Failed to send ID search verification email to: {}", email, e);
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean verifyIdSearchCode(String email, String code) {
+        try {
+            // DB에서 인증번호 조회
+            Optional<EmailVerification> verificationOpt = emailVerificationMapper.findByEmailAndCode(email, code);
+            
+            if (verificationOpt.isPresent()) {
+                EmailVerification verification = verificationOpt.get();
+                
+                // 만료 시간 확인
+                if (!verification.isExpired()) {
+                    // 인증 완료 처리
+                    emailVerificationMapper.markAsVerified(verification.getId());
+                    logger.info("ID search email verification successful for: {}", email);
+                    return true;
+                } else {
+                    logger.warn("ID search verification code expired for: {}", email);
+                }
+            } else {
+                logger.warn("Invalid ID search verification code for: {}", email);
+            }
+            
+            return false;
+            
+        } catch (Exception e) {
+            logger.error("Failed to verify ID search email code for: {}", email, e);
+            return false;
+        }
+    }
+    
+    /**
+     * 아이디 찾기 이메일 내용 생성
+     */
+    private String createIdSearchEmailContent(String verificationCode) {
+        return "안녕하세요! 어디핫? 아이디 찾기를 위한 인증번호입니다.\n\n" +
+               "인증번호: " + verificationCode + "\n" +
+               "만료시간: 10분 후\n\n" +
+               "본인이 요청하지 않은 경우 무시하세요.\n\n" +
+               "감사합니다.\n" +
+               "어디핫? 팀";
+    }
+    
+    @Override
+    public boolean sendPasswordResetCode(String email) {
+        try {
+            logger.info("Starting password reset email verification for: {}", email);
+            
+            // 6자리 랜덤 인증번호 생성
+            String verificationCode = String.format("%06d", new Random().nextInt(1000000));
+            logger.info("Generated password reset verification code for {}: {}", email, verificationCode);
+            
+            // 기존 인증 정보 삭제 (새 인증 요청 시)
+            emailVerificationMapper.deleteByEmail(email);
+            
+            // DB에 인증번호 저장 (10분 유효, 비밀번호 찾기용으로 구분)
+            EmailVerification emailVerification = new EmailVerification(email, verificationCode, "password_reset");
+            emailVerificationMapper.insertEmailVerification(emailVerification);
+            logger.info("Password reset verification code saved to database for: {}", email);
+            
+            // 이메일 발송
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("chotaemin0920@gmail.com");
+            message.setTo(email);
+            message.setSubject("[어디핫?] 비밀번호 변경 인증번호");
+            message.setText(createPasswordResetEmailContent(verificationCode));
+            
+            logger.info("Attempting to send password reset email to: {}", email);
+            mailSender.send(message);
+            logger.info("Password reset email successfully sent to: {}", email);
+            
+            return true;
+            
+        } catch (Exception e) {
+            logger.error("Failed to send password reset verification email to: {}", email, e);
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean verifyPasswordResetCode(String email, String code) {
+        try {
+            // DB에서 인증번호 조회
+            Optional<EmailVerification> verificationOpt = emailVerificationMapper.findByEmailAndCode(email, code);
+            
+            if (verificationOpt.isPresent()) {
+                EmailVerification verification = verificationOpt.get();
+                
+                // 만료 시간 확인
+                if (!verification.isExpired()) {
+                    // 인증 완료 처리
+                    emailVerificationMapper.markAsVerified(verification.getId());
+                    logger.info("Password reset email verification successful for: {}", email);
+                    return true;
+                } else {
+                    logger.warn("Password reset verification code expired for: {}", email);
+                }
+            } else {
+                logger.warn("Invalid password reset verification code for: {}", email);
+            }
+            
+            return false;
+            
+        } catch (Exception e) {
+            logger.error("Failed to verify password reset email code for: {}", email, e);
+            return false;
+        }
+    }
+    
+    /**
+     * 비밀번호 찾기 이메일 내용 생성
+     */
+    private String createPasswordResetEmailContent(String verificationCode) {
+        return "안녕하세요! 어디핫? 비밀번호 변경을 위한 인증번호입니다.\n\n" +
+               "인증번호: " + verificationCode + "\n" +
+               "만료시간: 10분 후\n\n" +
+               "본인이 요청하지 않은 경우 무시하세요.\n\n" +
+               "감사합니다.\n" +
+               "어디핫? 팀";
+    }
+    
     /**
      * 이메일 내용 생성 (model1과 동일한 형식)
      */

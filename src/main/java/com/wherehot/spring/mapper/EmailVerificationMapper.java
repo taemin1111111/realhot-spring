@@ -46,4 +46,14 @@ public interface EmailVerificationMapper {
      * 이메일 인증 완료 여부 확인 (24시간 내)
      */
     boolean isEmailVerifiedRecently(@Param("email") String email);
+    
+    /**
+     * 오늘 아이디 찾기를 이미 했는지 확인
+     */
+    boolean hasIdSearchToday(@Param("email") String email);
+    
+    /**
+     * 오늘 비밀번호 찾기를 이미 했는지 확인
+     */
+    boolean hasPasswordResetToday(@Param("email") String email);
 }

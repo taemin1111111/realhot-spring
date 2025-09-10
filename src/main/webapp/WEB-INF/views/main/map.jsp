@@ -42,28 +42,12 @@
     Integer placeId = (Integer) request.getAttribute("placeId");
 %>
 
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>지도 전체 보기 - RealHot</title>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="<%=root%>/css/main.css">
+<!-- Kakao Map SDK -->
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9c8d14f1fa7135d1f77778321b1e25fa&libraries=services"></script>
+<link rel="stylesheet" href="<%=request.getContextPath()%>/css/main.css">
     
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #f8f9fa;
-        }
-        
-        .container {
+        .map-page-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
@@ -107,24 +91,6 @@
             padding: 15px;
         }
         
-        .back-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 10;
-            background: rgba(18,117,224,0.8);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        
-        .back-button:hover {
-            background: rgba(13,91,184,0.9);
-            color: white;
-        }
         
         .marker-label {
             background: rgba(0,0,0,0.7);
@@ -241,9 +207,9 @@
         .region-label {
             background: rgba(255,255,255,0.9);
             color: #333;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 16px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 20px;
             font-weight: bold;
             white-space: nowrap;
             pointer-events: auto !important;
@@ -320,10 +286,86 @@
             width: 94%;
             margin: 0 auto 16px auto;
         }
+        
+        /* 모바일에서 검색 결과 글자 크기 증가 */
+        @media (max-width: 768px) {
+            .hotplace-list-card {
+                padding: 24px !important;
+                margin-bottom: 20px !important;
+            }
+            
+            .hotplace-list-card .hotplace-name {
+                font-size: 1.3rem !important;
+                font-weight: 700 !important;
+            }
+            
+            .hotplace-list-card .hotplace-category {
+                font-size: 1rem !important;
+                margin-top: 4px !important;
+            }
+            
+            .hotplace-list-card .wish-count {
+                font-size: 1rem !important;
+                margin-top: 4px !important;
+            }
+            
+            .hotplace-list-card .vote-trends {
+                font-size: 1rem !important;
+                margin-top: 4px !important;
+            }
+            
+            .hotplace-list-card .vote-details {
+                font-size: 0.95rem !important;
+                margin-top: 4px !important;
+            }
+            
+            .hotplace-list-card .genre-info {
+                font-size: 1rem !important;
+                margin-top: 4px !important;
+            }
+            
+            .hotplace-list-card .action-buttons-container a {
+                font-size: 1rem !important;
+                padding: 12px 18px !important;
+            }
+            
+            .region-item {
+                padding: 16px 20px !important;
+                margin-bottom: 12px !important;
+            }
+            
+            .region-item > div:first-child {
+                font-size: 1.2rem !important;
+                font-weight: 700 !important;
+            }
+            
+            .region-item .category-counts {
+                font-size: 1rem !important;
+            }
+            
+            .autocomplete-item {
+                padding: 16px 20px !important;
+                font-size: 1.1rem !important;
+            }
+            
+            #searchResultBox {
+                font-size: 1.4rem !important;
+            }
+            
+            #searchResultBox .hotplace-address {
+                font-size: 1rem !important;
+            }
+        }
     </style>
-</head>
-<body>
-    <div class="container">
+
+<div class="map-page-container">
+        <!-- 메인으로 버튼 -->
+        <div style="text-align: center; margin-bottom: 20px;">
+            <a href="<%=root%>/" class="btn btn-primary">
+                <i class="bi bi-house"></i> 메인으로
+            </a>
+        </div>
+        
         <div class="map-container">
             <!-- 지도 -->
             <div id="map"></div>
@@ -396,15 +438,9 @@
                 </div>
             </div>
             
-            <!-- 뒤로가기 버튼 -->
-            <a href="<%=root%>/" class="back-button">
-                <i class="bi bi-arrow-left"></i> 메인으로
-            </a>
         </div>
     </div>
 
-    <!-- Kakao Map SDK -->
-    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9c8d14f1fa7135d1f77778321b1e25fa&libraries=services"></script>
     
     <script>
         var root = '<%=root%>';
@@ -924,7 +960,7 @@
                     }
                     
                     return '<div class="region-item" style="padding:12px 16px; border:1px solid #e0e0e0; border-radius:8px; margin-bottom:8px; cursor:pointer; transition:background 0.2s; display:flex; align-items:center; justify-content:space-between;" onclick="openRightPanelAndShowDongList(\'' + dong + '\')">'
-                        + '<div style="font-weight:bold; color:#333; font-size:1rem;">' + dong + '</div>'
+                        + '<div style="font-weight:bold; color:#333; font-size:1rem;" class="region-name">' + dong + '</div>'
                         + countHtml
                         + '</div>';
                 }).join('');
@@ -943,11 +979,11 @@
                         +   '<div style="display:flex; align-items:center; gap:6px;">'
                         +     '<div style="flex:1; min-width:0;">'
                         +       '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">'
-                        +         '<span class="hotplace-name" style="color:#1275E0; font-weight:600; cursor:pointer; flex:1;">' + h.name + '</span>'
+                        +         '<span class="hotplace-name" style="color:#1275E0; font-weight:600; cursor:pointer; flex:1; font-size:1.1rem;">' + h.name + '</span>'
                         +         '<div style="position:relative;">' + heartHtml + '</div>'
                         +       '</div>'
                         +       '<div class="hotplace-category" style="color:#888; font-size:0.8rem; margin-top:2px;">' + (categoryMap[h.categoryId]||'') + '</div>'
-                        +       '<div style="color:#e91e63; font-size:0.8rem; margin-top:2px;">💖<span class="wish-count-' + h.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명이 찜했어요</div>'
+                        +       '<div class="wish-count" style="color:#e91e63; font-size:0.8rem; margin-top:2px;">💖<span class="wish-count-' + h.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명이 찜했어요</div>'
                         +     '</div>'
                         +   '</div>'
                         +   '<div class="hotplace-address" style="color:#666; margin-top:2px; display:flex; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + h.address + '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center; flex-shrink:0;" title="주소 복사"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
@@ -1003,7 +1039,7 @@
         // 구 오버레이 생성
         sigunguCenters.forEach(function(center) {
             var overlay = new kakao.maps.CustomOverlay({
-                content: '<div class="region-label">' + center.sigungu + '</div>',
+                content: '<div class="region-label" style="font-size:24px; padding:12px 20px;">' + center.sigungu + '</div>',
                 position: new kakao.maps.LatLng(center.lat, center.lng),
                 xAnchor: 0.5, yAnchor: 0.5, map: null
             });
@@ -1027,7 +1063,7 @@
         // 동 오버레이 생성
         regionCenters.forEach(function(center) {
             var overlay = new kakao.maps.CustomOverlay({
-                content: '<div class="region-label" style="cursor:pointer;" onclick="openRightPanelAndShowDongList(\'' + center.dong + '\')">' + center.dong + '</div>',
+                content: '<div class="region-label" style="cursor:pointer; font-size:22px; padding:10px 18px;" onclick="openRightPanelAndShowDongList(\'' + center.dong + '\')">' + center.dong + '</div>',
                 position: new kakao.maps.LatLng(center.lat, center.lng),
                 xAnchor: 0.5, yAnchor: 0.5, map: null
             });
@@ -2127,5 +2163,4 @@
                 '</div>';
         }
     </script>
-</body>
-</html>
+</div>

@@ -355,6 +355,101 @@
             #searchResultBox .hotplace-address {
                 font-size: 1rem !important;
             }
+            
+            /* 모바일에서 화살표 버튼 크기 증가 */
+            #rightPanelToggleBtn, #rightPanelCloseBtn {
+                width: 50px !important;
+                height: 70px !important;
+                font-size: 2rem !important;
+            }
+            
+            /* 모바일에서 내 위치 버튼 크기 증가 */
+            .btn-outline-primary {
+                font-size: 1.3rem !important;
+                padding: 16px 24px !important;
+            }
+            
+            /* 모바일에서 카테고리 필터 버튼 크기 증가 */
+            .category-filter-btn {
+                font-size: 1.3rem !important;
+                padding: 16px 20px !important;
+                min-width: 60px !important;
+                height: 60px !important;
+            }
+        }
+        
+        /* 아이폰에서 버튼 크기 더 증가 */
+        @media (max-width: 480px) {
+            /* 아이폰에서 화살표 버튼 크기 더 증가 */
+            #rightPanelToggleBtn, #rightPanelCloseBtn {
+                width: 55px !important;
+                height: 75px !important;
+                font-size: 2.2rem !important;
+            }
+            
+            /* 아이폰에서 내 위치 버튼 크기 더 증가 */
+            .btn-outline-primary {
+                font-size: 1.4rem !important;
+                padding: 18px 26px !important;
+            }
+            
+            /* 아이폰에서 카테고리 필터 버튼 크기 더 증가 */
+            .category-filter-btn {
+                font-size: 1.4rem !important;
+                padding: 18px 22px !important;
+                min-width: 65px !important;
+                height: 65px !important;
+            }
+        }
+        
+        /* 아이폰 Safari 전용 스타일 */
+        @supports (-webkit-touch-callout: none) {
+            @media (max-width: 500px) {
+                /* 아이폰에서 화살표 버튼 크기 최대 증가 */
+                #rightPanelToggleBtn, #rightPanelCloseBtn {
+                    width: 60px !important !important;
+                    height: 80px !important !important;
+                    font-size: 2.4rem !important !important;
+                }
+                
+                /* 아이폰에서 내 위치 버튼 크기 최대 증가 */
+                .btn-outline-primary {
+                    font-size: 1.5rem !important !important;
+                    padding: 20px 28px !important !important;
+                }
+                
+                /* 아이폰에서 카테고리 필터 버튼 크기 최대 증가 */
+                .category-filter-btn {
+                    font-size: 1.5rem !important !important;
+                    padding: 20px 24px !important !important;
+                    min-width: 70px !important !important;
+                    height: 70px !important !important;
+                }
+            }
+        }
+        
+        /* 최종 강제 적용 - 모든 아이폰 크기 */
+        @media only screen and (max-width: 500px) {
+            /* 아이폰에서 화살표 버튼 크기 최대 증가 */
+            #rightPanelToggleBtn, #rightPanelCloseBtn {
+                width: 65px !important !important;
+                height: 85px !important !important;
+                font-size: 2.6rem !important !important;
+            }
+            
+            /* 아이폰에서 내 위치 버튼 크기 최대 증가 */
+            .btn-outline-primary {
+                font-size: 1.6rem !important !important;
+                padding: 22px 30px !important !important;
+            }
+            
+            /* 아이폰에서 카테고리 필터 버튼 크기 최대 증가 */
+            .category-filter-btn {
+                font-size: 1.6rem !important !important;
+                padding: 22px 26px !important !important;
+                min-width: 75px !important !important;
+                height: 75px !important !important;
+            }
         }
     </style>
 
@@ -600,11 +695,11 @@
                 + '<div style="color:#e91e63; font-size:clamp(10px, 1.6vw, 12px); margin-top:2px;">💖<span class="wish-count-' + place.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명이 찜했어요</div>'
                 + '</div>'
                 + '</div>'
-                + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(10px, 1.8vw, 12px); word-break:break-word;" id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</div>'
-                + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(9px, 1.6vw, 11px); word-break:break-word;" id="voteDetails-' + place.id + '">#혼잡도 #성비 #대기시간</div>'
-                + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(11px, 2vw, 13px); word-break:break-word; line-height:1.3; display:flex; align-items:center;">' + place.address + '<span onclick="copyAddress(\'' + place.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
+                + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word;" id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</div>'
+                + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word;" id="voteDetails-' + place.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
+                + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; line-height:1.3; display:flex; align-items:center;">' + place.address + '<span onclick="copyAddress(\'' + place.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
                 + (place.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>' : '')
-                + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
+                + '<div class="action-buttons-container" style="padding-bottom: 24px !important;"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
                 + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
                 + '</div>'
                 + '</div>';
@@ -1452,26 +1547,26 @@
                     const waitTimeText = trends.waitTime || '데이터없음';
                     
                     detailsText = 
-                        '#혼잡도:' + congestionText + ' ' +
-                        '#성비:' + genderRatioText + ' ' +
+                        '#성비:' + genderRatioText + '<br>' +
+                        '#혼잡도:' + congestionText + '<br>' +
                         '#대기시간:' + waitTimeText;
                 }
                 
                 // 모든 details 요소에 동시에 업데이트
                 detailsElements.forEach(element => {
-                    element.textContent = detailsText;
+                    element.innerHTML = detailsText;
                 });
             })
             .catch(error => {
                 const trendsText = '📊 역대 투표: 0회';
-                const detailsText = '#혼잡도 #성비 #대기시간';
+                const detailsText = '#성비<br>#혼잡도<br>#대기시간';
                 
                 // 모든 요소에 동시에 업데이트
                 trendsElements.forEach(element => {
                     element.textContent = trendsText;
                 });
                 detailsElements.forEach(element => {
-                    element.textContent = detailsText;
+                    element.innerHTML = detailsText;
                 });
             });
         }
@@ -1687,9 +1782,9 @@
                     +         '<div style="color:#e91e63; font-size:0.8rem; margin-top:2px;">💖<span class="wish-count-' + h.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명이 찜했어요</div>'
                     +       '</div>'
                     +     '</div>'
-                    +     '<div style="margin-bottom:8px; color:#888; font-size:0.85rem; word-break:break-word;" id="voteTrends-' + h.id + '">📊 역대 투표: 로딩중...</div>'
-                    +     '<div style="margin-bottom:8px; color:#888; font-size:0.8rem; word-break:break-word;" id="voteDetails-' + h.id + '">#혼잡도 #성비 #대기시간</div>'
-                    +     '<div style="color:#666; font-size:0.9rem; line-height:1.4; margin-bottom:8px; display:flex; align-items:flex-start; gap:6px;">'
+                    +     '<div style="margin-bottom:8px; color:#888; font-size:0.95rem; word-break:break-word;" id="voteTrends-' + h.id + '">📊 역대 투표: 로딩중...</div>'
+                    +     '<div style="margin-bottom:8px; color:#888; font-size:0.95rem; word-break:break-word;" id="voteDetails-' + h.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
+                    +     '<div style="color:#666; font-size:0.95rem; line-height:1.4; margin-bottom:8px; display:flex; align-items:flex-start; gap:6px;">'
                     +       '<div style="flex:1; word-break:break-word;">' + h.address + '</div>'
                     +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
                     +     '</div>'
@@ -1852,9 +1947,9 @@
                     +         '<div style="color:#e91e63; font-size:0.8rem; margin-top:2px;">💖<span class="wish-count-' + h.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명이 찜했어요</div>'
                     +       '</div>'
                     +     '</div>'
-                    +     '<div style="margin-bottom:8px; color:#888; font-size:0.85rem; word-break:break-word;" id="voteTrends-' + h.id + '">📊 역대 투표: 로딩중...</div>'
-                    +     '<div style="margin-bottom:8px; color:#888; font-size:0.8rem; word-break:break-word;" id="voteDetails-' + h.id + '">#혼잡도 #성비 #대기시간</div>'
-                    +     '<div style="color:#666; font-size:0.9rem; line-height:1.4; margin-bottom:8px; display:flex; align-items:flex-start; gap:6px;">'
+                    +     '<div style="margin-bottom:8px; color:#888; font-size:0.95rem; word-break:break-word;" id="voteTrends-' + h.id + '">📊 역대 투표: 로딩중...</div>'
+                    +     '<div style="margin-bottom:8px; color:#888; font-size:0.95rem; word-break:break-word;" id="voteDetails-' + h.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
+                    +     '<div style="color:#666; font-size:0.95rem; line-height:1.4; margin-bottom:8px; display:flex; align-items:flex-start; gap:6px;">'
                     +       '<div style="flex:1; word-break:break-word;">' + h.address + '</div>'
                     +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
                     +     '</div>'

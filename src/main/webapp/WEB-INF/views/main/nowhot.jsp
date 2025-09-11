@@ -8,7 +8,7 @@
     }
 %>
 
-<h5 class="fw-bold mb-3">
+<h5 class="fw-bold mb-3" style="font-size: 1.5rem;">
   <img src="<%=root %>/logo/lank.png" alt="랭크 로고" class="rank-logo" style="margin-right: 8px; vertical-align: middle;">
   오늘 핫 투표
 </h5>

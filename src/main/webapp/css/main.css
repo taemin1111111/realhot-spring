@@ -704,7 +704,7 @@
     flex-direction: column !important;
     gap: 8px !important;
     margin-top: 16px !important;
-    padding-bottom: 16px !important;
+    padding-bottom: 24px !important;
 }
 
 /* InfoWindow 내 "역대 투표:" 텍스트 크기 증가 */
@@ -794,5 +794,41 @@
     #voteGuide .vote-guide-title,
     #voteGuide div.vote-guide-title {
         font-size: 1.1rem !important;
+    }
+}
+
+/* 모바일에서만 검색 결과의 voteDetails, voteTrends, 주소 폰트 크기 증가 */
+@media (max-width: 991px) {
+    .hotplace-list-card div[id*="voteDetails"] {
+        font-size: 1.1rem !important;
+        line-height: 1.5 !important;
+    }
+    
+    .hotplace-list-card div[id*="voteTrends"] {
+        font-size: 1.1rem !important;
+        line-height: 1.5 !important;
+    }
+    
+    .hotplace-list-card div[style*="color:#666"][style*="line-height:1.4"] {
+        font-size: 1.1rem !important;
+        line-height: 1.5 !important;
+    }
+}
+
+/* 작은 모바일에서 더 큰 폰트 */
+@media (max-width: 480px) {
+    .hotplace-list-card div[id*="voteDetails"] {
+        font-size: 1.2rem !important;
+        line-height: 1.6 !important;
+    }
+    
+    .hotplace-list-card div[id*="voteTrends"] {
+        font-size: 1.2rem !important;
+        line-height: 1.6 !important;
+    }
+    
+    .hotplace-list-card div[style*="color:#666"][style*="line-height:1.4"] {
+        font-size: 1.2rem !important;
+        line-height: 1.6 !important;
     }
 }

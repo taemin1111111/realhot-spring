@@ -15,8 +15,8 @@
             대표: 조태민 &nbsp;|&nbsp; 문의: <a href="mailto:hothot0001122@gmail.com" class="text-decoration-none text-white">hothot0001122@gmail.com</a>
         </div>
         <div class="mb-2">
-            <a href="<%=root %>/privacy.jsp" class="text-decoration-none text-light">개인정보처리방침</a> &nbsp;|&nbsp;
-            <a href="<%=root %>/terms.jsp" class="text-decoration-none text-light">이용약관</a> &nbsp;|&nbsp;
+            <a href="<%=root %>/privacy" class="text-decoration-none text-light">개인정보처리방침</a> &nbsp;|&nbsp;
+            <a href="<%=root %>/terms" class="text-decoration-none text-light">이용약관</a> &nbsp;|&nbsp;
             <a href="<%=root %>/notice" class="text-decoration-none text-light">공지사항</a>
         </div>
         <div class="mt-3">

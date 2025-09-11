@@ -279,12 +279,18 @@
     color: #333;
     margin-bottom: 4px;
     font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .autocomplete-address {
     color: #666;
     font-size: 12px;
     line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* 자동완성 스크롤바 스타일 */
@@ -1263,13 +1269,90 @@ body:has(.course-hunting-container) {
     }
     
     .region-badge {
-        font-size: 13px;
-        padding: 6px 12px;
+        font-size: 22px !important;
+        padding: 12px 20px !important;
+        font-weight: 700 !important;
+    }
+    
+    /* 모바일에서 탭 버튼 크기 증가 */
+    .course-hunting-tab-btn {
+        font-size: 18px !important;
+        padding: 16px 28px !important;
+        font-weight: 700 !important;
+    }
+    
+    /* 모바일에서 공유하기 버튼 크기 증가 */
+    .course-hunting-share-btn {
+        font-size: 18px !important;
+        padding: 16px 28px !important;
+        font-weight: 700 !important;
+    }
+    
+    /* 모바일에서 서울 전체 버튼 크기 증가 */
+    .course-hunting-seoul-all {
+        font-size: 19px !important;
+        padding: 18px 20px !important;
+        font-weight: 700 !important;
+    }
+    
+    /* 모바일에서 시군구 버튼 크기 증가 */
+    .course-hunting-sigungu-name {
+        font-size: 18px !important;
+        padding: 16px 18px !important;
+        font-weight: 700 !important;
+    }
+    
+    /* 모바일에서 동 버튼 크기 증가 */
+    .course-hunting-dong-item {
+        font-size: 15px !important;
+        padding: 10px 12px !important;
+        font-weight: 600 !important;
     }
     
     .course-hunting-grid {
         grid-template-columns: 1fr;
         gap: 20px;
+    }
+    
+    /* 모바일에서 코스 카드 폰트 크기 증가 */
+    .course-hunting-card-title {
+        font-size: 24px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-hunting-card-summary {
+        font-size: 18px !important;
+        font-weight: 400 !important;
+    }
+    
+    .course-hunting-card-nickname {
+        font-size: 16px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-hunting-card-time {
+        font-size: 15px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-hunting-card-date {
+        font-size: 14px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-step-place {
+        font-size: 17px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-step-info {
+        font-size: 16px !important;
+        font-weight: 500 !important;
+    }
+    
+    .course-hunting-stat-item {
+        font-size: 18px !important;
+        font-weight: 600 !important;
     }
     
     .course-hunting-modal-content {
@@ -1291,18 +1374,8 @@ body:has(.course-hunting-container) {
         gap: 10px;
     }
     
-    .course-hunting-sigungu-name {
-        font-size: 14px;
-        padding: 8px 10px;
-    }
-    
     .course-hunting-dong-grid {
         min-height: 80px;
-    }
-    
-    .course-hunting-dong-item {
-        padding: 5px 8px;
-        font-size: 11px;
     }
     
     /* 검색 기능 반응형 */
@@ -1321,8 +1394,14 @@ body:has(.course-hunting-container) {
     }
     
     .course-search-input {
-        padding: 16px 20px;
-        font-size: 15px;
+        padding: 22px 26px !important;
+        font-size: 19px !important;
+        font-weight: 500 !important;
+    }
+    
+    .course-search-input::placeholder {
+        font-size: 18px !important;
+        font-weight: 400 !important;
     }
     
     .course-search-button-wrapper {
@@ -1331,12 +1410,19 @@ body:has(.course-hunting-container) {
     
     .course-search-btn {
         width: 100%;
-        padding: 16px 18px;
+        padding: 22px 24px !important;
         min-width: auto;
+        font-size: 18px !important;
+        font-weight: 700 !important;
     }
     
     .course-search-btn .btn-text {
-        font-size: 13px;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-search-btn i {
+        font-size: 20px !important;
     }
     
     .course-search-filters {
@@ -1352,8 +1438,449 @@ body:has(.course-hunting-container) {
         gap: 12px;
     }
     
+    .course-search-filter-label {
+        font-size: 19px !important;
+        font-weight: 700 !important;
+    }
+    
     .course-search-filter-option {
-        padding: 6px 10px;
+        padding: 10px 14px !important;
+        font-size: 18px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-search-filter-option input[type="checkbox"] {
+        width: 22px !important;
+        height: 22px !important;
+    }
+    
+    /* 모바일에서 핫플레이스 자동완성 폰트 크기 증가 */
+    .autocomplete-name {
+        font-size: 22px !important;
+        font-weight: 700 !important;
+    }
+    
+    .autocomplete-address {
+        font-size: 20px !important;
+        font-weight: 500 !important;
+    }
+    
+    .autocomplete-item {
+        padding: 20px 24px !important;
+    }
+}
+
+/* 아이폰 등 작은 화면을 위한 추가 크기 증가 */
+@media (max-width: 480px) {
+    .region-badge {
+        font-size: 24px !important;
+        padding: 14px 22px !important;
+        font-weight: 700 !important;
+    }
+    
+    /* 아이폰에서 탭 버튼 크기 더 증가 */
+    .course-hunting-tab-btn {
+        font-size: 20px !important;
+        padding: 18px 32px !important;
+        font-weight: 700 !important;
+    }
+    
+    /* 아이폰에서 공유하기 버튼 크기 더 증가 */
+    .course-hunting-share-btn {
+        font-size: 20px !important;
+        padding: 18px 32px !important;
+        font-weight: 700 !important;
+    }
+    
+    /* 아이폰에서 서울 전체 버튼 크기 더 증가 */
+    .course-hunting-seoul-all {
+        font-size: 21px !important;
+        padding: 20px 22px !important;
+        font-weight: 700 !important;
+    }
+    
+    /* 아이폰에서 시군구 버튼 크기 더 증가 */
+    .course-hunting-sigungu-name {
+        font-size: 20px !important;
+        padding: 18px 20px !important;
+        font-weight: 700 !important;
+    }
+    
+    /* 아이폰에서 동 버튼 크기 더 증가 */
+    .course-hunting-dong-item {
+        font-size: 17px !important;
+        padding: 12px 14px !important;
+        font-weight: 600 !important;
+    }
+    
+    /* 아이폰에서 코스 카드 폰트 크기 더 증가 */
+    .course-hunting-card-title {
+        font-size: 26px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-hunting-card-summary {
+        font-size: 20px !important;
+        font-weight: 400 !important;
+    }
+    
+    .course-hunting-card-nickname {
+        font-size: 18px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-hunting-card-time {
+        font-size: 17px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-hunting-card-date {
+        font-size: 16px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-step-place {
+        font-size: 19px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-step-info {
+        font-size: 18px !important;
+        font-weight: 500 !important;
+    }
+    
+    .course-hunting-stat-item {
+        font-size: 20px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-search-input {
+        padding: 24px 28px !important;
+        font-size: 21px !important;
+        font-weight: 500 !important;
+    }
+    
+    .course-search-input::placeholder {
+        font-size: 20px !important;
+        font-weight: 400 !important;
+    }
+    
+    .course-search-btn {
+        padding: 24px 26px !important;
+        font-size: 20px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-search-btn .btn-text {
+        font-size: 20px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-search-btn i {
+        font-size: 22px !important;
+    }
+    
+    .course-search-filter-label {
+        font-size: 21px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-search-filter-option {
+        padding: 12px 16px !important;
+        font-size: 20px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-search-filter-option input[type="checkbox"] {
+        width: 24px !important;
+        height: 24px !important;
+    }
+    
+    /* 아이폰에서 핫플레이스 자동완성 폰트 크기 더 증가 */
+    .autocomplete-name {
+        font-size: 24px !important;
+        font-weight: 700 !important;
+    }
+    
+    .autocomplete-address {
+        font-size: 22px !important;
+        font-weight: 500 !important;
+    }
+    
+    .autocomplete-item {
+        padding: 22px 26px !important;
+    }
+}
+
+/* 아이폰 Safari 전용 스타일 - 더 구체적인 선택자와 !important 사용 */
+@supports (-webkit-touch-callout: none) {
+    .region-badge {
+        font-size: 26px !important;
+        padding: 16px 24px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-hunting-tab-btn {
+        font-size: 22px !important;
+        padding: 20px 36px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-hunting-share-btn {
+        font-size: 22px !important;
+        padding: 20px 36px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-hunting-seoul-all {
+        font-size: 28px !important;
+        padding: 26px 30px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-hunting-sigungu-name {
+        font-size: 22px !important;
+        padding: 20px 22px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-hunting-dong-item {
+        font-size: 19px !important;
+        padding: 14px 16px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-hunting-card-title {
+        font-size: 28px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-hunting-card-summary {
+        font-size: 22px !important;
+        font-weight: 400 !important;
+    }
+    
+    .course-hunting-card-nickname {
+        font-size: 20px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-hunting-card-time {
+        font-size: 19px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-hunting-card-date {
+        font-size: 18px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-step-place {
+        font-size: 21px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-step-info {
+        font-size: 20px !important;
+        font-weight: 500 !important;
+    }
+    
+    .course-hunting-stat-item {
+        font-size: 22px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-search-input {
+        padding: 26px 30px !important;
+        font-size: 23px !important;
+        font-weight: 500 !important;
+    }
+    
+    .course-search-input::placeholder {
+        font-size: 22px !important;
+        font-weight: 400 !important;
+    }
+    
+    .course-search-btn {
+        padding: 26px 28px !important;
+        font-size: 22px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-search-btn .btn-text {
+        font-size: 22px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-search-btn i {
+        font-size: 24px !important;
+    }
+    
+    .course-search-filter-label {
+        font-size: 23px !important;
+        font-weight: 700 !important;
+    }
+    
+    .course-search-filter-option {
+        padding: 14px 18px !important;
+        font-size: 22px !important;
+        font-weight: 600 !important;
+    }
+    
+    .course-search-filter-option input[type="checkbox"] {
+        width: 26px !important;
+        height: 26px !important;
+    }
+    
+    /* 아이폰 Safari에서 핫플레이스 자동완성 폰트 크기 증가 */
+    .autocomplete-name {
+        font-size: 26px !important;
+        font-weight: 700 !important;
+    }
+    
+    .autocomplete-address {
+        font-size: 24px !important;
+        font-weight: 500 !important;
+    }
+    
+    .autocomplete-item {
+        padding: 24px 28px !important;
+    }
+}
+
+/* 최종 강제 적용 - 모든 아이폰 크기 */
+@media only screen and (max-width: 500px) {
+    .region-badge {
+        font-size: 28px !important !important;
+        padding: 18px 26px !important !important;
+        font-weight: 700 !important !important;
+    }
+    
+    .course-hunting-tab-btn {
+        font-size: 24px !important !important;
+        padding: 22px 40px !important !important;
+        font-weight: 700 !important !important;
+    }
+    
+    .course-hunting-share-btn {
+        font-size: 24px !important !important;
+        padding: 22px 40px !important !important;
+        font-weight: 700 !important !important;
+    }
+    
+    .course-hunting-seoul-all {
+        font-size: 32px !important !important;
+        padding: 30px 36px !important !important;
+        font-weight: 700 !important !important;
+    }
+    
+    .course-hunting-sigungu-name {
+        font-size: 24px !important !important;
+        padding: 22px 24px !important !important;
+        font-weight: 700 !important !important;
+    }
+    
+    .course-hunting-dong-item {
+        font-size: 21px !important !important;
+        padding: 16px 18px !important !important;
+        font-weight: 600 !important !important;
+    }
+    
+    .course-hunting-card-title {
+        font-size: 30px !important !important;
+        font-weight: 700 !important !important;
+    }
+    
+    .course-hunting-card-summary {
+        font-size: 24px !important !important;
+        font-weight: 400 !important !important;
+    }
+    
+    .course-hunting-card-nickname {
+        font-size: 22px !important !important;
+        font-weight: 600 !important !important;
+    }
+    
+    .course-hunting-card-time {
+        font-size: 21px !important !important;
+        font-weight: 600 !important !important;
+    }
+    
+    .course-hunting-card-date {
+        font-size: 20px !important !important;
+        font-weight: 600 !important !important;
+    }
+    
+    .course-step-place {
+        font-size: 23px !important !important;
+        font-weight: 600 !important !important;
+    }
+    
+    .course-step-info {
+        font-size: 22px !important !important;
+        font-weight: 500 !important !important;
+    }
+    
+    .course-hunting-stat-item {
+        font-size: 24px !important !important;
+        font-weight: 600 !important !important;
+    }
+    
+    .course-search-input {
+        padding: 28px 32px !important !important;
+        font-size: 25px !important !important;
+        font-weight: 500 !important !important;
+    }
+    
+    .course-search-input::placeholder {
+        font-size: 24px !important !important;
+        font-weight: 400 !important !important;
+    }
+    
+    .course-search-btn {
+        padding: 28px 30px !important !important;
+        font-size: 24px !important !important;
+        font-weight: 700 !important !important;
+    }
+    
+    .course-search-btn .btn-text {
+        font-size: 24px !important !important;
+        font-weight: 700 !important !important;
+    }
+    
+    .course-search-btn i {
+        font-size: 26px !important !important;
+    }
+    
+    .course-search-filter-label {
+        font-size: 25px !important !important;
+        font-weight: 700 !important !important;
+    }
+    
+    .course-search-filter-option {
+        padding: 16px 20px !important !important;
+        font-size: 24px !important !important;
+        font-weight: 600 !important !important;
+    }
+    
+    .course-search-filter-option input[type="checkbox"] {
+        width: 28px !important !important;
+        height: 28px !important !important;
+    }
+    
+    /* 최종 강제 적용 - 핫플레이스 자동완성 */
+    .autocomplete-name {
+        font-size: 28px !important !important;
+        font-weight: 700 !important !important;
+    }
+    
+    .autocomplete-address {
+        font-size: 26px !important !important;
+        font-weight: 500 !important !important;
+    }
+    
+    .autocomplete-item {
+        padding: 26px 30px !important !important;
     }
 }
 

@@ -100,6 +100,24 @@ public class MainController {
     }
     
     /**
+     * 이용약관 페이지
+     */
+    @GetMapping("/terms")
+    public String terms(Model model) {
+        model.addAttribute("mainPage", "agreement.jsp");
+        return "index";
+    }
+    
+    /**
+     * 개인정보처리방침 페이지
+     */
+    @GetMapping("/privacy")
+    public String privacy(Model model) {
+        model.addAttribute("mainPage", "service.jsp");
+        return "index";
+    }
+    
+    /**
      * main.jsp에 필요한 데이터 로드
      */
     private void loadMainPageData(Model model) {

@@ -1,21 +1,21 @@
 /* 오늘 핫 섹션 스타일 */
 .today-hot-section {
-    background: #ffffff; /* 흰색 배경으로 변경 */
+    background: transparent; /* 배경 투명으로 변경 */
     border-radius: 15px;
     padding: 15px;
     margin: 10px 0;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
     color: #000;
-    border: 1px solid #e0e0e0;
+    border: none; /* 테두리 제거 */
 }
 
 .today-hot-title {
-    color: #000; /* 검정색으로 변경 */
+    color: #ffffff; /* 흰색으로 변경 */
     font-size: 1.8rem; /* 더 크게 */
     font-weight: bold;
     margin-bottom: 12px;
     text-align: center;
-    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -211,7 +211,7 @@
 
 /* 빈 순위 카드 */
 .ranking-card.empty {
-    background: rgba(255, 255, 255, 0.7);
+    background: #ffffff; /* 완전한 흰색으로 변경 */
     border: 2px solid #ccc;
 }
 

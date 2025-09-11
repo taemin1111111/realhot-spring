@@ -43,8 +43,9 @@
                         <hr>
 
                         <div class="d-flex justify-content-center my-3">
-                            <a href="<%=root%>/oauth2/authorization/naver">
-                                <img src="https://static.nid.naver.com/oauth/small_g_in.PNG" alt="네이버 로그인" style="width: 300px; height: 50px;">
+                            <a href="<%=root%>/oauth2/authorization/naver" class="naver-login-btn">
+                                <div class="naver-logo">N</div>
+                                <span class="naver-text">네이버 로그인</span>
                             </a>
                         </div>
                     </div>
@@ -59,9 +60,9 @@
                         </button>
 
                         <!-- 네이버 간편회원가입 -->
-                        <a href="<%=root%>/oauth2/authorization/naver"
-                           style="display: block; width: 300px; height: 50px; background: #03C75A; border: none; border-radius: 4px; color: white; text-decoration: none; font-size: 16px; font-weight: 500; margin: 0 auto 10px auto;">
-                           <img src="https://static.nid.naver.com/oauth/small_g_in.PNG" alt="네이버" style="width: 300px; height: 50px;">
+                        <a href="<%=root%>/oauth2/authorization/naver" class="naver-login-btn mb-3">
+                            <div class="naver-logo">N</div>
+                            <span class="naver-text">네이버 간편가입</span>
                         </a>
                     </div>
 
@@ -95,6 +96,103 @@
     width: 100% !important;
     flex: 0 0 100% !important;
     max-width: 100% !important;
+}
+
+/* 네이버 로그인 버튼 스타일 - 공식 가이드 적용 */
+.naver-login-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 300px;
+    height: 50px;
+    background: #03C75A;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(3, 199, 90, 0.2);
+}
+
+.naver-login-btn:hover {
+    background: #02B351;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(3, 199, 90, 0.3);
+}
+
+.naver-login-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(3, 199, 90, 0.2);
+}
+
+.naver-logo {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    color: #03C75A;
+    font-family: Arial, sans-serif;
+}
+
+.naver-text {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.01em;
+}
+
+/* 모바일에서 네이버 로그인 버튼 크기 조정 */
+@media (max-width: 768px) {
+    .naver-login-btn {
+        height: 55px;
+        font-size: 17px;
+    }
+    
+    .naver-logo {
+        width: 22px;
+        height: 22px;
+        font-size: 15px;
+    }
+}
+
+/* 아이폰에서 네이버 로그인 버튼 크기 더 증가 */
+@media (max-width: 480px) {
+    .naver-login-btn {
+        height: 60px;
+        font-size: 18px;
+        gap: 10px;
+    }
+    
+    .naver-logo {
+        width: 24px;
+        height: 24px;
+        font-size: 16px;
+    }
+}
+
+/* 아이폰 Safari 전용 - 네이버 로그인 버튼 최대 크기 */
+@supports (-webkit-touch-callout: none) and (max-width: 991px) {
+    .naver-login-btn {
+        height: 65px;
+        font-size: 19px;
+        gap: 12px;
+    }
+    
+    .naver-logo {
+        width: 26px;
+        height: 26px;
+        font-size: 17px;
+    }
 }
 </style>
 

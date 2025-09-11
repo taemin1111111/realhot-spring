@@ -416,6 +416,12 @@
         height: 45px;
     }
     
+    /* 모바일에서 로그인/회원가입 버튼 크기 증가 */
+    #auth-area a {
+        font-size: 1.2rem !important;
+        padding: 8px 12px !important;
+    }
+    
     /* 햄버거 메뉴 버튼 확실히 표시 및 크기 확대 */
     .mobile-hamburger-btn {
         display: block !important;
@@ -573,6 +579,12 @@
     
     .logo-img {
         height: 60px !important;
+    }
+    
+    /* 아이폰에서 로그인/회원가입 버튼 크기 더 증가 */
+    #auth-area a {
+        font-size: 1.4rem !important;
+        padding: 10px 14px !important;
     }
     
     /* 햄버거 버튼 더 크게 */
@@ -817,6 +829,12 @@
     
     .row {
         position: relative !important;
+    }
+    
+    /* 아이폰 Safari에서 로그인/회원가입 버튼 크기 최대 증가 */
+    #auth-area a {
+        font-size: 1.6rem !important;
+        padding: 12px 16px !important;
     }
     
     /* 더 구체적인 선택자로 우선순위 높임 */

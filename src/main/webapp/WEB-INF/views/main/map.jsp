@@ -157,7 +157,7 @@
             justify-content: flex-start;
         }
         
-        .category-filter-btn {
+        .map-category-btn {
             border: none;
             outline: none;
             border-radius: 50px;
@@ -176,17 +176,17 @@
             align-items: center;
             justify-content: center;
         }
-        .category-filter-btn.active {
+        .map-category-btn.active {
             border: 2.5px solid #000;
             opacity: 1;
             color: #000;
             background: rgba(255,255,255,0.2);
         }
-        .category-filter-btn.marker-club { background: linear-gradient(135deg, #9c27b0, #ba68c8); color: #fff; }
-        .category-filter-btn.marker-hunting { background: linear-gradient(135deg, #f44336, #ef5350); color: #fff; }
-        .category-filter-btn.marker-lounge { background: linear-gradient(135deg, #4caf50, #66bb6a); color: #fff; }
-        .category-filter-btn.marker-pocha { background: linear-gradient(135deg, #8d6e63, #a1887f); color: #fff; }
-        .category-filter-btn:not(.active):hover {
+        .map-category-btn.marker-club { background: linear-gradient(135deg, #9c27b0, #ba68c8); color: #fff; }
+        .map-category-btn.marker-hunting { background: linear-gradient(135deg, #f44336, #ef5350); color: #fff; }
+        .map-category-btn.marker-lounge { background: linear-gradient(135deg, #4caf50, #66bb6a); color: #fff; }
+        .map-category-btn.marker-pocha { background: linear-gradient(135deg, #8d6e63, #a1887f); color: #fff; }
+        .map-category-btn:not(.active):hover {
             filter: brightness(1.08);
             opacity: 1;
         }
@@ -214,6 +214,30 @@
             white-space: nowrap;
             pointer-events: auto !important;
             box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        
+        /* 모바일에서 지역 라벨 크기 증가 */
+        @media (max-width: 768px) {
+            .region-label {
+                font-size: 24px !important;
+                padding: 10px 18px !important;
+            }
+        }
+        
+        /* 아이폰에서 지역 라벨 크기 더 증가 */
+        @media (max-width: 480px) {
+            .region-label {
+                font-size: 26px !important;
+                padding: 12px 20px !important;
+            }
+        }
+        
+        /* 아이폰 Safari 전용 - 지역 라벨 크기 최대 증가 */
+        @supports (-webkit-touch-callout: none) and (max-width: 991px) {
+            .region-label {
+                font-size: 28px !important;
+                padding: 14px 22px !important;
+            }
         }
         
         .region-counts {
@@ -358,43 +382,21 @@
             
             /* 모바일에서 화살표 버튼 크기 증가 */
             #rightPanelToggleBtn, #rightPanelCloseBtn {
-                width: 50px !important;
-                height: 70px !important;
-                font-size: 2rem !important;
+                width: 65px !important;
+                height: 85px !important;
+                font-size: 2.6rem !important;
             }
             
-            /* 모바일에서 내 위치 버튼 크기 증가 */
-            .btn-outline-primary {
+            /* 모바일에서 내 위치 버튼 크기 증가 - 더 구체적인 선택자 사용 */
+            .map-controls .btn-outline-primary,
+            .map-page-container .btn-outline-primary,
+            .map-controls button.btn-outline-primary {
                 font-size: 1.3rem !important;
                 padding: 16px 24px !important;
             }
             
             /* 모바일에서 카테고리 필터 버튼 크기 증가 */
-            .category-filter-btn {
-                font-size: 1.3rem !important;
-                padding: 16px 20px !important;
-                min-width: 60px !important;
-                height: 60px !important;
-            }
-        }
-        
-        /* 아이폰에서 버튼 크기 더 증가 */
-        @media (max-width: 480px) {
-            /* 아이폰에서 화살표 버튼 크기 더 증가 */
-            #rightPanelToggleBtn, #rightPanelCloseBtn {
-                width: 55px !important;
-                height: 75px !important;
-                font-size: 2.2rem !important;
-            }
-            
-            /* 아이폰에서 내 위치 버튼 크기 더 증가 */
-            .btn-outline-primary {
-                font-size: 1.4rem !important;
-                padding: 18px 26px !important;
-            }
-            
-            /* 아이폰에서 카테고리 필터 버튼 크기 더 증가 */
-            .category-filter-btn {
+            .map-category-btn {
                 font-size: 1.4rem !important;
                 padding: 18px 22px !important;
                 min-width: 65px !important;
@@ -402,28 +404,82 @@
             }
         }
         
-        /* 아이폰 Safari 전용 스타일 */
+        /* 아이폰에서 버튼 크기 더 증가 */
+        @media (max-width: 480px) {
+            /* 아이폰에서 화살표 버튼 크기 더 증가 */
+            #rightPanelToggleBtn, #rightPanelCloseBtn {
+                width: 70px !important;
+                height: 90px !important;
+                font-size: 2.8rem !important;
+            }
+            
+            /* 아이폰에서 내 위치 버튼 크기 더 증가 - 더 구체적인 선택자 사용 */
+            .map-controls .btn-outline-primary,
+            .map-page-container .btn-outline-primary,
+            .map-controls button.btn-outline-primary {
+                font-size: 1.4rem !important;
+                padding: 18px 26px !important;
+            }
+            
+            /* 아이폰에서 카테고리 필터 버튼 크기 더 증가 */
+            .map-category-btn {
+                font-size: 1.6rem !important;
+                padding: 22px 26px !important;
+                min-width: 75px !important;
+                height: 75px !important;
+            }
+        }
+        
+        /* 아이폰 Safari 전용 스타일 - title.jsp 패턴 적용 */
+        @supports (-webkit-touch-callout: none) and (max-width: 991px) {
+            /* 아이폰에서 화살표 버튼 크기 최대 증가 */
+            #rightPanelToggleBtn, #rightPanelCloseBtn {
+                width: 85px !important;
+                height: 105px !important;
+                font-size: 3.4rem !important;
+            }
+            
+            /* 아이폰에서 내 위치 버튼 크기 최대 증가 */
+            .map-controls .btn-outline-primary,
+            .map-page-container .btn-outline-primary,
+            .map-controls button.btn-outline-primary {
+                font-size: 1.8rem !important;
+                padding: 24px 32px !important;
+            }
+            
+            /* 아이폰에서 카테고리 필터 버튼 크기 최대 증가 */
+            .map-category-btn {
+                font-size: 1.8rem !important;
+                padding: 24px 28px !important;
+                min-width: 85px !important;
+                height: 85px !important;
+            }
+        }
+        
+        /* 아이폰 Safari 전용 스타일 - 추가 패턴 */
         @supports (-webkit-touch-callout: none) {
             @media (max-width: 500px) {
                 /* 아이폰에서 화살표 버튼 크기 최대 증가 */
                 #rightPanelToggleBtn, #rightPanelCloseBtn {
-                    width: 60px !important !important;
-                    height: 80px !important !important;
-                    font-size: 2.4rem !important !important;
+                    width: 90px !important !important;
+                    height: 110px !important !important;
+                    font-size: 3.6rem !important !important;
                 }
                 
-                /* 아이폰에서 내 위치 버튼 크기 최대 증가 */
-                .btn-outline-primary {
-                    font-size: 1.5rem !important !important;
-                    padding: 20px 28px !important !important;
+                /* 아이폰에서 내 위치 버튼 크기 최대 증가 - 더 구체적인 선택자 사용 */
+                .map-controls .btn-outline-primary,
+                .map-page-container .btn-outline-primary,
+                .map-controls button.btn-outline-primary {
+                    font-size: 2rem !important !important;
+                    padding: 26px 34px !important !important;
                 }
                 
                 /* 아이폰에서 카테고리 필터 버튼 크기 최대 증가 */
-                .category-filter-btn {
-                    font-size: 1.5rem !important !important;
-                    padding: 20px 24px !important !important;
-                    min-width: 70px !important !important;
-                    height: 70px !important !important;
+                .map-category-btn {
+                    font-size: 2rem !important !important;
+                    padding: 26px 30px !important !important;
+                    min-width: 95px !important !important;
+                    height: 95px !important !important;
                 }
             }
         }
@@ -432,23 +488,25 @@
         @media only screen and (max-width: 500px) {
             /* 아이폰에서 화살표 버튼 크기 최대 증가 */
             #rightPanelToggleBtn, #rightPanelCloseBtn {
-                width: 65px !important !important;
-                height: 85px !important !important;
-                font-size: 2.6rem !important !important;
+                width: 95px !important !important;
+                height: 115px !important !important;
+                font-size: 3.8rem !important !important;
             }
             
-            /* 아이폰에서 내 위치 버튼 크기 최대 증가 */
-            .btn-outline-primary {
-                font-size: 1.6rem !important !important;
-                padding: 22px 30px !important !important;
+            /* 아이폰에서 내 위치 버튼 크기 최대 증가 - 더 구체적인 선택자 사용 */
+            .map-controls .btn-outline-primary,
+            .map-page-container .btn-outline-primary,
+            .map-controls button.btn-outline-primary {
+                font-size: 2.2rem !important !important;
+                padding: 28px 36px !important !important;
             }
             
             /* 아이폰에서 카테고리 필터 버튼 크기 최대 증가 */
-            .category-filter-btn {
-                font-size: 1.6rem !important !important;
-                padding: 22px 26px !important !important;
-                min-width: 75px !important !important;
-                height: 75px !important !important;
+            .map-category-btn {
+                font-size: 2.2rem !important !important;
+                padding: 28px 32px !important !important;
+                min-width: 105px !important !important;
+                height: 105px !important !important;
             }
         }
     </style>
@@ -525,11 +583,11 @@
                 
                 <!-- 카테고리 필터 -->
                 <div class="category-filter">
-                    <button class="category-filter-btn active" data-category="all">전체</button>
-                    <button class="category-filter-btn marker-club" data-category="1">C</button>
-                    <button class="category-filter-btn marker-hunting" data-category="2">H</button>
-                    <button class="category-filter-btn marker-lounge" data-category="3">L</button>
-                    <button class="category-filter-btn marker-pocha" data-category="4">P</button>
+                    <button class="map-category-btn active" data-category="all">전체</button>
+                    <button class="map-category-btn marker-club" data-category="1">C</button>
+                    <button class="map-category-btn marker-hunting" data-category="2">H</button>
+                    <button class="map-category-btn marker-lounge" data-category="3">L</button>
+                    <button class="map-category-btn marker-pocha" data-category="4">P</button>
                 </div>
             </div>
             
@@ -802,13 +860,13 @@
         }
 
         // 카테고리 버튼 이벤트 (토글 기능)
-        document.querySelectorAll('.category-filter-btn').forEach(function(btn) {
+        document.querySelectorAll('.map-category-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 var category = this.dataset.category;
                 var isActive = this.classList.contains('active');
                 
                 // 모든 버튼에서 active 클래스 제거
-                document.querySelectorAll('.category-filter-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.map-category-btn').forEach(b => b.classList.remove('active'));
                 
                 if (isActive) {
                     // 이미 활성화된 버튼을 다시 클릭하면 모든 마크 숨기기
@@ -1134,7 +1192,7 @@
         // 구 오버레이 생성
         sigunguCenters.forEach(function(center) {
             var overlay = new kakao.maps.CustomOverlay({
-                content: '<div class="region-label" style="font-size:24px; padding:12px 20px;">' + center.sigungu + '</div>',
+                content: '<div class="region-label">' + center.sigungu + '</div>',
                 position: new kakao.maps.LatLng(center.lat, center.lng),
                 xAnchor: 0.5, yAnchor: 0.5, map: null
             });
@@ -1158,7 +1216,7 @@
         // 동 오버레이 생성
         regionCenters.forEach(function(center) {
             var overlay = new kakao.maps.CustomOverlay({
-                content: '<div class="region-label" style="cursor:pointer; font-size:22px; padding:10px 18px;" onclick="openRightPanelAndShowDongList(\'' + center.dong + '\')">' + center.dong + '</div>',
+                content: '<div class="region-label" style="cursor:pointer;" onclick="openRightPanelAndShowDongList(\'' + center.dong + '\')">' + center.dong + '</div>',
                 position: new kakao.maps.LatLng(center.lat, center.lng),
                 xAnchor: 0.5, yAnchor: 0.5, map: null
             });
@@ -1184,17 +1242,17 @@
             if (level >= 10) {
                 guOverlays.forEach(o => o.setMap(map));
                 // 구 레벨에서는 카테고리 버튼 비활성화
-                document.querySelectorAll('.category-filter-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.map-category-btn').forEach(b => b.classList.remove('active'));
                 showHotplaceMarkers = false;
             } else if (level >= 6) {
                 dongOverlays.forEach(o => o.setMap(map));
                 // 동 레벨에서는 카테고리 버튼 비활성화
-                document.querySelectorAll('.category-filter-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.map-category-btn').forEach(b => b.classList.remove('active'));
                 showHotplaceMarkers = false;
             } else {
                 // 가게 마크 레벨에서는 자동으로 전체 버튼 활성화
-                document.querySelectorAll('.category-filter-btn').forEach(b => b.classList.remove('active'));
-                var allButton = document.querySelector('.category-filter-btn[data-category="all"]');
+                document.querySelectorAll('.map-category-btn').forEach(b => b.classList.remove('active'));
+                var allButton = document.querySelector('.map-category-btn[data-category="all"]');
                 if (allButton) {
                     allButton.classList.add('active');
                 }
@@ -2259,3 +2317,4 @@
         }
     </script>
 </div>
+

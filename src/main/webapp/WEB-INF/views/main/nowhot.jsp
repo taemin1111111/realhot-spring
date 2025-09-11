@@ -147,9 +147,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // 토큰이 있으면 Authorization 헤더 추가
         if (token) {
             headers['Authorization'] = 'Bearer ' + token;
-            console.log('로그인 사용자 투표:', token.substring(0, 20) + '...');
-        } else {
-            console.log('익명 사용자 투표 (IP 기반)');
         }
         
         fetch('<%=root%>/api/vote/now-hot', {  // 올바른 API 엔드포인트
@@ -159,8 +156,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(result => {
-            console.log('투표 응답:', result);
-            
             if (result.success) {
                 showMessage('투표가 완료되었습니다! 감사합니다.', 'success');
                 form.reset();
@@ -169,16 +164,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('voteGuide').style.display = 'block';
                 document.getElementById('voteHotplaceId').value = '';
                 
-                // 투표 통계가 있으면 콘솔에 출력
-                if (result.stats) {
-                    console.log('업데이트된 투표 통계:', result.stats);
-                }
+                // 투표 통계 업데이트
             } else {
                 showMessage(result.message || '투표에 실패했습니다.', 'error');
             }
         })
         .catch(error => {
-            console.error('투표 오류:', error);
             showMessage('투표 중 오류가 발생했습니다.', 'error');
         });
     });

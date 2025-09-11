@@ -652,7 +652,7 @@
                 }
             })
             .catch(error => {
-                console.error('Admin check failed:', error);
+                // 관리자 체크 실패 무시
             });
         }
         
@@ -678,9 +678,7 @@
         var regionNameList = ['서울', <% for(int i=0;i<regionNameList.size();i++){ %>'<%=regionNameList.get(i).replace("'", "\\'")%>'<% if(i<regionNameList.size()-1){%>,<%}}%>];
         var hotplaceNameList = [<% for(int i=0;i<hotplaceNameList.size();i++){ %>'<%=hotplaceNameList.get(i).replace("'", "\\'")%>'<% if(i<hotplaceNameList.size()-1){%>,<%}}%>];
         
-        // 디버깅: 변수 로드 확인
-        console.log('regionNameList loaded:', regionNameList.length, 'items');
-        console.log('hotplaceNameList loaded:', hotplaceNameList.length, 'items');
+        // 변수 로드 확인
 
         var mapContainer = document.getElementById('map');
         var mapOptions = {
@@ -1022,7 +1020,6 @@
             
             // 변수 존재 확인
             if (typeof regionNameList === 'undefined' || typeof hotplaceNameList === 'undefined') {
-                console.error('regionNameList or hotplaceNameList is not defined');
                 autocompleteList.style.display = 'none';
                 return;
             }
@@ -1359,7 +1356,7 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Wish check error:', error);
+                    // 위시 체크 오류 무시
                 });
                 
                 // 클릭 이벤트 추가
@@ -1403,7 +1400,6 @@
                         }
                     })
                     .catch(error => {
-                        console.error('Wish action error:', error);
                         showToast('처리 중 오류가 발생했습니다.', 'error');
                     });
                 };
@@ -1557,7 +1553,7 @@
                 }
             })
             .catch(error => {
-                console.error('Wish count update error:', error);
+                // 위시 개수 업데이트 오류 무시
             });
         }
 
@@ -1764,7 +1760,7 @@
                     }
                 })
                 .catch(error => {
-                    console.error('이미지 변경 오류:', error);
+                    // 이미지 변경 오류 무시
                 });
         }
 
@@ -1795,7 +1791,6 @@
                     }
                 })
                 .catch(error => {
-                    console.error('이미지 로드 오류:', error);
                     window.open(imagePath, '_blank');
                 });
         }
@@ -2502,7 +2497,6 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Vote error:', error);
                     showVoteMessage('네트워크 오류가 발생했습니다.', 'error');
                 });
             });

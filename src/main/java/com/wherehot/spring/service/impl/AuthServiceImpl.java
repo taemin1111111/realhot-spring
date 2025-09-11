@@ -220,6 +220,11 @@ public class AuthServiceImpl implements AuthService {
     }
     
     @Override
+    public boolean isEmailVerified(String email) {
+        return emailService.isEmailVerified(email);
+    }
+    
+    @Override
     public Member getUserFromToken(String token) {
         if (!jwtUtils.validateToken(token)) {
             return null;

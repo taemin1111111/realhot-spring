@@ -1255,21 +1255,21 @@ function updateTitleUI(userInfo) {
             try {
                 loginSection.style.display = 'none';
             } catch (e) {
-                console.warn('loginSection 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (userSection && userSection.style) {
             try {
                 userSection.style.display = 'block';
             } catch (e) {
-                console.warn('userSection 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (userNickname) {
             try {
                 userNickname.textContent = userInfo.nickname || userInfo.userid;
             } catch (e) {
-                console.warn('userNickname 텍스트 변경 실패:', e);
+                // 텍스트 변경 실패 무시
             }
         }
         
@@ -1278,21 +1278,21 @@ function updateTitleUI(userInfo) {
             try {
                 mobileLoginSection.style.display = 'none';
             } catch (e) {
-                console.warn('mobileLoginSection 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (mobileUserSection && mobileUserSection.style) {
             try {
                 mobileUserSection.style.display = 'block';
             } catch (e) {
-                console.warn('mobileUserSection 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (mobileUserNickname) {
             try {
                 mobileUserNickname.textContent = (userInfo.nickname || userInfo.userid) + '님 환영합니다!';
             } catch (e) {
-                console.warn('mobileUserNickname 텍스트 변경 실패:', e);
+                // 텍스트 변경 실패 무시
             }
         }
         
@@ -1307,7 +1307,7 @@ function updateTitleUI(userInfo) {
                     userIcon.style.cssText = 'color: #ff69b4; margin-right: 6px; font-size: 18px;';
                 }
             } catch (e) {
-                console.warn('userIcon 이모티콘 변경 실패:', e);
+                // 이모티콘 변경 실패 무시
             }
         }
         
@@ -1322,7 +1322,7 @@ function updateTitleUI(userInfo) {
                     mobileUserIcon.style.cssText = 'color: #ff69b4; font-size: 20px;';
                 }
             } catch (e) {
-                console.warn('mobileUserIcon 이모티콘 변경 실패:', e);
+                // 이모티콘 변경 실패 무시
             }
         }
         
@@ -1338,7 +1338,7 @@ function updateTitleUI(userInfo) {
                     notificationContainer.style.display = 'inline-block'; // 일반 사용자는 알림 벨 표시
                 }
             } catch (e) {
-                console.warn('알림 벨 표시 설정 실패:', e);
+                // 알림 벨 표시 설정 실패 무시
             }
         }
         
@@ -1350,7 +1350,7 @@ function updateTitleUI(userInfo) {
                     mobileNotificationContainer.style.display = 'block'; // 일반 사용자는 알림 벨 표시
                 }
             } catch (e) {
-                console.warn('모바일 알림 벨 표시 설정 실패:', e);
+                // 모바일 알림 벨 표시 설정 실패 무시
             }
         }
         
@@ -1363,21 +1363,21 @@ function updateTitleUI(userInfo) {
             try {
                 adminMenu1.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
             } catch (e) {
-                console.warn('adminMenu1 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (adminMenu2 && adminMenu2.style) {
             try {
                 adminMenu2.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
             } catch (e) {
-                console.warn('adminMenu2 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (adminMenu3 && adminMenu3.style) {
             try {
                 adminMenu3.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
             } catch (e) {
-                console.warn('adminMenu3 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         
@@ -1390,21 +1390,21 @@ function updateTitleUI(userInfo) {
             try {
                 mobileAdminMenu1.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
             } catch (e) {
-                console.warn('mobileAdminMenu1 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (mobileAdminMenu2 && mobileAdminMenu2.style) {
             try {
                 mobileAdminMenu2.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
             } catch (e) {
-                console.warn('mobileAdminMenu2 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (mobileAdminMenu3 && mobileAdminMenu3.style) {
             try {
                 mobileAdminMenu3.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
             } catch (e) {
-                console.warn('mobileAdminMenu3 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         
@@ -1414,7 +1414,7 @@ function updateTitleUI(userInfo) {
             try {
                 mypageMenu.style.display = (userInfo.provider === 'admin') ? 'none' : 'block';
             } catch (e) {
-                console.warn('mypageMenu 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         
@@ -1424,7 +1424,7 @@ function updateTitleUI(userInfo) {
             try {
                 mobileMypageMenu.style.display = (userInfo.provider === 'admin') ? 'none' : 'block';
             } catch (e) {
-                console.warn('mobileMypageMenu 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         
@@ -1433,7 +1433,7 @@ function updateTitleUI(userInfo) {
         initializeNotifications();
         updateNotificationBadge();
     } catch (error) {
-        console.warn('updateTitleUI 실행 중 오류:', error);
+        // UI 업데이트 오류 무시
     }
 }
 
@@ -1467,42 +1467,42 @@ function showLoggedOutUI() {
             try {
                 loginSection.style.display = 'block';
             } catch (e) {
-                console.warn('loginSection 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (userSection && userSection.style) {
             try {
                 userSection.style.display = 'none';
             } catch (e) {
-                console.warn('userSection 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (adminMenu1 && adminMenu1.style) {
             try {
                 adminMenu1.style.display = 'none';
             } catch (e) {
-                console.warn('adminMenu1 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (adminMenu2 && adminMenu2.style) {
             try {
                 adminMenu2.style.display = 'none';
             } catch (e) {
-                console.warn('adminMenu2 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (adminMenu3 && adminMenu3.style) {
             try {
                 adminMenu3.style.display = 'none';
             } catch (e) {
-                console.warn('adminMenu3 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (mypageMenu && mypageMenu.style) {
             try {
                 mypageMenu.style.display = 'none';
             } catch (e) {
-                console.warn('mypageMenu 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         
@@ -1511,54 +1511,54 @@ function showLoggedOutUI() {
             try {
                 mobileLoginSection.style.display = 'block';
             } catch (e) {
-                console.warn('mobileLoginSection 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (mobileUserSection && mobileUserSection.style) {
             try {
                 mobileUserSection.style.display = 'none';
             } catch (e) {
-                console.warn('mobileUserSection 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (mobileAdminMenu1 && mobileAdminMenu1.style) {
             try {
                 mobileAdminMenu1.style.display = 'none';
             } catch (e) {
-                console.warn('mobileAdminMenu1 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (mobileAdminMenu2 && mobileAdminMenu2.style) {
             try {
                 mobileAdminMenu2.style.display = 'none';
             } catch (e) {
-                console.warn('mobileAdminMenu2 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (mobileAdminMenu3 && mobileAdminMenu3.style) {
             try {
                 mobileAdminMenu3.style.display = 'none';
             } catch (e) {
-                console.warn('mobileAdminMenu3 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (mobileMypageMenu && mobileMypageMenu.style) {
             try {
                 mobileMypageMenu.style.display = 'none';
             } catch (e) {
-                console.warn('mobileMypageMenu 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (mobileNotificationContainer && mobileNotificationContainer.style) {
             try {
                 mobileNotificationContainer.style.display = 'none';
             } catch (e) {
-                console.warn('mobileNotificationContainer 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         
     } catch (error) {
-        console.warn('showLoggedOutUI 실행 중 오류:', error);
+        // UI 업데이트 오류 무시
     }
 }
 
@@ -1780,7 +1780,6 @@ async function refreshAccessToken() {
         }
         return false;
     } catch (error) {
-        console.error('토큰 갱신 오류:', error);
         return false;
     }
 }
@@ -1804,7 +1803,6 @@ function getUserInfoFromToken() {
             provider: payload.provider || 'site'
         };
     } catch (error) {
-        console.error('토큰 파싱 오류:', error);
         return null;
     }
 }
@@ -1834,21 +1832,21 @@ function updateTitleUIFromSavedInfo(userInfo) {
             try {
                 loginSection.style.display = 'none';
             } catch (e) {
-                console.warn('loginSection 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (userSection && userSection.style) {
             try {
                 userSection.style.display = 'block';
             } catch (e) {
-                console.warn('userSection 스타일 변경 실패:', e);
+                // 스타일 변경 실패 무시
             }
         }
         if (userNickname) {
             try {
                 userNickname.textContent = userInfo.nickname || userInfo.userid;
             } catch (e) {
-                console.warn('userNickname 텍스트 변경 실패:', e);
+                // 텍스트 변경 실패 무시
             }
         }
         
@@ -1863,7 +1861,7 @@ function updateTitleUIFromSavedInfo(userInfo) {
                     userIcon.style.cssText = 'color: #ff69b4; margin-right: 6px; font-size: 18px;';
                 }
             } catch (e) {
-                console.warn('userIcon 이모티콘 변경 실패:', e);
+                // 이모티콘 변경 실패 무시
             }
         }
         
@@ -1877,7 +1875,7 @@ function updateTitleUIFromSavedInfo(userInfo) {
                     notificationContainer.style.display = 'inline-block'; // 일반 사용자는 알림 벨 표시
                 }
             } catch (e) {
-                console.warn('알림 벨 표시 설정 실패:', e);
+                // 알림 벨 표시 설정 실패 무시
             }
         }
         
@@ -1931,7 +1929,7 @@ function updateTitleUIFromSavedInfo(userInfo) {
             try {
                 mobileUserNickname.textContent = (userInfo.nickname || userInfo.userid) + '님 환영합니다!';
             } catch (e) {
-                console.warn('updateTitleUIFromSavedInfo: 모바일 닉네임 텍스트 변경 실패:', e);
+                // 텍스트 변경 실패 무시
             }
         }
         
@@ -1958,7 +1956,7 @@ function updateTitleUIFromSavedInfo(userInfo) {
         }
         
     } catch (error) {
-        console.warn('updateTitleUIFromSavedInfo 실행 중 오류:', error);
+        // UI 업데이트 오류 무시
     }
 }
 
@@ -2032,7 +2030,7 @@ async function updateAuthUI() {
                             notificationContainer.style.display = 'inline-block'; // 일반 사용자는 알림 벨 표시
                         }
                     } catch (e) {
-                        console.warn('알림 벨 표시 설정 실패:', e);
+                        // 알림 벨 표시 설정 실패 무시
                     }
                 }
                 
@@ -2094,7 +2092,6 @@ async function updateAuthUI() {
                 throw new Error('Token expired');
             }
         } catch (error) {
-            console.error('Auth check failed:', error);
             removeToken(); // 유효하지 않은 토큰 제거
             showLoggedOutUI();
         }
@@ -2147,7 +2144,7 @@ async function logout() {
             await fetchWithAuth('<%=root%>/api/auth/logout', { method: 'POST' });
         }
     } catch (error) {
-        console.error('Logout error:', error);
+        // 로그아웃 오류 무시
     } finally {
         // 기존 방식으로 토큰 제거
         removeToken();
@@ -2161,12 +2158,9 @@ async function logout() {
         } else {
             showLoggedOutUI();
         }
-        console.log('로그아웃 후 즉시 UI 업데이트 완료');
-        
         // hpostdetail.jsp의 댓글 폼도 업데이트
         if (window.updateCommentFormOnLoginChange) {
             window.updateCommentFormOnLoginChange();
-            console.log('로그아웃 후 댓글 폼 업데이트 완료');
         }
         
         // 알림 드롭다운 닫기
@@ -2215,24 +2209,18 @@ function setupTokenRefreshTimer() {
         const refreshTime = Math.max(timeUntilExpiry - 600, 0) * 1000; // 10분 = 600초
         
         if (refreshTime > 0) {
-            console.log(`토큰 자동 갱신 타이머 설정: ${Math.round(refreshTime / 1000)}초 후`);
             setTimeout(async () => {
-                console.log('토큰 자동 갱신 시작...');
                 const success = await refreshAccessToken();
                 if (success) {
-                    console.log('토큰 자동 갱신 성공');
                     // 갱신 후 새로운 타이머 설정
                     setupTokenRefreshTimer();
-                } else {
-                    console.log('토큰 자동 갱신 실패');
                 }
             }, refreshTime);
         } else {
-            console.log('토큰이 곧 만료됩니다. 즉시 갱신 시도...');
             refreshAccessToken();
         }
     } catch (error) {
-        console.error('토큰 타이머 설정 오류:', error);
+        // 토큰 타이머 설정 오류 무시
     }
 }
 
@@ -2257,7 +2245,7 @@ async function refreshAccessToken() {
             if (data.result && data.token) {
                 // 새 액세스 토큰 저장
                 saveToken(data.token, data.refreshToken);
-                console.log('토큰 자동 갱신 성공');
+                // 토큰 자동 갱신 성공
                 
                 // UI 업데이트
                 updateAuthUI();
@@ -2266,10 +2254,8 @@ async function refreshAccessToken() {
             }
         }
         
-        console.log('토큰 자동 갱신 실패');
         return false;
     } catch (error) {
-        console.error('토큰 자동 갱신 오류:', error);
         return false;
     }
 }
@@ -2296,7 +2282,7 @@ function saveToken(token, refreshToken) {
         document.cookie = `refreshToken=${refreshToken}; expires=${refreshExpires.toUTCString()}; path=/; SameSite=Strict`;
     }
     
-    console.log('JWT 토큰을 localStorage와 쿠키에 저장 완료');
+    // JWT 토큰을 localStorage와 쿠키에 저장 완료
 }
 
 function removeToken() {
@@ -2309,7 +2295,7 @@ function removeToken() {
     document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     
-    console.log('JWT 토큰을 localStorage와 쿠키에서 삭제 완료');
+    // JWT 토큰을 localStorage와 쿠키에서 삭제 완료
 }
 
 // 알림 관련 함수들
@@ -2334,27 +2320,20 @@ function toggleNotifications() {
 async function loadNotifications() {
     const notificationList = document.getElementById('notification-list');
     if (!notificationList) {
-        console.error('notification-list 요소를 찾을 수 없습니다.');
         return;
     }
     
-    console.log('알림 목록 로드 시작...');
-    
     try {
         const response = await fetchWithAuth('<%=root%>/api/notifications');
-        console.log('알림 API 응답 상태:', response.status);
         
         if (response.ok) {
             const notifications = await response.json();
-            console.log('받은 알림 데이터:', notifications);
             displayNotifications(notifications);
         } else {
-            console.error('알림 로드 실패:', response.status);
-            notificationList.innerHTML = '<div class="notification-empty">알림을 불러올 수 없습니다. (상태: ' + response.status + ')</div>';
+            notificationList.innerHTML = '<div class="notification-empty">알림을 불러올 수 없습니다.</div>';
         }
     } catch (error) {
-        console.error('알림 로드 오류:', error);
-        notificationList.innerHTML = '<div class="notification-empty">알림을 불러올 수 없습니다. (오류: ' + error.message + ')</div>';
+        notificationList.innerHTML = '<div class="notification-empty">알림을 불러올 수 없습니다.</div>';
     }
 }
 
@@ -2362,21 +2341,16 @@ async function loadNotifications() {
 function displayNotifications(notifications) {
     const notificationList = document.getElementById('notification-list');
     if (!notificationList) {
-        console.error('notification-list 요소를 찾을 수 없습니다.');
         return;
     }
     
-    console.log('알림 표시 함수 호출, 알림 개수:', notifications.length);
-    
     if (notifications.length === 0) {
-        console.log('알림이 없어서 빈 메시지 표시');
         notificationList.innerHTML = '<div class="notification-empty">새로운 알림이 없습니다.</div>';
         return;
     }
     
     let html = '';
     notifications.forEach((notification, index) => {
-        console.log('알림 ' + (index + 1) + ':', notification);
         const timeAgo = getTimeAgo(notification.createdAt);
         const unreadClass = notification.isRead ? '' : 'unread';
         
@@ -2390,7 +2364,6 @@ function displayNotifications(notifications) {
                 '</div>';
     });
     
-    console.log('생성된 HTML:', html);
     notificationList.innerHTML = html;
 }
 
@@ -2412,7 +2385,7 @@ async function markNotificationAsRead(notificationId) {
             updateNotificationBadge();
         }
     } catch (error) {
-        console.error('알림 읽음 처리 오류:', error);
+        // 알림 읽음 처리 오류 무시
     }
 }
 
@@ -2434,7 +2407,7 @@ async function markAllAsRead() {
             updateNotificationBadge();
         }
     } catch (error) {
-        console.error('모든 알림 읽음 처리 오류:', error);
+        // 모든 알림 읽음 처리 오류 무시
     }
 }
 
@@ -2444,20 +2417,15 @@ async function updateNotificationBadge() {
     const mobileBadge = document.getElementById('mobile-notification-badge');
     
     if (!badge && !mobileBadge) {
-        console.error('알림 배지 요소를 찾을 수 없습니다.');
         return;
     }
     
-    console.log('알림 개수 업데이트 시작...');
-    
     try {
         const response = await fetchWithAuth('<%=root%>/api/notifications/unread-count');
-        console.log('알림 개수 API 응답 상태:', response.status);
         
         if (response.ok) {
             const data = await response.json();
             const count = data.count || 0;
-            console.log('받은 알림 개수:', count);
             
             // 데스크톱 배지 업데이트
             if (badge) {
@@ -2471,7 +2439,6 @@ async function updateNotificationBadge() {
                 mobileBadge.style.display = count > 0 ? 'inline-block' : 'none';
             }
         } else {
-            console.error('알림 개수 API 실패:', response.status);
             
             // 데스크톱 배지 업데이트
             if (badge) {
@@ -2486,7 +2453,6 @@ async function updateNotificationBadge() {
             }
         }
     } catch (error) {
-        console.error('알림 개수 업데이트 오류:', error);
         
         // 데스크톱 배지 업데이트
         if (badge) {
@@ -2574,13 +2540,11 @@ async function deleteNotification(notificationId, event) {
             // 알림 개수 업데이트
             updateNotificationBadge();
             
-            console.log('알림 삭제 성공:', notificationId);
+            // 알림 삭제 성공
         } else {
-            console.error('알림 삭제 실패:', response.status);
             alert('알림 삭제에 실패했습니다.');
         }
     } catch (error) {
-        console.error('알림 삭제 오류:', error);
         alert('알림 삭제 중 오류가 발생했습니다.');
     }
 }
@@ -2600,7 +2564,6 @@ async function deleteAllNotifications() {
         }
         
         const notifications = await response.json();
-        console.log('현재 알림 목록:', notifications);
         
         if (notifications.length === 0) {
             alert('삭제할 알림이 없습니다.');
@@ -2609,7 +2572,6 @@ async function deleteAllNotifications() {
         
         // 모든 알림 ID 수집
         const notificationIds = notifications.map(notification => notification.notificationId);
-        console.log('삭제할 알림 ID들:', notificationIds);
         
         // 모든 알림 삭제 요청
         const deletePromises = notificationIds.map(id => 
@@ -2621,8 +2583,7 @@ async function deleteAllNotifications() {
         const results = await Promise.all(deletePromises);
         const successCount = results.filter(response => response.ok).length;
         
-        console.log('삭제 결과:', results);
-        console.log('성공한 삭제 개수:', successCount);
+        // 성공한 삭제 개수 확인
         
         if (successCount > 0) {
             // UI에서 모든 알림 제거
@@ -2634,13 +2595,11 @@ async function deleteAllNotifications() {
             // 알림 개수 업데이트
             updateNotificationBadge();
             
-            console.log('일괄 삭제 완료:', successCount + '개 알림 삭제');
             alert(successCount + '개의 알림이 삭제되었습니다.');
         } else {
             alert('알림 삭제에 실패했습니다.');
         }
     } catch (error) {
-        console.error('일괄 삭제 오류:', error);
         alert('알림 삭제 중 오류가 발생했습니다: ' + error.message);
     }
 }
@@ -2783,13 +2742,11 @@ async function deleteNotificationFromModal(notificationId) {
             // 알림 개수 업데이트
             updateNotificationBadge();
             
-            console.log('알림 삭제 성공:', notificationId);
+            // 알림 삭제 성공
         } else {
-            console.error('알림 삭제 실패:', response.status);
             alert('알림 삭제에 실패했습니다.');
         }
     } catch (error) {
-        console.error('알림 삭제 오류:', error);
         alert('알림 삭제 중 오류가 발생했습니다.');
     }
 }

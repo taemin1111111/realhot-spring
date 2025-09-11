@@ -47,7 +47,6 @@
 
     // 페이지 로드 시 MD 찜 목록 로드
     $(document).ready(function() {
-        console.log('MD 찜 목록 페이지 로드 완료');
         loadMdWishList(1);
     });
 

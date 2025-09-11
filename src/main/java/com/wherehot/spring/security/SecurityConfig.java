@@ -103,7 +103,7 @@ public class SecurityConfig {
                 
                 // == API 경로들 ==
                 .requestMatchers("/api/auth/**").permitAll()                      // 인증 API
-                .requestMatchers("/oauth2/**", "/login/oauth2/**", "/oauth2/code/**").permitAll()    // OAuth2
+                .requestMatchers("/oauth2/**", "/login/oauth2/**", "/oauth2/code/**", "/oauth2/signup/**").permitAll()    // OAuth2
                 .requestMatchers("/api/main/place-images").permitAll()            // 메인 페이지 이미지 조회 API
                 .requestMatchers("/api/main/upload-images").hasAuthority("ADMIN") // 관리자 전용 이미지 업로드 API
                 .requestMatchers("/api/main/**").permitAll()                      // 기타 메인 페이지 API (투표 등)

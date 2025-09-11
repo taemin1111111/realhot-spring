@@ -194,8 +194,8 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="passwd" class="form-label">글 비밀번호</label>
-                        <input type="password" class="form-control" id="passwd" name="passwd" required maxlength="4" pattern="[0-9]{4}">
+                        <label for="hpost-passwd" class="form-label">글 비밀번호</label>
+                        <input type="password" class="form-control" id="hpost-passwd" name="passwd" required maxlength="4" pattern="[0-9]{4}">
                         <div class="form-text">숫자 4자리로 입력해주세요.</div>
                     </div>
                     
@@ -243,7 +243,7 @@ function detectAndApplyIPhoneStyles() {
                      (window.innerWidth <= 991 && navigator.maxTouchPoints > 0);
     
     if (isIPhone) {
-        console.log('아이폰 감지됨 - 스타일 강제 적용');
+        // 아이폰 감지됨 - 스타일 강제 적용
         
         // 동적 스타일 태그 생성
         const style = document.createElement('style');

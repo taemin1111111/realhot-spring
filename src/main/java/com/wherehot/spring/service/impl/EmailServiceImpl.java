@@ -66,7 +66,21 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public boolean verifyCode(String email, String code) {
         try {
-            // DB에서 인증번호 조회
+            logger.info("Verifying email code for: {} with code: {}", email, code);
+            
+            // 먼저 이미 인증된 코드인지 확인 (회원가입 시 재검증용)
+            Optional<EmailVerification> verifiedOpt = emailVerificationMapper.findLatestByEmail(email);
+            if (verifiedOpt.isPresent()) {
+                EmailVerification verification = verifiedOpt.get();
+                if (verification.getIsVerified() && 
+                    verification.getVerificationCode().equals(code) && 
+                    !verification.isExpired()) {
+                    logger.info("Email already verified for: {}", email);
+                    return true;
+                }
+            }
+            
+            // 새로운 인증 코드 검증
             Optional<EmailVerification> verificationOpt = emailVerificationMapper.findByEmailAndCode(email, code);
             
             if (verificationOpt.isPresent()) {

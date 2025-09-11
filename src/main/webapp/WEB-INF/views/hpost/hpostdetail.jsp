@@ -165,19 +165,15 @@
 let HPOST_ID = parseInt('${hpost.id}');
 if (isNaN(HPOST_ID) || HPOST_ID <= 0) {
     HPOST_ID = 0;
-    console.error('HPOST_ID가 유효하지 않습니다. hpost.id 값:', '${hpost.id}');
 } else {
-    console.log('HPOST_ID 설정 완료:', HPOST_ID);
+    // HPOST_ID 설정 완료
 }
-console.log('hpost.id 값:', '${hpost.id}');
-console.log('파싱된 HPOST_ID:', HPOST_ID);
 
 // 현재 댓글 정렬 상태
 let currentCommentSort = 'latest';
 
 // 로그인 상태 변경 감지 및 댓글 폼 업데이트 함수
 function updateCommentFormOnLoginChange() {
-    console.log('로그인 상태 변경 감지 - 댓글 폼 업데이트 시작');
     setupCommentForm();
 }
 
@@ -199,7 +195,7 @@ window.hpostData = {
     photo3: '${hpost.photo3}' || ''
 };
 
-console.log('hpostData 설정 완료:', window.hpostData);
+// hpostData 설정 완료
 
 // 로그인 상태 확인 함수
 function isLoggedIn() {
@@ -218,7 +214,6 @@ function isLoggedIn() {
         const payload = JSON.parse(jsonPayload);
         return true;
     } catch (error) {
-        console.error('토큰 파싱 오류:', error);
         return false;
     }
 }
@@ -275,7 +270,6 @@ function updateNavButtons() {
 
 // 투표 처리 함수
 async function processVote(voteType) {
-    console.log('투표 처리 시작 - 타입:', voteType);
     
     try {
         const token = localStorage.getItem('accessToken');
@@ -292,7 +286,6 @@ async function processVote(voteType) {
         });
         
         const data = await response.json();
-        console.log('투표 서버 응답 데이터:', data);
         
         if (data.success) {
             updateVoteUI({
@@ -306,14 +299,12 @@ async function processVote(voteType) {
                 checkUserVoteStatus();
             }, 200);
             
-            console.log('투표 성공:', data.message);
+            // 투표 성공
         } else {
-            console.error('투표 실패:', data.message);
             alert(data.message || '투표 처리 중 오류가 발생했습니다.');
         }
         
     } catch (error) {
-        console.error('투표 처리 오류:', error);
         alert('투표 처리 중 오류가 발생했습니다.');
     }
 }
@@ -321,34 +312,26 @@ async function processVote(voteType) {
 // 투표 통계 로드
 async function loadVoteStatistics() {
     if (!HPOST_ID || HPOST_ID === 0) {
-        console.error('HPOST_ID가 유효하지 않습니다:', HPOST_ID);
+        // HPOST_ID가 유효하지 않음
         return;
     }
     
-    console.log('투표 통계 로드 시작 - HPOST_ID:', HPOST_ID);
+    // 투표 통계 로드 시작
     
     try {
         const baseUrl = '<%=root%>';
         const url = baseUrl + '/hpost/' + HPOST_ID + '/vote-stats';
-        console.log('요청 URL:', url);
         
         const response = await fetch(url);
-        console.log('서버 응답 상태:', response.status, response.statusText);
         
         if (!response.ok) {
-            console.error('HTTP 오류:', response.status, response.statusText);
+            // HTTP 오류
             return;
         }
         
         const result = await response.json();
-        console.log('서버 응답 데이터:', result);
         
         if (result.success) {
-            console.log('투표 통계 로드 성공:', {
-                likes: result.likes,
-                dislikes: result.dislikes,
-                total: result.total
-            });
             
             updateVoteUI({
                 likes: result.likes || 0,
@@ -360,88 +343,67 @@ async function loadVoteStatistics() {
                 checkUserVoteStatus();
             }, 100);
         } else {
-            console.error('투표 통계 로드 실패:', result.message);
+            // 투표 통계 로드 실패
         }
         
     } catch (error) {
-        console.error('투표 통계 로드 오류:', error);
+        // 투표 통계 로드 오류 무시
     }
 }
 
 // 투표 UI 업데이트
 function updateVoteUI(result) {
-    console.log('updateVoteUI 호출됨 - 입력 데이터:', result);
-    
     const likeBtn = document.getElementById('likeBtn');
     const dislikeBtn = document.getElementById('dislikeBtn');
     const likeCount = document.getElementById('likeCount');
     const dislikeCount = document.getElementById('dislikeCount');
     
-    console.log('DOM 요소들:', {
-        likeBtn: likeBtn,
-        dislikeBtn: dislikeBtn,
-        likeCount: likeCount,
-        dislikeCount: dislikeCount
-    });
-    
     // 좋아요/싫어요 수 업데이트
     if (result.likes !== undefined) {
         if (likeCount) {
             likeCount.textContent = result.likes;
-            console.log('좋아요 수 업데이트 완료:', result.likes);
-        } else {
-            console.error('likeCount DOM 요소를 찾을 수 없음');
         }
     } else {
-        console.warn('result.likes가 undefined입니다');
+        // result.likes가 undefined
     }
     
     if (result.dislikes !== undefined) {
         if (dislikeCount) {
             dislikeCount.textContent = result.dislikes;
-            console.log('싫어요 수 업데이트 완료:', result.dislikes);
-        } else {
-            console.error('dislikeCount DOM 요소를 찾을 수 없음');
         }
     } else {
-        console.warn('result.dislikes가 undefined입니다');
+        // result.dislikes가 undefined
     }
     
     // 사용자 투표 상태에 따른 버튼 스타일 업데이트
     const userVoteStatus = result.voteStatus;
-    console.log('사용자 투표 상태:', userVoteStatus);
     
     if (likeBtn) likeBtn.classList.remove('active');
     if (dislikeBtn) dislikeBtn.classList.remove('active');
     
     if (userVoteStatus === 'like' && likeBtn) {
         likeBtn.classList.add('active');
-        console.log('좋아요 버튼 활성화');
+        // 좋아요 버튼 활성화
     } else if (userVoteStatus === 'dislike' && dislikeBtn) {
         dislikeBtn.classList.add('active');
-        console.log('싫어요 버튼 활성화');
+        // 싫어요 버튼 활성화
     }
     
-    console.log('투표 UI 업데이트 완료:', {
-        likes: result.likes,
-        dislikes: result.dislikes,
-        voteStatus: userVoteStatus
-    });
+    // 투표 UI 업데이트 완료
 }
 
 // 사용자 투표 상태 확인
 async function checkUserVoteStatus() {
     if (!HPOST_ID || HPOST_ID === 0) {
-        console.error('HPOST_ID가 유효하지 않습니다:', HPOST_ID);
+        // HPOST_ID가 유효하지 않음
         return;
     }
     
-    console.log('사용자 투표 상태 확인 시작 - HPOST_ID:', HPOST_ID);
+    // 사용자 투표 상태 확인 시작
     
     try {
         const baseUrl = '<%=root%>';
         const endpoint = baseUrl + '/hpost/' + HPOST_ID + '/vote-status';
-        console.log('요청 URL:', endpoint);
         
         const token = localStorage.getItem('accessToken');
         
@@ -454,7 +416,7 @@ async function checkUserVoteStatus() {
         });
         
         if (!response.ok) {
-            console.error('HTTP 오류:', response.status, response.statusText);
+            // HTTP 오류
             return;
         }
         
@@ -473,11 +435,11 @@ async function checkUserVoteStatus() {
                 dislikeBtn.classList.add('active');
             }
         } else {
-            console.error('투표 상태 확인 실패:', result.message);
+            // 투표 상태 확인 실패
         }
         
     } catch (error) {
-        console.error('투표 상태 확인 오류:', error);
+        // 투표 상태 확인 오류 무시
     }
 }
 
@@ -523,13 +485,12 @@ function displayComments(comments, sortType = 'latest') {
     if (sortType === 'latest') {
         // 최신순: 생성 시간 기준 내림차순
         sortedComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        console.log('최신순 정렬 적용');
     } else if (sortType === 'popular') {
         // 인기순: 좋아요 수 기준 내림차순, 같으면 최신순
         sortedComments.sort((a, b) => {
             const aLikes = a.likes || 0;
             const bLikes = b.likes || 0;
-            console.log(`댓글 ${a.id}: 좋아요 ${aLikes}, 댓글 ${b.id}: 좋아요 ${bLikes}`);
+            // 댓글 좋아요 수 비교
             
             if (aLikes !== bLikes) {
                 return bLikes - aLikes; // 좋아요 많은 순
@@ -537,14 +498,10 @@ function displayComments(comments, sortType = 'latest') {
                 return new Date(b.createdAt) - new Date(a.createdAt); // 같으면 최신순
             }
         });
-        console.log('인기순 정렬 적용');
+        // 인기순 정렬 적용
     }
     
-    console.log('정렬된 댓글:', sortedComments.map(c => ({
-        id: c.id,
-        likes: c.likes,
-        createdAt: c.createdAt
-    })));
+    // 정렬된 댓글
     
     let html = '';
     sortedComments.forEach((comment) => {
@@ -563,13 +520,6 @@ function createCommentHTML(comment) {
     
     // authorUserid가 없으면 'anonymous'로 설정 (비로그인 사용자)
     const authorUserid = comment.authorUserid || comment.idAddress || 'anonymous';
-    
-    console.log('댓글 HTML 생성:', {
-        commentId: comment.id,
-        nickname: comment.nickname,
-        authorUserid: authorUserid,
-        idAddress: comment.idAddress
-    });
     
     return '<div class="hpost-comment-item" data-comment-id="' + comment.id + '" data-author-userid="' + authorUserid + '">' +
         '<div class="hpost-comment-header">' +
@@ -602,21 +552,17 @@ function createCommentHTML(comment) {
 
 function updateSortButtons(activeSort) {
     const sortButtons = document.querySelectorAll('.hpost-sort-btn');
-    console.log('정렬 버튼 상태 업데이트:', activeSort);
     
     sortButtons.forEach(btn => {
         btn.classList.remove('active');
-        if ((activeSort === 'latest' && btn.textContent.includes('최신순')) || 
+        if ((activeSort === 'latest' && btn.textContent.includes('최신순')) ||
             (activeSort === 'popular' && btn.textContent.includes('인기순'))) {
             btn.classList.add('active');
-            console.log('활성화된 버튼:', btn.textContent);
         }
     });
 }
 
 async function loadComments(sort = 'latest') {
-    console.log('댓글 로드 시작 - 정렬:', sort);
-    
     try {
         if (!HPOST_ID || HPOST_ID === 0) {
             document.getElementById('commentsList').innerHTML = '<div class="no-comments">HPOST ID를 찾을 수 없습니다.</div>';
@@ -625,7 +571,6 @@ async function loadComments(sort = 'latest') {
         
         // 현재 정렬 상태 업데이트
         currentCommentSort = sort;
-        console.log('현재 정렬 상태:', currentCommentSort);
         
         const url = '<%=root%>/hpost/' + HPOST_ID + '/comments?sort=' + sort;
         const response = await fetch(url);
@@ -634,12 +579,12 @@ async function loadComments(sort = 'latest') {
         if (data.success && data.comments) {
             displayComments(data.comments, sort);
         } else {
-            console.error('댓글 로드 실패:', data.message);
+            // 댓글 로드 실패
             document.getElementById('commentsList').innerHTML = '<div class="no-comments">댓글을 불러오는데 실패했습니다.</div>';
         }
         
     } catch (error) {
-        console.error('댓글 로드 오류:', error);
+        // 댓글 로드 오류
         document.getElementById('commentsList').innerHTML = '<div class="no-comments">댓글을 불러오는데 실패했습니다: ' + error.message + '</div>';
     }
 }
@@ -675,7 +620,7 @@ function setupCommentForm() {
             }
             
         } catch (error) {
-            console.error('토큰에서 닉네임 추출 실패:', error);
+            // 토큰에서 닉네임 추출 실패
             nicknameField.value = '';
             nicknameField.readOnly = false;
             nicknameField.style.backgroundColor = '';
@@ -727,7 +672,7 @@ async function submitComment() {
             const payload = JSON.parse(jsonPayload);
             nickname = payload.nickname || '';
         } catch (error) {
-            console.error('토큰에서 닉네임 추출 실패:', error);
+            // 토큰에서 닉네임 추출 실패
             alert('사용자 정보를 가져오는데 실패했습니다.');
             return;
         }
@@ -791,7 +736,7 @@ async function submitComment() {
         }
         
     } catch (error) {
-        console.error('댓글 작성 오류:', error);
+        // 댓글 작성 오류
         alert('댓글 작성 중 오류가 발생했습니다.');
     }
 }
@@ -819,10 +764,7 @@ async function toggleCommentReaction(commentId, reactionType) {
         const data = await response.json();
         
         if (data.success) {
-            console.log('댓글 리액션 성공 - 응답 데이터:', data);
-            console.log('userReaction 값:', data.userReaction);
-            console.log('likeCount 값:', data.likeCount);
-            console.log('dislikeCount 값:', data.dislikeCount);
+            // 댓글 리액션 성공
             
             setTimeout(() => {
                 let commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
@@ -849,22 +791,22 @@ async function toggleCommentReaction(commentId, reactionType) {
                     // 현재 리액션에 따라 active 클래스 추가
                     if (data.userReaction === 'LIKE' && likeBtn) {
                         likeBtn.classList.add('active');
-                        console.log('좋아요 버튼 활성화');
+                        // 좋아요 버튼 활성화
                     } else if (data.userReaction === 'DISLIKE' && dislikeBtn) {
                         dislikeBtn.classList.add('active');
-                        console.log('싫어요 버튼 활성화');
+                        // 싫어요 버튼 활성화
                     } else {
-                        console.log('리액션 없음 (취소됨)');
+                        // 리액션 없음 (취소됨)
                     }
                 } else {
                     loadComments(currentCommentSort);
                 }
             }, 100);
         } else {
-            console.error('댓글 리액션 처리 실패:', data.message);
+            // 댓글 리액션 처리 실패
         }
     } catch (error) {
-        console.error('댓글 리액션 처리 오류:', error);
+        // 댓글 리액션 처리 오류
     }
 }
 
@@ -894,11 +836,7 @@ function deleteComment(commentId, nickname) {
     const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
     const authorUserid = commentElement ? commentElement.getAttribute('data-author-userid') : null;
     
-    console.log('댓글 삭제 요청:', {
-        commentId: commentId,
-        nickname: nickname,
-        authorUserid: authorUserid
-    });
+    // 댓글 삭제 요청
     
     showCommentPasswordModal(commentId, nickname, authorUserid);
 }
@@ -913,13 +851,7 @@ function showCommentPasswordModal(commentId, nickname, authorUserid) {
     const isAnonymousComment = authorUserid === 'anonymous' || 
                               (authorUserid && /^\d+\.\d+\.\d+\.\d+$/.test(authorUserid));
     
-    console.log('댓글 삭제 모달 표시:', {
-        commentId: commentId,
-        nickname: nickname,
-        authorUserid: authorUserid,
-        loggedIn: loggedIn,
-        isAnonymousComment: isAnonymousComment
-    });
+    // 댓글 삭제 모달 표시
     
     if (loggedIn && !isAnonymousComment) {
         title.textContent = '댓글을 삭제하시겠습니까?';
@@ -971,11 +903,7 @@ function confirmCommentDelete() {
     try {
         const baseUrl = '<%=root%>';
         const url = baseUrl + '/hpost/' + HPOST_ID + '/comment/' + commentId;
-        
-        console.log('댓글 삭제 요청 URL:', url);
-        console.log('댓글 ID:', commentId);
-        console.log('닉네임:', nickname);
-        console.log('로그인 상태:', loggedIn);
+        // 로그인 상태 확인
         
         const formData = new URLSearchParams();
         formData.append('nickname', nickname);
@@ -994,11 +922,11 @@ function confirmCommentDelete() {
             body: formData
         })
         .then(response => {
-            console.log('댓글 삭제 응답 상태:', response.status, response.statusText);
+            // 댓글 삭제 응답 상태
             return response.json();
         })
         .then(data => {
-            console.log('댓글 삭제 응답 데이터:', data);
+            // 댓글 삭제 응답 데이터
             if (data.success) {
                 alert('댓글이 삭제되었습니다.');
                 closeCommentPasswordModal();
@@ -1008,11 +936,11 @@ function confirmCommentDelete() {
             }
         })
         .catch(error => {
-            console.error('댓글 삭제 오류:', error);
+            // 댓글 삭제 오류
             alert('댓글 삭제 중 오류가 발생했습니다.');
         });
     } catch (error) {
-        console.error('댓글 삭제 처리 오류:', error);
+        // 댓글 삭제 처리 오류
         alert('댓글 삭제 처리 중 오류가 발생했습니다.');
     }
 }
@@ -1138,10 +1066,10 @@ function closeHpostDeleteModal() {
 
 // 게시글 삭제 실행
 async function deleteHpost() {
-    console.log('deleteHpost 함수 시작 - HPOST_ID:', HPOST_ID);
+    // deleteHpost 함수 시작
     
     if (!HPOST_ID || HPOST_ID === 0 || isNaN(HPOST_ID)) {
-        console.error('HPOST_ID가 유효하지 않습니다:', HPOST_ID);
+        // HPOST_ID가 유효하지 않음
         alert('게시글 ID가 유효하지 않습니다. 페이지를 새로고침해주세요.');
         return;
     }
@@ -1157,10 +1085,6 @@ async function deleteHpost() {
         const baseUrl = '<%=root%>';
         const url = baseUrl + '/hpost/' + HPOST_ID + '/delete';
         
-        console.log('삭제 요청 URL:', url);
-        console.log('HPOST_ID:', HPOST_ID);
-        console.log('baseUrl:', baseUrl);
-        
         const response = await fetch(url, {
             method: 'DELETE',
             headers: {
@@ -1171,16 +1095,12 @@ async function deleteHpost() {
             })
         });
         
-        console.log('서버 응답 상태:', response.status, response.statusText);
-        
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('서버 응답 오류:', errorText);
             throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
         }
         
         const data = await response.json();
-        console.log('서버 응답 데이터:', data);
         
         if (data.success) {
             alert('게시글이 삭제되었습니다.');
@@ -1190,7 +1110,7 @@ async function deleteHpost() {
             alert(data.message || '게시글 삭제에 실패했습니다. 비밀번호를 확인해주세요.');
         }
     } catch (error) {
-        console.error('게시글 삭제 오류:', error);
+        // 게시글 삭제 오류
         alert('게시글 삭제 중 오류가 발생했습니다: ' + error.message);
     } finally {
         closeHpostDeleteModal();
@@ -1265,7 +1185,7 @@ async function submitReport() {
             showToast('신고 접수 중 오류가 발생했습니다', 2500);
         }
     } catch (error) {
-        console.error('신고 오류:', error);
+        // 신고 오류
         showToast('신고 접수 중 오류가 발생했습니다', 2500);
     }
 }
@@ -1285,16 +1205,14 @@ function showToast(message, duration = 2500) {
 
 // 페이지 초기화
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOMContentLoaded 이벤트 시작');
-    console.log('초기 HPOST_ID 값:', HPOST_ID);
     
     // HPOST_ID 재확인
     if (!HPOST_ID || HPOST_ID === 0) {
         const hpostIdFromJSP = parseInt('${hpost.id}');
-        console.log('JSP에서 직접 가져온 hpost.id:', hpostIdFromJSP);
+        // JSP에서 직접 가져온 hpost.id
         if (!isNaN(hpostIdFromJSP) && hpostIdFromJSP > 0) {
             HPOST_ID = hpostIdFromJSP;
-            console.log('HPOST_ID 재설정 완료:', HPOST_ID);
+            // HPOST_ID 재설정 완료
         }
     }
     
@@ -1325,9 +1243,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadComments(currentCommentSort);
     
     // 투표 상태 및 통계 초기 로드 (지연 시간 단축)
-    console.log('투표 통계 로드 시작 예약');
     setTimeout(() => {
-        console.log('투표 통계 로드 실행');
         loadVoteStatistics();
         checkUserVoteStatus();
     }, 200);

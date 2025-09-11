@@ -94,19 +94,17 @@ function checkAdminPermission() {
         }).join(''));
         
         const payload = JSON.parse(jsonPayload);
-        console.log('JWT 토큰 payload:', payload);
         
         // provider가 'admin'인 경우만 관리자로 판단
         if (payload.provider === 'admin') {
             isAdmin = true;
             document.getElementById('admin-notice-write').style.display = 'block';
-            console.log('관리자 권한 확인됨');
         } else {
             document.getElementById('admin-notice-write').style.display = 'none';
-            console.log('일반 사용자로 확인됨 - provider:', payload.provider);
+            // 일반 사용자로 확인됨
         }
     } catch (error) {
-        console.error('JWT 토큰 파싱 오류:', error);
+        // JWT 토큰 파싱 오류
         document.getElementById('admin-notice-write').style.display = 'none';
     }
 }

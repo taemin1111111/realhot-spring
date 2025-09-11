@@ -61,7 +61,6 @@ if (typeof window.fetchWithAuth === 'undefined') {
                             }
                         }
                     } catch (refreshError) {
-                        console.error('토큰 갱신 실패:', refreshError);
                         // 토큰 갱신 실패 시 로그아웃 처리
                         localStorage.removeItem('accessToken');
                         localStorage.removeItem('refreshToken');
@@ -81,7 +80,6 @@ if (typeof window.fetchWithAuth === 'undefined') {
             
             return response;
         } catch (error) {
-            console.error('fetchWithAuth 오류:', error);
             throw error;
         }
     };
@@ -233,7 +231,6 @@ function getUserInfo() {
         try {
             return JSON.parse(userInfoStr);
         } catch (error) {
-            console.error('사용자 정보 파싱 오류:', error);
             return null;
         }
     }
@@ -260,7 +257,6 @@ function isLoggedIn() {
         const isValid = payload.exp > currentTime;
         return isValid;
     } catch (error) {
-        console.error('토큰 파싱 오류:', error);
         return false;
     }
 }
@@ -268,11 +264,7 @@ function isLoggedIn() {
 // 댓글 목록 로드
 async function loadComments(sort = 'latest') {
     try {
-        console.log('Course ID from global variable:', COURSE_ID);
-        console.log('Course ID type:', typeof COURSE_ID);
-        
         if (!COURSE_ID || COURSE_ID === 0) {
-            console.error('Course ID가 없습니다. COURSE_ID:', COURSE_ID);
             document.getElementById('commentsList').innerHTML = '<div class="no-comments">Course ID를 찾을 수 없습니다.</div>';
             return;
         }
@@ -281,7 +273,6 @@ async function loadComments(sort = 'latest') {
         const token = localStorage.getItem('accessToken');
         
         const url = '<%=root%>/course/' + COURSE_ID + '/comments?sort=' + sort;
-        console.log('요청 URL:', url);
         
         const response = await fetch(url, {
             headers: {
@@ -294,29 +285,23 @@ async function loadComments(sort = 'latest') {
         }
         
         const data = await response.json();
-        console.log('서버 응답 데이터:', data);
         
         if (data.success) {
-            console.log('댓글 데이터:', data.comments);
             displayComments(data.comments, sort);
             updateSortButtons(sort);
         } else {
-            console.error('댓글 로드 실패:', data.message);
             document.getElementById('commentsList').innerHTML = '<div class="no-comments">댓글을 불러오는데 실패했습니다.</div>';
         }
     } catch (error) {
-        console.error('댓글 로드 오류:', error);
         document.getElementById('commentsList').innerHTML = '<div class="no-comments">댓글을 불러오는데 실패했습니다: ' + error.message + '</div>';
     }
 }
 
 // 댓글 표시
 function displayComments(comments, sortType = 'latest') {
-    console.log('displayComments 호출됨, comments:', comments, 'sortType:', sortType);
     const commentsList = document.getElementById('commentsList');
     
     if (!comments || comments.length === 0) {
-        console.log('댓글이 없습니다');
         commentsList.innerHTML = '<div class="no-comments">아직 댓글이 없습니다.</div>';
         updateCommentCount(0);
         return;
@@ -328,7 +313,6 @@ function displayComments(comments, sortType = 'latest') {
     if (sortType === 'latest') {
         // 최신순: createdAt 기준으로 내림차순 정렬
         sortedComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        console.log('최신순 정렬 완료');
     } else if (sortType === 'popular') {
         // 인기순: 좋아요 수 기준으로 내림차순 정렬
         sortedComments.sort((a, b) => {
@@ -341,17 +325,12 @@ function displayComments(comments, sortType = 'latest') {
                 return new Date(b.createdAt) - new Date(a.createdAt);
             }
         });
-        console.log('인기순 정렬 완료');
     }
     
-    console.log('정렬된 댓글 개수:', sortedComments.length);
     let html = '';
     sortedComments.forEach((comment, index) => {
-        console.log(`댓글 ${index + 1}:`, comment);
         html += createCommentHTML(comment);
     });
-    
-    console.log('생성된 HTML:', html);
     commentsList.innerHTML = html;
     updateCommentCount(sortedComments.length);
     
@@ -417,7 +396,6 @@ async function restoreReplyStates() {
                 replyBtn.setAttribute('data-expanded', 'true');
                 
             } catch (error) {
-                console.error('답글 상태 복원 오류:', error);
                 // 오류 발생 시 해당 답글 상태 제거
                 expandedReplies.delete(parentId);
             }
@@ -435,7 +413,6 @@ function updateCommentCount(count) {
 
 // 댓글 HTML 생성
 function createCommentHTML(comment) {
-    console.log('createCommentHTML 호출됨, comment:', comment);
     const timeAgo = getTimeAgo(comment.createdAt);
     const isReply = comment.parentId != null;
     const replyCount = comment.replyCount || 0;
@@ -476,13 +453,11 @@ function createCommentHTML(comment) {
         '<div id="replies-' + comment.id + '" class="replies-container" style="display: none;"></div>' +
     '</div>';
     
-    console.log('생성된 HTML 조각:', html);
     return html;
 }
 
 // 대댓글 HTML 생성 (대댓글 버튼과 화살표 버튼 없음)
 function createReplyHTML(reply) {
-    console.log('createReplyHTML 호출됨, reply:', reply);
     const timeAgo = getTimeAgo(reply.createdAt);
     
     const html = '<div class="comment-item comment-reply" data-comment-id="' + reply.id + '" data-author-userid="' + (reply.authorUserid || '') + '">' +
@@ -513,19 +488,14 @@ function createReplyHTML(reply) {
         '</div>' +
     '</div>';
     
-    console.log('생성된 대댓글 HTML 조각:', html);
     return html;
 }
 
 // 시간 계산 (몇분전, 몇시간전, 몇일전)
 function getTimeAgo(createdAt) {
-    console.log('getTimeAgo 호출됨, createdAt:', createdAt);
-    
     const createdDate = new Date(createdAt);
     const now = new Date();
     const diffMs = now - createdDate;
-    
-    console.log('시간 차이 (밀리초):', diffMs);
     
     if (diffMs < 60000) { // 1분 미만
         return '방금전';
@@ -560,7 +530,6 @@ let expandedReplies = new Set();
 
 // 답글 토글 및 폼 표시 기능
 async function toggleRepliesAndShowForm(parentId) {
-    console.log('답글 토글 및 폼 표시:', parentId);
     const repliesContainer = document.getElementById('replies-' + parentId);
     const replyBtn = event.target;
     
@@ -626,7 +595,7 @@ async function toggleRepliesAndShowForm(parentId) {
                 contentTextarea.focus();
             }
         } catch (error) {
-            console.error('답글 로드 오류:', error);
+            // 답글 로드 오류 무시
         }
     } else {
         // 답글 숨기기
@@ -664,7 +633,6 @@ async function submitReply(parentId) {
             const payload = JSON.parse(jsonPayload);
             nickname = payload.nickname || '';
         } catch (error) {
-            console.error('토큰에서 닉네임 추출 실패:', error);
             showCourseMessage('사용자 정보를 가져오는데 실패했습니다.', 'error');
             return;
         }
@@ -744,7 +712,6 @@ async function submitReply(parentId) {
         }
         
     } catch (error) {
-        console.error('답글 작성 오류:', error);
         showCourseMessage('답글 등록 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -775,7 +742,6 @@ function cancelReplyForm() {
 
 // 댓글 좋아요/싫어요 토글
 async function toggleCommentReaction(commentId, reactionType) {
-    console.log('댓글 리액션 토글:', { commentId, reactionType });
     
     try {
         // JWT 토큰 가져오기
@@ -791,7 +757,6 @@ async function toggleCommentReaction(commentId, reactionType) {
         });
         
         const data = await response.json();
-        console.log('서버 응답 데이터:', data);
         
         if (data.success) {
             // 해당 댓글의 좋아요/싫어요 수 업데이트 (댓글과 답글 모두 처리)
@@ -809,28 +774,16 @@ async function toggleCommentReaction(commentId, reactionType) {
                 }
             }
             
-            console.log('찾은 댓글 요소:', commentElement);
-            console.log('현재 DOM의 모든 댓글 요소들:', document.querySelectorAll('.comment-item'));
-            
             if (commentElement) {
                 // 좋아요/싫어요 개수 업데이트
                 const likeCountElement = commentElement.querySelector('.like-count');
                 const dislikeCountElement = commentElement.querySelector('.dislike-count');
                 
-                console.log('찾은 요소들:', {
-                    likeCountElement: likeCountElement,
-                    dislikeCountElement: dislikeCountElement,
-                    dataLikeCount: data.likeCount,
-                    dataDislikeCount: data.dislikeCount
-                });
-                
                 if (likeCountElement) {
                     likeCountElement.textContent = data.likeCount || 0;
-                    console.log('좋아요 개수 업데이트:', data.likeCount || 0);
                 }
                 if (dislikeCountElement) {
                     dislikeCountElement.textContent = data.dislikeCount || 0;
-                    console.log('싫어요 개수 업데이트:', data.dislikeCount || 0);
                 }
                 
                 // 버튼 상태 업데이트
@@ -848,26 +801,13 @@ async function toggleCommentReaction(commentId, reactionType) {
                     dislikeBtn.classList.add('active');
                 }
                 
-                console.log('댓글/답글 리액션 업데이트 완료:', {
-                    commentId: commentId,
-                    likeCount: data.likeCount,
-                    dislikeCount: data.dislikeCount,
-                    currentReaction: data.currentReaction
-                });
-            } else {
-                console.error('댓글 요소를 찾을 수 없음:', commentId);
-                console.error('현재 DOM의 모든 댓글 ID들:', Array.from(document.querySelectorAll('.comment-item')).map(el => el.getAttribute('data-comment-id')));
             }
             
-            console.log('댓글/답글 리액션 처리 성공:', data.action);
-            
         } else {
-            console.error('댓글/답글 리액션 처리 실패:', data.message);
             showCourseMessage(data.message || '리액션 처리 중 오류가 발생했습니다.', 'error');
         }
         
     } catch (error) {
-        console.error('댓글/답글 리액션 처리 오류:', error);
         showCourseMessage('리액션 처리 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -970,11 +910,8 @@ function showCourseMessage(message, type = 'info') {
 
 // 좋아요/싫어요 토글
 async function toggleReaction(courseId, reactionType) {
-    console.log('toggleReaction 호출:', { courseId, reactionType });
-    
     // 로그인 상태 확인
     const loggedIn = isLoggedIn();
-    console.log('로그인 상태:', loggedIn);
     
     if (!loggedIn) {
         showCourseMessage('게시글 좋아요/싫어요는 로그인후 사용 가능합니다', 'error');
@@ -1035,7 +972,6 @@ async function toggleReaction(courseId, reactionType) {
             }
             
             // 성공 시에는 토스트 메시지 표시하지 않음 (조용히 처리)
-            console.log('리액션 처리 성공:', data.action);
             
         } else {
             // 에러 메시지 표시
@@ -1046,7 +982,6 @@ async function toggleReaction(courseId, reactionType) {
             }
         }
     } catch (error) {
-        console.error('Error:', error);
         showCourseMessage('리액션 처리 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -1124,7 +1059,7 @@ function initializeCommentForm() {
                 nicknameInput.style.backgroundColor = '#f8f9fa';
             }
         } catch (error) {
-            console.error('토큰에서 닉네임 추출 실패:', error);
+            // 토큰에서 닉네임 추출 실패 무시
         }
         
         // 비밀번호 필드 숨기기
@@ -1150,7 +1085,6 @@ function checkLoginStatus() {
     
     // 로그인 상태가 변경된 경우에만 UI 업데이트
     if (previousLoginStatus !== currentLoginStatus) {
-        console.log('로그인 상태 변경 감지:', previousLoginStatus, '->', currentLoginStatus);
         updateReactionButtonsStyle();
         initializeCommentForm();
         previousLoginStatus = currentLoginStatus;
@@ -1198,7 +1132,6 @@ async function submitComment() {
             const payload = JSON.parse(jsonPayload);
             nickname = payload.nickname || '';
         } catch (error) {
-            console.error('토큰에서 닉네임 추출 실패:', error);
             showCourseMessage('사용자 정보를 가져오는데 실패했습니다.', 'error');
             return;
         }
@@ -1273,7 +1206,6 @@ async function submitComment() {
         }
         
     } catch (error) {
-        console.error('댓글 작성 오류:', error);
         showCourseMessage('댓글 등록 중 오류가 발생했습니다.', 'error');
     }
 }
@@ -1314,7 +1246,6 @@ function setupCommentForm() {
             passwordField.parentElement.style.display = 'none';
             
         } catch (error) {
-            console.error('토큰에서 닉네임 추출 실패:', error);
             // 토큰 파싱 실패 시 일반 입력 필드로 유지
             nicknameField.readOnly = false;
             passwordField.style.display = 'block';
@@ -1434,7 +1365,6 @@ function confirmDelete() {
         }
     })
     .catch(error => {
-        console.error('삭제 오류:', error);
         showToast('삭제 중 오류가 발생했습니다', 2500);
     })
     .finally(() => {
@@ -1582,7 +1512,6 @@ function confirmCommentDelete() {
         }
     })
     .catch(error => {
-        console.error('댓글 삭제 오류:', error);
         showCourseMessage('삭제 중 오류가 발생했습니다.', 'error');
     })
     .finally(() => {
@@ -1674,7 +1603,6 @@ function confirmReport() {
         }
     })
     .catch(error => {
-        console.error('신고 오류:', error);
         showCourseMessage('신고 중 오류가 발생했습니다.', 'error');
     });
 }
@@ -1686,7 +1614,6 @@ function copyAddress(address) {
         navigator.clipboard.writeText(address).then(function() {
             showCourseMessage('주소가 클립보드에 복사되었습니다!', 'success');
         }).catch(function(err) {
-            console.error('클립보드 복사 실패:', err);
             fallbackCopyTextToClipboard(address);
         });
     } else {

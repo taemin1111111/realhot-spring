@@ -238,7 +238,6 @@
 
     // 페이지 로드 시 MD 목록 로드
     $(document).ready(function() {
-        console.log('페이지 로드 완료');
         
         // body에 clubmd-page 클래스 추가 (푸터 전체 너비를 위해)
         $('body').addClass('clubmd-page');
@@ -287,16 +286,11 @@
 
     // 별들 생성 함수 - 완전 새로 작성
     function createStars() {
-        console.log('별 생성 시작...');
-        
         // 별들 컨테이너 찾기
         const starsContainer = document.getElementById('starsContainer');
         if (!starsContainer) {
-            console.error('별들 컨테이너를 찾을 수 없습니다!');
             return;
         }
-        
-        console.log('별들 컨테이너 찾음:', starsContainer);
         
         // 기존 별들 제거
         starsContainer.innerHTML = '';
@@ -326,15 +320,7 @@
             
             starsContainer.appendChild(star);
             
-            // 디버깅: 첫 번째 별 확인
-            if (i === 0) {
-                console.log('첫 번째 별 스타일:', star.style.cssText);
-                console.log('첫 번째 별 크기:', star.offsetWidth, 'x', star.offsetHeight);
-            }
         }
-        
-        console.log(`${starCount}개의 별이 생성되었습니다.`);
-        console.log('별들 컨테이너 내용:', starsContainer.innerHTML);
     }
 
     // 정렬 버튼 상태 업데이트
@@ -788,22 +774,20 @@
         try {
             // JWT 토큰 파싱
             const payload = JSON.parse(atob(token.split('.')[1]));
-            console.log('JWT 토큰 payload:', payload);
             
             // 관리자 권한 확인 (provider가 'admin'인 경우만)
             const isAdmin = payload.provider === 'admin';
             
             if (isAdmin) {
-                console.log('관리자 권한 확인됨');
                 $('#admin-md-add').show();
                 $('.clubmd-md-admin-actions').show();
             } else {
-                console.log('일반 사용자 - 관리자 버튼 숨김');
+                // 일반 사용자 - 관리자 버튼 숨김
                 $('#admin-md-add').hide();
                 $('.clubmd-md-admin-actions').hide();
             }
         } catch (error) {
-            console.error('JWT 토큰 파싱 실패:', error);
+            // JWT 토큰 파싱 실패
             $('#admin-md-add').hide();
             $('.clubmd-md-admin-actions').hide();
         }

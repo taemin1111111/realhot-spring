@@ -22,26 +22,22 @@
  * @param {string} refreshToken - Refresh Token
  */
 function saveToken(token, refreshToken) {
-    console.log('[Auth] saveToken 실행: localStorage에 토큰 저장');
     localStorage.setItem('accessToken', token);
     if (refreshToken) {
         localStorage.setItem('refreshToken', refreshToken);
     }
-    console.log('[Auth] localStorage 저장 완료.');
 }
 
 /**
  * 저장된 모든 토큰 및 사용자 정보 삭제 (쿠키는 서버에서 삭제)
  */
 function removeToken() {
-    console.log('[Auth] removeToken 실행: localStorage 정보 삭제');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('userInfo');
     
     // 쿠키는 HttpOnly이므로 클라이언트에서 직접 삭제 불가.
     // 서버에 로그아웃 요청을 보내서 서버가 쿠키를 삭제하도록 해야 함.
-    console.log('[Auth] localStorage 정보 삭제 완료.');
 }
 
 /**
@@ -57,7 +53,6 @@ function getToken() {
  * @param {string} path - 이동할 관리자 페이지 경로 (e.g., '/admin/hpost')
  */
 function goToAdminPage(path) {
-    console.log('[Auth] 관리자 페이지로 이동:', path);
     // 쿠키는 브라우저가 자동으로 요청에 포함하므로, 바로 페이지 이동
     window.location.href = root + path;
 }

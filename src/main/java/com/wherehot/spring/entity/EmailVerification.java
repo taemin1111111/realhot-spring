@@ -74,6 +74,10 @@ public class EmailVerification {
         return isVerified;
     }
     
+    public boolean isVerified() {
+        return isVerified;
+    }
+    
     public void setIsVerified(boolean isVerified) {
         this.isVerified = isVerified;
     }
@@ -89,10 +93,6 @@ public class EmailVerification {
     // 편의 메서드
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(this.expiresAt);
-    }
-    
-    public boolean isVerified() {
-        return this.isVerified;
     }
     
     public void markAsVerified() {

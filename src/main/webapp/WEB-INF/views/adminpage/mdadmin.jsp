@@ -129,7 +129,6 @@ async function initializeAdminPage() {
     }
     
     // 권한이 있으면 페이지 초기화
-    console.log('관리자 권한 확인됨');
     
     // 페이지별 초기화 함수 호출
     if (typeof initMdAdmin === 'function') {

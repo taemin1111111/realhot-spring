@@ -257,11 +257,8 @@
     <script>
         // 페이지 로드시 초기화
         $(document).ready(function() {
-            console.log('페이지 로드 완료');
-            
             // JWT 토큰 확인
             const token = getJwtToken();
-            console.log('JWT 토큰:', token ? '존재함' : '없음');
             
             if (!token) {
                 alert('로그인이 필요합니다.');
@@ -269,7 +266,6 @@
                 return;
             }
             
-            console.log('loadProfile 함수 호출 시작');
             loadProfile();
         });
 
@@ -289,19 +285,11 @@
 
         // 프로필 정보 로드
         function loadProfile() {
-            console.log('loadProfile 함수 호출됨');
-            console.log('API URL:', '<%=root%>/mypage/api/user-info');
-            console.log('Request Headers:', getRequestHeaders());
-            
             $.ajax({
                 url: '<%=root%>/mypage/api/user-info',
                 method: 'GET',
                 headers: getRequestHeaders(),
                 success: function(response) {
-                    console.log('프로필 정보 로드 성공:', response);
-                    console.log('response.nickname:', response.nickname);
-                    console.log('response.joindate:', response.joindate);
-                    
                     // 깔끔한 HTML 생성 (흰색 배경에 맞춰 검정색 글자)
                     const htmlContent = 
                         '<div class="text-center">' +
@@ -311,22 +299,20 @@
                             '<small class="text-dark">가입일: ' + response.joindate + '</small>' +
                         '</div>';
                     
-                                         $('#profileInfo').html(htmlContent);
+                    $('#profileInfo').html(htmlContent);
                      
-                     // 폼에 현재 값 설정 (닉네임만)
-                     $('#editNickname').val(response.nickname);
+                    // 폼에 현재 값 설정 (닉네임만)
+                    $('#editNickname').val(response.nickname);
                      
-                     // 페이지 제목 업데이트 (닉네임 포함)
-                     if (document.title.includes('님')) {
-                         document.title = document.title.replace(/^.*님/, response.nickname + '님');
-                     }
+                    // 페이지 제목 업데이트 (닉네임 포함)
+                    if (document.title.includes('님')) {
+                        document.title = document.title.replace(/^.*님/, response.nickname + '님');
+                    }
                      
-                                         // OAuth2 사용자일 때 비밀번호 변경 섹션 숨기기
+                    // OAuth2 사용자일 때 비밀번호 변경 섹션 숨기기
                     if (response.provider && response.provider !== 'site') {
-                        console.log('OAuth2 사용자 감지 - 비밀번호 변경 섹션 숨김:', response.provider);
                         $('#passwordChangeSection').hide();
                     } else {
-                        console.log('일반 사용자 - 비밀번호 변경 섹션 표시');
                         $('#passwordChangeSection').show();
                     }
                     
@@ -334,11 +320,6 @@
                     loadStats();
                 },
                 error: function(xhr, status, error) {
-                    console.error('프로필 정보 로드 오류:', error);
-                    console.error('Status:', status);
-                    console.error('Response Text:', xhr.responseText);
-                    console.error('Status Code:', xhr.status);
-                    
                     if (xhr.status === 401) {
                         alert('인증이 만료되었습니다. 다시 로그인해주세요.');
                         localStorage.removeItem('accessToken');
@@ -369,7 +350,6 @@
                     $('#myWishCount').text(response.wishCount || 0);
                 },
                 error: function(xhr, status, error) {
-                    console.error('통계 정보 로드 오류:', error);
                     $('#myPostCount').text('0');
                     $('#myWishCount').text('0');
                 }
@@ -385,11 +365,11 @@
             }
 
             $.ajax({
-                url: '<%=root%>/api/member/check-nickname',
+                url: '<%=root%>/api/auth/check/nickname',
                 method: 'GET',
                 data: { nickname: nickname },
                 success: function(response) {
-                    if (response.available) {
+                    if (response.success && !response.exists) {
                         $('#nicknameCheckResult').text('사용 가능한 닉네임입니다.').removeClass('text-danger').addClass('text-success');
                         window.nicknameAvailable = true;
                     } else {
@@ -398,7 +378,6 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('닉네임 중복 확인 오류:', error);
                     $('#nicknameCheckResult').text('확인 중 오류가 발생했습니다.').removeClass('text-success').addClass('text-danger');
                 }
             });
@@ -454,7 +433,6 @@
                     // 새로운 JWT 토큰으로 localStorage 업데이트
                     if (response.newToken) {
                         localStorage.setItem('accessToken', response.newToken);
-                        console.log('새로운 JWT 토큰으로 업데이트됨');
                     }
                     
                     // 프로필 정보 다시 로드
@@ -474,7 +452,7 @@
                             user.nickname = newNickname;
                             localStorage.setItem('userInfo', JSON.stringify(user));
                         } catch (e) {
-                            console.log('사용자 정보 업데이트 실패:', e);
+                            // 사용자 정보 업데이트 실패 시 무시
                         }
                     }
                     
@@ -488,7 +466,6 @@
                     $('#nicknameCheckResult').text('').removeClass('text-success text-danger');
                 },
                 error: function(xhr, status, error) {
-                    console.error('프로필 수정 오류:', error);
                     if (xhr.responseJSON && xhr.responseJSON.error) {
                         alert('오류: ' + xhr.responseJSON.error);
                     } else {
@@ -505,7 +482,6 @@
             $('#currentPasswordResult').text('').removeClass('text-success text-danger');
             
             // 전역 변수는 초기화하지 않음 (이전 세션의 값이 남아있을 수 있음)
-            console.log('비밀번호 변경 시작 - 첫 번째 모달 열림');
             
             $('#passwordVerifyModal').modal('show');
         }
@@ -532,7 +508,6 @@
                         
                         // 현재 비밀번호를 전역 변수에 저장 (두 번째 모달에서 사용)
                         window.verifiedCurrentPassword = currentPassword;
-                        console.log('현재 비밀번호 저장됨:', window.verifiedCurrentPassword);
                         
                         // 새 비밀번호 입력 폼 초기화
                         $('#newPassword, #confirmPassword').val('');
@@ -544,7 +519,6 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('비밀번호 확인 오류:', error);
                     $('#currentPasswordResult').text('확인 중 오류가 발생했습니다.').removeClass('text-success').addClass('text-danger');
                 }
             });
@@ -573,8 +547,6 @@
             }
 
             // 전역 변수 확인
-            console.log('저장된 현재 비밀번호:', window.verifiedCurrentPassword);
-            console.log('새 비밀번호:', newPassword);
 
             if (!window.verifiedCurrentPassword) {
                 alert('현재 비밀번호가 확인되지 않았습니다. 다시 시도해주세요.');
@@ -608,7 +580,6 @@
                     }, 1000);
                 },
                 error: function(xhr, status, error) {
-                    console.error('비밀번호 변경 오류:', error);
                     if (xhr.responseJSON && xhr.responseJSON.error) {
                         alert('오류: ' + xhr.responseJSON.error);
                     } else {
@@ -657,7 +628,6 @@
                         resolve(response);
                     },
                     error: function(xhr, status, error) {
-                        console.error('사용자 정보 로드 오류:', error);
                         reject(error);
                     }
                 });
@@ -730,7 +700,6 @@
                     window.location.href = '<%=root%>/';
                 },
                 error: function(xhr, status, error) {
-                    console.error('탈퇴 오류:', error);
                     if (xhr.responseJSON && xhr.responseJSON.error) {
                         alert('오류: ' + xhr.responseJSON.error);
                     } else {
@@ -795,7 +764,6 @@
             $('#newPasswordResult, #confirmPasswordResult').text('').removeClass('text-success text-danger');
             // 두 번째 모달이 닫힐 때 전역 변수 초기화
             window.verifiedCurrentPassword = null;
-            console.log('두 번째 모달 닫힘 - 전역 변수 초기화됨');
         });
     </script>
 </div>

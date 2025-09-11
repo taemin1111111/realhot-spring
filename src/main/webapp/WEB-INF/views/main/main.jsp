@@ -263,7 +263,6 @@
             }
           })
           .catch(error => {
-            console.error('관리자 확인 실패:', error);
             isAdmin = false;
           });
         } else {
@@ -777,7 +776,7 @@
           }
         })
         .catch(error => {
-          console.error('Wish check error:', error);
+          // 위시 체크 오류 무시
         });
         
       // 찜/찜 해제 이벤트
@@ -816,7 +815,6 @@
             }
           })
           .catch(error => {
-            console.error('Wish action error:', error);
             showToast('처리 중 오류가 발생했습니다.', 'error');
           });
       };
@@ -1385,7 +1383,6 @@
                       })
                       .catch(error => {
                         clearTimeout(wishTimeoutId);
-                        console.error('위시리스트 개수 로드 오류:', error);
                         wishCountElement.textContent = '?';
                       });
                     }
@@ -1479,7 +1476,6 @@
                         })
                         .catch(error => {
                           clearTimeout(genreTimeoutId);
-                          console.error('장르 정보 로드 오류:', error);
                           // 모바일에서 네트워크 불안정 시 재시도 버튼 제공
                           genresElement.innerHTML = '🎵 장르: 로드 실패 <button onclick="retryGenreInfo(' + place.id + ')" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:0.7rem; margin-left:4px; cursor:pointer;">재시도</button>';
                         });
@@ -1763,7 +1759,6 @@
                       })
                       .catch(error => {
                         clearTimeout(wishTimeoutId);
-                        console.error('위시리스트 개수 로드 오류:', error);
                         wishCountElement.textContent = '?';
                       });
                     }
@@ -1842,7 +1837,6 @@
                       })
                       .catch(error => {
                         clearTimeout(timeoutId);
-                        console.error('투표 현황 로드 오류:', error);
                         // 모바일에서 네트워크 불안정 시 재시도 버튼 제공
                         trendsElement.innerHTML = '<div style="color:#888; font-size:0.8rem;">📊 역대 투표: 로드 실패 <button onclick="retryVoteTrends(' + place.id + ')" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:0.7rem; margin-left:4px; cursor:pointer;">재시도</button></div>';
                       });
@@ -1889,7 +1883,6 @@
                         })
                         .catch(error => {
                           clearTimeout(genreTimeoutId);
-                          console.error('장르 정보 로드 오류:', error);
                           // 모바일에서 네트워크 불안정 시 재시도 버튼 제공
                           genresElement.innerHTML = '🎵 장르: 로드 실패 <button onclick="retryGenreInfo(' + place.id + ')" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:0.7rem; margin-left:4px; cursor:pointer;">재시도</button>';
                         });
@@ -2315,7 +2308,6 @@
     })
     .catch(error => {
       clearTimeout(timeoutId);
-      console.error('투표 현황 재시도 오류:', error);
       trendsElement.innerHTML = '<div style="color:#888; font-size:0.8rem;">📊 역대 투표: 로드 실패 <button onclick="retryVoteTrends(' + placeId + ')" style="background:#007bff; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:0.7rem; margin-left:4px; cursor:pointer;">재시도</button></div>';
     });
   }
@@ -3444,7 +3436,6 @@ function loadCurrentPageStats() {
       }
     })
     .catch(error => {
-      console.error('투표 수 로드 실패:', error);
       hotplace.vote_count = 0;
     });
   });

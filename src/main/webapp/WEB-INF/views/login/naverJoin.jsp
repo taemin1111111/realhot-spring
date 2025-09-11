@@ -81,10 +81,10 @@ String root = request.getContextPath();
                 return;
             }
 
-            fetch("<%=root%>/api/auth/check-nickname?nickname=" + encodeURIComponent(nickname))
-                .then(res => res.text())
-                .then(result => {
-                    if (result.trim() === "ok") {
+            fetch("<%=root%>/api/auth/check/nickname?nickname=" + encodeURIComponent(nickname))
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && !data.exists) {
                         document.getElementById("nickResult").innerText = "사용 가능한 닉네임입니다.";
                         document.getElementById("nickResult").style.color = "green";
                     } else {
@@ -93,6 +93,10 @@ String root = request.getContextPath();
                         document.getElementById("nickname").value = "";
                         document.getElementById("nickname").focus();
                     }
+                })
+                .catch(error => {
+                    document.getElementById("nickResult").innerText = "닉네임 확인 중 오류가 발생했습니다.";
+                    document.getElementById("nickResult").style.color = "red";
                 });
         }
     </script>

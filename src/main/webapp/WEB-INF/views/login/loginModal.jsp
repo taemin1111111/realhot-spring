@@ -333,7 +333,7 @@ async function fetchWithAuth(url, options = {}) {
     
     // 401 에러 시 토큰 갱신 시도
     if (response.status === 401) {
-        console.log('토큰 만료, 갱신 시도...');
+        // 토큰 만료, 갱신 시도
         const refreshSuccess = await refreshAccessToken();
         
         if (refreshSuccess) {
@@ -390,22 +390,13 @@ async function handleLogin(event) {
         
         if (response.ok) {
             // 로그인 성공 - JwtResponse 구조에 맞춰 수정
-            console.log('로그인 응답 데이터:', data);
-            
             // 토큰 유효성 검사 (JwtResponse.token 필드 사용)
             if (data.token && data.token.includes('.')) {
-                console.log('JWT 토큰 저장:', data.token.substring(0, 50) + '...');
-                console.log('refreshToken 존재:', !!data.refreshToken);
-                
-                // 토큰 저장 전 상태 확인
-                console.log('저장 전 localStorage accessToken:', localStorage.getItem('accessToken') ? '있음' : '없음');
-                console.log('저장 전 쿠키:', document.cookie);
                 
                 // ✅ 분리된 auth-utils.js의 함수 호출 (이제 localStorage에만 저장)
                 saveToken(data.token, data.refreshToken);
                 
                 // 저장 후 상태 확인
-                console.log('저장 후 localStorage accessToken:', localStorage.getItem('accessToken') ? '있음' : '없음');
                 
                 // 사용자 정보도 함께 저장 (즉시 UI 업데이트용)
                 const userInfo = {
@@ -415,9 +406,7 @@ async function handleLogin(event) {
                     email: data.email
                 };
                 localStorage.setItem('userInfo', JSON.stringify(userInfo));
-                console.log('사용자 정보 저장:', userInfo);
             } else {
-                console.error('유효하지 않은 토큰 형식:', data.token);
                 alert('로그인 처리 중 오류가 발생했습니다.');
                 return;
             }
@@ -441,7 +430,6 @@ async function handleLogin(event) {
                 const userInfo = JSON.parse(localStorage.getItem('userInfo'));
                 if (userInfo) {
                     window.updateTitleUI(userInfo);
-                    console.log('로그인 후 즉시 UI 업데이트 완료');
                 }
             }
             
@@ -450,14 +438,12 @@ async function handleLogin(event) {
                 const userInfo = JSON.parse(localStorage.getItem('userInfo'));
                 if (userInfo) {
                     window.updateTitleUIFromSavedInfo(userInfo);
-                    console.log('로그인 후 모바일 메뉴 업데이트 완료');
                 }
             }
             
             // hpostdetail.jsp의 댓글 폼도 업데이트
             if (window.updateCommentFormOnLoginChange) {
                 window.updateCommentFormOnLoginChange();
-                console.log('로그인 후 댓글 폼 업데이트 완료');
             }
             
         } else {
@@ -466,7 +452,6 @@ async function handleLogin(event) {
         }
         
     } catch (error) {
-        console.error('Login error:', error);
         alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
         // 로딩 상태 해제
@@ -482,13 +467,9 @@ async function logout() {
             method: 'POST',
         });
         
-        if (response.ok) {
-            console.log('서버 로그아웃 성공');
-        } else {
-            console.error('서버 로그아웃 실패');
-        }
+        // 서버 로그아웃 처리
     } catch (error) {
-        console.error('로그아웃 요청 오류:', error);
+        // 로그아웃 요청 오류 무시
     }
     
     // 서버 응답과 관계없이 클라이언트 데이터 정리
@@ -497,7 +478,6 @@ async function logout() {
     // UI 업데이트
     if (window.showLoggedOutUI) {
         window.showLoggedOutUI();
-        console.log('로그아웃 후 즉시 UI 업데이트 완료');
     } else {
         location.reload(); // fallback
     }

@@ -137,18 +137,18 @@ public class OAuth2Controller {
             
             // 메인 페이지로 리다이렉트 (토큰과 함께, URL 인코딩 적용)
             try {
-                return "redirect:/hotplace/?token=" + accessToken + "&userid=" + member.getUserid() + 
+                return "redirect:/?token=" + accessToken + "&userid=" + member.getUserid() + 
                        "&nickname=" + java.net.URLEncoder.encode(member.getNickname(), "UTF-8") + 
                        "&provider=" + member.getProvider() + 
                        "&email=" + java.net.URLEncoder.encode(member.getEmail(), "UTF-8");
             } catch (Exception e) {
                 logger.error("URL encoding error: {}", e.getMessage());
-                return "redirect:/hotplace/?error=encoding_error";
+                return "redirect:/?error=encoding_error";
             }
             
         } catch (Exception e) {
             logger.error("Naver OAuth2 signup failed: ", e);
-            return "redirect:/oauth2/signup/naver?error=" + e.getMessage();
+            return "redirect:/hotplace/oauth2/signup/naver?error=" + e.getMessage();
         }
     }
 }

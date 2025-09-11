@@ -37,7 +37,7 @@ function detectAndApplyIPhoneStyles() {
                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     
     if (isIPhone || window.innerWidth <= 500) {
-        console.log('아이폰 감지됨 - 스타일 강제 적용');
+        // 아이폰 감지됨 - 스타일 강제 적용
         
         // CSS 스타일 강제 적용
         const style = document.createElement('style');
@@ -176,7 +176,6 @@ async function loadTodayHotRanking() {
         }, 100);
         
     } catch (error) {
-        console.error('순위 데이터 로드 실패:', error);
         showErrorState();
     }
 }
@@ -286,14 +285,12 @@ async function fetchRealTodayHotData() {
         const data = await response.json();
         
         if (data.success && data.rankings) {
-            console.log('오늘 핫 랭킹 데이터 로드 성공:', data.rankings.length, '개');
             return data.rankings;
         } else {
             throw new Error(data.error || '랭킹 데이터를 가져올 수 없습니다.');
         }
         
         } catch (error) {
-            console.error('API 호출 실패:', error);
             throw error;
         }
 }

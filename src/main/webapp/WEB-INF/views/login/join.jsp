@@ -389,18 +389,15 @@ function sendEmailCode() {
             throw new Error("이메일 중복 체크 중 오류가 발생했습니다.");
         })
         .then(res => {
-            console.log("Email send response status:", res.status);
             if (!res.ok) {
                 // 오류 응답인 경우
                 return res.json().then(errorData => {
-                    console.error("Email send error response:", errorData);
                     throw new Error(errorData.error || "이메일 발송에 실패했습니다.");
                 });
             }
             return res.json();
         })
         .then(data => {
-            console.log("Email send response data:", data);
             if (data.success) {
                 document.getElementById("join-emailResult").innerText = data.message;
                 document.getElementById("join-emailResult").style.color = "green";
@@ -414,7 +411,6 @@ function sendEmailCode() {
             }
         })
         .catch(error => {
-            console.error("Email send error:", error);
             document.getElementById("join-emailResult").innerText = error.message || "오류가 발생했습니다.";
             document.getElementById("join-emailResult").style.color = "red";
         })
@@ -665,12 +661,11 @@ async function handleSignup(event) {
         nickname: formData.get('nickname'),
         email: formData.get('email'),
         emailVerificationCode: formData.get('emailVerificationCode'),
+        phone: formData.get('phone') || null,
         birth: formData.get('birth') || null,
         gender: formData.get('gender') || null,
         provider: 'site'
     };
-    
-    console.log('Signup data:', signupData);
     
     // 제출 버튼 비활성화
     const submitButton = event.target.querySelector('button[type="submit"]');
@@ -688,18 +683,18 @@ async function handleSignup(event) {
         });
         
         const result = await response.json();
-        console.log('Signup response:', result);
         
         if (response.ok) {
             alert('회원가입이 완료되었습니다! 로그인해주세요.');
             // 로그인 폼으로 이동
             showLogin();
         } else {
-            alert(result.error || '회원가입에 실패했습니다.');
+            // 에러 응답 상세 정보 표시
+            const errorMessage = result.message || result.error || '회원가입에 실패했습니다.';
+            alert('회원가입 실패: ' + errorMessage);
         }
         
     } catch (error) {
-        console.error('Signup error:', error);
         alert('회원가입 중 오류가 발생했습니다.');
     } finally {
         // 버튼 복구

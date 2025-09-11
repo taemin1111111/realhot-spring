@@ -198,7 +198,7 @@ public class AuthController {
         
         try {
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                System.out.println("check-admin: Authorization 헤더 없음");
+               
                 response.put("result", false);
                 response.put("isAdmin", false);
                 response.put("error", "Authorization 헤더 없음");
@@ -207,7 +207,7 @@ public class AuthController {
             
             String token = authHeader.substring(7);
             String userid = jwtUtils.getUseridFromToken(token);
-            System.out.println("check-admin: userid from token = " + userid);
+          
             
             if (userid != null) {
                 Optional<Member> memberOpt = memberMapper.findByUserid(userid);
@@ -216,13 +216,12 @@ public class AuthController {
                     String provider = member.getProvider();
                     String status = member.getStatus();
                     
-                    System.out.println("check-admin: member found - userid=" + userid + 
-                                    ", provider=" + provider + ", status=" + status);
+                   
                     
                     // 관리자 권한 확인: provider가 admin인 경우만 (JWT Filter와 일관성 유지)
                     boolean isAdmin = "admin".equals(provider);
                     
-                    System.out.println("check-admin: isAdmin = " + isAdmin);
+                   
                     
                     response.put("result", true);
                     response.put("isAdmin", isAdmin);
@@ -232,13 +231,13 @@ public class AuthController {
                     response.put("status", status);
                     response.put("debug", "userid=" + userid + ", provider=" + provider + ", status=" + status);
                 } else {
-                    System.out.println("check-admin: member not found for userid = " + userid);
+                   
                     response.put("result", false);
                     response.put("isAdmin", false);
                     response.put("error", "사용자를 찾을 수 없음");
                 }
             } else {
-                System.out.println("check-admin: userid is null from token");
+               
                 response.put("result", false);
                 response.put("isAdmin", false);
                 response.put("error", "토큰에서 userid 추출 실패");
@@ -313,7 +312,7 @@ public class AuthController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            System.err.println("send-id-search-code error: " + e.getMessage());
+           
             e.printStackTrace();
             response.put("success", false);
             response.put("error", "서버 오류가 발생했습니다.");
@@ -364,7 +363,7 @@ public class AuthController {
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            System.err.println("verify-id-search-code error: " + e.getMessage());
+         
             e.printStackTrace();
             response.put("success", false);
             response.put("error", "서버 오류가 발생했습니다.");

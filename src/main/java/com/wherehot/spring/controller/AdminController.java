@@ -286,10 +286,7 @@ public class AdminController {
             
             // 2. 신고자들에게 삭제 완료 알림
             List<Map<String, Object>> reportDetails = adminService.getReportDetailsByPostId(hpost.getId());
-            System.out.println("=== 신고자 알림 디버깅 ===");
-            System.out.println("게시글 ID: " + hpost.getId());
-            System.out.println("신고자 수: " + reportDetails.size());
-            System.out.println("신고자 데이터: " + reportDetails);
+           
             
             for (Map<String, Object> report : reportDetails) {
                 String reporterUserid = (String) report.get("user_id"); // hottalk_report의 user_id (member의 userid)
@@ -317,7 +314,7 @@ public class AdminController {
             }
             
         } catch (Exception e) {
-            System.err.println("알림 전송 중 오류 발생: " + e.getMessage());
+           
             e.printStackTrace();
         }
     }
@@ -342,10 +339,7 @@ public class AdminController {
             
             // 2. 신고자들에게 삭제 완료 알림
             List<Map<String, Object>> reportDetails = adminService.getCourseReportDetailsByCourseId(course.getId());
-            System.out.println("=== 코스 신고자 알림 디버깅 ===");
-            System.out.println("코스 ID: " + course.getId());
-            System.out.println("신고자 수: " + reportDetails.size());
-            System.out.println("신고자 데이터: " + reportDetails);
+            
             
             for (Map<String, Object> report : reportDetails) {
                 String reporterUserid = (String) report.get("user_key"); // course_report의 user_key
@@ -354,16 +348,16 @@ public class AdminController {
                 if (reporterUserid != null && !reporterUserid.trim().isEmpty()) {
                     // member 테이블에서 userid로 사용자 정보 조회
                     Member reporterMember = memberService.findByUserid(reporterUserid);
-                    System.out.println("신고자 member 조회 결과: " + (reporterMember != null ? "존재함" : "없음"));
+                    
                     
                     if (reporterMember != null && reporterMember.getNickname() != null) {
-                        System.out.println("신고자 닉네임: " + reporterMember.getNickname());
+                       
                         Notification reporterNotification = new Notification();
                         reporterNotification.setUserid(reporterUserid); // 실제 userid 사용
                         reporterNotification.setMessage(reporterMember.getNickname() + "님, 신고하신 코스 \"" + course.getTitle() + "\"이 정책위반 사항으로 삭제되었습니다.");
                         reporterNotification.setType("INFO");
                         notificationService.createNotification(reporterNotification);
-                        System.out.println("신고자 알림 생성 완료: " + reporterUserid);
+                       
                     } else {
                         System.out.println("신고자 알림 생성 실패 - member 없음 또는 닉네임 없음");
                     }
@@ -373,7 +367,7 @@ public class AdminController {
             }
             
         } catch (Exception e) {
-            System.err.println("코스 알림 전송 중 오류 발생: " + e.getMessage());
+           
             e.printStackTrace();
         }
     }
@@ -391,13 +385,13 @@ public class AdminController {
                         File imageFile = new File(uploadPath + "/course/" + step.getPhotoUrl());
                         if (imageFile.exists()) {
                             imageFile.delete();
-                            System.out.println("코스 이미지 파일 삭제 완료: " + step.getPhotoUrl());
+                            
                         }
                     }
                 }
             }
         } catch (Exception e) {
-            System.err.println("코스 파일 삭제 중 오류 발생: " + e.getMessage());
+           
             e.printStackTrace();
         }
     }
@@ -505,7 +499,7 @@ public class AdminController {
                 notification.setType(type);
                 notificationService.createNotification(notification);
                 
-                System.out.println("회원 상태 변경 알림 전송 완료: " + userid + " -> " + newStatus);
+               
             } else {
                 System.out.println("회원 상태 변경 알림 전송 실패 - member 없음 또는 닉네임 없음: " + userid);
             }

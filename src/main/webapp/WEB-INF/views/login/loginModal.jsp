@@ -375,7 +375,7 @@ async function handleLogin(event) {
     loginButton.textContent = '로그인 중...';
     
     try {
-        const response = await fetch('/hotplace/api/auth/login', {
+        const response = await fetch('<%=root%>/api/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -478,7 +478,7 @@ async function handleLogin(event) {
 // 로그아웃 함수
 async function logout() {
     try {
-        const response = await fetch(root + '/api/auth/logout', {
+        const response = await fetch('<%=root%>/api/auth/logout', {
             method: 'POST',
         });
         

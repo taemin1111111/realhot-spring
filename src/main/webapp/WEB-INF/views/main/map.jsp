@@ -737,17 +737,17 @@
             var marker = new kakao.maps.Marker({ map: null, position: new kakao.maps.LatLng(place.lat, place.lng), image: markerImage });
             var labelOverlay = new kakao.maps.CustomOverlay({ content: '<div class="marker-label">' + place.name + '</div>', position: new kakao.maps.LatLng(place.lat, place.lng), xAnchor: 0.5, yAnchor: 0, map: null });
             
-            var heartHtml = isLoggedIn ? '<i class="bi bi-heart wish-heart" data-place-id="' + place.id + '" style="font-size:1.25rem; color:#e74c3c; cursor:pointer;"></i>' : '<i class="bi bi-heart wish-heart" style="font-size:1.25rem; color:#bbb; cursor:pointer;"></i>';
+            var heartHtml = isLoggedIn ? '<i class="bi bi-heart wish-heart" data-place-id="' + place.id + '" style="position:absolute;top:12px;right:12px;z-index:10;"></i>' : '';
             var categoryMap = {1:'클럽',2:'헌팅',3:'라운지',4:'포차'};
             var infoContent = ''
                 + '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(12px, 2vw, 16px); line-height:1.4; border-radius:0; overflow:visible; box-sizing:border-box;">'
+                + heartHtml
                 + '<div class="place-images-container" style="position:relative; width:100%; background:#f8f9fa; display:flex; align-items:center; justify-content:center; color:#6c757d; font-size:clamp(11px, 1.5vw, 13px);" data-place-id="' + place.id + '">이미지 로딩 중...</div>'
                 + '<div style="padding:clamp(16px, 3vw, 20px);">'
                 + '<div class="place-name-wish-container" style="display:flex; align-items:center; margin-bottom:8px;">'
                 + '<div style="flex:1; min-width:0;">'
                 + '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">'
                 + '<strong style="font-size:clamp(14px, 2.5vw, 18px); word-break:break-word; color:#1275E0; cursor:pointer; flex:1;">' + place.name + '</strong>'
-                + '<div style="position:relative;">' + heartHtml + '</div>'
                 + '</div>'
                 + '<div style="color:#888; font-size:clamp(10px, 1.6vw, 12px); margin-top:2px;">' + (categoryMap[place.categoryId]||'') + '</div>'
                 + '<div style="color:#e91e63; font-size:clamp(10px, 1.6vw, 12px); margin-top:2px;">💖<span class="wish-count-' + place.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명이 찜했어요</div>'
@@ -773,19 +773,26 @@
                     var iwEls = document.getElementsByClassName('infoWindow');
                     if (iwEls.length > 0) {
                         var iw = iwEls[0];
-                        var heart = iw.querySelector('.wish-heart');
-                        
-                        if (heart) {
-                            // data-place-id 속성 설정
-                            heart.setAttribute('data-place-id', place.id);
-                            
-                            if (!isLoggedIn) {
-                                heart.onclick = function() {
-                                    showToast('위시리스트는 로그인 후 사용할 수 있어요. 간편하게 로그인하고 저장해보세요!', 'error');
-                                };
-                            } else {
-                                setupWishHeartByClass(place.id);
-                            }
+                        // 기존 하트가 있으면 제거
+                        var oldHeart = iw.querySelector('.wish-heart');
+                        if (oldHeart) oldHeart.remove();
+                        // 하트 태그 동적으로 생성
+                        var heart = document.createElement('i');
+                        heart.className = 'bi bi-heart wish-heart';
+                        heart.setAttribute('data-place-id', place.id);
+                        heart.style.position = 'absolute';
+                        heart.style.top = '12px';
+                        heart.style.right = '12px';
+                        heart.style.zIndex = '10';
+                        iw.appendChild(heart);
+                        // 로그인 여부에 따라 클릭 이벤트 분기
+                        if (!isLoggedIn) {
+                            heart.onclick = function() {
+                                showToast('위시리스트는 로그인 후 사용할 수 있어요. 간편하게 로그인하고 저장해보세요!', 'error');
+                            };
+                        } else {
+                            // 하트 상태 동기화 및 이벤트 연결
+                            setupWishHeartByClass(place.id);
                         }
                         
                         const imageContainer = iw.querySelector('.place-images-container');
@@ -1452,11 +1459,13 @@
                             let imageHtml = '';
                             
                             if (images.length === 1) {
-                                imageHtml = '<img src="' + root + '/' + images[0].imagePath + '" style="width:100%; height:100%; object-fit:cover;" alt="장소 이미지">';
+                                imageHtml = '<img src="' + root + images[0].imagePath + '" style="width:100%; height:100%; object-fit:cover; cursor:pointer;" alt="장소 이미지" onclick="openImageModal(\'' + root + images[0].imagePath + '\', ' + placeId + ', 0)">';
                             } else {
-                                imageHtml = '<div style="position:relative; width:100%; height:100%; overflow:hidden;">';
-                                imageHtml += '<img src="' + root + '/' + images[0].imagePath + '" style="width:100%; height:100%; object-fit:cover;" alt="장소 이미지">';
-                                imageHtml += '<div style="position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,0.7); color:white; padding:4px 8px; border-radius:4px; font-size:12px;">+' + (images.length - 1) + '</div>';
+                                imageHtml = '<div class="place-image-slider" style="position:relative; width:100%; height:100%;">';
+                                imageHtml += '<img src="' + root + images[0].imagePath + '" style="width:100%; height:100%; object-fit:cover; cursor:pointer;" alt="장소 이미지" onclick="openImageModal(\'' + root + images[0].imagePath + '\', ' + placeId + ', 0)">';
+                                imageHtml += '<button class="image-nav-btn prev-btn" onclick="changeImage(' + placeId + ', ' + images.length + ', 0, -1)" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:16px;">‹</button>';
+                                imageHtml += '<button class="image-nav-btn next-btn" onclick="changeImage(' + placeId + ', ' + images.length + ', 0, 1)" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:16px;">›</button>';
+                                imageHtml += '<div style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.7); color:white; padding:4px 8px; border-radius:4px; font-size:12px;">1 / ' + images.length + '</div>';
                                 imageHtml += '</div>';
                             }
                             
@@ -1699,6 +1708,206 @@
         // 이미지 관리 모달 열기 함수
         function openImageManageModal(placeId) {
             showToast('이미지 관리 기능은 메인 페이지에서 이용하실 수 있습니다.', 'info');
+        }
+
+        // 이미지 변경 함수 (슬라이더용)
+        function changeImage(placeId, totalImages, currentIndex, direction) {
+            // 현재 인덱스 계산
+            let newIndex = currentIndex + direction;
+            
+            // 인덱스 범위 체크 (순환)
+            if (newIndex < 0) {
+                newIndex = totalImages - 1;
+            } else if (newIndex >= totalImages) {
+                newIndex = 0;
+            }
+            
+            // 이미지 컨테이너 찾기
+            const containers = document.querySelectorAll('.place-images-container[data-place-id="' + placeId + '"]');
+            if (containers.length === 0) return;
+            
+            // 새로운 이미지 로드
+            fetch(root + '/api/main/place-images?placeId=' + placeId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.images && data.images.length > newIndex) {
+                        const newImage = data.images[newIndex];
+                        const timestamp = Date.now();
+                        
+                        containers.forEach(container => {
+                            const slider = container.querySelector('.place-image-slider');
+                            if (slider) {
+                                // 이미지 업데이트
+                                const img = slider.querySelector('img');
+                                if (img) {
+                                    img.src = root + newImage.imagePath + '?t=' + timestamp;
+                                    img.onclick = function() { openImageModal(root + newImage.imagePath, placeId, newIndex); };
+                                }
+                                
+                                // 카운터 업데이트
+                                const counter = slider.querySelector('div[style*="position:absolute; bottom:10px"]');
+                                if (counter) {
+                                    counter.textContent = (newIndex + 1) + ' / ' + totalImages;
+                                }
+                                
+                                // 버튼 onclick 이벤트 업데이트
+                                const prevBtn = slider.querySelector('.prev-btn');
+                                const nextBtn = slider.querySelector('.next-btn');
+                                if (prevBtn) {
+                                    prevBtn.onclick = function() { changeImage(placeId, totalImages, newIndex, -1); };
+                                }
+                                if (nextBtn) {
+                                    nextBtn.onclick = function() { changeImage(placeId, totalImages, newIndex, 1); };
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('이미지 변경 오류:', error);
+                });
+        }
+
+        // 이미지 모달 데이터
+        let modalData = {
+            placeId: 0,
+            currentIndex: 0,
+            totalImages: 0,
+            images: []
+        };
+
+        // 이미지 모달 열기
+        function openImageModal(imagePath, placeId, currentIndex) {
+            // 해당 장소의 모든 이미지 정보 가져오기
+            fetch(root + '/api/main/place-images?placeId=' + placeId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.images && data.images.length > 0) {
+                        modalData = {
+                            placeId: placeId,
+                            currentIndex: currentIndex,
+                            totalImages: data.images.length,
+                            images: data.images
+                        };
+                        showImageModal(imagePath);
+                    } else {
+                        window.open(imagePath, '_blank');
+                    }
+                })
+                .catch(error => {
+                    console.error('이미지 로드 오류:', error);
+                    window.open(imagePath, '_blank');
+                });
+        }
+
+        // 이미지 모달 표시
+        function showImageModal(imagePath) {
+            // 기존 모달 제거
+            const existingModal = document.getElementById('imageModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // 모달 생성
+            const modal = document.createElement('div');
+            modal.id = 'imageModal';
+            modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; display:flex; align-items:center; justify-content:center;';
+
+            // 이미지 컨테이너
+            const imageContainer = document.createElement('div');
+            imageContainer.style.cssText = 'position:relative; max-width:90%; max-height:90%; display:flex; align-items:center; justify-content:center;';
+            imageContainer.onclick = function(e) { e.stopPropagation(); };
+
+            // 이미지 생성
+            const img = document.createElement('img');
+            img.id = 'modalImage';
+            img.src = imagePath;
+            img.style.cssText = 'min-width: 500px; min-height: 400px; max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);';
+            img.alt = '이미지';
+
+            // 이전 버튼 생성 (이미지가 2개 이상일 때만)
+            if (modalData.totalImages > 1) {
+                const prevBtn = document.createElement('button');
+                prevBtn.innerHTML = '‹';
+                prevBtn.style.cssText = 'position:absolute; left:-60px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.8); border:none; border-radius:50%; width:50px; height:50px; font-size:24px; cursor:pointer; z-index:10001;';
+                prevBtn.onclick = function() { changeModalImage(-1); };
+                imageContainer.appendChild(prevBtn);
+            }
+
+            // 다음 버튼 생성 (이미지가 2개 이상일 때만)
+            if (modalData.totalImages > 1) {
+                const nextBtn = document.createElement('button');
+                nextBtn.innerHTML = '›';
+                nextBtn.style.cssText = 'position:absolute; right:-60px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.8); border:none; border-radius:50%; width:50px; height:50px; font-size:24px; cursor:pointer; z-index:10001;';
+                nextBtn.onclick = function() { changeModalImage(1); };
+                imageContainer.appendChild(nextBtn);
+            }
+
+            // 닫기 버튼
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '×';
+            closeBtn.style.cssText = 'position:absolute; top:-50px; right:0; background:rgba(255,255,255,0.8); border:none; border-radius:50%; width:40px; height:40px; font-size:20px; cursor:pointer; z-index:10001;';
+            closeBtn.onclick = closeImageModal;
+            imageContainer.appendChild(closeBtn);
+
+            // 카운터 (이미지가 2개 이상일 때만)
+            if (modalData.totalImages > 1) {
+                const counter = document.createElement('div');
+                counter.textContent = (modalData.currentIndex + 1) + ' / ' + modalData.totalImages;
+                counter.style.cssText = 'position:absolute; bottom:-40px; left:50%; transform:translateX(-50%); color:white; font-size:16px; background:rgba(0,0,0,0.7); padding:8px 16px; border-radius:20px;';
+                imageContainer.appendChild(counter);
+            }
+
+            imageContainer.appendChild(img);
+            modal.appendChild(imageContainer);
+            document.body.appendChild(modal);
+
+            // 모달 외부 클릭 시 닫기
+            modal.onclick = closeImageModal;
+
+            // ESC 키로 닫기
+            const escapeHandler = function(e) {
+                if (e.key === 'Escape') {
+                    closeImageModal();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+        }
+
+        // 모달 이미지 변경
+        function changeModalImage(direction) {
+            let newIndex = modalData.currentIndex + direction;
+            
+            if (newIndex < 0) {
+                newIndex = modalData.totalImages - 1;
+            } else if (newIndex >= modalData.totalImages) {
+                newIndex = 0;
+            }
+            
+            const newImage = modalData.images[newIndex];
+            const modalImage = document.getElementById('modalImage');
+            const timestamp = Date.now();
+            
+            if (modalImage && newImage) {
+                modalImage.src = root + newImage.imagePath + '?t=' + timestamp;
+                
+                // 카운터 업데이트
+                const counter = document.querySelector('#imageModal div[style*="position: absolute; bottom: -40px"]');
+                if (counter) {
+                    counter.textContent = (newIndex + 1) + ' / ' + modalData.totalImages;
+                }
+                
+                modalData.currentIndex = newIndex;
+            }
+        }
+
+        // 이미지 모달 닫기
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            if (modal) {
+                modal.remove();
+            }
         }
         
         // 전역 함수들

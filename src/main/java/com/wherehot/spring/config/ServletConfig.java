@@ -13,14 +13,7 @@ import org.springframework.web.multipart.support.MultipartFilter;
 @Configuration
 public class ServletConfig {
 
-    /**
-     * UTF-8 인코딩 필터는 Spring Boot에서 자동 설정되므로 제거
-     * application.properties에서 설정으로 대체됨:
-     * server.servlet.encoding.charset=UTF-8
-     * server.servlet.encoding.enabled=true
-     * server.servlet.encoding.force=true
-     */
-
+    
     /**
      * 파일 업로드를 위한 Multipart 필터
      */

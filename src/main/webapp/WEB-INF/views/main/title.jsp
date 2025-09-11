@@ -1229,7 +1229,6 @@ function updateTitleUI(userInfo) {
     try {
         // DOM이 준비되지 않았으면 실행하지 않음
         if (document.readyState === 'loading') {
-            console.log('DOM이 아직 로딩 중입니다. updateTitleUI 실행을 건너뜁니다.');
             return;
         }
         
@@ -1250,16 +1249,6 @@ function updateTitleUI(userInfo) {
         const mobileUserNickname = document.getElementById('mobile-user-nickname');
         const mobileUserIcon = document.getElementById('mobile-user-icon');
         
-        console.log('updateTitleUI 실행 - DOM 요소들:', {
-            loginSection: !!loginSection,
-            userSection: !!userSection,
-            userNickname: !!userNickname,
-            userIcon: !!userIcon,
-            mobileLoginSection: !!mobileLoginSection,
-            mobileUserSection: !!mobileUserSection,
-            mobileUserNickname: !!mobileUserNickname,
-            mobileUserIcon: !!mobileUserIcon
-        });
         
         // 데스크톱 UI 업데이트
         if (loginSection && loginSection.style) {
@@ -1439,7 +1428,6 @@ function updateTitleUI(userInfo) {
             }
         }
         
-        console.log('로그인 UI 업데이트 완료:', userInfo.nickname || userInfo.userid);
         
         // 알림 기능 초기화 및 즉시 개수 확인
         initializeNotifications();
@@ -1453,7 +1441,6 @@ function showLoggedOutUI() {
     try {
         // DOM이 준비되지 않았으면 실행하지 않음
         if (document.readyState === 'loading') {
-            console.log('DOM이 아직 로딩 중입니다. showLoggedOutUI 실행을 건너뜁니다.');
             return;
         }
         
@@ -1462,6 +1449,7 @@ function showLoggedOutUI() {
         const userSection = document.getElementById('user-section');
         const adminMenu1 = document.getElementById('admin-menu1');
         const adminMenu2 = document.getElementById('admin-menu2');
+        const adminMenu3 = document.getElementById('admin-menu3');
         const mypageMenu = document.getElementById('mypage-menu');
         
         // 모바일 UI 요소들
@@ -1469,22 +1457,10 @@ function showLoggedOutUI() {
         const mobileUserSection = document.getElementById('mobile-user-section');
         const mobileAdminMenu1 = document.getElementById('mobile-admin-menu1');
         const mobileAdminMenu2 = document.getElementById('mobile-admin-menu2');
+        const mobileAdminMenu3 = document.getElementById('mobile-admin-menu3');
         const mobileMypageMenu = document.getElementById('mobile-mypage-menu');
         const mobileNotificationContainer = document.getElementById('mobile-notification-container');
         
-        console.log('showLoggedOutUI 실행 - DOM 요소들:', {
-            loginSection: !!loginSection,
-            userSection: !!userSection,
-            adminMenu1: !!adminMenu1,
-            adminMenu2: !!adminMenu2,
-            mypageMenu: !!mypageMenu,
-            mobileLoginSection: !!mobileLoginSection,
-            mobileUserSection: !!mobileUserSection,
-            mobileAdminMenu1: !!mobileAdminMenu1,
-            mobileAdminMenu2: !!mobileAdminMenu2,
-            mobileMypageMenu: !!mobileMypageMenu,
-            mobileNotificationContainer: !!mobileNotificationContainer
-        });
         
         // 데스크톱 UI 업데이트
         if (loginSection && loginSection.style) {
@@ -1559,6 +1535,13 @@ function showLoggedOutUI() {
                 console.warn('mobileAdminMenu2 스타일 변경 실패:', e);
             }
         }
+        if (mobileAdminMenu3 && mobileAdminMenu3.style) {
+            try {
+                mobileAdminMenu3.style.display = 'none';
+            } catch (e) {
+                console.warn('mobileAdminMenu3 스타일 변경 실패:', e);
+            }
+        }
         if (mobileMypageMenu && mobileMypageMenu.style) {
             try {
                 mobileMypageMenu.style.display = 'none';
@@ -1574,7 +1557,6 @@ function showLoggedOutUI() {
             }
         }
         
-        console.log('showLoggedOutUI 실행 완료');
     } catch (error) {
         console.warn('showLoggedOutUI 실행 중 오류:', error);
     }
@@ -1589,11 +1571,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (hamburgerBtn) {
         const isMobile = window.innerWidth <= 991 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        console.log('햄버거 메뉴 초기화:', { 
-            isMobile: isMobile, 
-            windowWidth: window.innerWidth, 
-            userAgent: navigator.userAgent 
-        });
         
         if (isMobile) {
             // 햄버거 메뉴 표시
@@ -1641,10 +1618,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (hamburgerBtn) {
             const isMobile = window.innerWidth <= 991 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-            console.log('화면 크기 변경 - 햄버거 메뉴 재설정:', { 
-                isMobile: isMobile, 
-                windowWidth: window.innerWidth 
-            });
             
             if (isMobile) {
                 // 햄버거 메뉴 표시
@@ -1685,12 +1658,6 @@ function handleOAuth2Login() {
     const email = urlParams.get('email');
     
     if (token && userid) {
-        console.log('OAuth2 로그인 감지 - 토큰 처리 시작');
-        console.log('토큰:', token.substring(0, 50) + '...');
-        console.log('사용자 ID:', userid);
-        console.log('닉네임:', nickname);
-        console.log('제공자:', provider);
-        console.log('이메일:', email);
         
         // 토큰을 localStorage에 저장
         localStorage.setItem('accessToken', token);
@@ -1704,7 +1671,6 @@ function handleOAuth2Login() {
         };
         localStorage.setItem('userInfo', JSON.stringify(userInfo));
         
-        console.log('OAuth2 로그인 - 토큰 및 사용자 정보 저장 완료');
         
         // URL에서 파라미터 제거 (새로고침 시 중복 처리 방지)
         const newUrl = window.location.pathname;
@@ -1713,7 +1679,6 @@ function handleOAuth2Login() {
         // UI 즉시 업데이트
         updateTitleUI(userInfo);
         
-        console.log('OAuth2 로그인 - UI 업데이트 완료');
     }
 }
 
@@ -1740,29 +1705,19 @@ function goToAdminPage(path) {
     localStorage.setItem('adminAccessToken', token);
     
     // 쿠키 상태 확인 및 디버깅
-    console.log('=== 관리자 페이지 이동 전 상태 ===');
-    console.log('localStorage accessToken:', localStorage.getItem('accessToken') ? '있음' : '없음');
-    console.log('현재 쿠키:', document.cookie);
     
     // 쿠키에서 토큰 확인
     const existingAccessToken = document.cookie.split(';').find(row => row.trim().startsWith('accessToken='));
     
     if (existingAccessToken) {
-        console.log('기존 accessToken 쿠키 발견:', existingAccessToken.trim());
-    } else {
-        console.log('기존 accessToken 쿠키 없음 - 로그인 시 쿠키 설정 필요');
+        // 즉시 페이지 이동 (쿠키 설정은 로그인 시에만 처리)
+        window.location.href = '<%=root%>' + path;
     }
-    
-    // 즉시 페이지 이동 (쿠키 설정은 로그인 시에만 처리)
-    console.log('관리자 페이지 이동:', path);
-    window.location.href = root + path;
 }
 
 // API 요청 시 자동 토큰 갱신 포함
 async function fetchWithAuth(url, options = {}) {
     const token = getToken();
-    console.log('fetchWithAuth - URL:', url);
-    console.log('fetchWithAuth - Token:', token ? token.substring(0, 20) + '...' : 'null');
     
     const defaultOptions = {
         headers: {
@@ -1772,13 +1727,11 @@ async function fetchWithAuth(url, options = {}) {
         }
     };
     
-    console.log('fetchWithAuth - Headers:', JSON.stringify(defaultOptions.headers));
     
     let response = await fetch(url, { ...defaultOptions, ...options });
     
     // 401 에러 시 토큰 갱신 시도
     if (response.status === 401) {
-        console.log('토큰 만료, 갱신 시도...');
         const refreshSuccess = await refreshAccessToken();
         
         if (refreshSuccess) {
@@ -1806,7 +1759,6 @@ async function fetchWithAuth(url, options = {}) {
 async function refreshAccessToken() {
     const refreshToken = localStorage.getItem('refreshToken');
     if (!refreshToken) {
-        console.log('리프레시 토큰이 없습니다.');
         return false;
     }
     
@@ -1823,11 +1775,9 @@ async function refreshAccessToken() {
             const data = await response.json();
             if (data.result && data.token) {
                 localStorage.setItem('accessToken', data.token);
-                console.log('토큰 갱신 성공');
                 return true;
             }
         }
-        console.log('토큰 갱신 실패');
         return false;
     } catch (error) {
         console.error('토큰 갱신 오류:', error);
@@ -1866,12 +1816,10 @@ function updateTitleUIFromSavedInfo(userInfo) {
     try {
         // DOM이 준비되지 않았으면 실행하지 않음
         if (document.readyState === 'loading') {
-            console.log('DOM이 아직 로딩 중입니다. updateTitleUIFromSavedInfo 실행을 건너뜁니다.');
             return;
         }
         
         if (!userInfo) {
-            console.log('사용자 정보가 없습니다.');
             return;
         }
         
@@ -1880,12 +1828,6 @@ function updateTitleUIFromSavedInfo(userInfo) {
         const userNickname = document.getElementById('user-nickname');
         const userIcon = document.getElementById('user-icon');
         
-        console.log('updateTitleUIFromSavedInfo 실행 - DOM 요소들:', {
-            loginSection: !!loginSection,
-            userSection: !!userSection,
-            userNickname: !!userNickname,
-            userIcon: !!userIcon
-        });
         
         // 각 요소가 존재하는지 확인하고 안전하게 처리
         if (loginSection && loginSection.style) {
@@ -1947,7 +1889,6 @@ function updateTitleUIFromSavedInfo(userInfo) {
             if (adminMenu1) adminMenu1.style.display = 'block';
             if (adminMenu2) adminMenu2.style.display = 'block';
             if (adminMenu3) adminMenu3.style.display = 'block';
-            console.log('updateTitleUIFromSavedInfo: 관리자 메뉴 활성화');
         } else {
             const adminMenu1 = document.getElementById('admin-menu1');
             const adminMenu2 = document.getElementById('admin-menu2');
@@ -1955,7 +1896,6 @@ function updateTitleUIFromSavedInfo(userInfo) {
             if (adminMenu1) adminMenu1.style.display = 'none';
             if (adminMenu2) adminMenu2.style.display = 'none';
             if (adminMenu3) adminMenu3.style.display = 'none';
-            console.log('updateTitleUIFromSavedInfo: 일반 사용자 메뉴 설정');
         }
         
         // 🔐 마이페이지 메뉴 처리 (즉시)
@@ -1964,11 +1904,9 @@ function updateTitleUIFromSavedInfo(userInfo) {
             if (userInfo.provider === 'admin') {
                 // 관리자는 마이페이지 메뉴 숨기기
                 mypageMenu.style.display = 'none';
-                console.log('updateTitleUIFromSavedInfo: 관리자 - 마이페이지 메뉴 숨김');
             } else {
                 // 일반 사용자는 마이페이지 메뉴 표시
                 mypageMenu.style.display = 'block';
-                console.log('updateTitleUIFromSavedInfo: 일반 사용자 - 마이페이지 메뉴 표시');
             }
         }
         
@@ -1979,6 +1917,7 @@ function updateTitleUIFromSavedInfo(userInfo) {
         const mobileUserIcon = document.getElementById('mobile-user-icon');
         const mobileAdminMenu1 = document.getElementById('mobile-admin-menu1');
         const mobileAdminMenu2 = document.getElementById('mobile-admin-menu2');
+        const mobileAdminMenu3 = document.getElementById('mobile-admin-menu3');
         const mobileMypageMenu = document.getElementById('mobile-mypage-menu');
         
         if (mobileLoginSection && mobileUserSection) {
@@ -1986,28 +1925,26 @@ function updateTitleUIFromSavedInfo(userInfo) {
             mobileLoginSection.style.display = 'none';
             // 로그인 후 메뉴 표시
             mobileUserSection.style.display = 'block';
-            console.log('updateTitleUIFromSavedInfo: 모바일 메뉴 - 로그인 상태로 변경');
         }
         
         if (mobileUserNickname) {
             try {
                 mobileUserNickname.textContent = (userInfo.nickname || userInfo.userid) + '님 환영합니다!';
-                console.log('updateTitleUIFromSavedInfo: 모바일 닉네임 업데이트 완료');
             } catch (e) {
                 console.warn('updateTitleUIFromSavedInfo: 모바일 닉네임 텍스트 변경 실패:', e);
             }
         }
         
         // 모바일 관리자 메뉴 처리
-        if (mobileAdminMenu1 && mobileAdminMenu2) {
+        if (mobileAdminMenu1 && mobileAdminMenu2 && mobileAdminMenu3) {
             if (userInfo.provider === 'admin') {
                 mobileAdminMenu1.style.display = 'block';
                 mobileAdminMenu2.style.display = 'block';
-                console.log('updateTitleUIFromSavedInfo: 모바일 관리자 메뉴 활성화');
+                mobileAdminMenu3.style.display = 'block';
             } else {
                 mobileAdminMenu1.style.display = 'none';
                 mobileAdminMenu2.style.display = 'none';
-                console.log('updateTitleUIFromSavedInfo: 모바일 일반 사용자 메뉴 설정');
+                mobileAdminMenu3.style.display = 'none';
             }
         }
         
@@ -2015,14 +1952,11 @@ function updateTitleUIFromSavedInfo(userInfo) {
         if (mobileMypageMenu) {
             if (userInfo.provider === 'admin') {
                 mobileMypageMenu.style.display = 'none';
-                console.log('updateTitleUIFromSavedInfo: 모바일 관리자 - 마이페이지 메뉴 숨김');
             } else {
                 mobileMypageMenu.style.display = 'block';
-                console.log('updateTitleUIFromSavedInfo: 모바일 일반 사용자 - 마이페이지 메뉴 표시');
             }
         }
         
-        console.log('즉시 UI 업데이트 완료:', userInfo.nickname || userInfo.userid);
     } catch (error) {
         console.warn('updateTitleUIFromSavedInfo 실행 중 오류:', error);
     }
@@ -2030,15 +1964,12 @@ function updateTitleUIFromSavedInfo(userInfo) {
 
 // 인증 UI 업데이트 (서버 검증 포함)
 async function updateAuthUI() {
-    console.log('updateAuthUI 시작');
     const token = getToken();
     const loginSection = document.getElementById('login-section');
     const userSection = document.getElementById('user-section');
     const userNickname = document.getElementById('user-nickname');
     const userIcon = document.getElementById('user-icon');
     
-    console.log('토큰 확인:', token ? '토큰 있음' : '토큰 없음');
-    console.log('UI 요소들:', { loginSection, userSection, userNickname, userIcon });
     
     if (token) {
         try {
@@ -2059,6 +1990,15 @@ async function updateAuthUI() {
                 if (userSection) userSection.style.display = 'block';
                 if (userNickname) userNickname.textContent = payload.nickname || payload.sub;
                 
+                // 📱 모바일 UI 업데이트
+                const mobileLoginSection = document.getElementById('mobile-login-section');
+                const mobileUserSection = document.getElementById('mobile-user-section');
+                const mobileUserNickname = document.getElementById('mobile-user-nickname');
+                
+                if (mobileLoginSection) mobileLoginSection.style.display = 'none';
+                if (mobileUserSection) mobileUserSection.style.display = 'block';
+                if (mobileUserNickname) mobileUserNickname.textContent = (payload.nickname || payload.sub) + '님 환영합니다!';
+                
                 // 이모티콘 설정
                 if (userIcon) {
                     if (payload.provider === 'admin') {
@@ -2067,6 +2007,18 @@ async function updateAuthUI() {
                     } else {
                         userIcon.className = 'bi bi-person-fill';
                         userIcon.style.cssText = 'color: #ff69b4; margin-right: 6px; font-size: 18px;';
+                    }
+                }
+                
+                // 📱 모바일 이모티콘 설정
+                const mobileUserIcon = document.getElementById('mobile-user-icon');
+                if (mobileUserIcon) {
+                    if (payload.provider === 'admin') {
+                        mobileUserIcon.className = 'bi bi-gear-fill me-2';
+                        mobileUserIcon.style.cssText = 'color: #ffc107; font-size: 20px;';
+                    } else {
+                        mobileUserIcon.className = 'bi bi-person-fill me-2';
+                        mobileUserIcon.style.cssText = 'color: #ff69b4; font-size: 20px;';
                     }
                 }
                 
@@ -2084,7 +2036,6 @@ async function updateAuthUI() {
                     }
                 }
                 
-                console.log('즉시 로그인 UI 업데이트 완료:', payload.nickname || payload.sub);
                 
                 // 알림 개수 즉시 확인
                 updateNotificationBadge();
@@ -2097,7 +2048,6 @@ async function updateAuthUI() {
                     if (adminMenu1) adminMenu1.style.display = 'block';
                     if (adminMenu2) adminMenu2.style.display = 'block';
                     if (adminMenu3) adminMenu3.style.display = 'block';
-                    console.log('클라이언트 토큰으로 관리자 메뉴 활성화');
                 } else {
                     const adminMenu1 = document.getElementById('admin-menu1');
                     const adminMenu2 = document.getElementById('admin-menu2');
@@ -2105,30 +2055,42 @@ async function updateAuthUI() {
                     if (adminMenu1) adminMenu1.style.display = 'none';
                     if (adminMenu2) adminMenu2.style.display = 'none';
                     if (adminMenu3) adminMenu3.style.display = 'none';
-                    console.log('클라이언트 토큰으로 일반 사용자 메뉴 설정');
+                }
+                
+                // 📱 모바일 관리자 메뉴 처리
+                const mobileAdminMenu1 = document.getElementById('mobile-admin-menu1');
+                const mobileAdminMenu2 = document.getElementById('mobile-admin-menu2');
+                const mobileAdminMenu3 = document.getElementById('mobile-admin-menu3');
+                const mobileMypageMenu = document.getElementById('mobile-mypage-menu');
+                
+                if (payload.provider === 'admin') {
+                    if (mobileAdminMenu1) mobileAdminMenu1.style.display = 'block';
+                    if (mobileAdminMenu2) mobileAdminMenu2.style.display = 'block';
+                    if (mobileAdminMenu3) mobileAdminMenu3.style.display = 'block';
+                    if (mobileMypageMenu) mobileMypageMenu.style.display = 'none';
+                } else {
+                    if (mobileAdminMenu1) mobileAdminMenu1.style.display = 'none';
+                    if (mobileAdminMenu2) mobileAdminMenu2.style.display = 'none';
+                    if (mobileAdminMenu3) mobileAdminMenu3.style.display = 'none';
+                    if (mobileMypageMenu) mobileMypageMenu.style.display = 'block';
                 }
                 
                 // 백그라운드에서 서버 검증 (권한 확인) - 선택적
                 // try {
-                //     console.log('백그라운드 서버 권한 검증 시작...');
                 //     const response = await fetchWithAuth('/hotplace/api/auth/check-admin');
                 //     
                 //     if (response.ok) {
                 //         const data = await response.json();
-                //         console.log('서버 응답 데이터:', data);
                 //         
                 //         // 서버 검증 결과로 추가 권한 확인
                 //         if (data.isAdmin === true) {
-                //             console.log('서버에서 관리자 권한 확인됨');
                 //         } else {
-                //             console.log('서버에서 일반 사용자로 확인됨');
                 //         }
                 //     }
                 // } catch (serverError) {
                 //     console.warn('서버 검증 중 오류, 클라이언트 토큰 정보 사용:', serverError);
                 // }
             } else {
-                console.log('토큰이 만료되었습니다.');
                 throw new Error('Token expired');
             }
         } catch (error) {
@@ -2137,7 +2099,6 @@ async function updateAuthUI() {
             showLoggedOutUI();
         }
     } else {
-        console.log('토큰 없음 - 로그아웃 UI 표시');
         showLoggedOutUI();
     }
 }
@@ -2150,6 +2111,13 @@ function showLoggedOutUI() {
     if (loginSection) loginSection.style.display = 'block';
     if (userSection) userSection.style.display = 'none';
     
+    // 📱 모바일 UI 업데이트
+    const mobileLoginSection = document.getElementById('mobile-login-section');
+    const mobileUserSection = document.getElementById('mobile-user-section');
+    
+    if (mobileLoginSection) mobileLoginSection.style.display = 'block';
+    if (mobileUserSection) mobileUserSection.style.display = 'none';
+    
     // 개별 관리자 메뉴들 숨기기
     const adminMenu1 = document.getElementById('admin-menu1');
     const adminMenu2 = document.getElementById('admin-menu2');
@@ -2159,20 +2127,10 @@ function showLoggedOutUI() {
     if (adminMenu3) adminMenu3.style.display = 'none';
     
     // 📱 모바일 햄버거 메뉴 로그아웃 상태로 업데이트
-    const mobileLoginSection = document.getElementById('mobile-login-section');
-    const mobileUserSection = document.getElementById('mobile-user-section');
     const mobileAdminMenu1 = document.getElementById('mobile-admin-menu1');
     const mobileAdminMenu2 = document.getElementById('mobile-admin-menu2');
     const mobileAdminMenu3 = document.getElementById('mobile-admin-menu3');
     const mobileMypageMenu = document.getElementById('mobile-mypage-menu');
-    
-    if (mobileLoginSection && mobileUserSection) {
-        // 로그인 전 메뉴 표시
-        mobileLoginSection.style.display = 'block';
-        // 로그인 후 메뉴 숨기기
-        mobileUserSection.style.display = 'none';
-        console.log('showLoggedOutUI: 모바일 메뉴 - 로그아웃 상태로 변경');
-    }
     
     // 모바일 관리자 메뉴들 숨기기
     if (mobileAdminMenu1) mobileAdminMenu1.style.display = 'none';
@@ -2222,6 +2180,11 @@ async function logout() {
 
 // 전역에서 사용할 수 있도록 함수 노출
 window.updateAuthUI = updateAuthUI;
+window.updateTitleUI = updateTitleUI;  // ✅ 로그인 후 UI 업데이트 함수 노출
+window.updateTitleUIFromSavedInfo = updateTitleUIFromSavedInfo;  // ✅ 저장된 정보로 UI 업데이트 함수 노출
+window.saveToken = saveToken;  // ✅ 토큰 저장 함수 노출
+window.removeToken = removeToken;  // ✅ 토큰 삭제 함수 노출
+window.getToken = getToken;  // ✅ 토큰 가져오기 함수 노출
 window.getUserInfoFromToken = getUserInfoFromToken;
 window.logout = logout;
 window.fetchWithAuth = fetchWithAuth;
@@ -2277,7 +2240,6 @@ function setupTokenRefreshTimer() {
 async function refreshAccessToken() {
     const refreshToken = localStorage.getItem('refreshToken');
     if (!refreshToken) {
-        console.log('리프레시 토큰이 없습니다.');
         return false;
     }
     
@@ -2895,5 +2857,4 @@ window.openNotificationModal = openNotificationModal;
 window.closeNotificationModal = closeNotificationModal;
 window.deleteNotificationFromModal = deleteNotificationFromModal;
 
-</script>
 </script>

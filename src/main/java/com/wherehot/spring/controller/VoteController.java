@@ -105,9 +105,29 @@ public class VoteController {
                 return ResponseEntity.badRequest().body(response);
             }
             
-            // 5. 투표 처리 (보안 정보 포함)
+            // 5. gender_ratio 값 변환 (투표 폼의 value와 실제 저장값 매핑)
+            String actualGenderRatio = genderRatio;
+            switch (genderRatio) {
+                case "1": // 여자↑ → 여초
+                    actualGenderRatio = "여초";
+                    break;
+                case "2": // 반반 → 반반
+                    actualGenderRatio = "반반";
+                    break;
+                case "3": // 남자↑ → 남초
+                    actualGenderRatio = "남초";
+                    break;
+                default:
+                    // 이미 변환된 값이거나 잘못된 값
+                    logger.warn("Unknown gender ratio value: {}", genderRatio);
+                    break;
+            }
+            
+            logger.info("Gender ratio mapping: {} → {}", genderRatio, actualGenderRatio);
+            
+            // 6. 투표 처리 (보안 정보 포함)
             boolean success = ((com.wherehot.spring.service.impl.VoteServiceImpl) voteService)
-                .addNowHotVoteWithSecurity(hotplaceId, voterId, congestion, genderRatio, waitTime, userAgent, ipAddress);
+                .addNowHotVoteWithSecurity(hotplaceId, voterId, congestion, actualGenderRatio, waitTime, userAgent, ipAddress);
             
             if (success) {
                 response.put("success", true);

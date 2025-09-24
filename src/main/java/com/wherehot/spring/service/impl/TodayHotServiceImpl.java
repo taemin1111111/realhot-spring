@@ -39,23 +39,16 @@ public class TodayHotServiceImpl implements TodayHotService {
     
     @Override
     @Transactional(readOnly = true)
-    public Map<String, Object> getTodayVoteStats(int placeId) {
+    public List<Map<String, Object>> getPlaceTodayHotRank(int placeId) {
         try {
-            logger.info("=== TodayHotService.getTodayVoteStats called for placeId: {} ===", placeId);
-            
-            // 특정 가게의 오늘 투표 통계 조회 (향후 구현)
-            Map<String, Object> stats = new HashMap<>();
-            stats.put("placeId", placeId);
-            stats.put("totalVotes", 0);
-            stats.put("congestion", "정보 없음");
-            stats.put("waitTime", "정보 없음");
-            stats.put("genderRatio", "정보 없음");
-            
-            logger.info("=== Today vote stats retrieved for placeId: {} ===", placeId);
-            return stats;
+            logger.info("=== TodayHotService.getPlaceTodayHotRank called for placeId: {} ===", placeId);
+            List<Map<String, Object>> rankData = todayHotMapper.getPlaceTodayHotRank(placeId);
+            logger.info("=== Place today hot rank retrieved for placeId: {} = {} ===", placeId, 
+                       rankData.isEmpty() ? "NO VOTES" : rankData.get(0).get("ranking"));
+            return rankData;
         } catch (Exception e) {
-            logger.error("Error getting today vote stats for placeId {}: ", placeId, e);
-            throw new RuntimeException("오늘 투표 통계 조회 중 오류가 발생했습니다.", e);
+            logger.error("Error getting place today hot rank for placeId {}: ", placeId, e);
+            throw new RuntimeException("가게 오늘핫 순위 조회 중 오류가 발생했습니다.", e);
         }
     }
     
@@ -73,6 +66,27 @@ public class TodayHotServiceImpl implements TodayHotService {
         } catch (Exception e) {
             logger.error("Error refreshing today hot ranking cache: ", e);
             throw new RuntimeException("오늘 핫 랭킹 캐시 새로고침 중 오류가 발생했습니다.", e);
+        }
+    }
+    
+    @Override
+    public Map<String, Object> getTodayVoteStats(int placeId) {
+        try {
+            logger.info("Getting today vote stats for placeId: {}", placeId);
+            
+            Map<String, Object> stats = todayHotMapper.getTodayVoteStats(placeId);
+            
+            if (stats != null) {
+                logger.info("Successfully retrieved today vote stats for placeId: {}", placeId);
+            } else {
+                logger.info("No today vote stats found for placeId: {}", placeId);
+            }
+            
+            return stats;
+            
+        } catch (Exception e) {
+            logger.error("Error getting today vote stats for placeId: {}", placeId, e);
+            return null;
         }
     }
 }

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.wherehot.spring.mapper.WishListMapper">
 
-    <!-- WishList ResultMap - Model1 구조에 맞게 수정 -->
+    <!-- WishList ResultMap - 실제 테이블 구조에 맞게 수정 -->
     <resultMap id="WishListResultMap" type="com.wherehot.spring.entity.WishList">
         <id property="id" column="id"/>
         <result property="userid" column="userid"/>
@@ -12,12 +12,11 @@
         <!-- 핫플레이스 정보 -->
         <result property="hotplaceName" column="hotplace_name"/>
         <result property="hotplaceAddress" column="hotplace_address"/>
-        <result property="hotplaceRegion" column="hotplace_region"/>
-        <result property="hotplaceSigungu" column="hotplace_sigungu"/>
+        <result property="hotplaceLat" column="hotplace_lat"/>
+        <result property="hotplaceLng" column="hotplace_lng"/>
         <result property="hotplaceCategoryId" column="hotplace_category_id"/>
-        <result property="hotplaceImageUrl" column="hotplace_image_url"/>
-        <result property="hotplaceAverageRating" column="hotplace_average_rating"/>
-        <result property="hotplaceReviewCount" column="hotplace_review_count"/>
+        <result property="hotplaceRegionId" column="hotplace_region_id"/>
+        <result property="hotplaceCreatedAt" column="hotplace_created_at"/>
         <!-- 사용자 정보 -->
         <result property="userNickname" column="user_nickname"/>
         <!-- 카테고리 정보 -->
@@ -33,18 +32,17 @@
                w.personal_note as personal_note,
                h.name as hotplace_name,
                h.address as hotplace_address,
-               h.region as hotplace_region,
-               h.sigungu as hotplace_sigungu,
+               h.lat as hotplace_lat,
+               h.lng as hotplace_lng,
                h.category_id as hotplace_category_id,
-               h.image_url as hotplace_image_url,
-               h.average_rating as hotplace_average_rating,
-               h.review_count as hotplace_review_count,
+               h.region_id as hotplace_region_id,
+               h.created_at as hotplace_created_at,
                m.nickname as user_nickname,
                c.name as category_name
         FROM wishlist w
         LEFT JOIN hotplace_info h ON w.place_id = h.id
         LEFT JOIN member m ON w.userid = m.userid
-        LEFT JOIN category c ON h.category_id = c.id
+        LEFT JOIN place_category c ON h.category_id = c.id
     </sql>
 
     <!-- 사용자별 위시리스트 조회 -->
@@ -142,16 +140,15 @@
             h.id as place_id,
             h.name as hotplace_name,
             h.address as hotplace_address,
-            h.region,
-            h.sigungu,
+            h.lat,
+            h.lng,
             h.category_id,
-            h.image_url,
-            h.average_rating,
-            h.review_count,
+            h.region_id,
+            h.created_at,
             COUNT(w.id) as wish_count
         FROM wishlist w
         JOIN hotplace_info h ON w.place_id = h.id
-        GROUP BY h.id, h.name, h.address, h.region, h.sigungu, h.category_id, h.image_url, h.average_rating, h.review_count
+        GROUP BY h.id, h.name, h.address, h.lat, h.lng, h.category_id, h.region_id, h.created_at
         ORDER BY wish_count DESC
         LIMIT #{limit}
     </select>
@@ -166,14 +163,14 @@
     <!-- 지역별 위시리스트 통계 -->
     <select id="getWishListStatisticsByRegion" resultType="map">
         SELECT 
-            h.region,
+            h.region_id,
             COUNT(*) as wish_count,
             COUNT(DISTINCT w.userid) as unique_users,
             COUNT(DISTINCT h.id) as unique_hotplaces
         FROM wishlist w
         JOIN hotplace_info h ON w.place_id = h.id
-        WHERE h.region IS NOT NULL
-        GROUP BY h.region
+        WHERE h.region_id IS NOT NULL
+        GROUP BY h.region_id
         ORDER BY wish_count DESC
     </select>
 
@@ -208,14 +205,14 @@
     <!-- 사용자별 선호 지역 분석 -->
     <select id="getUserPreferredRegions" parameterType="string" resultType="map">
         SELECT 
-            h.region,
+            h.region_id,
             COUNT(*) as wish_count,
-            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM wish_list WHERE userid = #{userId}), 2) as percentage
+            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM wishlist WHERE userid = #{userId}), 2) as percentage
         FROM wishlist w
         JOIN hotplace_info h ON w.place_id = h.id
         WHERE w.userid = #{userId}
-        AND h.region IS NOT NULL
-        GROUP BY h.region
+        AND h.region_id IS NOT NULL
+        GROUP BY h.region_id
         ORDER BY wish_count DESC
     </select>
 
@@ -224,7 +221,7 @@
         SELECT 
             c.name as category_name,
             COUNT(*) as wish_count,
-            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM wish_list WHERE userid = #{userId}), 2) as percentage
+            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM wishlist WHERE userid = #{userId}), 2) as percentage
         FROM wishlist w
         JOIN hotplace_info h ON w.place_id = h.id
         JOIN category c ON h.category_id = c.id

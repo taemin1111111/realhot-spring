@@ -227,4 +227,28 @@
         )
     </select>
 
+    <!-- 특정 가게가 포함된 인기글 조회 -->
+    <select id="getPopularCourseListByPlaceId" resultMap="CourseResultMap">
+        SELECT DISTINCT c.id, c.user_id, c.title, c.summary, c.author_userid, c.nickname, c.passwd_hash,
+               c.created_at, c.updated_at, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.is_deleted
+        FROM course c
+        INNER JOIN course_step cs ON c.id = cs.course_id
+        WHERE c.is_deleted = 0
+        AND cs.place_id = #{placeId}
+        ORDER BY (c.view_count * 0.2 + c.like_count * 0.5 + c.comment_count * 0.3) DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 특정 가게가 포함된 최신글 조회 -->
+    <select id="getLatestCourseListByPlaceId" resultMap="CourseResultMap">
+        SELECT DISTINCT c.id, c.user_id, c.title, c.summary, c.author_userid, c.nickname, c.passwd_hash,
+               c.created_at, c.updated_at, c.view_count, c.like_count, c.dislike_count, c.comment_count, c.is_deleted
+        FROM course c
+        INNER JOIN course_step cs ON c.id = cs.course_id
+        WHERE c.is_deleted = 0
+        AND cs.place_id = #{placeId}
+        ORDER BY c.created_at DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
 </mapper>

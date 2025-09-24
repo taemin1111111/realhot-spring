@@ -23,7 +23,7 @@ public class TodayHotController {
     private TodayHotService todayHotService;
     
     /**
-     * 오늘 핫 랭킹 API (실제 DB 데이터)
+     * 오늘 핫 랭킹 API (실제 DB 데이터, 상위 12개)
      */
     @PostMapping("/ranking")
     public ResponseEntity<Map<String, Object>> getTodayHotRanking() {
@@ -47,6 +47,47 @@ public class TodayHotController {
             logger.error("Today hot ranking error: ", e);
             response.put("success", false);
             response.put("error", "오늘 핫 랭킹 조회 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    /**
+     * 특정 가게의 오늘핫 순위 조회 API
+     */
+    @PostMapping("/rank")
+    public ResponseEntity<Map<String, Object>> getPlaceTodayHotRank(@RequestParam int placeId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            logger.info("=== /api/today-hot/rank called with placeId: {} ===", placeId);
+            
+            // 특정 가게의 오늘핫 순위 조회
+            List<Map<String, Object>> rankData = todayHotService.getPlaceTodayHotRank(placeId);
+            
+            if (rankData != null && !rankData.isEmpty()) {
+                Map<String, Object> rank = rankData.get(0);
+                response.put("success", true);
+                response.put("ranking", rank.get("ranking"));
+                response.put("voteCount", rank.get("vote_count"));
+                response.put("placeId", placeId);
+                
+                logger.info("=== Place {} ranking: {} ===", placeId, rank.get("ranking"));
+            } else {
+                // 투표가 없는 경우
+                response.put("success", true);
+                response.put("ranking", null);
+                response.put("voteCount", 0);
+                response.put("placeId", placeId);
+                
+                logger.info("=== Place {} has no votes today ===", placeId);
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Error getting place today hot rank for placeId: {}", placeId, e);
+            response.put("success", false);
+            response.put("error", "순위 조회 중 오류가 발생했습니다: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -96,6 +137,49 @@ public class TodayHotController {
         } catch (Exception e) {
             logger.error("Error getting today hot ranking from DB: ", e);
             return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * 특정 가게의 오늘 투표 통계 조회 API
+     */
+    @PostMapping("/today-stats")
+    public ResponseEntity<Map<String, Object>> getTodayVoteStats(@RequestParam int placeId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            logger.info("=== /api/today-hot/today-stats called with placeId: {} ===", placeId);
+            
+            // 특정 가게의 오늘 투표 통계 조회
+            Map<String, Object> statsData = todayHotService.getTodayVoteStats(placeId);
+            
+            if (statsData != null) {
+                response.put("success", true);
+                response.put("genderRatio", statsData.get("genderRatio"));
+                response.put("congestion", statsData.get("congestion"));
+                response.put("waitTime", statsData.get("waitTime"));
+                response.put("placeId", placeId);
+                
+                logger.info("=== Place {} today stats: genderRatio={}, congestion={}, waitTime={} ===", 
+                    placeId, statsData.get("genderRatio"), statsData.get("congestion"), statsData.get("waitTime"));
+            } else {
+                // 오늘 투표가 없는 경우
+                response.put("success", true);
+                response.put("genderRatio", null);
+                response.put("congestion", null);
+                response.put("waitTime", null);
+                response.put("placeId", placeId);
+                
+                logger.info("=== Place {} has no votes today ===", placeId);
+            }
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Error getting today vote stats for placeId: {}", placeId, e);
+            response.put("success", false);
+            response.put("error", "오늘 투표 통계 조회 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 }

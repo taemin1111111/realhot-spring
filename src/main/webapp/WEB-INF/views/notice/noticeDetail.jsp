@@ -155,13 +155,11 @@ function checkAdminPermission() {
     try {
         // JWT 토큰 파싱
         const payload = JSON.parse(atob(token.split('.')[1]));
-        console.log('JWT 토큰 payload:', payload);
         
         // 관리자 권한 확인 (provider가 'admin'인 경우만)
         const isAdmin = payload.provider === 'admin';
         
         if (isAdmin) {
-            console.log('관리자 권한 확인됨');
             const adminButtons = document.getElementById('admin-buttons');
             if (adminButtons) {
                 adminButtons.style.display = 'block';

@@ -29,4 +29,7 @@ public interface CourseStepMapper {
     
     // 코스의 스텝 개수 조회
     int getCourseStepCount(@Param("courseId") int courseId);
+    
+    // 특정 가게가 포함된 코스 개수 조회
+    int getCourseCountByPlaceId(@Param("placeId") int placeId);
 }

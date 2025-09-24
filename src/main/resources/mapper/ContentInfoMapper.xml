@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wherehot.spring.mapper.ContentInfoMapper">
+
+    <!-- 결과 매핑 -->
+    <resultMap id="ContentInfoResultMap" type="com.wherehot.spring.entity.ContentInfo">
+        <id property="id" column="id"/>
+        <result property="hotplaceId" column="hotplace_id"/>
+        <result property="contentText" column="content_text"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 특정 핫플레이스의 콘텐츠 정보 조회 -->
+    <select id="getContentInfoByHotplaceId" parameterType="int" resultMap="ContentInfoResultMap">
+        SELECT id, hotplace_id, content_text, created_at, updated_at
+        FROM content_info 
+        WHERE hotplace_id = #{hotplaceId}
+        LIMIT 1
+    </select>
+
+    <!-- 콘텐츠 정보 저장 -->
+    <insert id="insertContentInfo" parameterType="com.wherehot.spring.entity.ContentInfo">
+        INSERT INTO content_info (hotplace_id, content_text, created_at, updated_at)
+        VALUES (#{hotplaceId}, #{contentText}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <!-- 콘텐츠 정보 수정 -->
+    <update id="updateContentInfo" parameterType="com.wherehot.spring.entity.ContentInfo">
+        UPDATE content_info 
+        SET content_text = #{contentText}, updated_at = #{updatedAt}
+        WHERE hotplace_id = #{hotplaceId}
+    </update>
+
+    <!-- 콘텐츠 정보 삭제 -->
+    <delete id="deleteContentInfo" parameterType="int">
+        DELETE FROM content_info WHERE hotplace_id = #{hotplaceId}
+    </delete>
+
+    <!-- 모든 콘텐츠 정보 조회 (관리자용) -->
+    <select id="getAllContentInfos" resultMap="ContentInfoResultMap">
+        SELECT id, hotplace_id, content_text, created_at, updated_at
+        FROM content_info 
+        ORDER BY updated_at DESC
+    </select>
+
+</mapper>

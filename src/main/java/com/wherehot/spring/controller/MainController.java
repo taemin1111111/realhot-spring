@@ -24,10 +24,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.wherehot.spring.service.WishListService;
 import com.wherehot.spring.service.ContentImageService;
 import com.wherehot.spring.service.VoteService;
+import com.wherehot.spring.service.CourseService;
+import com.wherehot.spring.service.ContentInfoService;
 import com.wherehot.spring.entity.Category;
 import com.wherehot.spring.entity.Region;
 import com.wherehot.spring.entity.WishList;
 import com.wherehot.spring.entity.ContentImage;
+import com.wherehot.spring.entity.ContentInfo;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -50,9 +53,15 @@ public class MainController {
 
     @Autowired
     private ContentImageService contentImageService;
-
+    
     @Autowired
     private VoteService voteService;
+    
+    @Autowired
+    private CourseService courseService;
+    
+    @Autowired
+    private ContentInfoService contentInfoService;
 
     @Autowired
     private ClubGenreService clubGenreService;
@@ -236,7 +245,7 @@ public class MainController {
                 return org.springframework.http.ResponseEntity.ok(response);
             } else {
                 // 찜 목록 조회
-                List<WishList> wishList = wishListService.findWishListByUser(userid, 0, 100);
+                List<WishList> wishList = wishListService.findWishListByUser(userid, 1, 100);
                 response.put("result", true);
                 response.put("wishList", wishList);
                 return org.springframework.http.ResponseEntity.ok(response);
@@ -345,6 +354,110 @@ public class MainController {
             logger.error("Wish count error: ", e);
             response.put("success", false);
             response.put("error", "찜 개수 조회 중 오류가 발생했습니다.");
+            return org.springframework.http.ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    // 가게별 코스 개수 API (인기 코스 정렬용)
+    @PostMapping("/api/main/course-count")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> getCourseCount(@RequestParam int placeId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            int count = courseService.getCourseCountByPlaceId(placeId);
+            response.put("success", true);
+            response.put("count", count);
+            return org.springframework.http.ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Course count error for placeId {}: ", placeId, e);
+            response.put("success", false);
+            response.put("error", "코스 개수 조회 중 오류가 발생했습니다.");
+            return org.springframework.http.ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    // 네이버 플레이스 링크 조회 API
+    @PostMapping("/api/main/naver-place-link")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> getNaverPlaceLink(@RequestParam int placeId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            ContentInfo contentInfo = contentInfoService.getContentInfoByHotplaceId(placeId);
+            if (contentInfo != null && contentInfo.getContentText() != null && !contentInfo.getContentText().trim().isEmpty()) {
+                response.put("success", true);
+                response.put("link", contentInfo.getContentText().trim());
+            } else {
+                response.put("success", true);
+                response.put("link", null);
+            }
+            return org.springframework.http.ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Naver place link error for placeId {}: ", placeId, e);
+            response.put("success", false);
+            response.put("error", "네이버 플레이스 링크 조회 중 오류가 발생했습니다.");
+            return org.springframework.http.ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    // 네이버 플레이스 링크 저장/수정 API (관리자 전용)
+    @PostMapping("/api/main/naver-place-link-save")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> saveNaverPlaceLink(
+            @RequestParam("placeId") int placeId,
+            @RequestParam(value = "link", required = false) String link,
+            HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            logger.info("Received request to save naver place link - placeId: {}, link: {}", placeId, link);
+            
+            // 관리자 권한 확인
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals("ADMIN"))) {
+                logger.warn("Admin permission required for saving naver place link");
+                response.put("success", false);
+                response.put("error", "관리자 권한이 필요합니다.");
+                return org.springframework.http.ResponseEntity.status(403).body(response);
+            }
+            
+            logger.info("Admin permission verified");
+            
+            // 링크 유효성 검증 (빈 문자열이나 null 허용)
+            String processedLink = null;
+            if (link != null && !link.trim().isEmpty()) {
+                processedLink = link.trim();
+                if (!processedLink.startsWith("http://") && !processedLink.startsWith("https://")) {
+                    logger.warn("Invalid URL format: {}", processedLink);
+                    response.put("success", false);
+                    response.put("error", "올바른 URL 형식이 아닙니다.");
+                    return org.springframework.http.ResponseEntity.badRequest().body(response);
+                }
+            }
+            
+            logger.info("Calling contentInfoService.saveOrUpdateContentInfo with placeId: {}, processedLink: {}", placeId, processedLink);
+            boolean success = contentInfoService.saveOrUpdateContentInfo(placeId, processedLink);
+            logger.info("Service call result: {}", success);
+            
+            if (success) {
+                response.put("success", true);
+                response.put("message", "네이버 플레이스 링크가 저장되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("error", "네이버 플레이스 링크 저장에 실패했습니다.");
+            }
+            
+            return org.springframework.http.ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Save naver place link error for placeId {}: ", placeId, e);
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("error", "네이버 플레이스 링크 저장 중 오류가 발생했습니다.");
             return org.springframework.http.ResponseEntity.internalServerError().body(response);
         }
     }

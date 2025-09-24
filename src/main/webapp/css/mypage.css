@@ -579,6 +579,11 @@ a.text-decoration-none:hover {
     color: #fff; 
 }
 
+.wishlist-container .category-filter-btn.marker-guesthouse { 
+    background: linear-gradient(135deg, #2196f3, #42a5f5); 
+    color: #fff; 
+}
+
 .wishlist-container .category-filter-btn:not(.active):hover {
     transform: translateY(-2px) scale(1.03);
 }

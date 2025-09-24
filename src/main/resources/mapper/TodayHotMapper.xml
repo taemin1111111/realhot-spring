@@ -3,7 +3,7 @@
 
 <mapper namespace="com.wherehot.spring.mapper.TodayHotMapper">
 
-    <!-- 오늘 핫 랭킹 조회 (투표 수 기준 상위 10개) -->
+    <!-- 오늘 핫 랭킹 조회 (투표 수 기준 상위 12개) -->
     <select id="getTodayHotRanking" resultType="map">
         SELECT 
             h.id as placeId,
@@ -21,25 +21,26 @@
         GROUP BY h.id, h.name
         HAVING COUNT(v.id) > 0
         ORDER BY voteCount DESC
-        LIMIT 10
+        LIMIT 12
     </select>
 
-    <!-- 특정 가게의 오늘 투표 통계 조회 -->
-    <select id="getTodayVoteStats" parameterType="int" resultType="map">
+    <!-- 특정 가게의 오늘핫 순위 조회 -->
+    <select id="getPlaceTodayHotRank" parameterType="int" resultType="map">
         SELECT 
-            h.id as placeId,
-            h.name as placeName,
-            COUNT(v.id) as totalVotes,
-            (SELECT congestion FROM vote_nowhot WHERE place_id = h.id AND congestion IS NOT NULL AND congestion != '' AND DATE(voted_at) = CURDATE()
-             GROUP BY congestion ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as congestion,
-            (SELECT gender_ratio FROM vote_nowhot WHERE place_id = h.id AND gender_ratio IS NOT NULL AND gender_ratio != '' AND DATE(voted_at) = CURDATE()
-             GROUP BY gender_ratio ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as genderRatio,
-            (SELECT wait_time FROM vote_nowhot WHERE place_id = h.id AND wait_time IS NOT NULL AND wait_time != '' AND DATE(voted_at) = CURDATE()
-             GROUP BY wait_time ORDER BY COUNT(*) DESC, MAX(voted_at) DESC LIMIT 1) as waitTime
-        FROM hotplace_info h
-        LEFT JOIN vote_nowhot v ON h.id = v.place_id AND DATE(v.voted_at) = CURDATE()
-        WHERE h.id = #{placeId}
-        GROUP BY h.id, h.name
+            place_id,
+            vote_count,
+            ranking
+        FROM (
+            SELECT 
+                h.id as place_id,
+                COUNT(v.id) as vote_count,
+                ROW_NUMBER() OVER (ORDER BY COUNT(v.id) DESC) as ranking
+            FROM hotplace_info h
+            LEFT JOIN vote_nowhot v ON h.id = v.place_id AND DATE(v.voted_at) = CURDATE()
+            GROUP BY h.id
+            HAVING COUNT(v.id) > 0
+        ) ranked_places
+        WHERE place_id = #{placeId}
     </select>
 
     <!-- 오늘 핫 랭킹 캐시용 데이터 조회 (Redis 구현 시 사용) -->
@@ -61,7 +62,38 @@
         GROUP BY h.id, h.name
         HAVING COUNT(v.id) > 0
         ORDER BY voteCount DESC
-        LIMIT 10
+        LIMIT 12
     </select>
-
+    
+    <!-- 특정 가게의 오늘 투표 통계 조회 -->
+    <select id="getTodayVoteStats" parameterType="int" resultType="map">
+        SELECT 
+            (SELECT gender_ratio 
+             FROM vote_nowhot 
+             WHERE place_id = #{placeId} 
+             AND DATE(voted_at) = CURDATE() 
+             AND gender_ratio IS NOT NULL
+             GROUP BY gender_ratio 
+             ORDER BY COUNT(*) DESC, MAX(voted_at) DESC 
+             LIMIT 1) as genderRatio,
+             
+            (SELECT congestion 
+             FROM vote_nowhot 
+             WHERE place_id = #{placeId} 
+             AND DATE(voted_at) = CURDATE() 
+             AND congestion IS NOT NULL
+             GROUP BY congestion 
+             ORDER BY COUNT(*) DESC, MAX(voted_at) DESC 
+             LIMIT 1) as congestion,
+             
+            (SELECT wait_time 
+             FROM vote_nowhot 
+             WHERE place_id = #{placeId} 
+             AND DATE(voted_at) = CURDATE() 
+             AND wait_time IS NOT NULL
+             GROUP BY wait_time 
+             ORDER BY COUNT(*) DESC, MAX(voted_at) DESC 
+             LIMIT 1) as waitTime
+    </select>
+    
 </mapper>

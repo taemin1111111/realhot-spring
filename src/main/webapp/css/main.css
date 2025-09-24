@@ -39,6 +39,10 @@
     background: linear-gradient(135deg, #8d6e63, #a1887f);
 }
 
+.marker-guesthouse {
+    background: linear-gradient(135deg, #2196f3, #42a5f5);
+}
+
 /* 마커 아래 상호명 */
 .marker-label {
     position: absolute;
@@ -117,6 +121,7 @@
 .region-count-marker.marker-hunting { background: linear-gradient(135deg, #f44336, #ef5350); }
 .region-count-marker.marker-lounge { background: linear-gradient(135deg, #4caf50, #66bb6a); }
 .region-count-marker.marker-pocha { background: linear-gradient(135deg, #8d6e63, #a1887f); }
+.region-count-marker.marker-guesthouse { background: linear-gradient(135deg, #2196f3, #42a5f5); }
 .region-count-marker .count {
   font-size: 12px;
   margin-left: 4px;
@@ -158,6 +163,124 @@
 .marker-hunting{ background: linear-gradient(135deg, #f44336, #ef5350); }
 .marker-lounge { background: linear-gradient(135deg, #4caf50, #66bb6a); }
 .marker-pocha  { background: linear-gradient(135deg, #8d6e63, #a1887f); }
+  .marker-guesthouse { background: linear-gradient(135deg, #2196f3, #42a5f5); }
+
+/* 지도 위 카테고리 버튼 스타일 */
+.map-category-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  white-space: nowrap;
+  writing-mode: horizontal-tb;
+}
+
+.map-category-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.map-category-btn.active {
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.map-category-btn.marker-club {
+  background: linear-gradient(135deg, #9c27b0, #ba68c8);
+}
+
+.map-category-btn.marker-hunting {
+  background: linear-gradient(135deg, #f44336, #ef5350);
+}
+
+.map-category-btn.marker-lounge {
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
+}
+
+.map-category-btn.marker-pocha {
+  background: linear-gradient(135deg, #8d6e63, #a1887f);
+}
+
+.map-category-btn.marker-guesthouse {
+  background: linear-gradient(135deg, #2196f3, #42a5f5);
+}
+
+/* 전체 버튼 특별 스타일 */
+.map-category-btn[data-category="all"] {
+  width: 50px;
+  height: 40px;
+  border-radius: 20px;
+  font-size: 14px;
+  background: linear-gradient(135deg, #666, #888);
+}
+
+/* 검색 결과 카테고리 바 2줄 배치 스타일 */
+.search-category-counts-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.search-category-row {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.search-category-row:first-child {
+  justify-content: flex-start;
+}
+
+.search-category-row:last-child {
+  justify-content: flex-start;
+  margin-left: 0;
+}
+
+.search-category-ball {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: bold;
+  font-size: 18px;
+  margin-right: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-category-ball:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.search-category-ball.active {
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.search-cat-count-num {
+  font-size: 14px;
+  font-weight: 600;
+  margin-right: 8px;
+  min-width: 20px;
+  text-align: center;
+}
 
 /* 투표 별점 스타일 */
 .rating-stars {
@@ -373,8 +496,6 @@
 .form-check-input:checked {
   background-color: #667eea;
   border-color: #667eea;
-}
-  color: #ff1493;
 }
 
 .pick-location-btn:active {

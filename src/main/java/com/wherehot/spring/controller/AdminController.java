@@ -5,11 +5,15 @@ import com.wherehot.spring.entity.Course;
 import com.wherehot.spring.entity.CourseStep;
 import com.wherehot.spring.entity.Notification;
 import com.wherehot.spring.entity.Member;
+import com.wherehot.spring.entity.Hotplace;
+import com.wherehot.spring.entity.Region;
 import com.wherehot.spring.service.AdminService;
 import com.wherehot.spring.service.HpostService;
 import com.wherehot.spring.service.CourseService;
 import com.wherehot.spring.service.NotificationService;
 import com.wherehot.spring.service.MemberService;
+import com.wherehot.spring.service.HotplaceService;
+import com.wherehot.spring.mapper.RegionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +48,12 @@ public class AdminController {
     
     @Autowired
     private MemberService memberService;
+    
+    @Autowired
+    private HotplaceService hotplaceService;
+    
+    @Autowired
+    private RegionMapper regionMapper;
     
     @Value("${app.upload.dir:}")
     private String uploadPath;
@@ -628,6 +638,127 @@ public class AdminController {
             e.printStackTrace();
             response.put("success", false);
             response.put("message", "상태별 회원 조회 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    /**
+     * 핫플레이스 등록 페이지
+     */
+    @GetMapping("/hotplace/insert")
+    public String hotplaceInsert(Model model) {
+        try {
+            // 지역 목록 조회 (place_info 테이블에서)
+            List<Map<String, Object>> regions = regionMapper.getAllSigunguCenters();
+            model.addAttribute("regions", regions);
+            model.addAttribute("mainPage", "adminpage/insertinfo.jsp");
+            return "index";
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("mainPage", "adminpage/insertinfo.jsp");
+            return "index";
+        }
+    }
+    
+    /**
+     * 핫플레이스 등록 처리
+     */
+    @PostMapping("/hotplace/insert")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> insertHotplace(@RequestParam String name,
+                                                             @RequestParam String address,
+                                                             @RequestParam double lat,
+                                                             @RequestParam double lng,
+                                                             @RequestParam int category_id,
+                                                             @RequestParam int region_id) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 입력값 검증
+            if (name == null || name.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "장소명을 입력해주세요.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            if (address == null || address.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "주소를 입력해주세요.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // Hotplace 객체 생성
+            Hotplace hotplace = new Hotplace();
+            hotplace.setName(name.trim());
+            hotplace.setAddress(address.trim());
+            hotplace.setLat(lat);
+            hotplace.setLng(lng);
+            hotplace.setCategoryId(category_id);
+            hotplace.setRegionId(region_id);
+            
+            // 핫플레이스 저장
+            Hotplace savedHotplace = hotplaceService.saveHotplace(hotplace);
+            
+            if (savedHotplace != null) {
+                response.put("success", true);
+                response.put("message", "핫플레이스가 성공적으로 등록되었습니다.");
+                response.put("hotplace", savedHotplace);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "핫플레이스 등록에 실패했습니다.");
+                return ResponseEntity.internalServerError().body(response);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "핫플레이스 등록 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    /**
+     * 지역 목록 조회 API
+     */
+    @GetMapping("/hotplace/regions")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getRegions() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            List<Map<String, Object>> regions = regionMapper.getAllSigunguCenters();
+            response.put("success", true);
+            response.put("regions", regions);
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "지역 목록 조회 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
+    
+    /**
+     * 핫플레이스 목록 조회 API (DB 비교용)
+     */
+    @GetMapping("/hotplace/list")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getHotplaces() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            List<Hotplace> hotplaces = hotplaceService.findAllHotplaces();
+            response.put("success", true);
+            response.put("hotplaces", hotplaces);
+            System.out.println("핫플레이스 목록 조회 성공: " + hotplaces.size() + "개");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "핫플레이스 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
             return ResponseEntity.internalServerError().body(response);
         }
     }

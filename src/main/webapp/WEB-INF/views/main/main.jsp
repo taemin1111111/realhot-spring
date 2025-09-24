@@ -77,6 +77,10 @@
             <button class="category-filter-btn marker-hunting" data-category="2">H</button>
             <button class="category-filter-btn marker-lounge" data-category="3">L</button>
             <button class="category-filter-btn marker-pocha" data-category="4">P</button>
+            <button class="category-filter-btn marker-guesthouse" data-category="5">G</button>
+            <button class="category-filter-btn wishlist-filter-btn" data-category="wishlist" id="wishlistFilterBtn" style="display: none;">
+              <i class="bi bi-heart-fill"></i>
+            </button>
           </div>
           <!-- 오른쪽 패널 토글 버튼 및 패널 -->
           <div class="toggle-button-area">
@@ -285,6 +289,12 @@
   // 페이지 로드 시 인증 상태 확인
   initAuthStatus();
   
+  // 로그인 상태 변경 시 하트 버튼 표시/숨김 업데이트
+  setTimeout(function() {
+    updateWishlistButtonVisibility();
+    loadUserWishlist();
+  }, 1000);
+  
   // 토큰 갱신 타이머 설정 (title.jsp에서 설정되지 않은 경우를 대비)
   if (typeof window.setupTokenRefreshTimer === 'function') {
     window.setupTokenRefreshTimer();
@@ -297,9 +307,9 @@
     
     // 기존 InfoWindow들을 재설정하여 관리자 버튼이 나타나도록 함
     hotplaceMarkers.forEach(function(marker, idx) {
-      if (marker.categoryId === 1) { // 클럽 카테고리만
-        const place = hotplaces[idx];
-        if (place) {
+      // 모든 카테고리에서 관리자 버튼 표시
+      const place = hotplaces[idx];
+      if (place) {
           // InfoWindow 내용 업데이트
           const newInfoContent = generateInfoWindowContent(place);
           hotplaceInfoWindows[idx].setContent(newInfoContent);
@@ -335,7 +345,6 @@
             }
           }, 100);
         }
-      }
     });
   }
   
@@ -351,12 +360,20 @@
       + '<strong style="font-size:clamp(14px, 2.5vw, 18px); word-break:break-word;">' + place.name + '</strong>'
       + '<span style="color:#e91e63; font-size:clamp(12px, 2vw, 14px); white-space:nowrap;">💖<span class="wish-count-' + place.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명</span>'
       + '</div>'
-      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word;" id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</div>'
-      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word;" id="voteDetails-' + place.id + '">#혼잡도 #성비 #대기시간</div>'
+        + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#ff6b35; font-size:clamp(12px, 2.2vw, 14px); font-weight:600;" id="todayHotRank-' + place.id + '">🔥 오늘핫: 로딩중...</div>'
+        + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#ff6b35; font-size:clamp(12px, 2.2vw, 14px); font-weight:600;" id="todayVoteStats-' + place.id + '">#성비 #혼잡도 #대기시간</div>'
+        + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#2196f3; font-size:clamp(12px, 2.2vw, 14px); font-weight:600; cursor:pointer;" id="courseCount-' + place.id + '" onclick="goToPlaceCourses(' + place.id + ')">📝 코스글: 로딩중...</div>'
+      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; display:flex; align-items:center; gap:8px;">'
+      +   '<span id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</span>'
+      +   '<span onclick="toggleVoteDetails(' + place.id + ')" style="color:#1275E0; cursor:pointer; font-size:clamp(12px, 2.2vw, 14px);" id="voteDetailsToggle-' + place.id + '">더보기▾</span>'
+      + '</div>'
+      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; display:none;" id="voteDetails-' + place.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
       + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; line-height:1.3; display:flex; align-items:center;">' + place.address + '<span onclick="copyAddress(\'' + place.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
       + (place.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>' : '')
+      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(12px, 2.2vw, 14px);" id="naverPlaceLink-' + place.id + '">🔗 네이버 플레이스: 로딩중...</div>'
       + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
-      + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
+      + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '')
+      + (isAdmin ? '<a href="#" onclick="openNaverPlaceLinkModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#00c73c; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#e8f5e8; border-radius:6px; border:1px solid #c8e6c9;">🔗 링크 편집</a>' : '') + '</div>'
       + '</div>'
       + '</div>';
   }
@@ -399,9 +416,9 @@
 	   
 	   var rootPath = '<%=root%>';
 	   var sigunguCenters = [<% for (int i = 0; i < sigunguCenterList.size(); i++) { Map<String, Object> row = sigunguCenterList.get(i); %>{sido:'<%=row.get("sido")%>', sigungu:'<%=row.get("sigungu")%>', lat:<%=row.get("lat")%>, lng:<%=row.get("lng")%>}<% if (i < sigunguCenterList.size() - 1) { %>,<% } %><% } %>];
-	   var sigunguCategoryCounts = [<% for (int i = 0; i < sigunguCategoryCountList.size(); i++) { Map<String, Object> row = sigunguCategoryCountList.get(i); %>{sigungu:'<%=row.get("sigungu")%>', lat:<%=row.get("lat")%>, lng:<%=row.get("lng")%>, clubCount:<%=row.get("clubCount")%>, huntingCount:<%=row.get("huntingCount")%>, loungeCount:<%=row.get("loungeCount")%>, pochaCount:<%=row.get("pochaCount")%>}<% if (i < sigunguCategoryCountList.size() - 1) { %>,<% } %><% } %>];
+	   var sigunguCategoryCounts = [<% for (int i = 0; i < sigunguCategoryCountList.size(); i++) { Map<String, Object> row = sigunguCategoryCountList.get(i); %>{sigungu:'<%=row.get("sigungu")%>', lat:<%=row.get("lat")%>, lng:<%=row.get("lng")%>, clubCount:<%=row.get("clubCount")%>, huntingCount:<%=row.get("huntingCount")%>, loungeCount:<%=row.get("loungeCount")%>, pochaCount:<%=row.get("pochaCount")%>, guesthouseCount:<%=row.get("guesthouseCount")%>}<% if (i < sigunguCategoryCountList.size() - 1) { %>,<% } %><% } %>];
 	   var regionCenters = [<% for (int i = 0; i < regionCenters.size(); i++) { Map<String, Object> row = regionCenters.get(i); %>{id:<%=row.get("id")%>, sido:'<%=row.get("sido")%>', sigungu:'<%=row.get("sigungu")%>', dong:'<%=row.get("dong")%>', lat:<%=row.get("lat")%>, lng:<%=row.get("lng")%>}<% if (i < regionCenters.size() - 1) { %>,<% } %><% } %>];
-	   var regionCategoryCounts = [<% for (int i = 0; i < regionCategoryCounts.size(); i++) { Map<String, Object> row = regionCategoryCounts.get(i); %>{region_id:<%=row.get("region_id")%>, clubCount:<%=row.get("clubCount")%>, huntingCount:<%=row.get("huntingCount")%>, loungeCount:<%=row.get("loungeCount")%>, pochaCount:<%=row.get("pochaCount")%>}<% if (i < regionCategoryCounts.size() - 1) { %>,<% } %><% } %>];
+	   var regionCategoryCounts = [<% for (int i = 0; i < regionCategoryCounts.size(); i++) { Map<String, Object> row = regionCategoryCounts.get(i); %>{region_id:<%=row.get("region_id")%>, clubCount:<%=row.get("clubCount")%>, huntingCount:<%=row.get("huntingCount")%>, loungeCount:<%=row.get("loungeCount")%>, pochaCount:<%=row.get("pochaCount")%>, guesthouseCount:<%=row.get("guesthouseCount")%>}<% if (i < regionCategoryCounts.size() - 1) { %>,<% } %><% } %>];
 
 	   var mapContainer = document.getElementById('map');
 	   var mapOptions = {
@@ -427,7 +444,292 @@
   var openInfoWindow = null;
   var openRegionCountOverlay = null;
 
-  // 핫플 마커/상호명/인포윈도우 생성
+  // 마커 클러스터링 함수
+  function clusterMarkers(places, clusterDistance) {
+    var clusters = [];
+    var processed = new Array(places.length).fill(false);
+    
+    for (var i = 0; i < places.length; i++) {
+      if (processed[i]) continue;
+      
+      var cluster = {
+        places: [places[i]],
+        centerLat: places[i].lat,
+        centerLng: places[i].lng,
+        indices: [i]
+      };
+      
+      // 같은 위치 근처의 다른 장소들 찾기
+      for (var j = i + 1; j < places.length; j++) {
+        if (processed[j]) continue;
+        
+        var distance = Math.sqrt(
+          Math.pow(places[i].lat - places[j].lat, 2) + 
+          Math.pow(places[i].lng - places[j].lng, 2)
+        );
+        
+        if (distance <= clusterDistance) {
+          cluster.places.push(places[j]);
+          cluster.indices.push(j);
+          processed[j] = true;
+        }
+      }
+      
+      processed[i] = true;
+      clusters.push(cluster);
+    }
+    
+    return clusters;
+  }
+  
+  // 클러스터 마커 생성 함수
+  function createClusterMarker(cluster) {
+    var count = cluster.places.length;
+    var canvas = document.createElement('canvas');
+    canvas.width = 40; canvas.height = 40;
+    var ctx = canvas.getContext('2d');
+    
+    // 클러스터 마커 스타일 (빨간색 원형)
+    var gradient = ctx.createRadialGradient(20,20,0,20,20,20);
+    gradient.addColorStop(0,'#ff4444');
+    gradient.addColorStop(1,'#cc0000');
+    
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(20, 20, 20, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // 그림자 효과
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+    
+    // 흰색 테두리
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    
+    // 숫자 텍스트
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(count.toString(), 20, 20);
+    
+    var markerImage = new kakao.maps.MarkerImage(canvas.toDataURL(), new kakao.maps.Size(40, 40));
+    var marker = new kakao.maps.Marker({
+      map: null,
+      position: new kakao.maps.LatLng(cluster.centerLat, cluster.centerLng),
+      image: markerImage
+    });
+    
+    return marker;
+  }
+  
+  // 클러스터 팝업 생성 함수
+  function createClusterPopup(cluster) {
+    var categoryMap = {1:'클럽',2:'헌팅',3:'라운지',4:'포차',5:'게스트하우스'};
+    var categoryColors = {1:'#9c27b0',2:'#f44336',3:'#4caf50',4:'#8d6e63',5:'#2196f3'};
+    
+    var placesHtml = cluster.places.map(function(place) {
+      var categoryColor = categoryColors[place.categoryId] || '#666';
+      var categoryText = categoryMap[place.categoryId] || '';
+      
+      return '<div style="display:flex; align-items:center; padding:8px 12px; border-bottom:1px solid #eee; cursor:pointer;" onclick="showPlaceInfo(' + place.id + ')">' +
+        '<div style="width:12px; height:12px; border-radius:50%; background-color:' + categoryColor + '; margin-right:10px; flex-shrink:0;"></div>' +
+        '<div style="flex:1; font-size:14px; color:#333;">' + place.name + '</div>' +
+        '<div style="font-size:12px; color:#999; margin-left:8px;">' + categoryText + '</div>' +
+        '</div>';
+    }).join('');
+    
+    var popupContent = '<div style="background:white; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); min-width:200px; max-width:300px;">' +
+      '<div style="padding:12px 16px; border-bottom:1px solid #eee; background:#f8f9fa; border-radius:8px 8px 0 0;">' +
+      '<div style="font-weight:bold; color:#333; font-size:16px;">이 위치의 장소들 (' + cluster.places.length + '개)</div>' +
+      '</div>' +
+      '<div style="max-height:300px; overflow-y:auto;">' + placesHtml + '</div>' +
+      '</div>';
+    
+    return popupContent;
+  }
+  
+  // 개별 장소 정보 표시 함수
+  window.showPlaceInfo = function(placeId) {
+    var place = hotplaces.find(function(p) { return p.id === placeId; });
+    if (!place) return;
+    
+    // 단일 장소 표시 모드 활성화
+    singlePlaceMode = true;
+    singlePlaceId = placeId;
+    
+    // 기존 InfoWindow 닫기
+    if (openInfoWindow) openInfoWindow.close();
+    
+    // 모든 마커 숨기기
+    hideAllMarkers();
+    
+    // 카테고리 버튼 초기화 (전체 비활성화)
+    document.querySelectorAll('.category-filter-btn').forEach(b => b.classList.remove('active'));
+    
+    // 해당 장소의 마커만 표시
+    var targetMarker = null;
+    for (var i = 0; i < hotplaces.length; i++) {
+      if (hotplaces[i].id === placeId) {
+        targetMarker = hotplaceMarkers[i];
+        if (targetMarker) {
+          targetMarker.setMap(map);
+          if (hotplaceLabels[i]) {
+            hotplaceLabels[i].setMap(map);
+          }
+        }
+        break;
+      }
+    }
+    
+    if (targetMarker) {
+      // InfoWindow 열기
+      var infoContent = generateInfoWindowContent(place);
+      var infowindow = new kakao.maps.InfoWindow({ content: infoContent });
+      infowindow.open(map, targetMarker);
+      openInfoWindow = infowindow;
+      
+      // InfoWindow 내용 로드 (InfoWindow가 완전히 렌더링될 때까지 대기)
+      setTimeout(function() {
+        loadInfoWindowContent(place);
+      }, 500);
+      
+      // 지도 중심을 해당 위치로 이동 (마커 표시와 InfoWindow 생성 후에)
+      map.setCenter(new kakao.maps.LatLng(place.lat, place.lng));
+      map.setLevel(3);
+    }
+  };
+  
+  // InfoWindow 내용 생성 함수
+  function generateInfoWindowContent(place) {
+    var heartHtml = isLoggedIn ? `<i class="bi bi-heart wish-heart" data-place-id="${place.id}" style="position:absolute;top:12px;right:12px;z-index:10;"></i>` : '';
+    return '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(12px, 2vw, 16px); line-height:1.4; border-radius:0; overflow:visible; box-sizing:border-box;">'
+      + '<div class="place-images-container" style="position:relative; width:100%; background:#f8f9fa; display:flex; align-items:center; justify-content:center; color:#6c757d; font-size:clamp(11px, 1.5vw, 13px);" data-place-id="' + place.id + '">이미지 로딩 중...</div>'
+      + '<div style="padding:clamp(16px, 3vw, 20px);">'
+      + '<div class="place-name-wish-container">'
+      + '<strong style="font-size:clamp(14px, 2.5vw, 18px); word-break:break-word;">' + place.name + '</strong>'
+      + '<span style="color:#e91e63; font-size:clamp(12px, 2vw, 14px); white-space:nowrap;">💖<span class="wish-count-' + place.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명</span>'
+      + '</div>'
+        + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#ff6b35; font-size:clamp(12px, 2.2vw, 14px); font-weight:600;" id="todayHotRank-' + place.id + '">🔥 오늘핫: 로딩중...</div>'
+        + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#ff6b35; font-size:clamp(12px, 2.2vw, 14px); font-weight:600;" id="todayVoteStats-' + place.id + '">#성비 #혼잡도 #대기시간</div>'
+        + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#2196f3; font-size:clamp(12px, 2.2vw, 14px); font-weight:600; cursor:pointer;" id="courseCount-' + place.id + '" onclick="goToPlaceCourses(' + place.id + ')">📝 코스글: 로딩중...</div>'
+      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; display:flex; align-items:center; gap:8px;">'
+      +   '<span id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</span>'
+      +   '<span onclick="toggleVoteDetails(' + place.id + ')" style="color:#1275E0; cursor:pointer; font-size:clamp(12px, 2.2vw, 14px);" id="voteDetailsToggle-' + place.id + '">더보기▾</span>'
+      + '</div>'
+      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; display:none;" id="voteDetails-' + place.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
+      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; line-height:1.3; display:flex; align-items:center;">' + place.address + '<span onclick="copyAddress(\'' + place.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
+      + (place.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>' : '')
+      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(12px, 2.2vw, 14px);" id="naverPlaceLink-' + place.id + '">🔗 네이버 플레이스: 로딩중...</div>'
+      + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
+      + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '')
+      + (isAdmin ? '<a href="#" onclick="openNaverPlaceLinkModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#00c73c; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#e8f5e8; border-radius:6px; border:1px solid #c8e6c9;">🔗 링크 편집</a>' : '') + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+  
+  // InfoWindow 내용 로드 함수
+  function loadInfoWindowContent(place, retryCount = 0) {
+    var iwEls = document.getElementsByClassName('infoWindow');
+    
+    if (iwEls.length === 0 && retryCount < 20) {
+      // InfoWindow가 아직 DOM에 렌더링되지 않았으면 재시도
+      setTimeout(function() {
+        loadInfoWindowContent(place, retryCount + 1);
+      }, 100);
+      return;
+    }
+    
+    if (iwEls.length > 0) {
+      var iw = iwEls[0];
+      
+      // 하트 태그 설정
+      var heart = iw.querySelector('.wish-heart');
+      if (heart) {
+        if (!isLoggedIn) {
+          heart.onclick = function() {
+            showToast('위시리스트는 로그인 후 사용할 수 있어요. 간편하게 로그인하고 저장해보세요!', 'error');
+          };
+        } else {
+          setupWishHeartByClass(place.id);
+        }
+      }
+      
+      // 이미지 로드
+      const imageContainer = iw.querySelector('.place-images-container');
+      if (imageContainer) {
+        setTimeout(function() {
+          loadPlaceImages(place.id);
+        }, 300);
+      }
+      
+      // 위시리스트 개수 로드
+      setTimeout(function() {
+        loadWishCount(place.id);
+      }, 400);
+      
+      // 투표 현황 로드
+      setTimeout(function() {
+        loadVoteTrends(place.id);
+      }, 500);
+      
+      // 오늘핫 순위 로드
+      setTimeout(function() {
+        loadTodayHotRank(place.id);
+      }, 550);
+      
+      // 코스글 개수 로드
+      setTimeout(function() {
+        loadCourseCount(place.id);
+      }, 600);
+      
+      // 오늘 투표 통계 로드
+      setTimeout(function() {
+        loadTodayVoteStats(place.id);
+      }, 650);
+      
+      // 장르 정보 로드 (클럽에만 적용)
+      if (place.categoryId === 1) {
+        setTimeout(function() {
+          loadGenreInfo(place.id);
+        }, 600);
+      }
+      
+      // 네이버 플레이스 링크 로드
+      setTimeout(function() {
+        loadNaverPlaceLink(place.id);
+      }, 650);
+      
+      // 관리자용 버튼들 추가
+      if (isAdmin) {
+        var addBtn = document.createElement('button');
+        addBtn.onclick = function() { openImageUploadModal(place.id); };
+        addBtn.style.cssText = 'position:absolute; top:12px; right:50px; background:#1275E0; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:18px; font-weight:bold; box-shadow:0 2px 8px rgba(0,0,0,0.3); z-index:10;';
+        addBtn.innerHTML = '+';
+        iw.appendChild(addBtn);
+        
+        var editBtn = document.createElement('button');
+        editBtn.onclick = function() { openImageManageModal(place.id); };
+        editBtn.style.cssText = 'position:absolute; top:12px; right:88px; background:#ff6b35; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:14px; font-weight:bold; box-shadow:0 2px 8px rgba(0,0,0,0.3); z-index:10;';
+        editBtn.innerHTML = '✏️';
+        iw.appendChild(editBtn);
+      }
+    }
+  }
+
+  // 클러스터링 거리 설정 (위도/경도 차이 기준)
+  var CLUSTER_DISTANCE = 0.0001; // 약 10-15미터 정도
+  
+  // 핫플레이스 클러스터링 및 마커 생성
+  var clusters = clusterMarkers(hotplaces, CLUSTER_DISTANCE);
+  var clusterMarkers = [];
+  var clusterInfoWindows = [];
+  
+  // 모든 핫플레이스에 대해 개별 마커 생성 (필터링 시 사용)
   hotplaces.forEach(function(place) {
     var markerClass = '', markerText = '';
     switch(place.categoryId) {
@@ -435,6 +737,7 @@
       case 2: markerClass = 'marker-hunting'; markerText = 'H'; break;
       case 3: markerClass = 'marker-lounge'; markerText = 'L'; break;
       case 4: markerClass = 'marker-pocha'; markerText = 'P'; break;
+      case 5: markerClass = 'marker-guesthouse'; markerText = 'G'; break;
       default: markerClass = 'marker-club'; markerText = 'C';
     }
     
@@ -447,6 +750,7 @@
       case 2: gradient = ctx.createRadialGradient(16,16,0,16,16,16); gradient.addColorStop(0,'#f44336'); gradient.addColorStop(1,'#ef5350'); break;
       case 3: gradient = ctx.createRadialGradient(16,16,0,16,16,16); gradient.addColorStop(0,'#4caf50'); gradient.addColorStop(1,'#66bb6a'); break;
       case 4: gradient = ctx.createRadialGradient(16,16,0,16,16,16); gradient.addColorStop(0,'#8d6e63'); gradient.addColorStop(1,'#a1887f'); break;
+      case 5: gradient = ctx.createRadialGradient(16,16,0,16,16,16); gradient.addColorStop(0,'#2196f3'); gradient.addColorStop(1,'#42a5f5'); break;
     }
     ctx.fillStyle = gradient;
     ctx.beginPath(); ctx.arc(16,16,16,0,2*Math.PI); ctx.fill();
@@ -457,101 +761,14 @@
     var marker = new kakao.maps.Marker({ map: null, position: new kakao.maps.LatLng(place.lat, place.lng), image: markerImage });
     var labelOverlay = new kakao.maps.CustomOverlay({ content: '<div class="marker-label">' + place.name + '</div>', position: new kakao.maps.LatLng(place.lat, place.lng), xAnchor: 0.5, yAnchor: 0, map: null });
     
-    // 하트 아이콘(위시리스트) 추가: 오른쪽 위 (i 태그, .wish-heart)
-    var heartHtml = isLoggedIn ? `<i class="bi bi-heart wish-heart" data-place-id="${place.id}" style="position:absolute;top:12px;right:12px;z-index:10;"></i>` : '';
-    var infoContent = ''
-      + '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(12px, 2vw, 16px); line-height:1.4; border-radius:0; overflow:visible; box-sizing:border-box;">'
-      + '<div class="place-images-container" style="position:relative; width:100%; background:#f8f9fa; display:flex; align-items:center; justify-content:center; color:#6c757d; font-size:clamp(11px, 1.5vw, 13px);" data-place-id="' + place.id + '">이미지 로딩 중...</div>'
-      + '<div style="padding:clamp(16px, 3vw, 20px);">'
-      + '<div class="place-name-wish-container">'
-      + '<strong style="font-size:clamp(14px, 2.5vw, 18px); word-break:break-word;">' + place.name + '</strong>'
-      + '<span style="color:#e91e63; font-size:clamp(12px, 2vw, 14px); white-space:nowrap;">💖<span class="wish-count-' + place.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명</span>'
-      + '</div>'
-      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word;" id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</div>'
-      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word;" id="voteDetails-' + place.id + '">#혼잡도 #성비 #대기시간</div>'
-      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; line-height:1.3; display:flex; align-items:center;">' + place.address + '<span onclick="copyAddress(\'' + place.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
-      + (place.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>' : '')
-      + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
-      + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
-      + '</div>'
-      + '</div>';
-      
-    var infowindow = new kakao.maps.InfoWindow({ content: infoContent });
+    var infowindow = new kakao.maps.InfoWindow({ content: generateInfoWindowContent(place) });
     
     kakao.maps.event.addListener(marker, 'click', function() {
       if (openInfoWindow) openInfoWindow.close();
       infowindow.open(map, marker);
       openInfoWindow = infowindow;
-      // InfoWindow가 열린 후, 하트 태그와 이미지 로드
       setTimeout(function() {
-        var iwEls = document.getElementsByClassName('infoWindow');
-        if (iwEls.length > 0) {
-          var iw = iwEls[0];
-          // 기존 하트가 있으면 제거
-          var oldHeart = iw.querySelector('.wish-heart');
-          if (oldHeart) oldHeart.remove();
-          // 하트 태그 동적으로 생성
-          var heart = document.createElement('i');
-          heart.className = 'bi bi-heart wish-heart';
-          heart.setAttribute('data-place-id', place.id);
-          heart.style.position = 'absolute';
-          heart.style.top = '12px';
-          heart.style.right = '12px';
-          heart.style.zIndex = '10';
-          iw.appendChild(heart);
-          // 로그인 여부에 따라 클릭 이벤트 분기
-          if (!isLoggedIn) {
-            heart.onclick = function() {
-              showToast('위시리스트는 로그인 후 사용할 수 있어요. 간편하게 로그인하고 저장해보세요!', 'error');
-            };
-          } else {
-            // 하트 상태 동기화 및 이벤트 연결
-            setupWishHeartByClass(place.id);
-          }
-          
-          // 하트 태그와 동일한 방식으로 이미지 컨테이너 찾기
-          const imageContainer = iw.querySelector('.place-images-container');
-          if (imageContainer) {
-            // DOM이 완전히 준비될 때까지 대기
-            setTimeout(function() {
-              loadPlaceImages(place.id);
-            }, 300);
-          }
-          
-          // 위시리스트 개수 로드
-          setTimeout(function() {
-            loadWishCount(place.id);
-          }, 400);
-          
-          // 투표 현황 로드
-          setTimeout(function() {
-            loadVoteCount(place.id);
-          }, 500);
-          
-          // 장르 정보 로드 (클럽에만 적용)
-          if (place.categoryId === 1) {
-            setTimeout(function() {
-              loadGenreInfo(place.id);
-            }, 600);
-          }
-          
-          // 관리자용 버튼들 추가 (하트와 같은 위치에)
-          if (isAdmin) {
-            // + 버튼 (이미지 추가)
-            var addBtn = document.createElement('button');
-            addBtn.onclick = function() { openImageUploadModal(place.id); };
-            addBtn.style.cssText = 'position:absolute; top:12px; right:50px; background:#1275E0; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:18px; font-weight:bold; box-shadow:0 2px 8px rgba(0,0,0,0.3); z-index:10;';
-            addBtn.innerHTML = '+';
-            iw.appendChild(addBtn);
-            
-            // 수정 버튼 (이미지 관리)
-            var editBtn = document.createElement('button');
-            editBtn.onclick = function() { openImageManageModal(place.id); };
-            editBtn.style.cssText = 'position:absolute; top:12px; right:88px; background:#ff6b35; color:white; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:14px; font-weight:bold; box-shadow:0 2px 8px rgba(0,0,0,0.3); z-index:10;';
-            editBtn.innerHTML = '✏️';
-            iw.appendChild(editBtn);
-          }
-        }
+        loadInfoWindowContent(place);
       }, 100);
     });
     
@@ -575,21 +792,35 @@
       });
       
       if (selectedPlace) {
-        // 선택된 장소를 지도 중심으로 이동
-        var selectedPosition = new kakao.maps.LatLng(selectedPlace.lat, selectedPlace.lng);
-        map.setCenter(selectedPosition);
-        map.setLevel(3); // 더 자세한 줌 레벨
+        // 단일 장소 표시 모드 활성화
+        singlePlaceMode = true;
+        singlePlaceId = selectedPlaceId;
         
-        // 선택된 장소 찾음
+        // 모든 마커 숨기기
+        hideAllMarkers();
         
-        // 해당 장소의 마커 찾기
+        // 카테고리 버튼 초기화 (전체 비활성화)
+        document.querySelectorAll('.category-filter-btn').forEach(b => b.classList.remove('active'));
+        
+        // 해당 장소의 마커만 표시
         var targetMarker = null;
         for (var i = 0; i < hotplaces.length; i++) {
           if (hotplaces[i].id === selectedPlaceId) {
             targetMarker = hotplaceMarkers[i];
+            if (targetMarker) {
+              targetMarker.setMap(map);
+              if (hotplaceLabels[i]) {
+                hotplaceLabels[i].setMap(map);
+              }
+            }
             break;
           }
         }
+        
+        // 선택된 장소를 지도 중심으로 이동 (마커 표시 후에)
+        var selectedPosition = new kakao.maps.LatLng(selectedPlace.lat, selectedPlace.lng);
+        map.setCenter(selectedPosition);
+        map.setLevel(3); // 더 자세한 줌 레벨
         
         if (targetMarker) {
           // 타겟 마커 찾음, 클릭 이벤트 트리거
@@ -602,24 +833,163 @@
     }
   }
 
+  // 찜한 장소 목록을 저장할 전역 변수
+  var userWishlist = [];
+  var isWishlistFilterActive = false; // 찜 필터 활성화 상태
+  var singlePlaceMode = false; // 단일 장소 표시 모드
+  var singlePlaceId = null; // 표시할 단일 장소 ID
+  
+  // 찜한 장소 목록을 가져오는 함수
+  function loadUserWishlist() {
+    if (!isLoggedIn) {
+      userWishlist = [];
+      return;
+    }
+    
+    var token = localStorage.getItem('accessToken');
+    fetch(root + '/api/main/wish', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': token ? 'Bearer ' + token : ''
+      },
+      body: 'action=list'
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('HTTP ' + response.status);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.result && data.wishList) {
+        userWishlist = data.wishList.map(wish => wish.place_id);
+      } else {
+        userWishlist = [];
+      }
+    })
+    .catch(error => {
+      console.error('찜한 장소 목록 로드 실패:', error);
+      userWishlist = [];
+      // 에러가 발생해도 계속 진행
+    });
+  }
+  
+  // 로그인 상태에 따라 하트 버튼 표시/숨김
+  function updateWishlistButtonVisibility() {
+    var wishlistBtn = document.getElementById('wishlistFilterBtn');
+    if (wishlistBtn) {
+      if (isLoggedIn) {
+        wishlistBtn.style.display = 'flex';
+      } else {
+        wishlistBtn.style.display = 'none';
+      }
+    }
+  }
+  
+  // 모든 마커 숨기기 함수
+  function hideAllMarkers() {
+    // 기존 마커들 먼저 숨기기
+    hotplaceMarkers.forEach(function(marker) {
+      if (marker) marker.setMap(null);
+    });
+    hotplaceLabels.forEach(function(label) {
+      if (label) label.setMap(null);
+    });
+    
+    // 클러스터 마커들도 숨기기
+    clusterMarkers.forEach(function(marker) {
+      if (marker) marker.setMap(null);
+    });
+  }
+  
   // 카테고리 필터 버튼 클릭 이벤트
   document.addEventListener('DOMContentLoaded', function() {
     var filterBtns = document.querySelectorAll('.category-filter-btn');
     filterBtns.forEach(function(btn) {
       btn.onclick = function() {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
         var cat = btn.getAttribute('data-category');
         
-        hotplaceMarkers.forEach(function(marker, idx) {
-          if (cat === 'all' || String(marker.categoryId) === cat) {
-            marker.setMap(map);
-            if (hotplaceLabels[idx]) hotplaceLabels[idx].setMap(map);
-          } else {
-            marker.setMap(null);
-            if (hotplaceLabels[idx]) hotplaceLabels[idx].setMap(null);
+        // 현재 클릭한 버튼이 이미 활성화되어 있는지 확인 (토글 기능을 위해)
+        var wasActive = btn.classList.contains('active');
+        
+        // 찜 버튼이 활성화된 상태가 아니라면 모든 버튼 비활성화
+        if (!isWishlistFilterActive) {
+          filterBtns.forEach(b => b.classList.remove('active'));
+        }
+        btn.classList.add('active');
+        
+        if (cat === 'wishlist') {
+          // 찜한 장소 토글 필터링
+          if (!isLoggedIn) {
+            showToast('로그인 후 찜한 장소를 확인할 수 있어요!', 'error');
+            // 전체 버튼을 다시 활성화
+            document.querySelector('.category-filter-btn[data-category="all"]').classList.add('active');
+            btn.classList.remove('active');
+            return;
           }
-        });
+          
+          // 찜 버튼 클릭 시에는 다른 버튼들의 active 상태를 제거하지 않음
+          // 찜 필터가 비활성화될 때만 전체 버튼 활성화
+          
+          // 찜한 장소 목록이 비어있으면 다시 로드 시도
+          if (userWishlist.length === 0) {
+            loadUserWishlist();
+            setTimeout(function() {
+              if (userWishlist.length === 0) {
+                showToast('찜한 장소가 없습니다. 마음에 드는 장소를 찜해보세요!', 'error');
+                // 전체 버튼을 다시 활성화
+                document.querySelector('.category-filter-btn[data-category="all"]').classList.add('active');
+                btn.classList.remove('active');
+                return;
+              }
+            }, 1000);
+            return;
+          }
+          
+          if (isWishlistFilterActive) {
+            // 찜 필터 해제 - 전체 장소 표시
+            isWishlistFilterActive = false;
+            // 단일 장소 모드 해제
+            singlePlaceMode = false;
+            singlePlaceId = null;
+            // 찜 필터 해제 시 전체 버튼 활성화
+            document.querySelector('.category-filter-btn[data-category="all"]').classList.add('active');
+            showToast('전체 장소가 표시됩니다', 'success');
+            
+            // 모든 마커 숨기고 필터링 적용
+            hideAllMarkers();
+            showFilteredMarkers();
+          } else {
+            // 찜 필터 활성화 - 찜한 장소만 표시
+            isWishlistFilterActive = true;
+            // 단일 장소 모드 해제
+            singlePlaceMode = false;
+            singlePlaceId = null;
+            // 찜 필터 활성화 시에는 다른 버튼들의 active 상태 유지
+            showToast('찜한 장소만 표시됩니다 (' + userWishlist.length + '개)', 'success');
+            
+            // 모든 마커 숨기고 필터링 적용
+            hideAllMarkers();
+            showFilteredMarkers();
+          }
+        } else {
+          // 카테고리 필터링 (찜 필터와 조합)
+          
+          // 단일 장소 모드 해제
+          singlePlaceMode = false;
+          singlePlaceId = null;
+          
+          if (wasActive && cat !== 'all') {
+            // 이미 활성화된 카테고리 버튼을 다시 클릭한 경우 -> 전체로 변경
+            filterBtns.forEach(b => b.classList.remove('active'));
+            document.querySelector('.category-filter-btn[data-category="all"]').classList.add('active');
+          }
+          
+          // 모든 마커 숨기고 필터링 적용
+          hideAllMarkers();
+          showFilteredMarkers();
+        }
       };
     });
   });
@@ -662,8 +1032,19 @@
   function updateMapOverlays() {
     var level = map.getLevel();
     
-    hotplaceMarkers.forEach(m => m.setMap(null));
-    hotplaceLabels.forEach(l => l.setMap(null));
+    // 기존 마커들 숨기기
+    hotplaceMarkers.forEach(function(marker) {
+      if (marker) marker.setMap(null);
+    });
+    hotplaceLabels.forEach(function(label) {
+      if (label) label.setMap(null);
+    });
+    
+    // 클러스터 마커들 숨기기
+    clusterMarkers.forEach(function(marker) {
+      if (marker) marker.setMap(null);
+    });
+    
     guOverlays.forEach(o => o.setMap(null));
     guCountOverlays.forEach(o => o.setMap(null));
     dongOverlays.forEach(o => o.setMap(null));
@@ -679,9 +1060,141 @@
     } else if (level >= 6) {
       dongOverlays.forEach(o => o.setMap(map));
     } else {
-      hotplaceMarkers.forEach(m => m.setMap(map));
-      hotplaceLabels.forEach(l => l.setMap(map));
+      // 지도 레벨이 낮을 때 마커 표시 (필터 상태 고려)
+      if (singlePlaceMode) {
+        // 단일 장소 모드일 때는 해당 장소만 표시
+        for (var i = 0; i < hotplaces.length; i++) {
+          if (hotplaces[i].id === singlePlaceId) {
+            if (hotplaceMarkers[i]) {
+              hotplaceMarkers[i].setMap(map);
+              if (hotplaceLabels[i]) {
+                hotplaceLabels[i].setMap(map);
+              }
+            }
+            break;
+          }
+        }
+      } else {
+        showFilteredMarkers();
+      }
     }
+  }
+  
+  // 필터링된 마커들 표시 함수
+  function showFilteredMarkers() {
+    // 기존 클러스터 마커들 제거
+    clusterMarkers.forEach(function(marker) {
+      if (marker) marker.setMap(null);
+    });
+    clusterMarkers = [];
+    clusterInfoWindows = [];
+    
+    // 클러스터 마커들 다시 생성하여 필터링 적용
+    var filteredClusters = [];
+    var processed = new Array(hotplaces.length).fill(false);
+    
+    for (var i = 0; i < hotplaces.length; i++) {
+      if (processed[i]) continue;
+      
+      var place = hotplaces[i];
+      var shouldShow = true;
+      
+      // 찜 필터가 활성화된 경우
+      if (isWishlistFilterActive) {
+        shouldShow = userWishlist.includes(place.id);
+      }
+      
+      // 카테고리 필터가 활성화된 경우
+      var activeCategoryBtn = document.querySelector('.category-filter-btn.active');
+      if (activeCategoryBtn && activeCategoryBtn.getAttribute('data-category') !== 'all') {
+        var cat = activeCategoryBtn.getAttribute('data-category');
+        if (cat !== 'wishlist') {
+          shouldShow = shouldShow && (String(place.categoryId) === cat);
+        }
+      }
+      
+      if (!shouldShow) {
+        processed[i] = true;
+        continue;
+      }
+      
+      var cluster = {
+        places: [place],
+        centerLat: place.lat,
+        centerLng: place.lng,
+        indices: [i]
+      };
+      
+      // 같은 위치 근처의 다른 장소들 찾기
+      for (var j = i + 1; j < hotplaces.length; j++) {
+        if (processed[j]) continue;
+        
+        var otherPlace = hotplaces[j];
+        var otherShouldShow = true;
+        
+        // 찜 필터가 활성화된 경우
+        if (isWishlistFilterActive) {
+          otherShouldShow = userWishlist.includes(otherPlace.id);
+        }
+        
+        // 카테고리 필터가 활성화된 경우
+        if (activeCategoryBtn && activeCategoryBtn.getAttribute('data-category') !== 'all') {
+          var cat = activeCategoryBtn.getAttribute('data-category');
+          if (cat !== 'wishlist') {
+            otherShouldShow = otherShouldShow && (String(otherPlace.categoryId) === cat);
+          }
+        }
+        
+        if (!otherShouldShow) {
+          processed[j] = true;
+          continue;
+        }
+        
+        var distance = Math.sqrt(
+          Math.pow(place.lat - otherPlace.lat, 2) + 
+          Math.pow(place.lng - otherPlace.lng, 2)
+        );
+        
+        if (distance <= CLUSTER_DISTANCE) {
+          cluster.places.push(otherPlace);
+          cluster.indices.push(j);
+          processed[j] = true;
+        }
+      }
+      
+      processed[i] = true;
+      filteredClusters.push(cluster);
+    }
+    
+    // 필터링된 클러스터들 표시
+    filteredClusters.forEach(function(cluster) {
+      if (cluster.places.length === 1) {
+        // 단일 장소인 경우
+        var place = cluster.places[0];
+        var markerIndex = hotplaces.findIndex(function(p) { return p.id === place.id; });
+        if (markerIndex !== -1 && hotplaceMarkers[markerIndex]) {
+          hotplaceMarkers[markerIndex].setMap(map);
+          if (hotplaceLabels[markerIndex]) {
+            hotplaceLabels[markerIndex].setMap(map);
+          }
+        }
+      } else {
+        // 여러 장소가 클러스터링된 경우
+        var clusterMarker = createClusterMarker(cluster);
+        var clusterPopup = createClusterPopup(cluster);
+        var clusterInfoWindow = new kakao.maps.InfoWindow({ content: clusterPopup });
+        
+        kakao.maps.event.addListener(clusterMarker, 'click', function() {
+          if (openInfoWindow) openInfoWindow.close();
+          clusterInfoWindow.open(map, clusterMarker);
+          openInfoWindow = clusterInfoWindow;
+        });
+        
+        clusterMarker.setMap(map);
+        clusterMarkers.push(clusterMarker);
+        clusterInfoWindows.push(clusterInfoWindow);
+      }
+    });
   }
 
   kakao.maps.event.addListener(map, 'zoom_changed', updateMapOverlays);
@@ -800,12 +1313,35 @@
                 heart.classList.add('bi-heart');
                 heart.style.color = '#ccc';
                 showToast('위시리스트에서 제거되었습니다.', 'success');
+                
+                // 찜한 장소 목록에서 제거
+                var index = userWishlist.indexOf(placeId);
+                if (index > -1) {
+                  userWishlist.splice(index, 1);
+                }
+                
+                // 찜 필터가 활성화된 상태라면 지도 업데이트
+                if (isWishlistFilterActive) {
+                  // 마커들 다시 표시 (클러스터링 고려)
+                  showFilteredMarkers();
+                }
               } else {
                 heart.classList.add('on');
                 heart.classList.remove('bi-heart');
                 heart.classList.add('bi-heart-fill');
                 heart.style.color = '#e91e63';
                 showToast('위시리스트에 추가되었습니다!', 'success');
+                
+                // 찜한 장소 목록에 추가
+                if (!userWishlist.includes(placeId)) {
+                  userWishlist.push(placeId);
+                }
+                
+                // 찜 필터가 활성화된 상태라면 지도 업데이트
+                if (isWishlistFilterActive) {
+                  // 마커들 다시 표시 (클러스터링 고려)
+                  showFilteredMarkers();
+                }
               }
               
               // 찜 개수 실시간 업데이트
@@ -1002,12 +1538,14 @@
             var seoulHuntingCount = seoulHotplaces.filter(h => h.categoryId === 2).length;
             var seoulLoungeCount = seoulHotplaces.filter(h => h.categoryId === 3).length;
             var seoulPochaCount = seoulHotplaces.filter(h => h.categoryId === 4).length;
+            var seoulGuesthouseCount = seoulHotplaces.filter(h => h.categoryId === 5).length;
             
             countHtml = '<span style="margin-left:10px; font-size:0.98rem; color:#888; display:inline-flex; gap:7px; align-items:center;">'
               + '<span style="color:#9c27b0; font-weight:600;">C:' + seoulClubCount + '</span>'
               + '<span style="color:#f44336; font-weight:600; margin-left:4px;">H:' + seoulHuntingCount + '</span>'
               + '<span style="color:#4caf50; font-weight:600; margin-left:4px;">L:' + seoulLoungeCount + '</span>'
               + '<span style="color:#8d6e63; font-weight:600; margin-left:4px;">P:' + seoulPochaCount + '</span>'
+              + '<span style="color:#2196f3; font-weight:600; margin-left:4px;">G:' + seoulGuesthouseCount + '</span>'
               + '</span>';
           } else {
             // 기존 지역의 경우
@@ -1019,6 +1557,7 @@
                 + '<span style="color:#f44336; font-weight:600; margin-left:4px;">H:' + (typeof count.huntingCount === 'number' ? count.huntingCount : 0) + '</span>'
                 + '<span style="color:#4caf50; font-weight:600; margin-left:4px;">L:' + (typeof count.loungeCount === 'number' ? count.loungeCount : 0) + '</span>'
                 + '<span style="color:#8d6e63; font-weight:600; margin-left:4px;">P:' + (typeof count.pochaCount === 'number' ? count.pochaCount : 0) + '</span>'
+                + '<span style="color:#2196f3; font-weight:600; margin-left:4px;">G:' + (typeof count.guesthouseCount === 'number' ? count.guesthouseCount : 0) + '</span>'
                 + '</span>';
             }
           }
@@ -1042,36 +1581,46 @@
           };
         });
       } else {
-        // 가게명 리스트를 카드 형태로 출력
-        var categoryMap = {1:'클럽',2:'헌팅',3:'라운지',4:'포차'};
+        // 가게명 리스트를 카드 형태로 출력 (지역 검색 결과와 동일한 구조)
+        var categoryMap = {1:'클럽',2:'헌팅',3:'라운지',4:'포차',5:'게스트하우스'};
         var matchedHotplaces = window.hotplaces.filter(function(h) {
           return filtered.includes(h.name);
         });
         searchResultBox.innerHTML = matchedHotplaces.map(function(h) {
           var heartHtml = isLoggedIn ? '<i class="bi bi-heart wish-heart" data-place-id="'+h.id+'" style="font-size:1.25rem; color:#e74c3c; cursor:pointer;"></i>' : '<i class="bi bi-heart wish-heart" style="font-size:1.25rem; color:#bbb; cursor:pointer;"></i>';
-          var voteButtonHtml = '<a href="#" onclick="showVoteSection(' + h.id + ', \'' + h.name + '\', \'' + h.address + '\', ' + h.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-size:0.95rem;">🔥 투표</a>';
-          var genreHtml = (h.categoryId === 1 && h.genres && h.genres !== '') ? '<div style="color:#9c27b0; font-weight:600; margin-top:2px; font-size:0.9rem;">🎵 장르: ' + h.genres + '</div>' : '';
+          var voteButtonHtml = '<a href="#" onclick="showVoteSection(' + h.id + ', \'' + h.name + '\', \'' + h.address + '\', ' + h.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:0.9rem; white-space:nowrap; padding:8px 14px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>';
+          
           return '<div class="hotplace-list-card" style="display:flex; flex-direction:column; padding:18px; margin-bottom:16px; background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">'
-            + '<div style="flex:1; min-width:0;">'
-            +   '<div style="display:flex; align-items:center; gap:6px;">'
-            +     '<div style="flex:1; min-width:0;">'
-            +       '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">'
-            +         '<span class="hotplace-name" style="color:#1275E0; font-weight:600; cursor:pointer;">' + h.name + '</span>'
-            +         '<span style="color:#e91e63; font-size:0.9rem; white-space:nowrap;">💖<span class="wish-count-' + h.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명</span>'
+            + '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">'
+            +   '<div style="flex:1; min-width:0;">'
+            +     '<div class="place-name-wish-container" style="display:flex; align-items:center; margin-bottom:8px;">'
+            +       '<div style="flex:1; min-width:0;">'
+            +         '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">'
+            +           '<strong style="font-size:1.1rem; word-break:break-word; color:#1275E0; cursor:pointer;" class="hotplace-name">' + h.name + '</strong>'
+            +           '<span style="color:#e91e63; font-size:0.9rem; white-space:nowrap;">💖<span class="wish-count-' + h.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명</span>'
+            +         '</div>'
+            
+            +         '<div style="color:#888; font-size:0.8rem; margin-top:2px;">' + (categoryMap[h.categoryId]||'') + '</div>'
             +       '</div>'
-            +       '<div class="hotplace-category" style="color:#888; font-size:0.8rem; margin-top:2px;">' + (categoryMap[h.categoryId]||'') + '</div>'
             +     '</div>'
+            +     '<div style="margin-bottom:8px; color:#ff6b35; font-size:0.95rem; font-weight:600;" id="todayHotRank-' + h.id + '">🔥 오늘핫: 로딩중...</div>'
+            +     '<div style="margin-bottom:8px; color:#ff6b35; font-size:0.95rem; font-weight:600;" id="todayVoteStats-' + h.id + '">#성비 #혼잡도 #대기시간</div>'
+            +     '<div style="margin-bottom:8px; color:#2196f3; font-size:0.95rem; font-weight:600; cursor:pointer;" id="courseCount-' + h.id + '" onclick="goToPlaceCourses(' + h.id + ')">📝 코스글: 로딩중...</div>'
+            +     '<div style="margin-bottom:8px; color:#888; font-size:0.95rem; word-break:break-word; display:flex; align-items:center; gap:8px;">'
+            +       '<span id="voteTrends-' + h.id + '">📊 역대 투표: 로딩중...</span>'
+            +       '<span onclick="toggleVoteDetails(' + h.id + ')" style="color:#1275E0; cursor:pointer; font-size:0.95rem;" id="voteDetailsToggle-' + h.id + '">더보기▾</span>'
+            +     '</div>'
+            +     '<div style="margin-bottom:8px; color:#666; font-size:0.95rem; word-break:break-word; line-height:1.4; display:none;" id="voteDetails-' + h.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
+            +     '<div style="color:#666; font-size:0.95rem; line-height:1.4; margin-bottom:8px; display:flex; align-items:flex-start; gap:6px;">'
+            +       '<div style="flex:1; word-break:break-word;">' + h.address + '</div>'
+            +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
+            +     '</div>'
+            +     (h.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>' : '')
+            +     '<div style="margin-bottom:8px; color:#2196f3; font-size:0.95rem; font-weight:600; cursor:pointer;" id="courseCount-' + h.id + '" onclick="goToPlaceCourses(' + h.id + ')">📝 코스글: 로딩중...</div>'
             +   '</div>'
-            +   '<div class="hotplace-address" style="color:#666; margin-top:2px; display:flex; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + h.address + '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center; flex-shrink:0;" title="주소 복사"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
-            + genreHtml
+            +   '<div style="margin-left:12px; position:relative;">' + heartHtml + '</div>'
             + '</div>'
-            + '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-top:12px;">'
-            +   '<div style="flex:1;"></div>'
-            +   '<div style="display:flex; align-items:center; gap:12px;">'
-            +     '<div style="position:relative;">' + heartHtml + '</div>'
-            +     '<div>' + voteButtonHtml + '</div>'
-            +   '</div>'
-            + '</div>'
+            + '<div style="margin-top:auto; display:flex; justify-content:flex-end;">' + voteButtonHtml + '</div>'
             + '</div>';
         }).join('');
         setTimeout(function() {
@@ -1088,22 +1637,49 @@
               heart.setAttribute('data-place-id', place.id);
               setupWishHeartByClass(place.id);
             }
-            // 가게명/카테고리 클릭 시 지도 이동
+            
+            // 찜 수 로드
+            setTimeout(function() {
+              loadWishCount(place.id);
+            }, 100);
+            
+            // 투표 현황 로드
+            setTimeout(function() {
+              loadVoteCount(place.id);
+            }, 200);
+            
+            // 오늘핫 순위 로드
+            setTimeout(function() {
+              loadTodayHotRank(place.id);
+            }, 300);
+            
+            // 코스글 개수 로드
+            setTimeout(function() {
+              loadCourseCount(place.id);
+            }, 400);
+            
+            // 오늘 투표 통계 로드
+            setTimeout(function() {
+              loadTodayVoteStats(place.id);
+            }, 450);
+            
+            // 장르 정보 로드 (클럽에만 적용)
+            if (place.categoryId === 1) {
+              setTimeout(function() {
+                loadGenreInfo(place.id);
+              }, 300);
+            }
+            
+            // 가게명/카테고리 클릭 시 단일 장소 표시
             function moveToHotplace(e) {
               e.stopPropagation();
-              var latlng = new kakao.maps.LatLng(place.lat, place.lng);
-              map.setLevel(5);
-              map.setCenter(latlng);
+              // showPlaceInfo 함수 호출하여 단일 장소 모드 활성화
+              showPlaceInfo(place.id);
             }
             var placeNameEl = card.querySelector('.hotplace-name');
-            var placeCategoryEl = card.querySelector('.hotplace-category');
             if (placeNameEl) {
               placeNameEl.style.cursor = 'pointer';
               placeNameEl.onclick = moveToHotplace;
-            }
-            if (placeCategoryEl) {
-              placeCategoryEl.style.cursor = 'pointer';
-              placeCategoryEl.onclick = moveToHotplace;
             }
           });
         }, 100);
@@ -1166,7 +1742,23 @@
     });
     
     // 정렬 적용
-    filtered = sortHotplaceData(filtered, window.currentSortType);
+    if (window.currentSortType === 'popular' || window.currentSortType === 'coursePopular') {
+      // 인기순 또는 인기 코스 정렬의 경우 전체 데이터의 통계를 먼저 로드
+      loadAllStatsForSorting(filtered, function(sortedFiltered) {
+        renderHotplaceListBySidoWithData(sido, categoryId, page, sortedFiltered);
+      });
+      return;
+    } else {
+      // 최신순 정렬의 경우 바로 정렬
+      filtered = sortHotplaceData(filtered, window.currentSortType);
+    }
+    
+    renderHotplaceListBySidoWithData(sido, categoryId, page, filtered);
+  }
+  
+  // 실제 렌더링을 수행하는 함수
+  function renderHotplaceListBySidoWithData(sido, categoryId, page, filtered) {
+    var catBar = document.getElementById('categoryCountsBar');
     
     // 페이징 처리
     window.currentFilteredData = filtered;
@@ -1192,18 +1784,24 @@
     var huntingCount = filtered.filter(h => h.categoryId === 2).length;
     var loungeCount = filtered.filter(h => h.categoryId === 3).length;
     var pochaCount = filtered.filter(h => h.categoryId === 4).length;
+    var guesthouseCount = filtered.filter(h => h.categoryId === 5).length;
     
-    var catHtml = '<div class="dong-category-counts-bar">'
-      + '<span class="category-ball marker-club' + (categoryId==1?' active':'') + '" data-category="1">C</span> <span class="cat-count-num" style="color:#9c27b0;">' + clubCount + '</span>'
-      + '<span class="category-ball marker-hunting' + (categoryId==2?' active':'') + '" data-category="2">H</span> <span class="cat-count-num" style="color:#f44336;">' + huntingCount + '</span>'
-      + '<span class="category-ball marker-lounge' + (categoryId==3?' active':'') + '" data-category="3">L</span> <span class="cat-count-num" style="color:#4caf50;">' + loungeCount + '</span>'
-      + '<span class="category-ball marker-pocha' + (categoryId==4?' active':'') + '" data-category="4">P</span> <span class="cat-count-num" style="color:#8d6e63;">' + pochaCount + '</span>'
+    var catHtml = '<div class="search-category-counts-bar">'
+      + '<div class="search-category-row">'
+      + '<span class="search-category-ball marker-club' + (categoryId==1?' active':'') + '" data-category="1">C</span> <span class="search-cat-count-num" style="color:#9c27b0;">' + clubCount + '</span>'
+      + '<span class="search-category-ball marker-hunting' + (categoryId==2?' active':'') + '" data-category="2">H</span> <span class="search-cat-count-num" style="color:#f44336;">' + huntingCount + '</span>'
+      + '<span class="search-category-ball marker-lounge' + (categoryId==3?' active':'') + '" data-category="3">L</span> <span class="search-cat-count-num" style="color:#4caf50;">' + loungeCount + '</span>'
+      + '</div>'
+      + '<div class="search-category-row">'
+      + '<span class="search-category-ball marker-pocha' + (categoryId==4?' active':'') + '" data-category="4">P</span> <span class="search-cat-count-num" style="color:#8d6e63;">' + pochaCount + '</span>'
+      + '<span class="search-category-ball marker-guesthouse' + (categoryId==5?' active':'') + '" data-category="5">G</span> <span class="search-cat-count-num" style="color:#2196f3;">' + guesthouseCount + '</span>'
+      + '</div>'
       + '</div>';
     catBar.innerHTML = catHtml;
     catBar.style.display = 'flex';
     
     // 카테고리 원 클릭 이벤트 바인딩
-    Array.from(catBar.getElementsByClassName('category-ball')).forEach(function(ball) {
+    Array.from(catBar.getElementsByClassName('search-category-ball')).forEach(function(ball) {
       ball.onclick = function() {
         var cat = ball.getAttribute('data-category');
         if (window.selectedCategory && String(window.selectedCategory) === String(cat)) {
@@ -1223,6 +1821,7 @@
       '<div style="display:flex; gap:8px; margin:8px 0 16px 0;">' +
         '<button id="sortLatest" class="sort-btn ' + latestActive + '" onclick="sortHotplaces(\'latest\')" style="padding:6px 12px; border:1px solid #ddd; ' + latestStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">최신등록</button>' +
         '<button id="sortPopular" class="sort-btn ' + popularActive + '" onclick="sortHotplaces(\'popular\')" style="padding:6px 12px; border:1px solid #ddd; ' + popularStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기순</button>' +
+        '<button id="sortCoursePopular" class="sort-btn ' + (window.currentSortType === 'coursePopular' ? 'active' : '') + '" onclick="sortHotplaces(\'coursePopular\')" style="padding:6px 12px; border:1px solid #ddd; ' + (window.currentSortType === 'coursePopular' ? 'background:#1275E0; color:white;' : 'background:white; color:#333;') + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기 코스</button>' +
       '</div>';
     
     if (filtered.length === 0) {
@@ -1249,13 +1848,19 @@
         +         '<div style="color:#888; font-size:0.8rem; margin-top:2px;">' + (categoryMap[h.categoryId]||'') + '</div>'
         +       '</div>'
         +     '</div>'
-        +     '<div style="margin-bottom:8px; color:#888; font-size:0.95rem; word-break:break-word;" id="voteTrends-' + h.id + '">📊 역대 투표: 로딩중...</div>'
-        +     '<div style="margin-bottom:8px; color:#666; font-size:0.95rem; word-break:break-word; line-height:1.4;" id="voteDetails-' + h.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
-        +     '<div style="color:#666; font-size:0.95rem; line-height:1.4; margin-bottom:8px; display:flex; align-items:flex-start; gap:6px;">'
-        +       '<div style="flex:1; word-break:break-word;">' + h.address + '</div>'
-        +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
-        +     '</div>'
-        +     (h.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>' : '')
+            +     '<div style="margin-bottom:8px; color:#ff6b35; font-size:0.95rem; font-weight:600;" id="todayHotRank-' + h.id + '">🔥 오늘핫: 로딩중...</div>'
+            +     '<div style="margin-bottom:8px; color:#ff6b35; font-size:0.95rem; font-weight:600;" id="todayVoteStats-' + h.id + '">#성비 #혼잡도 #대기시간</div>'
+            +     '<div style="margin-bottom:8px; color:#2196f3; font-size:0.95rem; font-weight:600; cursor:pointer;" id="courseCount-' + h.id + '" onclick="goToPlaceCourses(' + h.id + ')">📝 코스글: 로딩중...</div>'
+            +     '<div style="margin-bottom:8px; color:#888; font-size:0.95rem; word-break:break-word; display:flex; align-items:center; gap:8px;">'
+            +       '<span id="voteTrends-' + h.id + '">📊 역대 투표: 로딩중...</span>'
+            +       '<span onclick="toggleVoteDetails(' + h.id + ')" style="color:#1275E0; cursor:pointer; font-size:0.95rem;" id="voteDetailsToggle-' + h.id + '">더보기▾</span>'
+            +     '</div>'
+            +     '<div style="margin-bottom:8px; color:#666; font-size:0.95rem; word-break:break-word; line-height:1.4; display:none;" id="voteDetails-' + h.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
+            +     '<div style="color:#666; font-size:0.95rem; line-height:1.4; margin-bottom:8px; display:flex; align-items:flex-start; gap:6px;">'
+            +       '<div style="flex:1; word-break:break-word;">' + h.address + '</div>'
+            +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
+            +     '</div>'
+            +     (h.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>' : '')
         +   '</div>'
         +   '<div style="margin-left:12px; position:relative;">' + heartHtml + '</div>'
         + '</div>'
@@ -1284,14 +1889,11 @@
           heart.setAttribute('data-place-id', place.id);
           setupWishHeartByClass(place.id);
         }
-        // 가게명/카테고리 클릭 시 지도 이동 + 정보창 자동 열기
+        // 가게명/카테고리 클릭 시 단일 장소 표시
         function moveToHotplace(e) {
           e.stopPropagation();
-          var latlng = new kakao.maps.LatLng(place.lat, place.lng);
-          map.setLevel(5);
-          map.setCenter(latlng);
-          
-          // 해당 가게의 마커와 정보창 찾기
+          // showPlaceInfo 함수 호출하여 단일 장소 모드 활성화
+          showPlaceInfo(place.id);
           setTimeout(function() {
             var targetMarker = null;
             var targetInfoWindow = null;
@@ -1512,11 +2114,26 @@
           loadVoteCount(place.id);
         }, 200);
         
+        // 오늘핫 순위 로드
+        setTimeout(function() {
+          loadTodayHotRank(place.id);
+        }, 300);
+        
+        // 코스글 개수 로드
+        setTimeout(function() {
+          loadCourseCount(place.id);
+        }, 400);
+        
+        // 오늘 투표 통계 로드
+        setTimeout(function() {
+          loadTodayVoteStats(place.id);
+        }, 450);
+        
         // 장르 정보 로드 (클럽에만 적용)
         if (place.categoryId === 1) {
           setTimeout(function() {
             loadGenreInfo(place.id);
-          }, 300);
+          }, 500);
         }
       });
     }, 500);
@@ -1542,7 +2159,23 @@
     });
     
     // 정렬 적용
-    filtered = sortHotplaceData(filtered, window.currentSortType);
+    if (window.currentSortType === 'popular' || window.currentSortType === 'coursePopular') {
+      // 인기순 또는 인기 코스 정렬의 경우 전체 데이터의 통계를 먼저 로드
+      loadAllStatsForSorting(filtered, function(sortedFiltered) {
+        renderHotplaceListByDongWithData(dong, categoryId, page, sortedFiltered, regionId);
+      });
+      return;
+    } else {
+      // 최신순 정렬의 경우 바로 정렬
+      filtered = sortHotplaceData(filtered, window.currentSortType);
+    }
+    
+    renderHotplaceListByDongWithData(dong, categoryId, page, filtered, regionId);
+  }
+  
+  // 실제 렌더링을 수행하는 함수
+  function renderHotplaceListByDongWithData(dong, categoryId, page, filtered, regionId) {
+    var catBar = document.getElementById('categoryCountsBar');
     
     // 페이징 처리
     window.currentFilteredData = filtered;
@@ -1569,17 +2202,23 @@
     var huntingCount = (typeof count.huntingCount === 'number') ? count.huntingCount : 0;
     var loungeCount = (typeof count.loungeCount === 'number') ? count.loungeCount : 0;
     var pochaCount = (typeof count.pochaCount === 'number') ? count.pochaCount : 0;
-    var catHtml = '<div class="dong-category-counts-bar">'
-      + '<span class="category-ball marker-club' + (categoryId==1?' active':'') + '" data-category="1">C</span> <span class="cat-count-num" style="color:#9c27b0;">' + clubCount + '</span>'
-      + '<span class="category-ball marker-hunting' + (categoryId==2?' active':'') + '" data-category="2">H</span> <span class="cat-count-num" style="color:#f44336;">' + huntingCount + '</span>'
-      + '<span class="category-ball marker-lounge' + (categoryId==3?' active':'') + '" data-category="3">L</span> <span class="cat-count-num" style="color:#4caf50;">' + loungeCount + '</span>'
-      + '<span class="category-ball marker-pocha' + (categoryId==4?' active':'') + '" data-category="4">P</span> <span class="cat-count-num" style="color:#8d6e63;">' + pochaCount + '</span>'
+    var guesthouseCount = (typeof count.guesthouseCount === 'number') ? count.guesthouseCount : 0;
+    var catHtml = '<div class="search-category-counts-bar">'
+      + '<div class="search-category-row">'
+      + '<span class="search-category-ball marker-club' + (categoryId==1?' active':'') + '" data-category="1">C</span> <span class="search-cat-count-num" style="color:#9c27b0;">' + clubCount + '</span>'
+      + '<span class="search-category-ball marker-hunting' + (categoryId==2?' active':'') + '" data-category="2">H</span> <span class="search-cat-count-num" style="color:#f44336;">' + huntingCount + '</span>'
+      + '<span class="search-category-ball marker-lounge' + (categoryId==3?' active':'') + '" data-category="3">L</span> <span class="search-cat-count-num" style="color:#4caf50;">' + loungeCount + '</span>'
+      + '</div>'
+      + '<div class="search-category-row">'
+      + '<span class="search-category-ball marker-pocha' + (categoryId==4?' active':'') + '" data-category="4">P</span> <span class="search-cat-count-num" style="color:#8d6e63;">' + pochaCount + '</span>'
+      + '<span class="search-category-ball marker-guesthouse' + (categoryId==5?' active':'') + '" data-category="5">G</span> <span class="search-cat-count-num" style="color:#2196f3;">' + guesthouseCount + '</span>'
+      + '</div>'
       + '</div>';
     catBar.innerHTML = catHtml;
     catBar.style.display = 'flex';
     
     // 카테고리 원 클릭 이벤트 바인딩
-    Array.from(catBar.getElementsByClassName('category-ball')).forEach(function(ball) {
+    Array.from(catBar.getElementsByClassName('search-category-ball')).forEach(function(ball) {
       ball.onclick = function() {
         var cat = ball.getAttribute('data-category');
         if (window.selectedCategory && String(window.selectedCategory) === String(cat)) {
@@ -1599,6 +2238,7 @@
       '<div style="display:flex; gap:8px; margin:8px 0 16px 0;">' +
         '<button id="sortLatest" class="sort-btn ' + latestActive + '" onclick="sortHotplaces(\'latest\')" style="padding:6px 12px; border:1px solid #ddd; ' + latestStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">최신등록</button>' +
         '<button id="sortPopular" class="sort-btn ' + popularActive + '" onclick="sortHotplaces(\'popular\')" style="padding:6px 12px; border:1px solid #ddd; ' + popularStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기순</button>' +
+        '<button id="sortCoursePopular" class="sort-btn ' + (window.currentSortType === 'coursePopular' ? 'active' : '') + '" onclick="sortHotplaces(\'coursePopular\')" style="padding:6px 12px; border:1px solid #ddd; ' + (window.currentSortType === 'coursePopular' ? 'background:#1275E0; color:white;' : 'background:white; color:#333;') + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기 코스</button>' +
       '</div>';
     
     if (filtered.length === 0) {
@@ -1625,13 +2265,19 @@
         +         '<div style="color:#888; font-size:0.8rem; margin-top:2px;">' + (categoryMap[h.categoryId]||'') + '</div>'
         +       '</div>'
         +     '</div>'
-        +     '<div style="margin-bottom:8px; color:#888; font-size:0.95rem; word-break:break-word;" id="voteTrends-' + h.id + '">📊 역대 투표: 로딩중...</div>'
-        +     '<div style="margin-bottom:8px; color:#666; font-size:0.95rem; word-break:break-word; line-height:1.4;" id="voteDetails-' + h.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
-        +     '<div style="color:#666; font-size:0.95rem; line-height:1.4; margin-bottom:8px; display:flex; align-items:flex-start; gap:6px;">'
-        +       '<div style="flex:1; word-break:break-word;">' + h.address + '</div>'
-        +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
-        +     '</div>'
-        +     (h.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>' : '')
+            +     '<div style="margin-bottom:8px; color:#ff6b35; font-size:0.95rem; font-weight:600;" id="todayHotRank-' + h.id + '">🔥 오늘핫: 로딩중...</div>'
+            +     '<div style="margin-bottom:8px; color:#ff6b35; font-size:0.95rem; font-weight:600;" id="todayVoteStats-' + h.id + '">#성비 #혼잡도 #대기시간</div>'
+            +     '<div style="margin-bottom:8px; color:#2196f3; font-size:0.95rem; font-weight:600; cursor:pointer;" id="courseCount-' + h.id + '" onclick="goToPlaceCourses(' + h.id + ')">📝 코스글: 로딩중...</div>'
+            +     '<div style="margin-bottom:8px; color:#888; font-size:0.95rem; word-break:break-word; display:flex; align-items:center; gap:8px;">'
+            +       '<span id="voteTrends-' + h.id + '">📊 역대 투표: 로딩중...</span>'
+            +       '<span onclick="toggleVoteDetails(' + h.id + ')" style="color:#1275E0; cursor:pointer; font-size:0.95rem;" id="voteDetailsToggle-' + h.id + '">더보기▾</span>'
+            +     '</div>'
+            +     '<div style="margin-bottom:8px; color:#666; font-size:0.95rem; word-break:break-word; line-height:1.4; display:none;" id="voteDetails-' + h.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
+            +     '<div style="color:#666; font-size:0.95rem; line-height:1.4; margin-bottom:8px; display:flex; align-items:flex-start; gap:6px;">'
+            +       '<div style="flex:1; word-break:break-word;">' + h.address + '</div>'
+            +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
+            +     '</div>'
+            +     (h.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>' : '')
         +   '</div>'
         +   '<div style="margin-left:12px; position:relative;">' + heartHtml + '</div>'
         + '</div>'
@@ -1660,14 +2306,11 @@
           heart.setAttribute('data-place-id', place.id);
           setupWishHeartByClass(place.id);
         }
-        // 가게명/카테고리 클릭 시 지도 이동 + 정보창 자동 열기
+        // 가게명/카테고리 클릭 시 단일 장소 표시
         function moveToHotplace(e) {
           e.stopPropagation();
-          var latlng = new kakao.maps.LatLng(place.lat, place.lng);
-          map.setLevel(5);
-          map.setCenter(latlng);
-          
-          // 해당 가게의 마커와 정보창 찾기
+          // showPlaceInfo 함수 호출하여 단일 장소 모드 활성화
+          showPlaceInfo(place.id);
           setTimeout(function() {
             var targetMarker = null;
             var targetInfoWindow = null;
@@ -1924,10 +2567,20 @@
           loadVoteCount(place.id);
         }, 200);
         
+        // 오늘핫 순위 로드
+        setTimeout(function() {
+          loadTodayHotRank(place.id);
+        }, 300);
+        
+        // 코스글 개수 로드
+        setTimeout(function() {
+          loadCourseCount(place.id);
+        }, 400);
+        
         // 장르 정보 로드
         setTimeout(function() {
           loadGenreInfo(place.id);
-        }, 300);
+        }, 500);
       });
     }, 500);
   }
@@ -1942,9 +2595,9 @@
     
     // 이전 버튼
     if (window.currentPage > 1) {
-      paginationHtml += '<button class="pagination-btn prev-btn" onclick="goToPage(\'' + region + '\', ' + categoryId + ', ' + (window.currentPage - 1) + ')" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; gap:4px;">‹ 이전</button>';
+      paginationHtml += '<button class="pagination-btn prev-btn" onclick="goToPage(\'' + region + '\', ' + categoryId + ', ' + (window.currentPage - 1) + ')" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;">‹</button>';
     } else {
-      paginationHtml += '<button class="pagination-btn prev-btn" disabled style="background:#ccc; color:#666; border:none; border-radius:6px; padding:8px 12px; cursor:not-allowed; font-size:14px; display:flex; align-items:center; gap:4px;">‹ 이전</button>';
+      paginationHtml += '<button class="pagination-btn prev-btn" disabled style="background:#ccc; color:#666; border:none; border-radius:6px; padding:8px 12px; cursor:not-allowed; font-size:14px; display:flex; align-items:center; justify-content:center;">‹</button>';
     }
     
     // 페이지 번호들
@@ -1978,13 +2631,12 @@
     
     // 다음 버튼
     if (window.currentPage < window.totalPages) {
-      paginationHtml += '<button class="pagination-btn next-btn" onclick="goToPage(\'' + region + '\', ' + categoryId + ', ' + (window.currentPage + 1) + ')" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; gap:4px;">다음 ›</button>';
+      paginationHtml += '<button class="pagination-btn next-btn" onclick="goToPage(\'' + region + '\', ' + categoryId + ', ' + (window.currentPage + 1) + ')" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;">›</button>';
     } else {
-      paginationHtml += '<button class="pagination-btn next-btn" disabled style="background:#ccc; color:#666; border:none; border-radius:6px; padding:8px 12px; cursor:not-allowed; font-size:14px; display:flex; align-items:center; gap:4px;">다음 ›</button>';
+      paginationHtml += '<button class="pagination-btn next-btn" disabled style="background:#ccc; color:#666; border:none; border-radius:6px; padding:8px 12px; cursor:not-allowed; font-size:14px; display:flex; align-items:center; justify-content:center;">›</button>';
     }
     
-    // 페이지 정보 표시
-    paginationHtml += '<div style="margin-left:16px; color:#666; font-size:13px;">(' + window.currentPage + ' / ' + window.totalPages + ' 페이지, 총 ' + window.totalItems + '개)</div>';
+    // 페이지 정보 표시 제거
     
     paginationHtml += '</div>';
     
@@ -2066,6 +2718,17 @@
     .category-filter-btn.marker-hunting { background: linear-gradient(135deg, #f44336, #ef5350); color: #fff; }
     .category-filter-btn.marker-lounge { background: linear-gradient(135deg, #4caf50, #66bb6a); color: #fff; }
     .category-filter-btn.marker-pocha { background: linear-gradient(135deg, #8d6e63, #a1887f); color: #fff; }
+    .category-filter-btn.wishlist-filter-btn { 
+      background: linear-gradient(135deg, #ff6b6b, #ff8e8e); 
+      color: #fff; 
+      border: 1.5px solid #ff6b6b;
+    }
+    .category-filter-btn.wishlist-filter-btn.active {
+      background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+      color: #fff;
+      border: 2.5px solid #fff;
+      box-shadow: 0 0 0 2px #ff6b6b;
+    }
     .category-filter-btn:not(.active):hover {
       filter: brightness(1.08);
       opacity: 1;
@@ -2496,10 +3159,18 @@
   }
 
   // 투표 현황 로드 함수 (투표 수 포함)
-  function loadVoteTrends(placeId, voteCount = null) {
+  function loadVoteTrends(placeId, voteCount = null, retryCount = 0) {
     const trendsElements = document.querySelectorAll('#voteTrends-' + placeId);
     const detailsElements = document.querySelectorAll('#voteDetails-' + placeId);
-    if (trendsElements.length === 0) return;
+    if (trendsElements.length === 0 && retryCount < 10) {
+      setTimeout(function() {
+        loadVoteTrends(placeId, voteCount, retryCount + 1);
+      }, 200);
+      return;
+    }
+    if (trendsElements.length === 0) {
+      return;
+    }
     
     // 모든 요소가 이미 로드되어 있으면 중복 로딩 방지
     let allLoaded = true;
@@ -2549,7 +3220,6 @@
           '#혼잡도:' + congestionText + '<br>' +
           '#대기시간:' + waitTimeText;
       }
-      
       // 모든 details 요소에 동시에 업데이트
       detailsElements.forEach(element => {
         element.innerHTML = detailsText;
@@ -2618,6 +3288,284 @@
       // 모든 해당 요소에 동시에 업데이트
       genresElements.forEach(element => {
         element.innerHTML = '🎵 장르: 로드 실패';
+      });
+    });
+  }
+
+  // 특정 가게의 코스 목록으로 이동하는 함수
+  function goToPlaceCourses(placeId) {
+    window.location.href = root + '/course/place/' + placeId;
+  }
+
+  // 코스글 개수 로드 함수
+  function loadCourseCount(placeId, retryCount = 0) {
+    const courseElements = document.querySelectorAll('#courseCount-' + placeId);
+    if (courseElements.length === 0 && retryCount < 10) {
+      setTimeout(function() {
+        loadCourseCount(placeId, retryCount + 1);
+      }, 200);
+      return;
+    }
+    if (courseElements.length === 0) {
+      return;
+    }
+    
+    // 모든 요소가 이미 코스 개수가 로드되어 있으면 중복 로딩 방지
+    let allLoaded = true;
+    for (let element of courseElements) {
+      if (element.textContent.includes('로딩중')) {
+        allLoaded = false;
+        break;
+      }
+    }
+    if (allLoaded) {
+      return;
+    }
+    
+    fetch(root + '/course/api/course-count', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'placeId=' + placeId
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const courseText = '📝 코스글: ' + data.courseCount + '개';
+        courseElements.forEach(element => {
+          element.textContent = courseText;
+        });
+      } else {
+        const courseText = '📝 코스글: 0개';
+        courseElements.forEach(element => {
+          element.textContent = courseText;
+        });
+      }
+    })
+    .catch(error => {
+      const courseText = '📝 코스글: 0개';
+      courseElements.forEach(element => {
+        element.textContent = courseText;
+      });
+    });
+  }
+
+  // 역대 투표 상세 정보 토글 함수
+  function toggleVoteDetails(placeId) {
+    const detailsElement = document.getElementById('voteDetails-' + placeId);
+    const toggleElement = document.getElementById('voteDetailsToggle-' + placeId);
+    
+    if (detailsElement && toggleElement) {
+      if (detailsElement.style.display === 'none') {
+        detailsElement.style.display = 'block';
+        toggleElement.textContent = '접기△';
+      } else {
+        detailsElement.style.display = 'none';
+        toggleElement.textContent = '더보기▾';
+      }
+    }
+  }
+
+  // 오늘 투표 통계 로드 함수
+  function loadTodayVoteStats(placeId, retryCount = 0) {
+    const statsElements = document.querySelectorAll('#todayVoteStats-' + placeId);
+    if (statsElements.length === 0 && retryCount < 10) {
+      setTimeout(function() {
+        loadTodayVoteStats(placeId, retryCount + 1);
+      }, 200);
+      return;
+    }
+    if (statsElements.length === 0) {
+      return;
+    }
+    
+    // 모든 요소가 이미 통계 정보가 로드되어 있으면 중복 로딩 방지
+    let allLoaded = true;
+    for (let element of statsElements) {
+      if (element.textContent.includes('로딩중') || element.textContent.includes('#성비 #혼잡도 #대기시간')) {
+        allLoaded = false;
+        break;
+      }
+    }
+    if (allLoaded) {
+      return;
+    }
+    
+    fetch(root + '/api/today-hot/today-stats', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'placeId=' + placeId
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        let statsText = '';
+        
+        // 성비
+        if (data.genderRatio) {
+          let genderText = '';
+          switch(data.genderRatio) {
+            case '남초': genderText = '남자 ↑'; break;
+            case '여초': genderText = '여자 ↑'; break;
+            case '반반': genderText = '반반'; break;
+            default: genderText = data.genderRatio; break;
+          }
+          statsText += '#성비: ' + genderText + ' ';
+        }
+        
+        // 혼잡도
+        if (data.congestion) {
+          let congestionText = '';
+          switch(data.congestion) {
+            case '여유': congestionText = '여유'; break;
+            case '보통': congestionText = '보통'; break;
+            case '많음': congestionText = '많음'; break;
+            case '혼잡': congestionText = '혼잡'; break;
+            default: congestionText = data.congestion; break;
+          }
+          statsText += '#혼잡도: ' + congestionText + ' ';
+        }
+        
+        // 대기시간
+        if (data.waitTime) {
+          let waitTimeText = '';
+          switch(data.waitTime) {
+            case '없음': waitTimeText = '없음'; break;
+            case '10분': waitTimeText = '10분 ↑'; break;
+            case '30분': waitTimeText = '30분 ↑'; break;
+            case '1시간': waitTimeText = '1시간 ↑'; break;
+            default: waitTimeText = data.waitTime; break;
+          }
+          statsText += '#대기시간: ' + waitTimeText;
+        }
+        
+        if (statsText.trim()) {
+          statsElements.forEach(element => {
+            // 검색 결과인지 지도 상세 정보인지 구분
+            const isSearchResult = element.closest('.hotplace-list-card') !== null;
+            
+            if (isSearchResult) {
+              // 검색 결과: 각각 한 줄씩
+              let formattedText = '';
+              if (data.genderRatio) {
+                let genderText = '';
+                switch(data.genderRatio) {
+                  case '남초': genderText = '남자 ↑'; break;
+                  case '여초': genderText = '여자 ↑'; break;
+                  case '반반': genderText = '반반'; break;
+                  default: genderText = data.genderRatio; break;
+                }
+                formattedText += '#성비: ' + genderText + '<br>';
+              }
+              
+              if (data.congestion) {
+                let congestionText = '';
+                switch(data.congestion) {
+                  case '여유': congestionText = '여유'; break;
+                  case '보통': congestionText = '보통'; break;
+                  case '많음': congestionText = '많음'; break;
+                  case '혼잡': congestionText = '혼잡'; break;
+                  default: congestionText = data.congestion; break;
+                }
+                formattedText += '#혼잡도: ' + congestionText + '<br>';
+              }
+              
+              if (data.waitTime) {
+                let waitTimeText = '';
+                switch(data.waitTime) {
+                  case '없음': waitTimeText = '없음'; break;
+                  case '10분': waitTimeText = '10분 ↑'; break;
+                  case '30분': waitTimeText = '30분 ↑'; break;
+                  case '1시간': waitTimeText = '1시간 ↑'; break;
+                  default: waitTimeText = data.waitTime; break;
+                }
+                formattedText += '#대기시간: ' + waitTimeText;
+              }
+              
+              element.innerHTML = formattedText.trim();
+            } else {
+              // 지도 상세 정보: 한 줄로
+              element.textContent = statsText.trim();
+            }
+          });
+        } else {
+          statsElements.forEach(element => {
+            element.textContent = '#성비 #혼잡도 #대기시간';
+          });
+        }
+      } else {
+        statsElements.forEach(element => {
+          element.textContent = '#성비 #혼잡도 #대기시간';
+        });
+      }
+    })
+    .catch(error => {
+      statsElements.forEach(element => {
+        element.textContent = '#성비 #혼잡도 #대기시간';
+      });
+    });
+  }
+
+  // 오늘핫 순위 로드 함수
+  function loadTodayHotRank(placeId, retryCount = 0) {
+    const rankElements = document.querySelectorAll('#todayHotRank-' + placeId);
+    if (rankElements.length === 0 && retryCount < 10) {
+      setTimeout(function() {
+        loadTodayHotRank(placeId, retryCount + 1);
+      }, 200);
+      return;
+    }
+    if (rankElements.length === 0) {
+      return;
+    }
+    
+    // 모든 요소가 이미 순위 정보가 로드되어 있으면 중복 로딩 방지
+    let allLoaded = true;
+    for (let element of rankElements) {
+      if (element.textContent.includes('로딩중')) {
+        allLoaded = false;
+        break;
+      }
+    }
+    if (allLoaded) {
+      return;
+    }
+    
+    fetch(root + '/api/today-hot/rank', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'placeId=' + placeId
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.ranking) {
+        const rankText = '🔥 오늘핫: ' + data.ranking + '위(' + data.voteCount + '표)';
+        rankElements.forEach(element => {
+          element.textContent = rankText;
+        });
+      } else if (data.success && data.voteCount > 0) {
+        // 투표는 있지만 순위가 없는 경우 (상위 12위 밖)
+        const rankText = '🔥 오늘핫: 순위밖(' + data.voteCount + '표)';
+        rankElements.forEach(element => {
+          element.textContent = rankText;
+        });
+      } else {
+        // 투표가 없는 경우
+        const rankText = '🔥 오늘핫: 투표없음';
+        rankElements.forEach(element => {
+          element.textContent = rankText;
+        });
+      }
+    })
+    .catch(error => {
+      const rankText = '🔥 오늘핫: 투표없음';
+      rankElements.forEach(element => {
+        element.textContent = rankText;
       });
     });
   }
@@ -3341,6 +4289,19 @@
     color: white !important;
     border-color: #1275E0 !important;
   }
+  
+  /* 마커 라벨 스타일 */
+  .marker-label {
+    background: none !important;
+    color: #000 !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    text-shadow: 2px 2px 4px rgba(255,255,255,1), -1px -1px 2px rgba(255,255,255,1), 1px -1px 2px rgba(255,255,255,1), -1px 1px 2px rgba(255,255,255,1) !important;
+    padding: 3px 8px !important;
+    border-radius: 4px !important;
+    border: none !important;
+    white-space: nowrap !important;
+  }
 </style>
 
 <script>
@@ -3371,7 +4332,7 @@ function sortHotplaceData(hotplaces, sortType) {
       return new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0);
     });
   } else if (sortType === 'popular') {
-    // 인기순 (찜 65% + 투표 35%)
+    // 인기순 (찜 65% + 투표 35%) - 기본값으로 정렬
     return hotplaces.sort(function(a, b) {
       var aWishCount = parseInt(a.wish_count || a.wishCount || 0);
       var bWishCount = parseInt(b.wish_count || b.wishCount || 0);
@@ -3383,8 +4344,97 @@ function sortHotplaceData(hotplaces, sortType) {
       
       return bPopularity - aPopularity;
     });
+  } else if (sortType === 'coursePopular') {
+    // 인기 코스순 (가게별 코스 개수 기준 내림차순)
+    return hotplaces.sort(function(a, b) {
+      var aCourseCount = parseInt(a.course_count || a.courseCount || 0);
+      var bCourseCount = parseInt(b.course_count || b.courseCount || 0);
+      
+      return bCourseCount - aCourseCount;
+    });
   }
   return hotplaces;
+}
+
+// 전체 데이터의 찜 수와 투표 수를 로드하는 함수
+function loadAllStatsForSorting(hotplaces, callback) {
+  var loadedCount = 0;
+  var totalCount = hotplaces.length;
+  
+  if (totalCount === 0) {
+    callback(hotplaces);
+    return;
+  }
+  
+  hotplaces.forEach(function(hotplace) {
+    // 찜 수 가져오기
+    fetch(root + '/api/main/wish-count', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'placeId=' + hotplace.id
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        hotplace.wish_count = data.count || 0;
+      } else {
+        hotplace.wish_count = 0;
+      }
+      
+      // 투표 수 가져오기
+      return fetch(root + '/api/main/vote-count', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'placeId=' + hotplace.id
+      });
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        hotplace.vote_count = data.voteCount || 0;
+      } else {
+        hotplace.vote_count = 0;
+      }
+      
+      // 코스 수 가져오기
+      return fetch(root + '/api/main/course-count', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'placeId=' + hotplace.id
+      });
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        hotplace.course_count = data.count || 0;
+      } else {
+        hotplace.course_count = 0;
+      }
+      
+      loadedCount++;
+      if (loadedCount === totalCount) {
+        // 모든 데이터 로드 완료 후 정렬
+        var sortedHotplaces = sortHotplaceData(hotplaces, window.currentSortType);
+        callback(sortedHotplaces);
+      }
+    })
+    .catch(error => {
+      hotplace.wish_count = 0;
+      hotplace.vote_count = 0;
+      hotplace.course_count = 0;
+      loadedCount++;
+      if (loadedCount === totalCount) {
+        var sortedHotplaces = sortHotplaceData(hotplaces, window.currentSortType);
+        callback(sortedHotplaces);
+      }
+    });
+  });
 }
 
 // 현재 표시되는 가게들의 찜 수와 투표 수를 가져오는 함수
@@ -3503,6 +4553,132 @@ function formatGenderRatio(genderRatio) {
     default:
       return genderRatio;
   }
+}
+
+// 네이버 플레이스 링크 로드 함수
+function loadNaverPlaceLink(placeId, retryCount = 0) {
+  const linkElements = document.querySelectorAll('#naverPlaceLink-' + placeId);
+  if (linkElements.length === 0 && retryCount < 10) {
+    setTimeout(function() {
+      loadNaverPlaceLink(placeId, retryCount + 1);
+    }, 200);
+    return;
+  }
+  if (linkElements.length === 0) {
+    return;
+  }
+  
+  fetch(root + '/api/main/naver-place-link', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: 'placeId=' + placeId
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      for (let element of linkElements) {
+        if (data.link && data.link.trim() !== '') {
+          element.innerHTML = '<a href="' + data.link + '" target="_blank" style="color:#00c73c; text-decoration:none;">🔗 네이버 플레이스</a>';
+        } else {
+          element.innerHTML = '<span style="color:#999;">🔗 네이버 플레이스: 없음</span>';
+        }
+      }
+    } else {
+      for (let element of linkElements) {
+        element.innerHTML = '<span style="color:#999;">🔗 네이버 플레이스: 로드 실패</span>';
+      }
+    }
+  })
+  .catch(error => {
+    for (let element of linkElements) {
+      element.innerHTML = '<span style="color:#999;">🔗 네이버 플레이스: 로드 실패</span>';
+    }
+  });
+}
+
+// 네이버 플레이스 링크 편집 모달 열기 (관리자 전용)
+function openNaverPlaceLinkModal(placeId, placeName) {
+  // 기존 모달이 있으면 제거
+  const existingModal = document.getElementById('naverPlaceLinkModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+  
+  // 모달 HTML 생성
+  const modalHtml = `
+    <div id="naverPlaceLinkModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; display:flex; align-items:center; justify-content:center;">
+      <div style="background:white; padding:30px; border-radius:10px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto;">
+        <h3 style="margin:0 0 20px 0; color:#333;">네이버 플레이스 링크 편집</h3>
+        <p style="margin:0 0 15px 0; color:#666; font-size:14px;"><strong>${placeName}</strong>의 네이버 플레이스 링크를 입력해주세요.</p>
+        <input type="url" id="naverPlaceLinkInput" placeholder="https://place.map.naver.com/..." style="width:100%; padding:12px; border:1px solid #ddd; border-radius:5px; font-size:14px; margin-bottom:20px;">
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <button onclick="closeNaverPlaceLinkModal()" style="padding:10px 20px; border:1px solid #ddd; background:white; border-radius:5px; cursor:pointer;">취소</button>
+          <button onclick="saveNaverPlaceLink(` + placeId + `)" style="padding:10px 20px; border:none; background:#00c73c; color:white; border-radius:5px; cursor:pointer;">저장</button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  
+  // 기존 링크 로드
+  fetch(root + '/api/main/naver-place-link', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: 'placeId=' + placeId
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success && data.link) {
+      document.getElementById('naverPlaceLinkInput').value = data.link;
+    }
+  })
+  .catch(error => {
+    console.error('Error loading existing link:', error);
+  });
+}
+
+// 네이버 플레이스 링크 모달 닫기
+function closeNaverPlaceLinkModal() {
+  const modal = document.getElementById('naverPlaceLinkModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+// 네이버 플레이스 링크 저장
+function saveNaverPlaceLink(placeId) {
+  const linkInput = document.getElementById('naverPlaceLinkInput');
+  const link = linkInput.value.trim();
+  
+  // 빈 문자열인 경우 null로 처리
+  const linkValue = link === '' ? '' : link;
+  
+  fetch(root + '/api/main/naver-place-link-save', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: 'placeId=' + placeId + '&link=' + encodeURIComponent(linkValue)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showToast('네이버 플레이스 링크가 저장되었습니다.', 'success');
+      closeNaverPlaceLinkModal();
+      // 링크 다시 로드
+      loadNaverPlaceLink(placeId);
+    } else {
+      showToast(data.error || '링크 저장에 실패했습니다.', 'error');
+    }
+  })
+  .catch(error => {
+    showToast('링크 저장 중 오류가 발생했습니다.', 'error');
+  });
 }
 
 // 전역 함수로 노출

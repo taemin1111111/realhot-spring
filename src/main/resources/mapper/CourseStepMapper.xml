@@ -60,4 +60,9 @@
         SELECT COUNT(*) FROM course_step WHERE course_id = #{courseId}
     </select>
 
+    <!-- 특정 가게가 포함된 코스 개수 조회 -->
+    <select id="getCourseCountByPlaceId" resultType="int">
+        SELECT COUNT(DISTINCT course_id) FROM course_step WHERE place_id = #{placeId}
+    </select>
+
 </mapper>

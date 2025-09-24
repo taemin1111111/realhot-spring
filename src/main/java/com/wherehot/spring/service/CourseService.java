@@ -219,6 +219,35 @@ public class CourseService {
         courseMapper.deleteCourse(courseId);
     }
     
+    // 특정 가게가 포함된 코스 개수 조회
+    public int getCourseCountByPlaceId(int placeId) {
+        return courseStepMapper.getCourseCountByPlaceId(placeId);
+    }
+    
+    // 특정 가게가 포함된 인기글 목록 조회
+    public List<Course> getPopularCourseListByPlaceId(int placeId, int page) {
+        int offset = (page - 1) * PAGE_SIZE;
+        List<Course> courses = courseMapper.getPopularCourseListByPlaceId(placeId, offset, PAGE_SIZE);
+        // 각 코스의 스텝 정보 로드
+        for (Course course : courses) {
+            List<CourseStep> steps = courseStepMapper.getCourseStepsByCourseId(course.getId());
+            course.setCourseSteps(steps);
+        }
+        return courses;
+    }
+    
+    // 특정 가게가 포함된 최신글 목록 조회
+    public List<Course> getLatestCourseListByPlaceId(int placeId, int page) {
+        int offset = (page - 1) * PAGE_SIZE;
+        List<Course> courses = courseMapper.getLatestCourseListByPlaceId(placeId, offset, PAGE_SIZE);
+        // 각 코스의 스텝 정보 로드
+        for (Course course : courses) {
+            List<CourseStep> steps = courseStepMapper.getCourseStepsByCourseId(course.getId());
+            course.setCourseSteps(steps);
+        }
+        return courses;
+    }
+    
     // 사진 파일 삭제
     private void deletePhotoFile(String photoUrl) {
         try {

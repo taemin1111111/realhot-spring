@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import com.wherehot.spring.config.SecurityHeadersConfig;
 
 import java.util.Arrays;
 
@@ -41,6 +42,9 @@ public class SecurityConfig {
     
     @Autowired
     private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+    
+    @Autowired
+    private SecurityHeadersConfig securityHeadersConfig;
     
     @Autowired
     private CustomAuthorizationRequestRepository customAuthorizationRequestRepository;
@@ -147,6 +151,9 @@ public class SecurityConfig {
                 .authorizationEndpoint(authorization -> authorization
                     .baseUri("/oauth2/authorization")
                     .authorizationRequestRepository(customAuthorizationRequestRepository)))
+            
+            // 보안 헤더 필터 추가
+            .addFilterBefore(securityHeadersConfig.securityHeadersFilter(), UsernamePasswordAuthenticationFilter.class)
             
             // JWT 인증 필터 추가
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

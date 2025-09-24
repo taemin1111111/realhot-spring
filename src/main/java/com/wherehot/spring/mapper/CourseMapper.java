@@ -85,4 +85,14 @@ public interface CourseMapper {
     
     // 검색으로 코스 수 조회
     int getCourseCountBySearch(@Param("keyword") String keyword);
+    
+    // 특정 가게가 포함된 인기글 조회
+    List<Course> getPopularCourseListByPlaceId(@Param("placeId") int placeId, 
+                                              @Param("offset") int offset, 
+                                              @Param("limit") int limit);
+    
+    // 특정 가게가 포함된 최신글 조회
+    List<Course> getLatestCourseListByPlaceId(@Param("placeId") int placeId, 
+                                             @Param("offset") int offset, 
+                                             @Param("limit") int limit);
 }

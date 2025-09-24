@@ -1099,6 +1099,7 @@
                                         <li id="admin-menu1" style="display: none;"><a class="dropdown-item" href="#" onclick="goToAdminPage('/admin/hpost'); return false;">핫플썰 관리</a></li>
                 <li id="admin-menu2" style="display: none;"><a class="dropdown-item" href="#" onclick="goToAdminPage('/admin/course'); return false;">코스 관리</a></li>
                 <li id="admin-menu3" style="display: none;"><a class="dropdown-item" href="#" onclick="goToAdminPage('/admin/member'); return false;">회원 관리</a></li>
+                <li id="admin-menu4" style="display: none;"><a class="dropdown-item" href="#" onclick="goToAdminPage('/admin/hotplace/insert'); return false;">핫플 추가</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="#" onclick="logout()">로그아웃</a></li>
                     </ul>
@@ -1202,6 +1203,9 @@
                 </a>
                 <a href="#" class="mobile-menu-item" id="mobile-admin-menu3" style="display: none;" onclick="goToAdminPage('/admin/member'); closeMobileMenu(); return false;">
                     <i class="bi bi-people me-2"></i>회원 관리
+                </a>
+                <a href="#" class="mobile-menu-item" id="mobile-admin-menu4" style="display: none;" onclick="goToAdminPage('/admin/hotplace/insert'); closeMobileMenu(); return false;">
+                    <i class="bi bi-plus-circle me-2"></i>핫플 추가
                 </a>
 
 
@@ -1358,6 +1362,7 @@ function updateTitleUI(userInfo) {
         const adminMenu1 = document.getElementById('admin-menu1');
         const adminMenu2 = document.getElementById('admin-menu2');
         const adminMenu3 = document.getElementById('admin-menu3');
+        const adminMenu4 = document.getElementById('admin-menu4');
         
         if (adminMenu1 && adminMenu1.style) {
             try {
@@ -1381,10 +1386,19 @@ function updateTitleUI(userInfo) {
             }
         }
         
+        if (adminMenu4 && adminMenu4.style) {
+            try {
+                adminMenu4.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
+            } catch (e) {
+                // 스타일 변경 실패 무시
+            }
+        }
+        
         // 관리자 메뉴들 표시 (모바일)
         const mobileAdminMenu1 = document.getElementById('mobile-admin-menu1');
         const mobileAdminMenu2 = document.getElementById('mobile-admin-menu2');
         const mobileAdminMenu3 = document.getElementById('mobile-admin-menu3');
+        const mobileAdminMenu4 = document.getElementById('mobile-admin-menu4');
         
         if (mobileAdminMenu1 && mobileAdminMenu1.style) {
             try {
@@ -1403,6 +1417,14 @@ function updateTitleUI(userInfo) {
         if (mobileAdminMenu3 && mobileAdminMenu3.style) {
             try {
                 mobileAdminMenu3.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
+            } catch (e) {
+                // 스타일 변경 실패 무시
+            }
+        }
+        
+        if (mobileAdminMenu4 && mobileAdminMenu4.style) {
+            try {
+                mobileAdminMenu4.style.display = (userInfo.provider === 'admin') ? 'block' : 'none';
             } catch (e) {
                 // 스타일 변경 실패 무시
             }
@@ -1450,6 +1472,7 @@ function showLoggedOutUI() {
         const adminMenu1 = document.getElementById('admin-menu1');
         const adminMenu2 = document.getElementById('admin-menu2');
         const adminMenu3 = document.getElementById('admin-menu3');
+        const adminMenu4 = document.getElementById('admin-menu4');
         const mypageMenu = document.getElementById('mypage-menu');
         
         // 모바일 UI 요소들
@@ -1458,6 +1481,7 @@ function showLoggedOutUI() {
         const mobileAdminMenu1 = document.getElementById('mobile-admin-menu1');
         const mobileAdminMenu2 = document.getElementById('mobile-admin-menu2');
         const mobileAdminMenu3 = document.getElementById('mobile-admin-menu3');
+        const mobileAdminMenu4 = document.getElementById('mobile-admin-menu4');
         const mobileMypageMenu = document.getElementById('mobile-mypage-menu');
         const mobileNotificationContainer = document.getElementById('mobile-notification-container');
         
@@ -1884,16 +1908,20 @@ function updateTitleUIFromSavedInfo(userInfo) {
             const adminMenu1 = document.getElementById('admin-menu1');
             const adminMenu2 = document.getElementById('admin-menu2');
             const adminMenu3 = document.getElementById('admin-menu3');
+            const adminMenu4 = document.getElementById('admin-menu4');
             if (adminMenu1) adminMenu1.style.display = 'block';
             if (adminMenu2) adminMenu2.style.display = 'block';
             if (adminMenu3) adminMenu3.style.display = 'block';
+            if (adminMenu4) adminMenu4.style.display = 'block';
         } else {
             const adminMenu1 = document.getElementById('admin-menu1');
             const adminMenu2 = document.getElementById('admin-menu2');
             const adminMenu3 = document.getElementById('admin-menu3');
+            const adminMenu4 = document.getElementById('admin-menu4');
             if (adminMenu1) adminMenu1.style.display = 'none';
             if (adminMenu2) adminMenu2.style.display = 'none';
             if (adminMenu3) adminMenu3.style.display = 'none';
+            if (adminMenu4) adminMenu4.style.display = 'none';
         }
         
         // 🔐 마이페이지 메뉴 처리 (즉시)
@@ -1916,6 +1944,7 @@ function updateTitleUIFromSavedInfo(userInfo) {
         const mobileAdminMenu1 = document.getElementById('mobile-admin-menu1');
         const mobileAdminMenu2 = document.getElementById('mobile-admin-menu2');
         const mobileAdminMenu3 = document.getElementById('mobile-admin-menu3');
+        const mobileAdminMenu4 = document.getElementById('mobile-admin-menu4');
         const mobileMypageMenu = document.getElementById('mobile-mypage-menu');
         
         if (mobileLoginSection && mobileUserSection) {
@@ -2043,33 +2072,40 @@ async function updateAuthUI() {
                     const adminMenu1 = document.getElementById('admin-menu1');
                     const adminMenu2 = document.getElementById('admin-menu2');
                     const adminMenu3 = document.getElementById('admin-menu3');
+                    const adminMenu4 = document.getElementById('admin-menu4');
                     if (adminMenu1) adminMenu1.style.display = 'block';
                     if (adminMenu2) adminMenu2.style.display = 'block';
                     if (adminMenu3) adminMenu3.style.display = 'block';
+                    if (adminMenu4) adminMenu4.style.display = 'block';
                 } else {
                     const adminMenu1 = document.getElementById('admin-menu1');
                     const adminMenu2 = document.getElementById('admin-menu2');
                     const adminMenu3 = document.getElementById('admin-menu3');
+                    const adminMenu4 = document.getElementById('admin-menu4');
                     if (adminMenu1) adminMenu1.style.display = 'none';
                     if (adminMenu2) adminMenu2.style.display = 'none';
                     if (adminMenu3) adminMenu3.style.display = 'none';
+                    if (adminMenu4) adminMenu4.style.display = 'none';
                 }
                 
                 // 📱 모바일 관리자 메뉴 처리
                 const mobileAdminMenu1 = document.getElementById('mobile-admin-menu1');
                 const mobileAdminMenu2 = document.getElementById('mobile-admin-menu2');
                 const mobileAdminMenu3 = document.getElementById('mobile-admin-menu3');
+                const mobileAdminMenu4 = document.getElementById('mobile-admin-menu4');
                 const mobileMypageMenu = document.getElementById('mobile-mypage-menu');
                 
                 if (payload.provider === 'admin') {
                     if (mobileAdminMenu1) mobileAdminMenu1.style.display = 'block';
                     if (mobileAdminMenu2) mobileAdminMenu2.style.display = 'block';
                     if (mobileAdminMenu3) mobileAdminMenu3.style.display = 'block';
+                    if (mobileAdminMenu4) mobileAdminMenu4.style.display = 'block';
                     if (mobileMypageMenu) mobileMypageMenu.style.display = 'none';
                 } else {
                     if (mobileAdminMenu1) mobileAdminMenu1.style.display = 'none';
                     if (mobileAdminMenu2) mobileAdminMenu2.style.display = 'none';
                     if (mobileAdminMenu3) mobileAdminMenu3.style.display = 'none';
+                    if (mobileAdminMenu4) mobileAdminMenu4.style.display = 'none';
                     if (mobileMypageMenu) mobileMypageMenu.style.display = 'block';
                 }
                 
@@ -2119,20 +2155,24 @@ function showLoggedOutUI() {
     const adminMenu1 = document.getElementById('admin-menu1');
     const adminMenu2 = document.getElementById('admin-menu2');
     const adminMenu3 = document.getElementById('admin-menu3');
+    const adminMenu4 = document.getElementById('admin-menu4');
     if (adminMenu1) adminMenu1.style.display = 'none';
     if (adminMenu2) adminMenu2.style.display = 'none';
     if (adminMenu3) adminMenu3.style.display = 'none';
+    if (adminMenu4) adminMenu4.style.display = 'none';
     
     // 📱 모바일 햄버거 메뉴 로그아웃 상태로 업데이트
     const mobileAdminMenu1 = document.getElementById('mobile-admin-menu1');
     const mobileAdminMenu2 = document.getElementById('mobile-admin-menu2');
     const mobileAdminMenu3 = document.getElementById('mobile-admin-menu3');
+    const mobileAdminMenu4 = document.getElementById('mobile-admin-menu4');
     const mobileMypageMenu = document.getElementById('mobile-mypage-menu');
     
     // 모바일 관리자 메뉴들 숨기기
     if (mobileAdminMenu1) mobileAdminMenu1.style.display = 'none';
     if (mobileAdminMenu2) mobileAdminMenu2.style.display = 'none';
     if (mobileAdminMenu3) mobileAdminMenu3.style.display = 'none';
+    if (mobileAdminMenu4) mobileAdminMenu4.style.display = 'none';
     if (mobileMypageMenu) mobileMypageMenu.style.display = 'none';
 }
 

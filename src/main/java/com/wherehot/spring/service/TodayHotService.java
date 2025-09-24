@@ -9,10 +9,17 @@ import java.util.Map;
 public interface TodayHotService {
     
     /**
-     * 오늘 핫 랭킹 조회 (투표 수 기준 상위 10개)
+     * 오늘 핫 랭킹 조회 (투표 수 기준 상위 12개)
      * @return 랭킹 데이터 리스트
      */
     List<Map<String, Object>> getTodayHotRanking();
+    
+    /**
+     * 특정 가게의 오늘핫 순위 조회
+     * @param placeId 가게 ID
+     * @return 순위 데이터
+     */
+    List<Map<String, Object>> getPlaceTodayHotRank(int placeId);
     
     /**
      * 특정 가게의 오늘 투표 통계 조회

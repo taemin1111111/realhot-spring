@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -955,6 +955,70 @@ public class CourseController {
         }
         
         return response;
+    }
+    
+    // 특정 가게가 포함된 코스 개수 조회 API
+    @PostMapping("/api/course-count")
+    @ResponseBody
+    public Map<String, Object> getCourseCountByPlace(@RequestParam int placeId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            int courseCount = courseService.getCourseCountByPlaceId(placeId);
+            
+            response.put("success", true);
+            response.put("placeId", placeId);
+            response.put("courseCount", courseCount);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "코스 개수 조회 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return response;
+    }
+    
+    // 특정 가게가 포함된 코스 목록 페이지
+    @GetMapping("/place/{placeId}")
+    public String courseListByPlace(@PathVariable int placeId,
+                                   @RequestParam(defaultValue = "1") int page,
+                                   @RequestParam(defaultValue = "popular") String sort,
+                                   Model model) {
+        
+        try {
+            // 가게 정보 조회
+            Optional<Hotplace> hotplaceOpt = hotplaceService.findHotplaceById(placeId);
+            if (!hotplaceOpt.isPresent()) {
+                return "redirect:/course";
+            }
+            Hotplace hotplace = hotplaceOpt.get();
+            
+            List<Course> courseList;
+            int totalCount;
+            
+            if ("popular".equals(sort)) {
+                courseList = courseService.getPopularCourseListByPlaceId(placeId, page);
+            } else {
+                courseList = courseService.getLatestCourseListByPlaceId(placeId, page);
+            }
+            totalCount = courseService.getCourseCountByPlaceId(placeId);
+            
+            model.addAttribute("courseList", courseList);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("sort", sort);
+            model.addAttribute("placeId", placeId);
+            model.addAttribute("hotplace", hotplace);
+            model.addAttribute("totalCount", totalCount);
+            
+            // 기존 JSP Include 방식 유지
+            model.addAttribute("mainPage", "pullcourse/courseByPlace.jsp");
+            return "index";
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/course";
+        }
     }
     
     // 코스 신고 API

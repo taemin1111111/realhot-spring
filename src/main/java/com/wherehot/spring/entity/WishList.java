@@ -13,6 +13,18 @@ public class WishList {
     private LocalDateTime wishDate; // 찜한 날짜
     private String personal_note; // 개인 메모
     private String categoryName; // 카테고리명
+    
+    // 핫플레이스 정보 (JOIN 결과)
+    private String hotplaceName;
+    private String hotplaceAddress;
+    private Double hotplaceLat;
+    private Double hotplaceLng;
+    private Integer hotplaceCategoryId;
+    private Integer hotplaceRegionId;
+    private LocalDateTime hotplaceCreatedAt;
+    
+    // 사용자 정보 (JOIN 결과)
+    private String userNickname;
 
     // 생성자
     public WishList() {
@@ -82,5 +94,71 @@ public class WishList {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    // 핫플레이스 정보 Getter & Setter
+    public String getHotplaceName() {
+        return hotplaceName;
+    }
+
+    public void setHotplaceName(String hotplaceName) {
+        this.hotplaceName = hotplaceName;
+    }
+
+    public String getHotplaceAddress() {
+        return hotplaceAddress;
+    }
+
+    public void setHotplaceAddress(String hotplaceAddress) {
+        this.hotplaceAddress = hotplaceAddress;
+    }
+
+    public Double getHotplaceLat() {
+        return hotplaceLat;
+    }
+
+    public void setHotplaceLat(Double hotplaceLat) {
+        this.hotplaceLat = hotplaceLat;
+    }
+
+    public Double getHotplaceLng() {
+        return hotplaceLng;
+    }
+
+    public void setHotplaceLng(Double hotplaceLng) {
+        this.hotplaceLng = hotplaceLng;
+    }
+
+    public Integer getHotplaceCategoryId() {
+        return hotplaceCategoryId;
+    }
+
+    public void setHotplaceCategoryId(Integer hotplaceCategoryId) {
+        this.hotplaceCategoryId = hotplaceCategoryId;
+    }
+
+    public Integer getHotplaceRegionId() {
+        return hotplaceRegionId;
+    }
+
+    public void setHotplaceRegionId(Integer hotplaceRegionId) {
+        this.hotplaceRegionId = hotplaceRegionId;
+    }
+
+    public LocalDateTime getHotplaceCreatedAt() {
+        return hotplaceCreatedAt;
+    }
+
+    public void setHotplaceCreatedAt(LocalDateTime hotplaceCreatedAt) {
+        this.hotplaceCreatedAt = hotplaceCreatedAt;
+    }
+
+    // 사용자 정보 Getter & Setter
+    public String getUserNickname() {
+        return userNickname;
+    }
+
+    public void setUserNickname(String userNickname) {
+        this.userNickname = userNickname;
     }
 }

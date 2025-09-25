@@ -151,10 +151,23 @@
     </div>
   </div>
   
-  <!-- 핫플썰 인기글 섹션 -->
+  <!-- 핫플썰 인기글 및 광고 배너 섹션 -->
   <div class="row mt-5">
-    <div class="col-12">
+    <!-- 핫플썰 인기글 -->
+    <div class="col-6">
       <jsp:include page="hotplace_popular.jsp" />
+    </div>
+    
+    <!-- 광고 배너 -->
+    <div class="col-6">
+      <jsp:include page="ad_banner.jsp" />
+    </div>
+  </div>
+  
+  <!-- 코스 인기글 섹션 -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <jsp:include page="course_popular.jsp" />
     </div>
   </div>
 </div>
@@ -1616,7 +1629,7 @@
             +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
             +     '</div>'
             +     (h.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>' : '')
-            +     '<div style="margin-bottom:8px; color:#2196f3; font-size:0.95rem; font-weight:600; cursor:pointer;" id="courseCount-' + h.id + '" onclick="goToPlaceCourses(' + h.id + ')">📝 코스글: 로딩중...</div>'
+            +     '<div style="margin-bottom:8px; font-size:0.95rem;" id="naverPlaceLink-' + h.id + '">🔗 네이버 플레이스: 로딩중...</div>'
             +   '</div>'
             +   '<div style="margin-left:12px; position:relative;">' + heartHtml + '</div>'
             + '</div>'
@@ -1669,6 +1682,11 @@
                 loadGenreInfo(place.id);
               }, 300);
             }
+            
+            // 네이버 플레이스 링크 로드
+            setTimeout(function() {
+              loadNaverPlaceLink(place.id);
+            }, 500);
             
             // 가게명/카테고리 클릭 시 단일 장소 표시
             function moveToHotplace(e) {
@@ -1861,6 +1879,7 @@
             +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
             +     '</div>'
             +     (h.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>' : '')
+            +     '<div style="margin-bottom:8px; font-size:0.95rem;" id="naverPlaceLink-' + h.id + '">🔗 네이버 플레이스: 로딩중...</div>'
         +   '</div>'
         +   '<div style="margin-left:12px; position:relative;">' + heartHtml + '</div>'
         + '</div>'
@@ -2135,6 +2154,11 @@
             loadGenreInfo(place.id);
           }, 500);
         }
+        
+        // 네이버 플레이스 링크 로드
+        setTimeout(function() {
+          loadNaverPlaceLink(place.id);
+        }, 600);
       });
     }, 500);
   };
@@ -2278,6 +2302,7 @@
             +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
             +     '</div>'
             +     (h.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>' : '')
+            +     '<div style="margin-bottom:8px; font-size:0.95rem;" id="naverPlaceLink-' + h.id + '">🔗 네이버 플레이스: 로딩중...</div>'
         +   '</div>'
         +   '<div style="margin-left:12px; position:relative;">' + heartHtml + '</div>'
         + '</div>'
@@ -2581,6 +2606,11 @@
         setTimeout(function() {
           loadGenreInfo(place.id);
         }, 500);
+        
+        // 네이버 플레이스 링크 로드
+        setTimeout(function() {
+          loadNaverPlaceLink(place.id);
+        }, 600);
       });
     }, 500);
   }

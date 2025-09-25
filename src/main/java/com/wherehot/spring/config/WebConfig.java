@@ -51,7 +51,7 @@ public class WebConfig implements WebMvcConfigurer {
         
         // 업로드 파일 (1시간 캐싱)
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("/uploads/")
+                .addResourceLocations("/uploads/", "file:uploads/")
                 .setCacheControl(CacheControl.maxAge(Duration.ofHours(1)));
         
         // 기타 정적 리소스

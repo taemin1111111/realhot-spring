@@ -823,7 +823,11 @@
             if (targetMarker) {
                 // InfoWindow 열기
                 var infoContent = generateInfoWindowContent(place);
-                var infowindow = new kakao.maps.InfoWindow({ content: infoContent });
+                var infowindow = new kakao.maps.InfoWindow({ 
+                    content: infoContent,
+                    maxWidth: 400,
+                    minWidth: 300
+                });
                 infowindow.open(map, targetMarker);
                 openInfoWindow = infowindow;
                 
@@ -1212,9 +1216,13 @@
         
         // InfoWindow 내용 생성 함수
         function generateInfoWindowContent(place) {
-            var heartHtml = isLoggedIn ? '<i class="bi bi-heart wish-heart" data-place-id="' + place.id + '" style="position:absolute;top:12px;right:12px;z-index:10;"></i>' : '';
+            // 로그인 상태 다시 확인
+            const payload = getTokenPayload();
+            const currentIsLoggedIn = payload && payload.exp * 1000 > Date.now();
+            
+            var heartHtml = currentIsLoggedIn ? '<i class="bi bi-heart wish-heart" data-place-id="' + place.id + '" style="position:absolute;top:8px;right:8px;z-index:1000; color:#e74c3c; font-size:28px; cursor:pointer;"></i>' : '';
             var categoryMap = {1:'클럽',2:'헌팅',3:'라운지',4:'포차',5:'게스트하우스'};
-            return '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(12px, 2vw, 16px); line-height:1.4; border-radius:0; overflow:visible; box-sizing:border-box;">'
+            return '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(12px, 2vw, 16px); line-height:1.4; border-radius:0; overflow:visible; box-sizing:border-box; min-width:300px; max-width:400px;">'
                 + heartHtml
                 + '<div class="place-images-container" style="position:relative; width:100%; background:#f8f9fa; display:flex; align-items:center; justify-content:center; color:#6c757d; font-size:clamp(11px, 1.5vw, 13px);" data-place-id="' + place.id + '">이미지 로딩 중...</div>'
                 + '<div style="padding:clamp(16px, 3vw, 20px);">'
@@ -1253,7 +1261,12 @@
                 // 하트 태그 설정
                 var heart = iw.querySelector('.wish-heart');
                 if (heart) {
-                    if (!isLoggedIn) {
+                    heart.setAttribute('data-place-id', place.id);
+                    // 로그인 상태 다시 확인
+                    const payload = getTokenPayload();
+                    const currentIsLoggedIn = payload && payload.exp * 1000 > Date.now();
+                    
+                    if (!currentIsLoggedIn) {
                         heart.onclick = function() {
                             showToast('위시리스트는 로그인 후 사용할 수 있어요. 간편하게 로그인하고 저장해보세요!', 'error');
                         };
@@ -1364,7 +1377,11 @@
             var marker = new kakao.maps.Marker({ map: null, position: new kakao.maps.LatLng(place.lat, place.lng), image: markerImage });
             var labelOverlay = new kakao.maps.CustomOverlay({ content: '<div class="marker-label">' + place.name + '</div>', position: new kakao.maps.LatLng(place.lat, place.lng), xAnchor: 0.5, yAnchor: 0, map: null });
             
-            var infowindow = new kakao.maps.InfoWindow({ content: generateInfoWindowContent(place) });
+            var infowindow = new kakao.maps.InfoWindow({ 
+                content: generateInfoWindowContent(place),
+                maxWidth: 400,
+                minWidth: 300
+            });
             
             kakao.maps.event.addListener(marker, 'click', function() {
                 if (openInfoWindow) openInfoWindow.close();
@@ -1907,8 +1924,14 @@
                         +       '<div style="color:#2196f3; font-size:0.95rem; margin-top:2px; font-weight:600; cursor:pointer;" id="courseCount-' + h.id + '" onclick="goToPlaceCourses(' + h.id + ')">📝 코스글: 로딩중...</div>'
                         +     '</div>'
                         +   '</div>'
+                        +   '<div style="margin-bottom:8px; color:#888; font-size:0.95rem; word-break:break-word; display:flex; align-items:center; gap:8px;">'
+                        +     '<span id="voteTrends-' + h.id + '">📊 역대 투표: 로딩중...</span>'
+                        +     '<span onclick="toggleVoteDetails(' + h.id + ')" style="color:#1275E0; cursor:pointer; font-size:0.95rem;" id="voteDetailsToggle-' + h.id + '">더보기▾</span>'
+                        +   '</div>'
+                        +   '<div style="margin-bottom:8px; color:#888; font-size:0.95rem; word-break:break-word; display:none;" id="voteDetails-' + h.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
                         +   '<div class="hotplace-address" style="color:#666; margin-top:2px; display:flex; align-items:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + h.address + '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center; flex-shrink:0;" title="주소 복사"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
-                        + genreHtml
+                        +   (h.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>' : '')
+                        +   '<div style="margin-top:2px; font-size:0.95rem;" id="naverPlaceLink-' + h.id + '">🔗 네이버 플레이스: 로딩중...</div>'
                         + '</div>'
                         + '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-top:12px;">'
                         +   '<div style="flex:1;"></div>'
@@ -1941,6 +1964,16 @@
                             loadGenreInfo(place.id);
                         }
                         loadNaverPlaceLink(place.id);
+                        
+                        // 가게명 클릭 시 해당 가게로 지도 이동
+                        var placeNameEl = card.querySelector('.hotplace-name');
+                        if (placeNameEl) {
+                            placeNameEl.style.cursor = 'pointer';
+                            placeNameEl.onclick = function(e) {
+                                e.stopPropagation();
+                                showPlaceInfo(place.id);
+                            };
+                        }
                     });
                 }, 100);
             }
@@ -3152,6 +3185,7 @@
                     +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
                     +     '</div>'
                     +     (h.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>' : '')
+                    +     '<div style="margin-bottom:8px; font-size:0.95rem;" id="naverPlaceLink-' + h.id + '">🔗 네이버 플레이스: 로딩중...</div>'
                     +   '</div>'
                     + '</div>'
                     + '<div style="display:flex; justify-content:space-between; align-items:center;">'
@@ -3216,6 +3250,7 @@
                     if (place.categoryId === 1) {
                         loadGenreInfo(place.id);
                     }
+                    loadNaverPlaceLink(place.id);
                 });
             }, 100);
         }
@@ -3363,6 +3398,7 @@
                     +       '<span onclick="copyAddress(\'' + h.address + '\')" style="cursor:pointer; color:#1275E0; display:inline-flex; align-items:center; flex-shrink:0; margin-top:1px;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span>'
                     +     '</div>'
                     +     (h.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:8px; font-size:0.9rem; word-break:break-word;" id="genres-' + h.id + '">🎵 장르: 로딩중...</div>' : '')
+                    +     '<div style="margin-bottom:8px; font-size:0.95rem;" id="naverPlaceLink-' + h.id + '">🔗 네이버 플레이스: 로딩중...</div>'
                     +   '</div>'
                     + '</div>'
                     + '<div style="display:flex; justify-content:space-between; align-items:center;">'
@@ -3427,6 +3463,7 @@
                     if (place.categoryId === 1) {
                         loadGenreInfo(place.id);
                     }
+                    loadNaverPlaceLink(place.id);
                 });
             }, 100);
         }

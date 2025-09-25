@@ -10,6 +10,44 @@
 <!-- 코스 추천 전용 CSS -->
 <link rel="stylesheet" href="<%=root%>/css/course.css">
 
+<!-- 관리자 삭제 버튼 스타일 -->
+<style>
+.course-admin-delete-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    background-color: #dc3545;
+    color: white !important;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 30px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    user-select: none;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.course-admin-delete-btn:hover {
+    background-color: #c82333;
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.course-hunting-card {
+    position: relative;
+}
+</style>
+
 <!-- 코스 추천 메인 페이지 -->
 <div class="course-hunting-container">
     
@@ -171,6 +209,11 @@
                 <div class="course-hunting-grid">
                                          <c:forEach var="course" items="${courseList}" varStatus="status">
                          <div class="course-hunting-card" onclick="goToDetail('${course.id}')">
+                             <!-- 관리자 삭제 버튼 (오른쪽 상단) -->
+                             <div class="course-admin-delete-btn" onclick="event.stopPropagation(); deleteCourse('${course.id}', '${fn:escapeXml(course.title)}')" style="display: none;">
+                                 ×
+                             </div>
+                             
                              <!-- 제목 섹션 -->
                              <div class="course-hunting-card-title-section">
                                  <h3 class="course-hunting-card-title">
@@ -397,6 +440,38 @@
     </div>
 </div>
 
+<!-- 코스 삭제 확인 모달 -->
+<div id="courseDeleteModal" class="course-hunting-modal" style="display: none;">
+    <div class="course-hunting-modal-content">
+        <div class="course-hunting-modal-header">
+            <h2><i class="fas fa-exclamation-triangle"></i> 코스 삭제 확인</h2>
+            <span class="course-hunting-close" onclick="closeCourseDeleteModal()">&times;</span>
+        </div>
+        <div class="course-hunting-modal-body">
+            <div class="text-center">
+                <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ff6b6b; margin-bottom: 20px;"></i>
+                <h4>정말로 이 코스를 삭제하시겠습니까?</h4>
+                <p style="margin: 20px 0; color: #666;">
+                    <strong id="deleteCourseTitle"></strong> 코스를 삭제하면<br>
+                    관련된 댓글, 좋아요, 사진 파일도 함께 삭제됩니다.
+                </p>
+                <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                    <i class="fas fa-info-circle" style="color: #856404; margin-right: 8px;"></i>
+                    <strong style="color: #856404;">주의:</strong> 이 작업은 되돌릴 수 없습니다.
+                </div>
+            </div>
+        </div>
+        <div class="course-hunting-form-actions">
+            <button type="button" class="course-hunting-cancel-btn" onclick="closeCourseDeleteModal()">
+                <i class="fas fa-times"></i> 취소
+            </button>
+            <button type="button" class="course-hunting-submit-btn" onclick="confirmDeleteCourse()" style="background-color: #dc3545;">
+                <i class="fas fa-trash"></i> 삭제
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 let currentSort = '${sort}' || '';
 let currentPage = parseInt('${currentPage}') || 1;
@@ -409,6 +484,7 @@ let stepCount = 1;
 // 페이지 로드 시 작성자 표시 로직 실행
 document.addEventListener('DOMContentLoaded', function() {
     showAuthorIndicators();
+    checkAdminPermission();
 });
 
 // 작성자 표시 함수
@@ -428,6 +504,127 @@ function showAuthorIndicators() {
     } catch (error) {
         // 작성자 표시 로직 실행 중 오류 무시
     }
+}
+
+// 관리자 권한 확인 함수
+function checkAdminPermission() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        console.log('토큰이 없음 - 관리자 버튼 숨김');
+        document.querySelectorAll('.course-admin-delete-btn').forEach(btn => btn.style.display = 'none');
+        return;
+    }
+    
+    try {
+        // JWT 토큰 파싱
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        
+        // 관리자 권한 확인 (provider가 'admin'인 경우만)
+        const isAdmin = payload.provider === 'admin';
+        
+        if (isAdmin) {
+            document.querySelectorAll('.course-admin-delete-btn').forEach(btn => btn.style.display = 'block');
+        } else {
+            // 일반 사용자 - 관리자 버튼 숨김
+            document.querySelectorAll('.course-admin-delete-btn').forEach(btn => btn.style.display = 'none');
+        }
+    } catch (error) {
+        // JWT 토큰 파싱 실패
+        document.querySelectorAll('.course-admin-delete-btn').forEach(btn => btn.style.display = 'none');
+    }
+}
+
+// 코스 삭제 함수
+function deleteCourse(courseId, courseTitle) {
+    // 관리자 권한 재확인
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+    }
+    
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const isAdmin = payload.provider === 'admin';
+        
+        if (!isAdmin) {
+            alert('관리자 권한이 필요합니다.');
+            return;
+        }
+    } catch (error) {
+        alert('권한 확인에 실패했습니다.');
+        return;
+    }
+    
+    // 삭제할 코스 정보 저장
+    console.log('deleteCourse 함수 호출됨 - courseId:', courseId, 'courseTitle:', courseTitle);
+    window.currentDeleteCourseId = courseId;
+    document.getElementById('deleteCourseTitle').textContent = courseTitle;
+    
+    // 모달 표시
+    document.getElementById('courseDeleteModal').style.display = 'block';
+}
+
+// 코스 삭제 모달 닫기
+function closeCourseDeleteModal() {
+    document.getElementById('courseDeleteModal').style.display = 'none';
+    window.currentDeleteCourseId = null;
+}
+
+// 코스 삭제 확인
+function confirmDeleteCourse() {
+    if (!window.currentDeleteCourseId) {
+        alert('삭제할 코스 정보가 없습니다.');
+        return;
+    }
+    
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+    }
+    
+    // 삭제 버튼 비활성화
+    const deleteBtn = document.querySelector('#courseDeleteModal .course-hunting-submit-btn');
+    deleteBtn.disabled = true;
+    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 삭제 중...';
+    
+    // 디버깅: 삭제할 코스 ID 확인
+    console.log('삭제할 코스 ID:', window.currentDeleteCourseId);
+    
+    // AJAX로 삭제 요청 (기존 API 사용, 관리자는 비밀번호 없이 삭제 가능)
+    fetch(`<%=root%>/course/delete`, {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            courseId: window.currentDeleteCourseId.toString(),
+            password: '', // 관리자는 비밀번호 없이 삭제
+            authorUserid: 'admin', // 관리자 삭제임을 표시
+            userId: 'admin'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('코스가 성공적으로 삭제되었습니다!');
+            closeCourseDeleteModal();
+            loadCourses(); // 목록 새로고침
+        } else {
+            alert(data.message || '코스 삭제에 실패했습니다.');
+        }
+    })
+    .catch(error => {
+        console.error('코스 삭제 오류:', error);
+        alert('서버 오류가 발생했습니다.');
+    })
+    .finally(() => {
+        // 버튼 상태 복원
+        deleteBtn.disabled = false;
+        deleteBtn.innerHTML = '<i class="fas fa-trash"></i> 삭제';
+    });
 }
 
 // 시간 계산 함수

@@ -73,11 +73,19 @@
 
                 </div>
 
-                <!-- 오른쪽 이미지 영역 -->
+                <!-- 오른쪽 광고 배너 영역 -->
                 <div id="imageArea" class="col-md-5 d-flex align-items-center justify-content-center">
-                    <div class="login-image-container" style="position: relative; width: 100%; height: 400px; overflow: hidden; border-radius: 10px;">
-                        <img id="loginImage" src="<%=root%>/logo/loginman.png?v=<%=System.currentTimeMillis()%>" alt="로그인 이미지" 
-                             style="width: 100%; height: 100%; object-fit: cover; transition: opacity 1s ease-in-out;">
+                    <div class="login-ad-banner-container" style="position: relative; width: 100%; height: 400px; overflow: hidden; border-radius: 10px;">
+                        <!-- 광고 배너가 여기에 동적으로 로드됩니다 -->
+                        <div id="loginAdBannerContent" style="width: 100%; height: 100%;">
+                            <!-- 로딩 중 표시 -->
+                            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">
+                                <div style="text-align: center;">
+                                    <i class="bi bi-image" style="font-size: 3rem; margin-bottom: 10px;"></i>
+                                    <p>광고를 불러오는 중...</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -524,6 +532,140 @@ const loginModalEl = document.getElementById('loginModal');
 if (loginModalEl) {
   loginModalEl.addEventListener('hidden.bs.modal', function () {
     showLogin();
+    
+    // 슬라이드쇼 정리
+    if (loginAdSlideInterval) {
+        clearInterval(loginAdSlideInterval);
+    }
   });
+  
+  // 로그인 모달이 열릴 때 광고 배너 로드
+  loginModalEl.addEventListener('shown.bs.modal', function () {
+    loadLoginAdBanner();
+  });
+}
+
+// 로그인 모달용 광고 배너 로드 함수
+function loadLoginAdBanner() {
+    fetch('<%=root%>/api/ad-banners/active')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.banners && data.banners.length > 0) {
+                // display_order 순서대로 정렬
+                const sortedBanners = data.banners.sort((a, b) => a.displayOrder - b.displayOrder);
+                renderLoginAdBanner(sortedBanners);
+            } else {
+                // 광고가 없을 때 기본 이미지 표시
+                showDefaultLoginImage();
+            }
+        })
+        .catch(error => {
+            console.error('광고 배너 로드 실패:', error);
+            showDefaultLoginImage();
+        });
+}
+
+// 로그인 모달용 광고 배너 렌더링
+function renderLoginAdBanner(banners) {
+    const container = document.getElementById('loginAdBannerContent');
+    
+    if (banners.length === 1) {
+        // 광고가 하나일 때
+        const banner = banners[0];
+        const imageHtml = '<img src="<%=root%>' + banner.imagePath + '" ' +
+                         'alt="' + (banner.title || '') + '" ' +
+                         'style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" ' +
+                         'onclick="window.open(\'' + (banner.linkUrl || '#') + '\', \'_blank\')" ' +
+                         'onerror="this.src=\'<%=root%>/logo/loginman.png\'">';
+        container.innerHTML = imageHtml;
+    } else {
+        // 광고가 여러 개일 때 슬라이드쇼
+        let slidesHtml = '<div class="login-ad-slideshow" style="position: relative; width: 100%; height: 100%;">';
+        
+        // 슬라이드들 생성
+        banners.forEach((banner, index) => {
+            const isActive = index === 0 ? 'active' : '';
+            const opacity = index === 0 ? '1' : '0';
+            const slideHtml = '<div class="login-ad-slide ' + isActive + '" ' +
+                             'style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: ' + opacity + '; transition: opacity 0.5s ease-in-out;">' +
+                             '<img src="<%=root%>' + banner.imagePath + '" ' +
+                             'alt="' + (banner.title || '') + '" ' +
+                             'style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" ' +
+                             'onclick="window.open(\'' + (banner.linkUrl || '#') + '\', \'_blank\')" ' +
+                             'onerror="this.src=\'<%=root%>/logo/loginman.png\'">' +
+                             '</div>';
+            slidesHtml += slideHtml;
+        });
+        
+        // 네비게이션 버튼
+        slidesHtml += '<button class="login-ad-nav prev" onclick="changeLoginAdSlide(-1)" ' +
+                     'style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 14px;">‹</button>';
+        slidesHtml += '<button class="login-ad-nav next" onclick="changeLoginAdSlide(1)" ' +
+                     'style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 14px;">›</button>';
+        
+        // 페이지 인디케이터
+        slidesHtml += '<div class="login-ad-indicators" style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px;">';
+        banners.forEach((_, index) => {
+            const isActive = index === 0 ? 'active' : '';
+            const bgColor = index === 0 ? 'white' : 'rgba(255,255,255,0.5)';
+            const indicatorHtml = '<div class="login-ad-indicator ' + isActive + '" ' +
+                                 'onclick="goToLoginAdSlide(' + index + ')" ' +
+                                 'style="width: 8px; height: 8px; border-radius: 50%; background: ' + bgColor + '; cursor: pointer; transition: background 0.3s ease;"></div>';
+            slidesHtml += indicatorHtml;
+        });
+        slidesHtml += '</div></div>';
+        
+        container.innerHTML = slidesHtml;
+        
+        // 슬라이드쇼 자동 재생 시작
+        startLoginAdSlideshow(banners.length);
+    }
+}
+
+// 로그인 모달용 슬라이드쇼 변수
+let loginAdCurrentSlide = 0;
+let loginAdSlideInterval;
+
+// 로그인 모달용 슬라이드쇼 자동 재생
+function startLoginAdSlideshow(totalSlides) {
+    if (totalSlides <= 1) return;
+    
+    loginAdSlideInterval = setInterval(() => {
+        loginAdCurrentSlide = (loginAdCurrentSlide + 1) % totalSlides;
+        goToLoginAdSlide(loginAdCurrentSlide);
+    }, 4000);
+}
+
+// 로그인 모달용 슬라이드 변경
+function changeLoginAdSlide(direction) {
+    const slides = document.querySelectorAll('.login-ad-slide');
+    if (slides.length <= 1) return;
+    
+    loginAdCurrentSlide = (loginAdCurrentSlide + direction + slides.length) % slides.length;
+    goToLoginAdSlide(loginAdCurrentSlide);
+}
+
+// 로그인 모달용 특정 슬라이드로 이동
+function goToLoginAdSlide(index) {
+    const slides = document.querySelectorAll('.login-ad-slide');
+    const indicators = document.querySelectorAll('.login-ad-indicator');
+    
+    if (index >= slides.length) return;
+    
+    // 모든 슬라이드 비활성화
+    slides.forEach(slide => slide.style.opacity = '0');
+    indicators.forEach(indicator => indicator.style.background = 'rgba(255,255,255,0.5)');
+    
+    // 현재 슬라이드 활성화
+    if (slides[index]) slides[index].style.opacity = '1';
+    if (indicators[index]) indicators[index].style.background = 'white';
+    
+    loginAdCurrentSlide = index;
+}
+
+// 로그인 모달용 기본 이미지 표시
+function showDefaultLoginImage() {
+    const container = document.getElementById('loginAdBannerContent');
+    container.innerHTML = '<img src="<%=root%>/logo/loginman.png" alt="로그인 이미지" style="width: 100%; height: 100%; object-fit: cover;">';
 }
 </script>

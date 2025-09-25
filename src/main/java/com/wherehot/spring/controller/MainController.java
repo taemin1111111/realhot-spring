@@ -26,11 +26,13 @@ import com.wherehot.spring.service.ContentImageService;
 import com.wherehot.spring.service.VoteService;
 import com.wherehot.spring.service.CourseService;
 import com.wherehot.spring.service.ContentInfoService;
+import com.wherehot.spring.service.AdBannerService;
 import com.wherehot.spring.entity.Category;
 import com.wherehot.spring.entity.Region;
 import com.wherehot.spring.entity.WishList;
 import com.wherehot.spring.entity.ContentImage;
 import com.wherehot.spring.entity.ContentInfo;
+import com.wherehot.spring.entity.AdBanner;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -71,6 +73,9 @@ public class MainController {
 
     @Autowired
     private HpostService hpostService;
+    
+    @Autowired
+    private AdBannerService adBannerService;
 
     /**
      * 메인 페이지 (기본 페이지)
@@ -174,13 +179,30 @@ public class MainController {
             }
             model.addAttribute("popularHotplacePosts", popularHotplacePosts);
             
+            // 11. 코스 인기글 2위까지 조회
+            List<com.wherehot.spring.entity.Course> popularCourses = courseService.getPopularCourseList(1);
+            if (popularCourses.size() > 2) {
+                popularCourses = popularCourses.subList(0, 2);
+            }
+            model.addAttribute("popularCourses", popularCourses);
+            
+            // 12. 활성화된 광고 배너 조회
+            List<AdBanner> activeAdBanners = adBannerService.getActiveAdBanners();
+            model.addAttribute("activeAdBanners", activeAdBanners);
+            
             // 11. 인증 정보
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null && authentication.isAuthenticated() && 
                 !authentication.getName().equals("anonymousUser")) {
                 model.addAttribute("isAuthenticated", true);
+                model.addAttribute("username", authentication.getName());
+                
+                // 관리자 권한 확인 (예: username이 "admin"인 경우)
+                boolean isAdmin = "admin".equals(authentication.getName());
+                model.addAttribute("isAdmin", isAdmin);
             } else {
                 model.addAttribute("isAuthenticated", false);
+                model.addAttribute("isAdmin", false);
             }
             
             // 12. 캐싱 헤더
@@ -208,7 +230,10 @@ public class MainController {
         model.addAttribute("dongToRegionIdMapping", new HashMap<>());
         model.addAttribute("categoryList", new ArrayList<>());
         model.addAttribute("popularHotplacePosts", new ArrayList<>());
+        model.addAttribute("popularCourses", new ArrayList<>());
+        model.addAttribute("activeAdBanners", new ArrayList<>());
         model.addAttribute("isAuthenticated", false);
+        model.addAttribute("isAdmin", false);
         model.addAttribute("cacheTimestamp", System.currentTimeMillis());
     }
 
@@ -679,6 +704,233 @@ public class MainController {
             return org.springframework.http.ResponseEntity.internalServerError().body(response);
         }
     }
+
+    // ========== 광고 배너 관리 API ==========
     
+    /**
+     * 광고 배너 추가 (관리자용)
+     */
+    @PostMapping("/api/admin/ad-banner/add")
+    @ResponseBody
+    public Map<String, Object> addAdBanner(@RequestParam("title") String title,
+                                          @RequestParam(value = "linkUrl", required = false) String linkUrl,
+                                          @RequestParam("displayOrder") int displayOrder,
+                                          @RequestParam("imageFile") MultipartFile imageFile,
+                                          HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 관리자 권한 확인
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated() || 
+                authentication.getName().equals("anonymousUser")) {
+                response.put("success", false);
+                response.put("error", "관리자 권한이 필요합니다.");
+                return response;
+            }
+            
+            AdBanner adBanner = new AdBanner();
+            adBanner.setTitle(title);
+            adBanner.setLinkUrl(linkUrl);
+            adBanner.setDisplayOrder(displayOrder);
+            
+            int result = adBannerService.addAdBanner(adBanner, imageFile);
+            
+            if (result > 0) {
+                response.put("success", true);
+                response.put("message", "광고 배너가 성공적으로 추가되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("error", "광고 배너 추가에 실패했습니다.");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Add ad banner error", e);
+            response.put("success", false);
+            response.put("error", "광고 배너 추가 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
     
+    /**
+     * 광고 배너 수정 (관리자용)
+     */
+    @PostMapping("/api/admin/ad-banner/update")
+    @ResponseBody
+    public Map<String, Object> updateAdBanner(@RequestParam("adId") int adId,
+                                             @RequestParam("title") String title,
+                                             @RequestParam(value = "linkUrl", required = false) String linkUrl,
+                                             @RequestParam("displayOrder") int displayOrder,
+                                             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 관리자 권한 확인
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated() || 
+                authentication.getName().equals("anonymousUser")) {
+                response.put("success", false);
+                response.put("error", "관리자 권한이 필요합니다.");
+                return response;
+            }
+            
+            AdBanner adBanner = new AdBanner();
+            adBanner.setAdId(adId);
+            adBanner.setTitle(title);
+            adBanner.setLinkUrl(linkUrl);
+            adBanner.setDisplayOrder(displayOrder);
+            
+            int result = adBannerService.updateAdBanner(adBanner, imageFile);
+            
+            if (result > 0) {
+                response.put("success", true);
+                response.put("message", "광고 배너가 성공적으로 수정되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("error", "광고 배너 수정에 실패했습니다.");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Update ad banner error", e);
+            response.put("success", false);
+            response.put("error", "광고 배너 수정 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    /**
+     * 광고 배너 삭제 (관리자용)
+     */
+    @PostMapping("/api/admin/ad-banner/delete")
+    @ResponseBody
+    public Map<String, Object> deleteAdBanner(@RequestParam("adId") int adId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 관리자 권한 확인
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated() || 
+                authentication.getName().equals("anonymousUser")) {
+                response.put("success", false);
+                response.put("error", "관리자 권한이 필요합니다.");
+                return response;
+            }
+            
+            int result = adBannerService.deleteAdBanner(adId);
+            
+            if (result > 0) {
+                response.put("success", true);
+                response.put("message", "광고 배너가 성공적으로 삭제되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("error", "광고 배너 삭제에 실패했습니다.");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Delete ad banner error", e);
+            response.put("success", false);
+            response.put("error", "광고 배너 삭제 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    /**
+     * 광고 배너 활성화/비활성화 토글 (관리자용)
+     */
+    @PostMapping("/api/admin/ad-banner/toggle")
+    @ResponseBody
+    public Map<String, Object> toggleAdBannerStatus(@RequestParam("adId") int adId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 관리자 권한 확인
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated() || 
+                authentication.getName().equals("anonymousUser")) {
+                response.put("success", false);
+                response.put("error", "관리자 권한이 필요합니다.");
+                return response;
+            }
+            
+            int result = adBannerService.toggleAdBannerStatus(adId);
+            
+            if (result > 0) {
+                response.put("success", true);
+                response.put("message", "광고 배너 상태가 변경되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("error", "광고 배너 상태 변경에 실패했습니다.");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Toggle ad banner status error", e);
+            response.put("success", false);
+            response.put("error", "광고 배너 상태 변경 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    /**
+     * 광고 배너 순서 변경 (관리자용)
+     */
+    @PostMapping("/api/admin/ad-banner/order")
+    @ResponseBody
+    public Map<String, Object> updateAdBannerOrder(@RequestParam("adId") int adId,
+                                                  @RequestParam("displayOrder") int displayOrder) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 관리자 권한 확인
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated() || 
+                authentication.getName().equals("anonymousUser")) {
+                response.put("success", false);
+                response.put("error", "관리자 권한이 필요합니다.");
+                return response;
+            }
+            
+            int result = adBannerService.updateDisplayOrder(adId, displayOrder);
+            
+            if (result > 0) {
+                response.put("success", true);
+                response.put("message", "광고 배너 순서가 변경되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("error", "광고 배너 순서 변경에 실패했습니다.");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Update ad banner order error", e);
+            response.put("success", false);
+            response.put("error", "광고 배너 순서 변경 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    /**
+     * 활성화된 광고 배너 목록 조회 (API)
+     */
+    @GetMapping("/api/ad-banners/active")
+    @ResponseBody
+    public Map<String, Object> getActiveAdBannersApi() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            List<AdBanner> activeBanners = adBannerService.getActiveAdBanners();
+            response.put("success", true);
+            response.put("banners", activeBanners);
+            
+        } catch (Exception e) {
+            logger.error("Get active ad banners API error", e);
+            response.put("success", false);
+            response.put("error", "광고 배너 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
 }

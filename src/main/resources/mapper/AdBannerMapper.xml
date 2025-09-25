@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wherehot.spring.mapper.AdBannerMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="AdBannerResultMap" type="com.wherehot.spring.entity.AdBanner">
+        <id property="adId" column="ad_id"/>
+        <result property="title" column="title"/>
+        <result property="imagePath" column="image_path"/>
+        <result property="linkUrl" column="link_url"/>
+        <result property="displayOrder" column="display_order"/>
+        <result property="isActive" column="is_active"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 활성화된 광고 배너 목록 조회 -->
+    <select id="getActiveAdBanners" resultMap="AdBannerResultMap">
+        SELECT ad_id, title, image_path, link_url, display_order, is_active, created_at, updated_at
+        FROM ad_banner
+        WHERE is_active = 1
+        ORDER BY display_order ASC
+    </select>
+
+    <!-- 모든 광고 배너 목록 조회 (관리자용) -->
+    <select id="getAllAdBanners" resultMap="AdBannerResultMap">
+        SELECT ad_id, title, image_path, link_url, display_order, is_active, created_at, updated_at
+        FROM ad_banner
+        ORDER BY display_order ASC, created_at DESC
+    </select>
+
+    <!-- 광고 배너 상세 조회 -->
+    <select id="getAdBannerById" resultMap="AdBannerResultMap">
+        SELECT ad_id, title, image_path, link_url, display_order, is_active, created_at, updated_at
+        FROM ad_banner
+        WHERE ad_id = #{adId}
+    </select>
+
+    <!-- 광고 배너 추가 -->
+    <insert id="insertAdBanner" parameterType="com.wherehot.spring.entity.AdBanner" useGeneratedKeys="true" keyProperty="adId">
+        INSERT INTO ad_banner (title, image_path, link_url, display_order, is_active, created_at, updated_at)
+        VALUES (#{title}, #{imagePath}, #{linkUrl}, #{displayOrder}, #{isActive}, NOW(), NOW())
+    </insert>
+
+    <!-- 광고 배너 수정 -->
+    <update id="updateAdBanner" parameterType="com.wherehot.spring.entity.AdBanner">
+        UPDATE ad_banner
+        SET title = #{title},
+            image_path = #{imagePath},
+            link_url = #{linkUrl},
+            display_order = #{displayOrder},
+            is_active = #{isActive},
+            updated_at = NOW()
+        WHERE ad_id = #{adId}
+    </update>
+
+    <!-- 광고 배너 삭제 -->
+    <delete id="deleteAdBanner">
+        DELETE FROM ad_banner WHERE ad_id = #{adId}
+    </delete>
+
+    <!-- 광고 배너 활성화/비활성화 토글 -->
+    <update id="toggleAdBannerStatus">
+        UPDATE ad_banner
+        SET is_active = #{isActive},
+            updated_at = NOW()
+        WHERE ad_id = #{adId}
+    </update>
+
+    <!-- 광고 배너 순서 변경 -->
+    <update id="updateDisplayOrder">
+        UPDATE ad_banner
+        SET display_order = #{displayOrder},
+            updated_at = NOW()
+        WHERE ad_id = #{adId}
+    </update>
+
+</mapper>

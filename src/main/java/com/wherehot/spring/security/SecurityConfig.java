@@ -104,6 +104,7 @@ public class SecurityConfig {
                 .requestMatchers("/notice/**").permitAll()                        // 공지사항
                 .requestMatchers("/login/**").permitAll()                         // 로그인/회원가입
                 .requestMatchers("/hpost/**").permitAll()                         // 핫플썰 게시판 관련 모든 경로 허용 (JWT 필터는 작동)
+                .requestMatchers("/course/**").permitAll()                        // 코스 관련 모든 경로 허용 (JWT 필터는 작동)
                 
                 // == API 경로들 ==
                 .requestMatchers("/api/auth/**").permitAll()                      // 인증 API

@@ -778,7 +778,114 @@ public class HpostController {
     }
     
     /**
-     * 게시글 삭제 API
+     * 게시글 삭제 API (POST 방식 - 관리자용)
+     */
+    @PostMapping("/delete")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteHpostByPost(
+            @RequestBody Map<String, Object> requestData,
+            HttpServletRequest request) {
+        
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String hpostIdStr = (String) requestData.get("hpostId");
+            String password = (String) requestData.get("password");
+            String authorUserid = (String) requestData.get("authorUserid");
+            String userId = (String) requestData.get("userId");
+
+            int hpostId;
+            try {
+                hpostId = Integer.parseInt(hpostIdStr);
+            } catch (NumberFormatException e) {
+                response.put("success", false);
+                response.put("message", "유효하지 않은 게시글 ID입니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (hpostIdStr == null) {
+                response.put("success", false);
+                response.put("message", "필수 정보가 누락되었습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 관리자 권한 확인 (JWT 토큰에서)
+            boolean isAdmin = false;
+            try {
+                String authHeader = request.getHeader("Authorization");
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    String token = authHeader.substring(7);
+                    if (jwtUtils.validateToken(token)) {
+                        String provider = jwtUtils.getProviderFromToken(token);
+                        isAdmin = "admin".equals(provider);
+                    }
+                }
+            } catch (Exception e) {
+                isAdmin = false;
+            }
+
+            // 관리자가 아닌 경우 비밀번호 필수
+            if (!isAdmin && (password == null || password.trim().isEmpty())) {
+                response.put("success", false);
+                response.put("message", "비밀번호를 입력해주세요.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 게시글 조회
+            Hpost hpost = hpostService.getHpostById(hpostId);
+            if (hpost == null) {
+                response.put("success", false);
+                response.put("message", "게시글을 찾을 수 없습니다.");
+                return ResponseEntity.notFound().build();
+            }
+
+            // 비밀번호 확인 (관리자가 아닌 경우에만)
+            if (!isAdmin && !passwordEncoder.matches(password, hpost.getPasswd())) {
+                response.put("success", false);
+                response.put("message", "비밀번호가 일치하지 않습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 권한 확인 (관리자가 아닌 경우에만)
+            if (!isAdmin && "user".equals(authorUserid)) {
+                String currentUserId = determineUserId(request);
+                if (currentUserId == null || currentUserId.isEmpty() || currentUserId.equals(getClientIpAddress(request))) {
+                    response.put("success", false);
+                    response.put("message", "로그인된 사용자만 삭제할 수 있습니다.");
+                    return ResponseEntity.badRequest().body(response);
+                }
+                if (!userId.equals(currentUserId)) {
+                    response.put("success", false);
+                    response.put("message", "글쓴이와 ID가 일치해야 삭제 가능합니다.");
+                    return ResponseEntity.badRequest().body(response);
+                }
+            }
+
+            // 게시글 삭제 (연관된 데이터도 함께 삭제)
+            boolean deleteResult = hpostService.deleteHpostWithAllData(hpostId);
+
+            if (deleteResult) {
+                // 파일 삭제
+                deleteHpostFiles(hpost);
+
+                response.put("success", true);
+                response.put("message", "게시글이 삭제되었습니다.");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "게시글 삭제에 실패했습니다.");
+                return ResponseEntity.internalServerError().body(response);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "게시글 삭제 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
+
+    /**
+     * 게시글 삭제 API (DELETE 방식 - 기존)
      */
     @DeleteMapping("/{id}/delete")
     @ResponseBody
@@ -790,8 +897,26 @@ public class HpostController {
         Map<String, Object> response = new HashMap<>();
         try {
             String password = requestBody.get("password");
+            String authorUserid = requestBody.get("authorUserid");
+            String userId = requestBody.get("userId");
             
-            if (password == null || password.trim().isEmpty()) {
+            // 관리자 권한 확인 (JWT 토큰에서)
+            boolean isAdmin = false;
+            try {
+                String authHeader = request.getHeader("Authorization");
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    String token = authHeader.substring(7);
+                    if (jwtUtils.validateToken(token)) {
+                        String provider = jwtUtils.getProviderFromToken(token);
+                        isAdmin = "admin".equals(provider);
+                    }
+                }
+            } catch (Exception e) {
+                isAdmin = false;
+            }
+            
+            // 관리자가 아닌 경우 비밀번호 필수
+            if (!isAdmin && (password == null || password.trim().isEmpty())) {
                 response.put("success", false);
                 response.put("message", "비밀번호를 입력해주세요.");
                 return ResponseEntity.badRequest().body(response);
@@ -805,11 +930,26 @@ public class HpostController {
                 return ResponseEntity.notFound().build();
             }
             
-            // 비밀번호 확인 (해시화된 비밀번호와 비교)
-            if (!passwordEncoder.matches(password, hpost.getPasswd())) {
+            // 비밀번호 확인 (관리자가 아닌 경우에만)
+            if (!isAdmin && !passwordEncoder.matches(password, hpost.getPasswd())) {
                 response.put("success", false);
                 response.put("message", "비밀번호가 일치하지 않습니다.");
                 return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 권한 확인 (관리자가 아닌 경우에만)
+            if (!isAdmin && "user".equals(authorUserid)) {
+                String currentUserId = determineUserId(request);
+                if (currentUserId == null || currentUserId.isEmpty() || currentUserId.equals(getClientIpAddress(request))) {
+                    response.put("success", false);
+                    response.put("message", "로그인된 사용자만 삭제할 수 있습니다.");
+                    return ResponseEntity.badRequest().body(response);
+                }
+                if (!userId.equals(currentUserId)) {
+                    response.put("success", false);
+                    response.put("message", "글쓴이와 ID가 일치해야 삭제 가능합니다.");
+                    return ResponseEntity.badRequest().body(response);
+                }
             }
             
             // 게시글 삭제 (연관된 데이터도 함께 삭제)
@@ -906,6 +1046,24 @@ public class HpostController {
     }
     
     /**
+     * 사용자 ID 결정 (JWT 토큰 또는 IP 주소)
+     */
+    private String determineUserId(HttpServletRequest request) {
+        try {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                if (jwtUtils.validateToken(token)) {
+                    return jwtUtils.getUseridFromToken(token);
+                }
+            }
+        } catch (Exception e) {
+            // JWT 토큰에서 사용자 ID 추출 실패
+        }
+        return getClientIpAddress(request);
+    }
+    
+    /**
      * 게시글 관련 파일 삭제
      */
     private void deleteHpostFiles(Hpost hpost) {
@@ -916,7 +1074,6 @@ public class HpostController {
                     File photo1File = new File(uploadPath + "/hpostsave/" + hpost.getPhoto1());
                     if (photo1File.exists()) {
                         photo1File.delete();
-                        System.out.println("파일 삭제 완료: " + hpost.getPhoto1());
                     }
                 }
                 
@@ -925,7 +1082,6 @@ public class HpostController {
                     File photo2File = new File(uploadPath + "/hpostsave/" + hpost.getPhoto2());
                     if (photo2File.exists()) {
                         photo2File.delete();
-                        System.out.println("파일 삭제 완료: " + hpost.getPhoto2());
                     }
                 }
                 
@@ -934,13 +1090,11 @@ public class HpostController {
                     File photo3File = new File(uploadPath + "/hpostsave/" + hpost.getPhoto3());
                     if (photo3File.exists()) {
                         photo3File.delete();
-                        System.out.println("파일 삭제 완료: " + hpost.getPhoto3());
                     }
                 }
             }
         } catch (Exception e) {
-            System.err.println("파일 삭제 중 오류 발생: " + e.getMessage());
-            e.printStackTrace();
+            // 파일 삭제 중 오류 발생
         }
     }
 }

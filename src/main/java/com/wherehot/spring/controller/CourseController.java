@@ -801,9 +801,27 @@ public class CourseController {
                 return response;
             }
             
-            if (courseIdStr == null || password == null) {
+            if (courseIdStr == null) {
                 response.put("success", false);
                 response.put("message", "필수 정보가 누락되었습니다.");
+                return response;
+            }
+            
+            // 관리자 권한 확인 (JWT 토큰에서)
+            boolean isAdmin = false;
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                if (jwtUtils.validateToken(token)) {
+                    String provider = jwtUtils.getProviderFromToken(token);
+                    isAdmin = "admin".equals(provider);
+                }
+            }
+            
+            // 관리자가 아닌 경우 비밀번호 필수
+            if (!isAdmin && password == null) {
+                response.put("success", false);
+                response.put("message", "비밀번호를 입력해주세요.");
                 return response;
             }
             
@@ -815,16 +833,18 @@ public class CourseController {
                 return response;
             }
             
-            // 비밀번호 확인 (서버 해시화 방식만 사용)
-            String hashedPassword = hashPassword(password);
-            if (!hashedPassword.equals(course.getPasswdHash())) {
-                response.put("success", false);
-                response.put("message", "비밀번호가 일치하지 않습니다.");
-                return response;
+            // 비밀번호 확인 (관리자가 아닌 경우에만)
+            if (!isAdmin) {
+                String hashedPassword = hashPassword(password);
+                if (!hashedPassword.equals(course.getPasswdHash())) {
+                    response.put("success", false);
+                    response.put("message", "비밀번호가 일치하지 않습니다.");
+                    return response;
+                }
             }
             
-            // 권한 확인
-            if ("user".equals(authorUserid)) {
+            // 권한 확인 (관리자가 아닌 경우에만)
+            if (!isAdmin && "user".equals(authorUserid)) {
                 // 로그인된 사용자가 쓴 글인 경우, 현재 로그인한 사용자와 일치하는지 확인
                 String currentUserId = determineUserId(request);
                 

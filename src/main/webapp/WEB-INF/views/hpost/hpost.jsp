@@ -1,8 +1,47 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!-- hpost.css 링크 -->
 <link rel="stylesheet" href="<c:url value='/css/hpost.css'/>">
+
+<!-- 관리자 삭제 버튼 스타일 -->
+<style>
+.hpost-admin-delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 25px;
+    height: 25px;
+    background-color: #dc3545;
+    color: white !important;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    user-select: none;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.hpost-admin-delete-btn:hover {
+    background-color: #c82333;
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.hpost-item {
+    position: relative;
+}
+</style>
 
 <!-- 메인 컨텐츠 -->
 <div class="container mt-5 hpost-container">
@@ -85,6 +124,10 @@
             <c:when test="${not empty hpostList}">
                 <c:forEach var="hpost" items="${hpostList}" varStatus="status">
                     <div class="row hpost-item">
+                        <!-- 관리자 삭제 버튼 (오른쪽 상단) -->
+                        <div class="hpost-admin-delete-btn" onclick="event.stopPropagation(); deleteHpost(${hpost.id}, '${fn:escapeXml(hpost.title)}')" style="display: none;">
+                            ×
+                        </div>
                         <c:choose>
                             <c:when test="${param.sort == 'popular' && currentPage == 1}">
                                 <div class="col-1">
@@ -228,6 +271,42 @@
     </div>
 </div>
 
+<!-- 게시글 삭제 확인 모달 -->
+<div class="modal fade" id="hpostDeleteModal" tabindex="-1" aria-labelledby="hpostDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="hpostDeleteModalLabel">
+                    <i class="bi bi-exclamation-triangle text-warning"></i> 게시글 삭제 확인
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 48px;"></i>
+                    <h4 class="mt-3">정말로 이 게시글을 삭제하시겠습니까?</h4>
+                    <p class="text-muted mt-3">
+                        <strong id="deleteHpostTitle"></strong> 게시글을 삭제하면<br>
+                        관련된 댓글, 좋아요, 사진 파일도 함께 삭제됩니다.
+                    </p>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>주의:</strong> 이 작업은 되돌릴 수 없습니다.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> 취소
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteHpost()">
+                    <i class="bi bi-trash me-1"></i> 삭제
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 // 정렬 변경 함수
 function changeSort(sortType) {
@@ -288,6 +367,7 @@ function detectAndApplyIPhoneStyles() {
 // 페이지 로드 시 아이폰 스타일 적용
 document.addEventListener('DOMContentLoaded', function() {
     detectAndApplyIPhoneStyles();
+    checkAdminPermission();
 });
 
 // 추가로 window load 이벤트에서도 실행 (이미지 등 모든 리소스 로드 후)
@@ -355,5 +435,140 @@ async function submitPost() {
         console.error('Error:', error);
         alert('글 작성 중 오류가 발생했습니다.');
     }
+}
+
+// 관리자 권한 확인 함수
+function checkAdminPermission() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        document.querySelectorAll('.hpost-admin-delete-btn').forEach(btn => btn.style.display = 'none');
+        return;
+    }
+    
+    try {
+        // JWT 토큰 파싱
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        
+        // 관리자 권한 확인 (provider가 'admin'인 경우만)
+        const isAdmin = payload.provider === 'admin';
+        
+        if (isAdmin) {
+            document.querySelectorAll('.hpost-admin-delete-btn').forEach(btn => btn.style.display = 'block');
+        } else {
+            // 일반 사용자 - 관리자 버튼 숨김
+            document.querySelectorAll('.hpost-admin-delete-btn').forEach(btn => btn.style.display = 'none');
+        }
+    } catch (error) {
+        // JWT 토큰 파싱 실패
+        document.querySelectorAll('.hpost-admin-delete-btn').forEach(btn => btn.style.display = 'none');
+    }
+}
+
+// 게시글 삭제 함수
+function deleteHpost(hpostId, hpostTitle) {
+    // 관리자 권한 재확인
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+    }
+    
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const isAdmin = payload.provider === 'admin';
+        
+        if (!isAdmin) {
+            alert('관리자 권한이 필요합니다.');
+            return;
+        }
+    } catch (error) {
+        alert('권한 확인에 실패했습니다.');
+        return;
+    }
+    
+    // 삭제할 게시글 정보 저장
+    
+    // ID가 유효한지 확인
+    if (!hpostId || hpostId === null || hpostId === undefined) {
+        alert('유효하지 않은 게시글 ID입니다.');
+        return;
+    }
+    
+    // 숫자로 변환
+    const numericId = parseInt(hpostId);
+    if (isNaN(numericId) || numericId <= 0) {
+        alert('유효하지 않은 게시글 ID입니다.');
+        return;
+    }
+    
+    window.currentDeleteHpostId = numericId;
+    document.getElementById('deleteHpostTitle').textContent = hpostTitle;
+    
+    // 모달 표시
+    const modal = new bootstrap.Modal(document.getElementById('hpostDeleteModal'));
+    modal.show();
+}
+
+// 게시글 삭제 확인
+function confirmDeleteHpost() {
+    
+    if (!window.currentDeleteHpostId || window.currentDeleteHpostId <= 0) {
+        alert('삭제할 게시글 정보가 없습니다.');
+        return;
+    }
+    
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+    }
+    
+    // 삭제 버튼 비활성화
+    const deleteBtn = document.querySelector('#hpostDeleteModal .btn-danger');
+    deleteBtn.disabled = true;
+    deleteBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> 삭제 중...';
+    
+    // AJAX로 삭제 요청 (기존 API 사용, 관리자는 비밀번호 없이 삭제 가능)
+    const deleteUrl = `<c:url value='/hpost/delete'/>`;
+    
+    fetch(deleteUrl, {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            hpostId: window.currentDeleteHpostId.toString(),
+            password: '', // 관리자는 비밀번호 없이 삭제
+            authorUserid: 'admin',
+            userId: 'admin'
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            alert('게시글이 성공적으로 삭제되었습니다!');
+            // 모달 닫기
+            const modal = bootstrap.Modal.getInstance(document.getElementById('hpostDeleteModal'));
+            modal.hide();
+            // 페이지 새로고침
+            location.reload();
+        } else {
+            alert(data.message || '게시글 삭제에 실패했습니다.');
+        }
+    })
+    .catch(error => {
+        alert('서버 오류가 발생했습니다.');
+    })
+    .finally(() => {
+        // 버튼 상태 복원
+        deleteBtn.disabled = false;
+        deleteBtn.innerHTML = '<i class="bi bi-trash me-1"></i> 삭제';
+    });
 }
 </script>

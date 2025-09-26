@@ -705,6 +705,99 @@ public class MainController {
         }
     }
 
+    // ========== 배치 API (성능 최적화) ==========
+    
+    /**
+     * 장소 상세 정보 배치 조회 API (8개 API를 1개로 통합)
+     * - 이미지, 위시리스트 개수, 투표 트렌드, 오늘핫 순위, 코스 개수, 투표 통계, 장르 정보, 네이버 플레이스 링크
+     */
+    @PostMapping("/api/main/place-details-batch")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> getPlaceDetailsBatch(
+            @RequestParam int placeId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // 사용자 인증 확인 (위시리스트용)
+            String userid = null;
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                try {
+                    String token = authHeader.substring(7);
+                    userid = jwtUtils.getUseridFromToken(token);
+                } catch (Exception e) {
+                    // 토큰이 유효하지 않으면 익명 사용자로 처리
+                }
+            }
+            
+            // 1. 이미지 정보 조회
+            List<ContentImage> images = contentImageService.getImagesByContentId(placeId);
+            List<Map<String, Object>> imageList = new ArrayList<>();
+            for (ContentImage img : images) {
+                Map<String, Object> imgData = new HashMap<>();
+                imgData.put("id", img.getId());
+                imgData.put("imagePath", img.getImagePath());
+                imgData.put("imageOrder", img.getImageOrder());
+                imageList.add(imgData);
+            }
+            
+            // 2. 위시리스트 개수 조회
+            int wishCount = voteService.getWishCount(placeId);
+            
+            // 3. 투표 수 조회
+            int voteCount = voteService.getVoteCount(placeId);
+            
+            // 4. 투표 트렌드 조회
+            Map<String, Object> voteTrends = voteService.getVoteTrends(placeId);
+            
+            // 5. 코스 개수 조회 (임시로 0 반환)
+            int courseCount = 0; // TODO: CourseService에 메서드 추가 필요
+            
+            // 6. 오늘핫 순위 조회 (임시로 0 반환)
+            int todayHotRank = 0; // TODO: ContentInfoService에 메서드 추가 필요
+            
+            // 7. 장르 정보 조회 (클럽인 경우만)
+            List<Map<String, Object>> genres = new ArrayList<>();
+            Hotplace hotplace = hotplaceService.findHotplaceById(placeId).orElse(null);
+            if (hotplace != null && hotplace.getCategoryId() == 1) { // 클럽인 경우
+                // TODO: ClubGenreService에 getGenresByPlaceId 메서드 추가 필요
+                // 임시로 빈 리스트 반환
+            }
+            
+            // 8. 네이버 플레이스 링크 조회 (임시로 빈 문자열 반환)
+            String naverPlaceLink = ""; // TODO: ContentInfoService에 메서드 추가 필요
+            
+            // 9. 사용자 위시리스트 여부 확인
+            boolean isWished = false;
+            if (userid != null) {
+                isWished = voteService.isWished(placeId, userid);
+            }
+            
+            // 응답 데이터 구성
+            response.put("success", true);
+            response.put("placeId", placeId);
+            response.put("images", imageList);
+            response.put("wishCount", wishCount);
+            response.put("voteCount", voteCount);
+            response.put("voteTrends", voteTrends);
+            response.put("courseCount", courseCount);
+            response.put("todayHotRank", todayHotRank);
+            response.put("genres", genres);
+            response.put("naverPlaceLink", naverPlaceLink);
+            response.put("isWished", isWished);
+            response.put("timestamp", System.currentTimeMillis());
+            
+            return org.springframework.http.ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Batch place details error for placeId: {}", placeId, e);
+            response.put("success", false);
+            response.put("error", "장소 정보 조회 중 오류가 발생했습니다: " + e.getMessage());
+            return org.springframework.http.ResponseEntity.internalServerError().body(response);
+        }
+    }
+
     // ========== 광고 배너 관리 API ==========
     
     /**

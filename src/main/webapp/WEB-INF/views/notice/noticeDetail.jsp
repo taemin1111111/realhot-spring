@@ -64,6 +64,24 @@ function formatDate(dateString) {
     });
 }
 
+// URL을 자동으로 링크로 변환하는 함수
+function convertUrlsToLinks(text) {
+    if (!text) return '';
+    
+    // URL 패턴 매칭 (http://, https://, www.로 시작하는 URL)
+    const urlPattern = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
+    
+    return text.replace(urlPattern, function(url) {
+        // www.로 시작하는 경우 http:// 추가
+        let href = url;
+        if (url.toLowerCase().startsWith('www.')) {
+            href = 'http://' + url;
+        }
+        
+        return '<a href="' + href + '" target="_blank" rel="noopener noreferrer">' + url + '</a>';
+    });
+}
+
 // 공지사항 상세 정보 로드
 function loadNoticeDetail() {
     if (!noticeId) {
@@ -103,7 +121,9 @@ function loadNoticeDetail() {
             html += '<div class="notice-detail-header">';
             html += '  <h1 class="notice-detail-title">' + notice.title + '</h1>';
             html += '  <div class="notice-detail-header-right">';
-            html += '    ' + isPinned;
+            if (isPinned) {
+                html += '    ' + isPinned;
+            }
             html += '    <div id="admin-buttons" class="admin-buttons" style="display: none;">';
             html += '      <button type="button" class="btn btn-warning btn-sm" onclick="togglePinned(' + notice.noticeId + ', ' + !notice.isPinned + ')">';
             html += '        <i class="bi ' + (notice.isPinned ? 'bi-pin-angle' : 'bi-pin-angle-fill') + '"></i> ' + (notice.isPinned ? '고정 취소' : '고정');
@@ -125,8 +145,14 @@ function loadNoticeDetail() {
             // 사진
             html += photoHtml;
             
-            // 내용
-            html += '<div class="notice-detail-content">' + notice.content + '</div>';
+            // 내용 (HTML 태그 포함, URL 자동 링크 변환)
+            let content = notice.content || '';
+            // 이미 HTML 태그가 있는지 확인
+            if (!content.includes('<a ') && !content.includes('<p>') && !content.includes('<br>')) {
+                // HTML 태그가 없으면 URL을 자동으로 링크로 변환
+                content = convertUrlsToLinks(content);
+            }
+            html += '<div class="notice-detail-content">' + content + '</div>';
             
             html += '</div>';
             
@@ -249,7 +275,7 @@ function deleteNotice(noticeId) {
 
 // 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('noticedetail.jsp 로드됨, noticeId:', noticeId);
+    console.log('noticeDetail.jsp 로드됨, noticeId:', noticeId);
     document.body.classList.add('notice-detail-page');
     loadNoticeDetail();
 });

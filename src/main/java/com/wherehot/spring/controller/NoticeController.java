@@ -92,7 +92,7 @@ public class NoticeController {
     // 공지사항 상세 페이지
     @GetMapping("/detail/{noticeId}")
     public String noticeDetail(@PathVariable Long noticeId, Model model) {
-        model.addAttribute("mainPage", "notice/noticedetail.jsp");
+        model.addAttribute("mainPage", "notice/noticeDetail.jsp");
         model.addAttribute("noticeId", noticeId);
         return "index";
     }

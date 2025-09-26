@@ -431,8 +431,64 @@
                     </button>
                 </div>
                 
+                <!-- 코스 글 작성 체크리스트 -->
+                <div class="course-hunting-checklist-container">
+                    <h4>코스 글 작성 체크리스트</h4>
+                    <div class="course-hunting-checklist">
+                        <div class="checklist-item">
+                            <label class="checklist-label">
+                                <input type="checkbox" class="checklist-checkbox" required>
+                                <span class="checkmark"></span>
+                                <span class="checklist-text">불법·음란 업소 언급은 금지합니다.</span>
+                            </label>
+                        </div>
+                        <div class="checklist-item">
+                            <label class="checklist-label">
+                                <input type="checkbox" class="checklist-checkbox" required>
+                                <span class="checkmark"></span>
+                                <span class="checklist-text">허위 정보, 과장된 내용은 작성하지 않습니다.</span>
+                            </label>
+                        </div>
+                        <div class="checklist-item">
+                            <label class="checklist-label">
+                                <input type="checkbox" class="checklist-checkbox" required>
+                                <span class="checkmark"></span>
+                                <span class="checklist-text">나체 사진, 선정적 이미지 업로드는 금지합니다.</span>
+                            </label>
+                        </div>
+                        <div class="checklist-item">
+                            <label class="checklist-label">
+                                <input type="checkbox" class="checklist-checkbox" required>
+                                <span class="checkmark"></span>
+                                <span class="checklist-text">특정인 또는 특정 업소를 비방하지 않습니다.</span>
+                            </label>
+                        </div>
+                        <div class="checklist-item">
+                            <label class="checklist-label">
+                                <input type="checkbox" class="checklist-checkbox" required>
+                                <span class="checkmark"></span>
+                                <span class="checklist-text">광고/홍보 목적의 글은 사전 승인 없이 작성할 수 없습니다.</span>
+                            </label>
+                        </div>
+                        <div class="checklist-item">
+                            <label class="checklist-label">
+                                <input type="checkbox" class="checklist-checkbox" required>
+                                <span class="checkmark"></span>
+                                <span class="checklist-text">코스 경험은 직접 다녀온 내용을 기반으로 작성해주세요.</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="checklist-agreement">
+                        <label class="agreement-label">
+                            <input type="checkbox" id="checklistAgreement" class="agreement-checkbox" required>
+                            <span class="agreement-checkmark"></span>
+                            <span class="agreement-text">위 모든 항목을 확인했으며, 이를 준수할 것을 동의합니다.</span>
+                        </label>
+                    </div>
+                </div>
+                
                 <div class="course-hunting-form-actions">
-                    <button type="submit" class="course-hunting-submit-btn">코스 등록</button>
+                    <button type="submit" class="course-hunting-submit-btn" id="courseSubmitBtn" disabled>코스 등록</button>
                     <button type="button" class="course-hunting-cancel-btn" onclick="closeCreateModal()">취소</button>
                 </div>
             </form>
@@ -902,6 +958,9 @@ function showCreateForm() {
             userIdInput.value = '';
         }
     }
+    
+    // 체크리스트 초기화
+    initializeChecklistOnModalOpen();
 }
 
 // 코스 공유하기 모달 닫기
@@ -955,6 +1014,12 @@ function resetForm() {
     if (newInput) {
         setupInputAutocomplete(newInput);
     }
+    
+    // 체크리스트 초기화
+    setTimeout(() => {
+        initializeChecklist();
+        updateSubmitButton();
+    }, 100);
 }
 
 // 스텝 추가
@@ -1149,6 +1214,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 핫플레이스 검색 자동완성 이벤트 리스너 추가
     setupHotplaceAutocomplete();
+    
+    // 체크리스트 초기화
+    initializeChecklist();
+    
+    // 초기 상태에서는 제출 버튼 비활성화
+    updateSubmitButton();
     
     
     // 검색 기능 이벤트 설정
@@ -1471,5 +1542,84 @@ function clearSearch(button) {
             icon.style.transform = 'rotate(0deg)';
         }, 500);
     }
+}
+
+// 체크리스트 관련 함수들
+function initializeChecklist() {
+    const checklistCheckboxes = document.querySelectorAll('.checklist-checkbox');
+    const agreementCheckbox = document.getElementById('checklistAgreement');
+    const submitBtn = document.getElementById('courseSubmitBtn');
+    
+    // 개별 체크박스 이벤트 리스너
+    checklistCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSubmitButton);
+    });
+    
+    // 전체 동의 체크박스 이벤트 리스너
+    if (agreementCheckbox) {
+        agreementCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                // 전체 동의 시 모든 개별 체크박스도 체크
+                checklistCheckboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+            } else {
+                // 전체 동의 해제 시 모든 개별 체크박스도 해제
+                checklistCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            }
+            updateSubmitButton();
+        });
+    }
+    
+    // 개별 체크박스가 변경될 때 전체 동의 체크박스 상태 업데이트
+    checklistCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateAgreementCheckbox();
+        });
+    });
+}
+
+function updateSubmitButton() {
+    const checklistCheckboxes = document.querySelectorAll('.checklist-checkbox');
+    const agreementCheckbox = document.getElementById('checklistAgreement');
+    const submitBtn = document.getElementById('courseSubmitBtn');
+    
+    // 모든 개별 체크박스가 체크되었고 전체 동의도 체크되었을 때만 제출 버튼 활성화
+    const allChecked = Array.from(checklistCheckboxes).every(checkbox => checkbox.checked);
+    const agreementChecked = agreementCheckbox ? agreementCheckbox.checked : false;
+    
+    if (submitBtn) {
+        if (allChecked && agreementChecked) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.6';
+            submitBtn.style.cursor = 'not-allowed';
+        }
+    }
+}
+
+function updateAgreementCheckbox() {
+    const checklistCheckboxes = document.querySelectorAll('.checklist-checkbox');
+    const agreementCheckbox = document.getElementById('checklistAgreement');
+    
+    if (agreementCheckbox) {
+        // 모든 개별 체크박스가 체크되었을 때만 전체 동의 체크박스도 체크
+        const allChecked = Array.from(checklistCheckboxes).every(checkbox => checkbox.checked);
+        agreementCheckbox.checked = allChecked;
+    }
+}
+
+// 체크리스트 초기화 함수 (기존 openCreateModal에서 호출)
+function initializeChecklistOnModalOpen() {
+    setTimeout(() => {
+        initializeChecklist();
+        // 초기 상태에서는 제출 버튼 비활성화
+        updateSubmitButton();
+    }, 100);
 }
 </script>

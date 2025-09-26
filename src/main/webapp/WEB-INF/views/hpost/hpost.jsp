@@ -261,11 +261,74 @@
                         <label for="photo3" class="form-label">사진 3</label>
                         <input type="file" class="form-control" id="photo3" name="photo3" accept="image/*">
                     </div>
+                    
+                    <!-- 핫플썰 글 작성 체크리스트 -->
+                    <div class="hpost-checklist-container">
+                        <h6>핫플썰 글 작성 체크리스트 (배포용)</h6>
+                        <div class="hpost-checklist">
+                            <div class="checklist-item">
+                                <label class="checklist-label">
+                                    <input type="checkbox" class="checklist-checkbox" required>
+                                    <span class="checkmark"></span>
+                                    <span class="checklist-text">불법·음란 업소 언급 금지<br><small class="text-muted">(성매매, 불법 영업, 음란 서비스 관련 내용은 절대 허용되지 않습니다.)</small></span>
+                                </label>
+                            </div>
+                            <div class="checklist-item">
+                                <label class="checklist-label">
+                                    <input type="checkbox" class="checklist-checkbox" required>
+                                    <span class="checkmark"></span>
+                                    <span class="checklist-text">허위 사실 유포 금지<br><small class="text-muted">(사실과 다른 과장된 내용, 없는 일 꾸미기, 평판 조작은 제재됩니다.)</small></span>
+                                </label>
+                            </div>
+                            <div class="checklist-item">
+                                <label class="checklist-label">
+                                    <input type="checkbox" class="checklist-checkbox" required>
+                                    <span class="checkmark"></span>
+                                    <span class="checklist-text">개인 정보 언급 금지<br><small class="text-muted">(실명, 연락처, SNS 아이디 등 타인의 개인정보를 노출할 수 없습니다.)</small></span>
+                                </label>
+                            </div>
+                            <div class="checklist-item">
+                                <label class="checklist-label">
+                                    <input type="checkbox" class="checklist-checkbox" required>
+                                    <span class="checkmark"></span>
+                                    <span class="checklist-text">비방·모욕 금지<br><small class="text-muted">(특정인, 특정 업소를 욕하거나 조롱하는 내용은 삭제됩니다.)</small></span>
+                                </label>
+                            </div>
+                            <div class="checklist-item">
+                                <label class="checklist-label">
+                                    <input type="checkbox" class="checklist-checkbox" required>
+                                    <span class="checkmark"></span>
+                                    <span class="checklist-text">선정적 사진/영상 업로드 금지<br><small class="text-muted">(나체, 성적 행위 묘사, 과도한 노출이 담긴 이미지는 등록 불가합니다.)</small></span>
+                                </label>
+                            </div>
+                            <div class="checklist-item">
+                                <label class="checklist-label">
+                                    <input type="checkbox" class="checklist-checkbox" required>
+                                    <span class="checkmark"></span>
+                                    <span class="checklist-text">광고성·영업성 게시물 금지<br><small class="text-muted">(사전 협의 없는 홍보/광고 게시물은 차단됩니다.)</small></span>
+                                </label>
+                            </div>
+                            <div class="checklist-item">
+                                <label class="checklist-label">
+                                    <input type="checkbox" class="checklist-checkbox" required>
+                                    <span class="checkmark"></span>
+                                    <span class="checklist-text">책임 있는 작성<br><small class="text-muted">(모든 글은 작성자의 경험을 바탕으로 해야 하며, 문제가 될 경우 책임은 작성자에게 있습니다.)</small></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="checklist-agreement">
+                            <label class="agreement-label">
+                                <input type="checkbox" id="hpostChecklistAgreement" class="agreement-checkbox" required>
+                                <span class="agreement-checkmark"></span>
+                                <span class="agreement-text">위 모든 항목을 확인했으며, 이를 준수할 것을 동의합니다.</span>
+                            </label>
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                <button type="button" class="btn btn-primary" onclick="submitPost()">글쓰기</button>
+                <button type="button" class="btn btn-primary" id="hpostSubmitBtn" onclick="submitPost()" disabled>글쓰기</button>
             </div>
         </div>
     </div>
@@ -571,4 +634,110 @@ function confirmDeleteHpost() {
         deleteBtn.innerHTML = '<i class="bi bi-trash me-1"></i> 삭제';
     });
 }
+
+// 핫플썰 체크리스트 관련 함수들
+function initializeHpostChecklist() {
+    const checklistCheckboxes = document.querySelectorAll('.hpost-checklist .checklist-checkbox');
+    const agreementCheckbox = document.getElementById('hpostChecklistAgreement');
+    const submitBtn = document.getElementById('hpostSubmitBtn');
+    
+    // 개별 체크박스 이벤트 리스너
+    checklistCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateHpostSubmitButton);
+    });
+    
+    // 전체 동의 체크박스 이벤트 리스너
+    if (agreementCheckbox) {
+        agreementCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                // 전체 동의 시 모든 개별 체크박스도 체크
+                checklistCheckboxes.forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+            } else {
+                // 전체 동의 해제 시 모든 개별 체크박스도 해제
+                checklistCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            }
+            updateHpostSubmitButton();
+        });
+    }
+    
+    // 개별 체크박스가 변경될 때 전체 동의 체크박스 상태 업데이트
+    checklistCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateHpostAgreementCheckbox();
+        });
+    });
+}
+
+function updateHpostSubmitButton() {
+    const checklistCheckboxes = document.querySelectorAll('.hpost-checklist .checklist-checkbox');
+    const agreementCheckbox = document.getElementById('hpostChecklistAgreement');
+    const submitBtn = document.getElementById('hpostSubmitBtn');
+    
+    // 모든 개별 체크박스가 체크되었고 전체 동의도 체크되었을 때만 제출 버튼 활성화
+    const allChecked = Array.from(checklistCheckboxes).every(checkbox => checkbox.checked);
+    const agreementChecked = agreementCheckbox ? agreementCheckbox.checked : false;
+    
+    if (submitBtn) {
+        if (allChecked && agreementChecked) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.6';
+            submitBtn.style.cursor = 'not-allowed';
+        }
+    }
+}
+
+function updateHpostAgreementCheckbox() {
+    const checklistCheckboxes = document.querySelectorAll('.hpost-checklist .checklist-checkbox');
+    const agreementCheckbox = document.getElementById('hpostChecklistAgreement');
+    
+    if (agreementCheckbox) {
+        // 모든 개별 체크박스가 체크되었을 때만 전체 동의 체크박스도 체크
+        const allChecked = Array.from(checklistCheckboxes).every(checkbox => checkbox.checked);
+        agreementCheckbox.checked = allChecked;
+    }
+}
+
+// 모달이 열릴 때 체크리스트 초기화
+function initializeHpostChecklistOnModalOpen() {
+    setTimeout(() => {
+        initializeHpostChecklist();
+        // 초기 상태에서는 제출 버튼 비활성화
+        updateHpostSubmitButton();
+    }, 100);
+}
+
+// 페이지 로드 시 체크리스트 초기화
+document.addEventListener('DOMContentLoaded', function() {
+    // 체크리스트 초기화
+    initializeHpostChecklist();
+    
+    // 초기 상태에서는 제출 버튼 비활성화
+    updateHpostSubmitButton();
+});
+
+// 모달이 열릴 때 체크리스트 초기화 (Bootstrap 모달 이벤트)
+document.addEventListener('DOMContentLoaded', function() {
+    const writeModal = document.getElementById('writePostModal');
+    if (writeModal) {
+        writeModal.addEventListener('shown.bs.modal', function() {
+            initializeHpostChecklistOnModalOpen();
+        });
+        
+        writeModal.addEventListener('hidden.bs.modal', function() {
+            // 모달이 닫힐 때 체크리스트 초기화
+            setTimeout(() => {
+                initializeHpostChecklist();
+                updateHpostSubmitButton();
+            }, 100);
+        });
+    }
+});
 </script>

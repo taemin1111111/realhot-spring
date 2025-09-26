@@ -78,7 +78,13 @@ body:has(.notice-detail-page) {
 .notice-detail-content-wrapper .main-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 10px;
+    padding: 0 20px;
+}
+
+.notice-detail-content-wrapper .container {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 /* 공지사항 제목 */
@@ -274,19 +280,34 @@ body:has(.notice-detail-page) {
     background: transparent;
     padding: 0;
     margin: 20px 0;
+    max-width: 100%;
 }
 
 .notice-detail-header {
     margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .notice-detail-title {
     color: #000000;
     font-size: 2rem;
-    margin-bottom: 10px;
+    margin: 0;
     font-weight: bold;
+    flex: 1;
+    min-width: 300px;
+}
+
+.notice-detail-header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
 .notice-detail-meta {
@@ -297,6 +318,7 @@ body:has(.notice-detail-page) {
     gap: 20px;
     font-size: 14px;
     color: #666666;
+    flex-wrap: wrap;
 }
 
 .notice-detail-writer,
@@ -305,6 +327,7 @@ body:has(.notice-detail-page) {
     display: flex;
     align-items: center;
     gap: 4px;
+    white-space: nowrap;
 }
 
 .notice-detail-photo {
@@ -323,7 +346,22 @@ body:has(.notice-detail-page) {
     color: #000000;
     line-height: 1.8;
     font-size: 1.1rem;
-    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-top: 20px;
+    padding: 20px 0;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* 링크 스타일 */
+.notice-detail-content a {
+    color: #007bff;
+    text-decoration: underline;
+    transition: color 0.3s ease;
+}
+
+.notice-detail-content a:hover {
+    color: #0056b3;
+    text-decoration: none;
 }
 
 /* 뒤로가기 버튼 */
@@ -521,10 +559,46 @@ textarea.form-control {
     padding: 0;
     font-size: 14px;
     font-weight: 500;
-    margin-left: 8px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+}
+
+/* 관리자 버튼 스타일 */
+.admin-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.admin-buttons .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.admin-buttons .btn-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.admin-buttons .btn-warning:hover {
+    background-color: #e0a800;
+}
+
+.admin-buttons .btn-danger {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.admin-buttons .btn-danger:hover {
+    background-color: #c82333;
 }
 
 /* 반응형 디자인 */
@@ -549,6 +623,33 @@ textarea.form-control {
     .notice-detail-meta {
         flex-direction: column;
         gap: 10px;
+    }
+    
+    .notice-detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .notice-detail-title {
+        font-size: 1.5rem;
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .notice-detail-header-right {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .admin-buttons {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .admin-buttons .btn {
+        font-size: 11px;
+        padding: 5px 10px;
     }
     
     .modal-content {

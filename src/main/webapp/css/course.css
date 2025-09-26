@@ -1907,4 +1907,203 @@ body:has(.course-hunting-container) {
 .course-hunting-card:nth-child(5) { animation-delay: 0.5s; }
 .course-hunting-card:nth-child(6) { animation-delay: 0.6s; }
 
+/* 코스 글 작성 체크리스트 스타일 */
+.course-hunting-checklist-container {
+    margin: 20px 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.course-hunting-checklist-container h4 {
+    color: #495057;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.course-hunting-checklist-container h4::before {
+    content: "✓";
+    color: #28a745;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.course-hunting-checklist {
+    margin-bottom: 20px;
+}
+
+.checklist-item {
+    margin-bottom: 12px;
+}
+
+.checklist-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.checklist-label:hover {
+    background-color: #e9ecef;
+}
+
+.checklist-checkbox {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #6c757d;
+    border-radius: 4px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.checkmark::after {
+    content: "";
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.checklist-checkbox:checked + .checkmark {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.checklist-checkbox:checked + .checkmark::after {
+    opacity: 1;
+}
+
+.checklist-text {
+    color: #495057;
+    font-size: 14px;
+    line-height: 1.4;
+    flex: 1;
+}
+
+.checklist-agreement {
+    padding: 15px;
+    background-color: white;
+    border-radius: 6px;
+    border: 2px solid #dee2e6;
+    margin-top: 15px;
+}
+
+.agreement-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.agreement-checkbox {
+    display: none;
+}
+
+.agreement-checkmark {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #007bff;
+    border-radius: 4px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.agreement-checkmark::after {
+    content: "";
+    width: 8px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.agreement-checkbox:checked + .agreement-checkmark {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.agreement-checkbox:checked + .agreement-checkmark::after {
+    opacity: 1;
+}
+
+.agreement-text {
+    color: #495057;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* 체크리스트 동의 시 동의 섹션 스타일 변경 */
+.agreement-checkbox:checked ~ .agreement-text {
+    color: #28a745;
+}
+
+.agreement-checkbox:checked + .agreement-checkmark {
+    border-color: #28a745;
+    background-color: #28a745;
+}
+
+/* 제출 버튼 비활성화 상태 */
+#courseSubmitBtn:disabled {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+#courseSubmitBtn:not(:disabled) {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .course-hunting-checklist-container {
+        margin: 15px 0;
+        padding: 15px;
+    }
+    
+    .checklist-label {
+        padding: 6px;
+    }
+    
+    .checklist-text {
+        font-size: 13px;
+    }
+    
+    .agreement-text {
+        font-size: 14px;
+    }
+    
+    .checklist-agreement {
+        padding: 12px;
+    }
+}
 

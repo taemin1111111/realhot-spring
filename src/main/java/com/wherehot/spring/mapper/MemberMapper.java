@@ -196,4 +196,31 @@ public interface MemberMapper {
      * 연령대별 통계
      */
     List<Map<String, Object>> getMemberStatsByAge();
+    
+    // ========== 경험치 및 레벨 관련 ==========
+    
+    /**
+     * 경험치 추가
+     */
+    int addExp(@Param("userid") String userid, @Param("amount") int amount);
+    
+    /**
+     * 레벨 업데이트
+     */
+    int updateLevel(@Param("userid") String userid, @Param("levelId") int levelId);
+    
+    /**
+     * 경험치와 레벨 동시 업데이트
+     */
+    int updateExpAndLevel(@Param("userid") String userid, @Param("exp") int exp, @Param("levelId") int levelId);
+    
+    /**
+     * 사용자 경험치 조회
+     */
+    int selectExpByUserid(@Param("userid") String userid);
+    
+    /**
+     * 사용자 레벨 조회
+     */
+    int selectLevelByUserid(@Param("userid") String userid);
 }

@@ -53,7 +53,7 @@ public class OAuth2Controller {
         
         if (naverId == null) {
             logger.warn("OAuth2 session data not found, redirecting to main page");
-            return "redirect:/hotplace/";
+            return "redirect:https://wherehotnow.com/";
         }
         
         // 모델에 데이터 전달
@@ -137,18 +137,18 @@ public class OAuth2Controller {
             
             // 메인 페이지로 리다이렉트 (토큰과 함께, URL 인코딩 적용)
             try {
-                return "redirect:/?token=" + accessToken + "&userid=" + member.getUserid() + 
+                return "redirect:https://wherehotnow.com/?token=" + accessToken + "&userid=" + member.getUserid() + 
                        "&nickname=" + java.net.URLEncoder.encode(member.getNickname(), "UTF-8") + 
                        "&provider=" + member.getProvider() + 
                        "&email=" + java.net.URLEncoder.encode(member.getEmail(), "UTF-8");
             } catch (Exception e) {
                 logger.error("URL encoding error: {}", e.getMessage());
-                return "redirect:/?error=encoding_error";
+                return "redirect:https://wherehotnow.com/?error=encoding_error";
             }
             
         } catch (Exception e) {
             logger.error("Naver OAuth2 signup failed: ", e);
-            return "redirect:/hotplace/oauth2/signup/naver?error=" + e.getMessage();
+            return "redirect:https://wherehotnow.com/oauth2/signup/naver?error=" + e.getMessage();
         }
     }
 }

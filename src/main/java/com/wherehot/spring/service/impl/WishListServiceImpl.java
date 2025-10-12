@@ -3,6 +3,7 @@ package com.wherehot.spring.service.impl;
 import com.wherehot.spring.entity.WishList;
 import com.wherehot.spring.mapper.WishListMapper;
 import com.wherehot.spring.service.WishListService;
+import com.wherehot.spring.service.ExpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class WishListServiceImpl implements WishListService {
     
     @Autowired
     private WishListMapper wishListMapper;
+    
+    @Autowired
+    private ExpService expService;
     
     @Override
     @Transactional(readOnly = true)
@@ -173,6 +177,20 @@ public class WishListServiceImpl implements WishListService {
             WishList saved = saveWishList(wishList);
             if (saved != null) {
                 logger.info("Wish added successfully: userId={}, placeId={}", loginId, placeId);
+                
+                // 찜하기 경험치 지급 (1개 = +1 Exp, 하루 최대 3 Exp)
+                try {
+                    boolean expAdded = expService.addWishExp(loginId, 1);
+                    if (expAdded) {
+                        logger.info("Wish exp added successfully for user: {}", loginId);
+                    } else {
+                        logger.info("Wish exp not added (daily limit reached) for user: {}", loginId);
+                    }
+                } catch (Exception e) {
+                    logger.error("Error adding wish exp for user: {}", loginId, e);
+                    // 경험치 지급 실패는 찜하기 자체를 실패시키지 않음
+                }
+                
                 return true;
             } else {
                 logger.error("Failed to save wish: userId={}, placeId={}", loginId, placeId);

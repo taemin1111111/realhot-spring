@@ -105,17 +105,55 @@ public class VoteController {
                 return ResponseEntity.badRequest().body(response);
             }
             
-            // 5. gender_ratio 값 변환 (투표 폼의 value와 실제 저장값 매핑)
+            // 5. 값 변환 (투표 폼의 value와 실제 저장값 매핑)
+            
+            // 5-1. 혼잡도 변환 (DB ENUM: '여유', '보통', '많음', '혼잡')
+            String actualCongestion = congestion;
+            switch (congestion) {
+                case "1": // 여유
+                    actualCongestion = "여유";
+                    break;
+                case "2": // 보통
+                    actualCongestion = "보통";
+                    break;
+                case "3": // 혼잡
+                    actualCongestion = "혼잡";
+                    break;
+                default:
+                    // 이미 변환된 값이거나 잘못된 값
+                    logger.warn("Unknown congestion value: {}", congestion);
+                    break;
+            }
+            
+            // 5-2. 대기시간 변환 (DB ENUM: '없음', '10분이하', '30분이상')
+            String actualWaitTime = waitTime;
+            switch (waitTime) {
+                case "1": // 즉시 → 없음
+                    actualWaitTime = "없음";
+                    break;
+                case "2": // 10분이하 → 10분이하
+                    actualWaitTime = "10분이하";
+                    break;
+                case "3": // 30분이상 → 30분이상
+                    actualWaitTime = "30분이상";
+                    break;
+                default:
+                    // 이미 변환된 값이거나 잘못된 값
+                    logger.warn("Unknown wait time value: {}", waitTime);
+                    break;
+            }
+            
+            // 5-3. 성비 변환 (DB ENUM: '남초', '여초', '반반', '남자 많음', '여자 많음')
             String actualGenderRatio = genderRatio;
             switch (genderRatio) {
-                case "1": // 여자↑ → 여초
-                    actualGenderRatio = "여초";
+                case "1": // 여성 많음 → 여자 많음
+                    actualGenderRatio = "여자 많음";
                     break;
-                case "2": // 반반 → 반반
+                case "2": // 비슷함 → 반반
                     actualGenderRatio = "반반";
                     break;
-                case "3": // 남자↑ → 남초
-                    actualGenderRatio = "남초";
+                case "3": // 남성 많음 → 남자 많음
+                    actualGenderRatio = "남자 많음";
                     break;
                 default:
                     // 이미 변환된 값이거나 잘못된 값
@@ -123,11 +161,12 @@ public class VoteController {
                     break;
             }
             
-            logger.info("Gender ratio mapping: {} → {}", genderRatio, actualGenderRatio);
+            logger.info("Value mappings: congestion {} → {}, waitTime {} → {}, genderRatio {} → {}", 
+                       congestion, actualCongestion, waitTime, actualWaitTime, genderRatio, actualGenderRatio);
             
             // 6. 투표 처리 (보안 정보 포함)
             boolean success = ((com.wherehot.spring.service.impl.VoteServiceImpl) voteService)
-                .addNowHotVoteWithSecurity(hotplaceId, voterId, congestion, actualGenderRatio, waitTime, userAgent, ipAddress);
+                .addNowHotVoteWithSecurity(hotplaceId, voterId, actualCongestion, actualGenderRatio, actualWaitTime, userAgent, ipAddress);
             
             if (success) {
                 response.put("success", true);

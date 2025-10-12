@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.ServletContext;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,6 +47,9 @@ public class CourseController {
     
     @Value("${file.upload.course-path:src/main/webapp/uploads/course}")
     private String courseUploadPath;
+    
+    @Autowired
+    private ServletContext servletContext;
     
     @Autowired
     private ResourceLoader resourceLoader;
@@ -129,12 +133,12 @@ public class CourseController {
     
     // 코스 목록 페이지 (기존 JSP Include 방식 유지)
     @GetMapping("")
-    public String courseList(@RequestParam(defaultValue = "1") int page,
-                           @RequestParam(defaultValue = "latest") String sort,
-                           @RequestParam(required = false) String sido,
-                           @RequestParam(required = false) String sigungu,
-                           @RequestParam(required = false) String dong,
-                           @RequestParam(required = false) String search,
+    public String courseList(@RequestParam(name = "page", defaultValue = "1") int page,
+                           @RequestParam(name = "sort", defaultValue = "latest") String sort,
+                           @RequestParam(name = "sido", required = false) String sido,
+                           @RequestParam(name = "sigungu", required = false) String sigungu,
+                           @RequestParam(name = "dong", required = false) String dong,
+                           @RequestParam(name = "search", required = false) String search,
                            Model model) {
         
 
@@ -189,7 +193,7 @@ public class CourseController {
     
     // 코스 상세 페이지 (기존 JSP Include 방식 유지)
     @GetMapping("/{id}")
-    public String courseDetail(@PathVariable int id, Model model, HttpSession session, HttpServletRequest request) {
+    public String courseDetail(@PathVariable(name = "id") int id, Model model, HttpSession session, HttpServletRequest request) {
         try {
             // ID 유효성 검사
             if (id <= 0) {
@@ -451,38 +455,20 @@ public class CourseController {
                      }
                      
                      if (photoFile != null && !photoFile.isEmpty()) {
-                         // Spring Boot의 ResourceLoader를 사용하여 안전한 경로 설정
+                         // ServletContext를 사용하여 배포 경로 설정
                          try {
-                             String uploadDir;
-                             // 프로젝트 루트 디렉토리 찾기
-                             File projectRoot = new File(System.getProperty("user.dir"));
-                             
-                             // target/classes에서 실행되는 경우 프로젝트 루트로 이동
-                             if (projectRoot.getAbsolutePath().contains("target")) {
-                                 projectRoot = projectRoot.getParentFile().getParentFile();
-                             }
-                             
-                             uploadDir = projectRoot.getAbsolutePath() + File.separator + "src" + File.separator + "main" + File.separator + "webapp" + File.separator + "uploads" + File.separator + "course" + File.separator;
-                             
-                             System.out.println("프로젝트 루트: " + projectRoot.getAbsolutePath());
-                             System.out.println("업로드 디렉토리: " + uploadDir);
-                         
+                             String uploadDir = servletContext.getRealPath("/uploads/course");
                              File dir = new File(uploadDir);
-                             System.out.println("디렉토리 존재 여부: " + dir.exists());
-                             System.out.println("디렉토리 절대 경로: " + dir.getAbsolutePath());
                              
                              if (!dir.exists()) {
                                  boolean created = dir.mkdirs();
-                                 System.out.println("디렉토리 생성 시도 결과: " + created);
                                  if (!created) {
-                                     System.out.println("업로드 디렉토리 생성 실패: " + uploadDir);
-                                     // 대체 경로 시도
-                                     uploadDir = projectRoot.getAbsolutePath() + File.separator + "uploads" + File.separator + "course" + File.separator;
-                                     dir = new File(uploadDir);
-                                     if (!dir.exists()) {
-                                         dir.mkdirs();
-                                     }
+                                     throw new RuntimeException("업로드 디렉토리를 생성할 수 없습니다: " + uploadDir);
                                  }
+                                 // 디렉토리 권한 설정 (755)
+                                 dir.setReadable(true, false);
+                                 dir.setWritable(true, true);
+                                 dir.setExecutable(true, false);
                              }
                          
                          // 파일명 생성 (타임스탬프 + 스텝번호 + 랜덤값 + 원본파일명)
@@ -491,7 +477,7 @@ public class CourseController {
                          String newFilename = System.currentTimeMillis() + "_" + step.getStepNo() + "_" + (int)(Math.random() * 1000) + fileExtension;
                          
                          // 파일 저장
-                         File dest = new File(uploadDir + newFilename);
+                         File dest = new File(uploadDir + File.separator + newFilename);
                          
                          try {
                              // 파일 스트림을 사용하여 안전하게 파일 저장
@@ -504,6 +490,10 @@ public class CourseController {
                                      outputStream.write(buffer, 0, bytesRead);
                                  }
                              }
+                             
+                             // 파일 권한 설정 (644)
+                             dest.setReadable(true, false);
+                             dest.setWritable(true, true);
                              
                              // 데이터베이스에 저장할 경로 설정
                              step.setPhotoUrl("/uploads/course/" + newFilename);
@@ -683,8 +673,8 @@ public class CourseController {
     // 댓글 목록 조회 API
     @GetMapping("/{courseId}/comments")
     @ResponseBody
-    public Map<String, Object> getComments(@PathVariable int courseId,
-                                          @RequestParam(defaultValue = "latest") String sort,
+    public Map<String, Object> getComments(@PathVariable(name = "courseId") int courseId,
+                                          @RequestParam(name = "sort", defaultValue = "latest") String sort,
                                           HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         
@@ -728,8 +718,8 @@ public class CourseController {
     // 대댓글 목록 조회 API
     @GetMapping("/{courseId}/replies")
     @ResponseBody
-    public Map<String, Object> getReplies(@PathVariable int courseId,
-                                         @RequestParam int parentId,
+    public Map<String, Object> getReplies(@PathVariable(name = "courseId") int courseId,
+                                         @RequestParam(name = "parentId") int parentId,
                                          HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         
@@ -760,7 +750,7 @@ public class CourseController {
     // 핫플레이스 검색 API (자동완성용)
     @GetMapping("/hotplace/search")
     @ResponseBody
-    public List<Map<String, Object>> searchHotplaces(@RequestParam String keyword) {
+    public List<Map<String, Object>> searchHotplaces(@RequestParam(name = "keyword") String keyword) {
         try {
             List<Hotplace> hotplaces = hotplaceService.searchHotplaces(keyword, 1, 10);
             List<Map<String, Object>> result = new ArrayList<>();
@@ -1001,9 +991,9 @@ public class CourseController {
     
     // 특정 가게가 포함된 코스 목록 페이지
     @GetMapping("/place/{placeId}")
-    public String courseListByPlace(@PathVariable int placeId,
-                                   @RequestParam(defaultValue = "1") int page,
-                                   @RequestParam(defaultValue = "popular") String sort,
+    public String courseListByPlace(@PathVariable(name = "placeId") int placeId,
+                                   @RequestParam(name = "page", defaultValue = "1") int page,
+                                   @RequestParam(name = "sort", defaultValue = "popular") String sort,
                                    Model model) {
         
         try {

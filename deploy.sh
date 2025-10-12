@@ -1,77 +1,180 @@
 #!/bin/bash
 
-# ===== 운영 배포 스크립트 (하루 1만명+ 처리) =====
+###############################################################################
+# WAR 배포 자동화 스크립트
+# 사용법: ./deploy.sh [SERVER_IP] [SERVER_USER]
+# 예시: ./deploy.sh 59.18.34.179 ubuntu
+###############################################################################
 
-set -e
+set -e  # 에러 발생시 중단
 
-echo "🚀 어디핫 프로덕션 배포 시작..."
+# 색상 설정
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
-# 환경 변수 설정
-export SPRING_PROFILES_ACTIVE=prod
-export JAVA_OPTS="-Xms2g -Xmx8g -XX:+UseG1GC -XX:G1HeapRegionSize=16m -XX:+UseStringDeduplication"
+# 서버 정보
+SERVER_IP=${1:-59.18.34.179}
+SERVER_USER=${2:-ubuntu}
+WAR_FILE="target/taeminspring.war"
 
-# 1. 기존 컨테이너 정리
-echo "📦 기존 컨테이너 정리 중..."
-docker-compose down --remove-orphans
+echo -e "${GREEN}========================================${NC}"
+echo -e "${GREEN}  WAR 배포 자동화 스크립트${NC}"
+echo -e "${GREEN}========================================${NC}"
+echo ""
+echo -e "서버 IP: ${YELLOW}$SERVER_IP${NC}"
+echo -e "사용자: ${YELLOW}$SERVER_USER${NC}"
+echo ""
 
-# 2. 이미지 빌드
-echo "🔨 Docker 이미지 빌드 중..."
-docker-compose build --no-cache
+# 1. WAR 파일 빌드
+echo -e "${YELLOW}[1/6] WAR 파일 빌드 중...${NC}"
+mvn clean package -DskipTests
 
-# 3. 데이터베이스 백업 (기존 DB가 있는 경우)
-if docker volume ls | grep -q mysql_data; then
-    echo "💾 데이터베이스 백업 중..."
-    docker run --rm -v mysql_data:/data -v $(pwd):/backup alpine tar czf /backup/mysql_backup_$(date +%Y%m%d_%H%M%S).tar.gz -C /data .
+if [ ! -f "$WAR_FILE" ]; then
+    echo -e "${RED}❌ WAR 파일 빌드 실패!${NC}"
+    exit 1
 fi
 
-# 4. 서비스 시작
-echo "🎯 서비스 시작 중..."
-docker-compose up -d
+echo -e "${GREEN}✅ WAR 파일 빌드 완료: $WAR_FILE${NC}"
+echo ""
 
-# 5. 헬스 체크
-echo "🔍 헬스 체크 중..."
-sleep 30
+# 2. WAR 파일 크기 확인
+WAR_SIZE=$(du -h "$WAR_FILE" | cut -f1)
+echo -e "WAR 파일 크기: ${YELLOW}$WAR_SIZE${NC}"
+echo ""
 
-for i in {1..12}; do
-    if curl -f http://localhost:8083/hotplace/actuator/health > /dev/null 2>&1; then
-        echo "✅ 애플리케이션이 정상적으로 시작되었습니다!"
-        break
-    else
-        echo "⏳ 애플리케이션 시작 대기 중... ($i/12)"
-        sleep 10
+# 3. 서버로 WAR 파일 전송
+echo -e "${YELLOW}[2/6] 서버로 WAR 파일 전송 중...${NC}"
+scp "$WAR_FILE" "$SERVER_USER@$SERVER_IP:/tmp/"
+
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ WAR 파일 전송 실패!${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✅ WAR 파일 전송 완료${NC}"
+echo ""
+
+# 4. 서버에서 배포 스크립트 실행
+echo -e "${YELLOW}[3/6] 서버에서 배포 시작...${NC}"
+
+ssh "$SERVER_USER@$SERVER_IP" << 'ENDSSH'
+    set -e
+    
+    echo "📦 WAR 파일 배포 중..."
+    
+    # 기존 WAR 파일 백업
+    if [ -f /var/lib/tomcat9/webapps/taeminspring.war ]; then
+        echo "이전 WAR 파일 백업 중..."
+        sudo mv /var/lib/tomcat9/webapps/taeminspring.war \
+             /var/lib/tomcat9/webapps/taeminspring.war.backup.$(date +%Y%m%d_%H%M%S)
     fi
     
-    if [ $i -eq 12 ]; then
-        echo "❌ 애플리케이션 시작 실패!"
-        docker-compose logs app
+    # 기존 압축 해제된 디렉토리 삭제
+    if [ -d /var/lib/tomcat9/webapps/taeminspring ]; then
+        echo "이전 배포 파일 삭제 중..."
+        sudo rm -rf /var/lib/tomcat9/webapps/taeminspring
+    fi
+    
+    # 새 WAR 파일 복사
+    echo "새 WAR 파일 복사 중..."
+    sudo cp /tmp/taeminspring.war /var/lib/tomcat9/webapps/
+    sudo chown tomcat9:tomcat9 /var/lib/tomcat9/webapps/taeminspring.war
+    
+    # 업로드 디렉토리 생성 (없는 경우)
+    echo "업로드 디렉토리 확인 중..."
+    sudo mkdir -p /var/lib/tomcat9/webapps/taeminspring/uploads/{hpostsave,notices,places,mdphotos,community,course}
+    sudo chown -R tomcat9:tomcat9 /var/lib/tomcat9/webapps/taeminspring/uploads/
+    sudo chmod -R 755 /var/lib/tomcat9/webapps/taeminspring/uploads/
+    
+    echo "✅ WAR 파일 배포 완료"
+ENDSSH
+
+echo -e "${GREEN}✅ 서버 배포 완료${NC}"
+echo ""
+
+# 5. Tomcat 재시작
+echo -e "${YELLOW}[4/6] Tomcat 재시작 중...${NC}"
+
+ssh "$SERVER_USER@$SERVER_IP" << 'ENDSSH'
+    echo "Tomcat 재시작 중..."
+    sudo systemctl restart tomcat9
+    
+    # Tomcat이 완전히 시작될 때까지 대기
+    echo "Tomcat 시작 대기 중..."
+    sleep 10
+    
+    # Tomcat 상태 확인
+    if sudo systemctl is-active --quiet tomcat9; then
+        echo "✅ Tomcat 정상 실행 중"
+    else
+        echo "❌ Tomcat 시작 실패!"
+        sudo systemctl status tomcat9
         exit 1
     fi
-done
+ENDSSH
 
-# 6. 로그 확인
-echo "📋 최신 로그 확인:"
-docker-compose logs --tail=20 app
-
-# 7. 서비스 상태 확인
-echo "📊 서비스 상태:"
-docker-compose ps
-
-echo ""
-echo "🎉 배포 완료!"
-echo "🌐 서비스 URL: http://localhost:8083/hotplace"
-echo "📊 모니터링: http://localhost:8083/hotplace/actuator"
-echo ""
-echo "📝 유용한 명령어:"
-echo "  로그 실시간 확인: docker-compose logs -f app"
-echo "  서비스 재시작: docker-compose restart app"
-echo "  DB 접속: docker-compose exec mysql mysql -u root -p wherehot"
-echo "  Redis 접속: docker-compose exec redis redis-cli"
+echo -e "${GREEN}✅ Tomcat 재시작 완료${NC}"
 echo ""
 
-# 8. 성능 모니터링 스크립트 실행
-if [ -f "monitor.sh" ]; then
-    echo "📈 성능 모니터링 시작..."
-    nohup ./monitor.sh > monitor.log 2>&1 &
+# 6. 배포 확인
+echo -e "${YELLOW}[5/6] 배포 확인 중...${NC}"
+
+ssh "$SERVER_USER@$SERVER_IP" << 'ENDSSH'
+    # WAR 파일 압축 해제 확인 (최대 30초 대기)
+    echo "WAR 압축 해제 확인 중..."
+    for i in {1..30}; do
+        if [ -d /var/lib/tomcat9/webapps/taeminspring/WEB-INF ]; then
+            echo "✅ WAR 압축 해제 완료"
+            break
+        fi
+        echo "대기 중... ($i/30)"
+        sleep 1
+    done
+    
+    if [ ! -d /var/lib/tomcat9/webapps/taeminspring/WEB-INF ]; then
+        echo "❌ WAR 압축 해제 실패!"
+        exit 1
+    fi
+    
+    # Spring Boot 시작 확인
+    echo "Spring Boot 시작 확인 중..."
+    for i in {1..60}; do
+        if sudo grep -q "Started TaeminspringApplication" /var/log/tomcat9/catalina.out; then
+            echo "✅ Spring Boot 정상 시작"
+            break
+        fi
+        echo "Spring Boot 시작 대기 중... ($i/60)"
+        sleep 1
+    done
+    
+    # 최근 로그 출력
+    echo ""
+    echo "========== 최근 Tomcat 로그 =========="
+    sudo tail -n 30 /var/log/tomcat9/catalina.out
+ENDSSH
+
+echo -e "${GREEN}✅ 배포 확인 완료${NC}"
+echo ""
+
+# 7. 최종 결과
+echo -e "${YELLOW}[6/6] 배포 완료!${NC}"
+echo ""
+echo -e "${GREEN}========================================${NC}"
+echo -e "${GREEN}  배포 성공! 🎉${NC}"
+echo -e "${GREEN}========================================${NC}"
+echo ""
+echo -e "접속 URL: ${YELLOW}http://$SERVER_IP:8080/taeminspring/${NC}"
+echo ""
+echo -e "${YELLOW}다음 명령으로 로그를 확인하세요:${NC}"
+echo -e "ssh $SERVER_USER@$SERVER_IP 'sudo tail -f /var/log/tomcat9/catalina.out'"
+echo ""
+
+# 브라우저에서 열기 (Windows)
+if command -v cmd.exe &> /dev/null; then
+    echo -e "${YELLOW}브라우저에서 열기...${NC}"
+    cmd.exe /c start "http://$SERVER_IP:8080/taeminspring/"
 fi
 
-echo "✨ 하루 1만명+ 처리 준비 완료!"
+exit 0

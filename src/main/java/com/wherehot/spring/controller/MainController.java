@@ -82,9 +82,23 @@ public class MainController {
      */
     @GetMapping("/")
     public String index(Model model) {
-        loadMainPageData(model);
-        model.addAttribute("mainPage", "main/main.jsp");
-        return "index";
+        try {
+            // 메인 페이지 데이터 로딩
+            logger.info("Main page requested - loading with database data");
+            loadMainPageData(model);
+            model.addAttribute("mainPage", "main/main.jsp");
+            return "index";
+        } catch (Exception e) {
+            logger.error("Error loading main page data: ", e);
+            model.addAttribute("error", "데이터 로딩 중 오류가 발생했습니다: " + e.getMessage());
+            return "error";
+        }
+    }
+    
+    @GetMapping("/test")
+    public String test(Model model) {
+        model.addAttribute("message", "테스트 페이지입니다!");
+        return "test";
     }
     
     /**
@@ -173,7 +187,7 @@ public class MainController {
             model.addAttribute("categoryList", categoryList);
             
             // 10. 핫플썰 인기글 5위까지 조회
-            List<com.wherehot.spring.entity.Hpost> popularHotplacePosts = hpostService.getPopularHpostList(0);
+            List<com.wherehot.spring.entity.Hpost> popularHotplacePosts = hpostService.getPopularHpostList(0, 5);
             if (popularHotplacePosts.size() > 5) {
                 popularHotplacePosts = popularHotplacePosts.subList(0, 5);
             }

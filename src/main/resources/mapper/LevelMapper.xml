@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wherehot.spring.mapper.LevelMapper">
+
+    <!-- 모든 레벨 조회 -->
+    <select id="selectAllLevels" resultType="com.wherehot.spring.entity.Level">
+        SELECT level_id as levelId, name, exp_required as expRequired, benefits
+        FROM level
+        ORDER BY level_id ASC
+    </select>
+
+    <!-- 레벨 ID로 레벨 조회 -->
+    <select id="selectLevelById" parameterType="int" resultType="com.wherehot.spring.entity.Level">
+        SELECT level_id as levelId, name, exp_required as expRequired, benefits
+        FROM level
+        WHERE level_id = #{levelId}
+    </select>
+
+    <!-- 경험치로 해당하는 레벨 조회 -->
+    <select id="selectLevelByExp" parameterType="int" resultType="com.wherehot.spring.entity.Level">
+        SELECT level_id as levelId, name, exp_required as expRequired, benefits
+        FROM level
+        WHERE exp_required &lt;= #{exp}
+        ORDER BY exp_required DESC
+        LIMIT 1
+    </select>
+
+    <!-- 다음 레벨 정보 조회 -->
+    <select id="selectNextLevel" parameterType="int" resultType="com.wherehot.spring.entity.Level">
+        SELECT level_id as levelId, name, exp_required as expRequired, benefits
+        FROM level
+        WHERE exp_required > #{exp}
+        ORDER BY exp_required ASC
+        LIMIT 1
+    </select>
+
+    <!-- 레벨 삽입 -->
+    <insert id="insertLevel" parameterType="com.wherehot.spring.entity.Level">
+        INSERT INTO level (name, exp_required, benefits)
+        VALUES (#{name}, #{expRequired}, #{benefits})
+    </insert>
+
+    <!-- 레벨 업데이트 -->
+    <update id="updateLevel" parameterType="com.wherehot.spring.entity.Level">
+        UPDATE level
+        SET name = #{name},
+            exp_required = #{expRequired},
+            benefits = #{benefits}
+        WHERE level_id = #{levelId}
+    </update>
+
+    <!-- 레벨 삭제 -->
+    <delete id="deleteLevel" parameterType="int">
+        DELETE FROM level WHERE level_id = #{levelId}
+    </delete>
+
+</mapper>

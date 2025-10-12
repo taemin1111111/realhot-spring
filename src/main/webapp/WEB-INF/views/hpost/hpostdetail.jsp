@@ -3,7 +3,7 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-    String root = request.getContextPath();
+    String root = "";
 %>
 
 <!-- hpostdetail.css 링크 -->

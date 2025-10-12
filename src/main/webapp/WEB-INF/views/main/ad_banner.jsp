@@ -3,7 +3,7 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-    String root = request.getContextPath();
+    String root = "";
 %>
 
 <style>
@@ -282,7 +282,7 @@
                             <img src="<%=root%>${banner.imagePath}" 
                                  alt="${banner.title}" 
                                  class="ad-banner-image"
-                                 onerror="this.src='<%=root%>/logo/fire.png'">
+                                 onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
                             
                             <!-- 페이지 인디케이터 (각 슬라이드 안에) -->
                             <div class="ad-banner-indicators">
@@ -448,8 +448,8 @@ window.onclick = function(event) {
     }
 }
 
-// 슬라이드쇼 관련 변수
-let currentSlide = 0;
+// 슬라이드쇼 관련 변수 (adBanner 네임스페이스)
+let adBannerCurrentSlide = 0;
 let slideInterval;
 const slides = document.querySelectorAll('.ad-banner-slide');
 const indicators = document.querySelectorAll('.ad-banner-indicator');
@@ -476,20 +476,20 @@ function initSlideshow() {
 
 // 다음 슬라이드로 이동
 function nextSlide() {
-    currentSlide = (currentSlide + 1) % slides.length;
-    showSlide(currentSlide);
+    adBannerCurrentSlide = (adBannerCurrentSlide + 1) % slides.length;
+    showSlide(adBannerCurrentSlide);
 }
 
 // 이전 슬라이드로 이동
 function prevSlide() {
-    currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-    showSlide(currentSlide);
+    adBannerCurrentSlide = (adBannerCurrentSlide - 1 + slides.length) % slides.length;
+    showSlide(adBannerCurrentSlide);
 }
 
 // 특정 슬라이드로 이동
 function goToSlide(index) {
-    currentSlide = index;
-    showSlide(currentSlide);
+    adBannerCurrentSlide = index;
+    showSlide(adBannerCurrentSlide);
 }
 
 // 슬라이드 변경
@@ -515,7 +515,7 @@ function showSlide(index) {
         indicators[index].classList.add('active');
     }
     
-    currentSlide = index;
+    adBannerCurrentSlide = index;
 }
 
 // 슬라이드쇼 일시정지

@@ -12,12 +12,12 @@ public interface HpostMapper {
     /**
      * 최신순 게시글 목록 조회
      */
-    List<Hpost> selectLatestHpostList(@Param("offset") int offset);
+    List<Hpost> selectLatestHpostList(@Param("offset") int offset, @Param("limit") int limit);
     
     /**
      * 인기순 게시글 목록 조회
      */
-    List<Hpost> selectPopularHpostList(@Param("offset") int offset);
+    List<Hpost> selectPopularHpostList(@Param("offset") int offset, @Param("limit") int limit);
     
     /**
      * 전체 게시글 수 조회
@@ -29,14 +29,16 @@ public interface HpostMapper {
      */
     List<Hpost> searchLatestHpostList(@Param("searchType") String searchType, 
                                       @Param("searchKeyword") String searchKeyword, 
-                                      @Param("offset") int offset);
+                                      @Param("offset") int offset, 
+                                      @Param("limit") int limit);
     
     /**
      * 검색 게시글 목록 조회 (인기순)
      */
     List<Hpost> searchPopularHpostList(@Param("searchType") String searchType, 
                                        @Param("searchKeyword") String searchKeyword, 
-                                       @Param("offset") int offset);
+                                       @Param("offset") int offset, 
+                                       @Param("limit") int limit);
     
     /**
      * 검색 게시글 수 조회

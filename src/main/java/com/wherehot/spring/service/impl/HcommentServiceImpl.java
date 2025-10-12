@@ -4,6 +4,7 @@ import com.wherehot.spring.entity.Hcomment;
 import com.wherehot.spring.entity.HcommentVote;
 import com.wherehot.spring.mapper.HcommentMapper;
 import com.wherehot.spring.service.HcommentService;
+import com.wherehot.spring.service.ExpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,9 @@ public class HcommentServiceImpl implements HcommentService {
     
     @Autowired
     private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private ExpService expService;
 
     @Override
     public List<Hcomment> getCommentsByPostId(int postId) {
@@ -39,6 +43,22 @@ public class HcommentServiceImpl implements HcommentService {
     public Hcomment createComment(Hcomment comment) {
         comment.setCreatedAt(LocalDateTime.now());
         hcommentMapper.insert(comment);
+        
+        // 댓글 작성 경험치 지급 (1개 = +3 Exp)
+        if (comment.getIdAddress() != null && !comment.getIdAddress().trim().isEmpty()) {
+            try {
+                boolean expAdded = expService.addCommentExp(comment.getIdAddress(), 1);
+                if (expAdded) {
+                    System.out.println("Comment exp added successfully for user: " + comment.getIdAddress());
+                } else {
+                    System.out.println("Comment exp not added (daily limit reached) for user: " + comment.getIdAddress());
+                }
+            } catch (Exception e) {
+                System.err.println("Error adding comment exp for user: " + comment.getIdAddress() + ", " + e.getMessage());
+                // 경험치 지급 실패는 댓글 작성 자체를 실패시키지 않음
+            }
+        }
+        
         return hcommentMapper.findById(comment.getId()).orElse(null);
     }
 
@@ -134,6 +154,27 @@ public class HcommentServiceImpl implements HcommentService {
                 hcommentMapper.insertVote(newVote);
                 response.put("userReaction", reactionType);
                 System.out.println("DEBUG: 새로운 리액션 추가됨: " + reactionType);
+                
+                // 좋아요를 받은 경우 댓글 작성자에게 경험치 지급
+                if ("like".equalsIgnoreCase(reactionType)) {
+                    try {
+                        // 댓글 작성자 정보 조회
+                        Hcomment comment = hcommentMapper.findById(commentId).orElse(null);
+                        if (comment != null && comment.getIdAddress() != null && 
+                            !comment.getIdAddress().trim().isEmpty() && 
+                            !comment.getIdAddress().startsWith("anonymous|")) {
+                            boolean expAdded = expService.addLikeExp(comment.getIdAddress(), 1);
+                            if (expAdded) {
+                                System.out.println("Like exp added successfully for comment author: " + comment.getIdAddress());
+                            } else {
+                                System.out.println("Like exp not added (daily limit reached) for comment author: " + comment.getIdAddress());
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error adding like exp for comment author: " + e.getMessage());
+                        // 경험치 지급 실패는 추천 자체를 실패시키지 않음
+                    }
+                }
             }
             
             // 좋아요/싫어요 개수 업데이트

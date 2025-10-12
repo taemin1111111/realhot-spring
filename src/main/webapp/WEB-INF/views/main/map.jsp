@@ -2,7 +2,7 @@
 <%@ page import="java.util.*" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
-    String root = request.getContextPath();
+    String root = "";
     
     // Controller에서 전달받은 데이터 사용
     @SuppressWarnings("unchecked")
@@ -47,24 +47,144 @@
 <link rel="stylesheet" href="<%=request.getContextPath()%>/css/main.css">
     
     <style>
+        /* all.css와 index.jsp의 centered-content 스타일 오버라이드 */
+        .centered-content {
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            min-height: auto !important;
+        }
+        
+        /* map.jsp에서만 푸터 숨기기 */
+        footer {
+            display: none !important;
+        }
+        
         .map-page-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            width: 100%;
+            height: 100vh; /* 전체 화면 높이 사용 */
+            margin: 0;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 모바일에서 지도 전체 화면 */
+        @media (max-width: 768px) {
+            .map-page-container {
+                height: 100vh !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .map-container {
+                height: 100% !important;
+            }
+            
+            #map {
+                height: 100% !important;
+            }
+            
+            /* 모바일에서 카테고리 버튼 위치 조정 */
+            .map-controls {
+                top: 10px !important;
+                left: 10px !important;
+                padding: 10px !important;
+            }
+            
+            /* 모바일에서 내 위치 버튼과 메인 버튼 크기 동일하게 */
+            .map-controls .btn-outline-primary,
+            .map-controls .btn-primary,
+            .map-controls button.btn-outline-primary,
+            .map-controls a.btn-primary {
+                font-size: 0.8rem !important;
+                padding: 8px 12px !important;
+                min-width: 80px !important;
+                height: 35px !important;
+            }
+            
+            /* 모바일에서 토글 버튼 위치 조정 */
+            .toggle-button-area {
+                right: 5px !important;
+            }
+            
+            /* 모바일에서 오른쪽 패널 전체 화면으로 열리기 */
+            #rightPanel {
+                width: 100vw !important;
+                max-width: 100vw !important;
+                border-radius: 0 !important;
+            }
+            
+            /* 모바일에서 검색창 패딩 증가 */
+            #searchBar {
+                padding: 32px 24px 20px 24px !important;
+            }
+            
+            /* 모바일에서 토글 버튼이 패널 위에 계속 보이도록 */
+            .toggle-button-area {
+                z-index: 1002 !important;
+            }
+            
+            /* 모바일에서 닫기 버튼도 패널 위에 보이도록 */
+            #rightPanelCloseBtn {
+                z-index: 1003 !important;
+                display: flex !important;
+                left: 20px !important;
+                top: 50% !important;
+                transform: translateY(-50%) !important;
+                border-radius: 8px !important;
+                border: 1.5px solid #ddd !important;
+                width: 40px !important;
+                height: 40px !important;
+                font-size: 1.2rem !important;
+                background: #fff !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+            }
+            
+            /* 모바일에서 정렬 버튼 영역에 닫기 버튼 배치 */
+            .sort-btn {
+                position: relative !important;
+            }
+            
+            /* 최신등록 버튼 왼쪽에 닫기 버튼 배치 */
+            #sortLatest {
+                margin-left: 50px !important;
+            }
+            
+            /* 모바일에서 검색창 내부 요소들 간격 조정 */
+            #searchBar form {
+                gap: 12px !important;
+            }
+            
+            /* 모바일에서 지역 드롭다운 크기 조정 */
+            .search-type-dropdown {
+                flex: 0 0 70px !important;
+                min-width: 60px !important;
+                max-width: 80px !important;
+            }
+            
+            .search-type-btn {
+                height: 36px !important;
+                font-size: 0.95rem !important;
+                padding: 0 12px !important;
+            }
+            
+            /* 모바일에서 검색 입력창 크기 조정 */
+            #searchBar input[type="text"] {
+                height: 36px !important;
+                font-size: 0.95rem !important;
+                padding: 0 12px !important;
+            }
         }
         
         .map-container {
             width: 100%;
-            height: 80vh;
-            min-height: 600px;
+            height: 100%;
             position: relative;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            z-index: 1;
+            z-index: 0; /* 헤더와 푸터 뒤로 */
         }
         
-        /* 토글 버튼 영역 클릭 차단 */
+        /* 토글 버튼 영역 - 오른쪽 끝 고정 */
         .toggle-button-area {
             position: absolute;
             top: 50%;
@@ -106,14 +226,17 @@
         }
         
         .infoWindow {
-            max-width: 300px;
-            border-radius: 10px;
+            max-width: 280px;
+            border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 9999 !important;
+            background: white !important;
+            border: 1px solid #e0e0e0 !important;
         }
         
         .place-images-container {
-            height: 150px;
+            height: 140px;
             background: #f8f9fa;
             display: flex;
             align-items: center;
@@ -236,13 +359,6 @@
             }
         }
         
-        /* 아이폰 Safari 전용 - 지역 라벨 크기 최대 증가 */
-        @supports (-webkit-touch-callout: none) and (max-width: 991px) {
-            .region-label {
-                font-size: 28px !important;
-                padding: 14px 22px !important;
-            }
-        }
         
         .region-counts {
             display: flex;
@@ -298,6 +414,31 @@
             gap: 16px;
         }
         
+        /* 모바일에서 검색 패널 카테고리 버튼 배치 */
+        @media (max-width: 768px) {
+            .search-category-counts-bar {
+                gap: 8px !important;
+                padding: 12px 0 4px 20px !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+            }
+            
+            .search-category-row {
+                gap: 8px !important;
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+            }
+            
+            /* 모든 카테고리 버튼을 한 줄로 배치 */
+            .search-category-row:first-child,
+            .search-category-row:last-child {
+                gap: 8px !important;
+                display: contents !important;
+            }
+        }
+        
         .category-ball {
             display: inline-flex;
             align-items: center;
@@ -332,210 +473,130 @@
         /* 모바일에서 검색 결과 글자 크기 증가 */
         @media (max-width: 768px) {
             .hotplace-list-card {
-                padding: 24px !important;
-                margin-bottom: 20px !important;
+                padding: 16px !important;
+                margin-bottom: 16px !important;
             }
             
             .hotplace-list-card .hotplace-name {
-                font-size: 1.3rem !important;
+                font-size: 1.1rem !important;
                 font-weight: 700 !important;
             }
             
             .hotplace-list-card .hotplace-category {
-                font-size: 1rem !important;
-                margin-top: 4px !important;
+                font-size: 0.9rem !important;
+                margin-top: 3px !important;
             }
             
             .hotplace-list-card .wish-count {
-                font-size: 1rem !important;
-                margin-top: 4px !important;
+                font-size: 0.9rem !important;
+                margin-top: 3px !important;
             }
             
             .hotplace-list-card .vote-trends {
-                font-size: 1rem !important;
-                margin-top: 4px !important;
+                font-size: 0.9rem !important;
+                margin-top: 3px !important;
             }
             
             .hotplace-list-card .vote-details {
-                font-size: 0.95rem !important;
-                margin-top: 4px !important;
+                font-size: 0.85rem !important;
+                margin-top: 3px !important;
             }
             
             .hotplace-list-card .genre-info {
-                font-size: 1rem !important;
-                margin-top: 4px !important;
+                font-size: 0.9rem !important;
+                margin-top: 3px !important;
             }
             
             .hotplace-list-card .action-buttons-container a {
-                font-size: 1rem !important;
-                padding: 12px 18px !important;
+                font-size: 0.9rem !important;
+                padding: 10px 16px !important;
             }
             
             .region-item {
-                padding: 16px 20px !important;
-                margin-bottom: 12px !important;
+                padding: 12px 16px !important;
+                margin-bottom: 10px !important;
             }
             
             .region-item > div:first-child {
-                font-size: 1.2rem !important;
+                font-size: 1rem !important;
                 font-weight: 700 !important;
             }
             
             .region-item .category-counts {
-                font-size: 1rem !important;
+                font-size: 0.9rem !important;
             }
             
             .autocomplete-item {
-                padding: 16px 20px !important;
-                font-size: 1.1rem !important;
+                padding: 12px 16px !important;
+                font-size: 0.95rem !important;
             }
             
             #searchResultBox {
-                font-size: 1.4rem !important;
-            }
-            
-            #searchResultBox .hotplace-address {
                 font-size: 1rem !important;
             }
             
-            /* 모바일에서 화살표 버튼 크기 증가 */
-            #rightPanelToggleBtn, #rightPanelCloseBtn {
-                width: 65px !important;
-                height: 85px !important;
-                font-size: 2.6rem !important;
+            #searchResultBox .hotplace-address {
+                font-size: 0.9rem !important;
             }
             
-            /* 모바일에서 내 위치 버튼 크기 증가 - 더 구체적인 선택자 사용 */
-            .map-controls .btn-outline-primary,
-            .map-page-container .btn-outline-primary,
-            .map-controls button.btn-outline-primary {
-                font-size: 1.3rem !important;
-                padding: 16px 24px !important;
-            }
-            
-            /* 모바일에서 카테고리 필터 버튼 크기 증가 */
-            .map-category-btn {
-                font-size: 1.4rem !important;
-                padding: 18px 22px !important;
-                min-width: 65px !important;
-                height: 65px !important;
-            }
+        /* 모바일에서 화살표 버튼 크기 증가 */
+        #rightPanelToggleBtn, #rightPanelCloseBtn {
+            width: 50px !important;
+            height: 60px !important;
+            font-size: 1.8rem !important;
         }
         
-        /* 아이폰에서 버튼 크기 더 증가 */
+        /* 모바일에서 내 위치 버튼과 메인 버튼 크기 */
+        .map-controls .btn-outline-primary,
+        .map-controls .btn-primary,
+        .map-controls button.btn-outline-primary,
+        .map-controls a.btn-primary {
+            font-size: 0.8rem !important;
+            padding: 8px 12px !important;
+            min-width: 80px !important;
+            height: 35px !important;
+        }
+        
+        /* 모바일에서 카테고리 필터 버튼 크기 조정 */
+        .map-category-btn {
+            font-size: 0.8rem !important;
+            padding: 6px 10px !important;
+            min-width: 35px !important;
+            height: 35px !important;
+        }
+        }
+        
+        /* 작은 모바일 기기 (480px 이하) */
         @media (max-width: 480px) {
-            /* 아이폰에서 화살표 버튼 크기 더 증가 */
+            /* 화살표 버튼 크기 */
             #rightPanelToggleBtn, #rightPanelCloseBtn {
-                width: 70px !important;
-                height: 90px !important;
-                font-size: 2.8rem !important;
-            }
-            
-            /* 아이폰에서 내 위치 버튼 크기 더 증가 - 더 구체적인 선택자 사용 */
-            .map-controls .btn-outline-primary,
-            .map-page-container .btn-outline-primary,
-            .map-controls button.btn-outline-primary {
-                font-size: 1.4rem !important;
-                padding: 18px 26px !important;
-            }
-            
-            /* 아이폰에서 카테고리 필터 버튼 크기 더 증가 */
-            .map-category-btn {
+                width: 45px !important;
+                height: 55px !important;
                 font-size: 1.6rem !important;
-                padding: 22px 26px !important;
-                min-width: 75px !important;
-                height: 75px !important;
-            }
-        }
-        
-        /* 아이폰 Safari 전용 스타일 - title.jsp 패턴 적용 */
-        @supports (-webkit-touch-callout: none) and (max-width: 991px) {
-            /* 아이폰에서 화살표 버튼 크기 최대 증가 */
-            #rightPanelToggleBtn, #rightPanelCloseBtn {
-                width: 85px !important;
-                height: 105px !important;
-                font-size: 3.4rem !important;
             }
             
-            /* 아이폰에서 내 위치 버튼 크기 최대 증가 */
+            /* 내 위치 버튼과 메인 버튼 크기 */
             .map-controls .btn-outline-primary,
-            .map-page-container .btn-outline-primary,
-            .map-controls button.btn-outline-primary {
-                font-size: 1.8rem !important;
-                padding: 24px 32px !important;
+            .map-controls .btn-primary,
+            .map-controls button.btn-outline-primary,
+            .map-controls a.btn-primary {
+                font-size: 0.7rem !important;
+                padding: 6px 10px !important;
+                min-width: 70px !important;
+                height: 30px !important;
             }
             
-            /* 아이폰에서 카테고리 필터 버튼 크기 최대 증가 */
+            /* 카테고리 필터 버튼 크기 */
             .map-category-btn {
-                font-size: 1.8rem !important;
-                padding: 24px 28px !important;
-                min-width: 85px !important;
-                height: 85px !important;
-            }
-        }
-        
-        /* 아이폰 Safari 전용 스타일 - 추가 패턴 */
-        @supports (-webkit-touch-callout: none) {
-            @media (max-width: 500px) {
-                /* 아이폰에서 화살표 버튼 크기 최대 증가 */
-                #rightPanelToggleBtn, #rightPanelCloseBtn {
-                    width: 90px !important !important;
-                    height: 110px !important !important;
-                    font-size: 3.6rem !important !important;
-                }
-                
-                /* 아이폰에서 내 위치 버튼 크기 최대 증가 - 더 구체적인 선택자 사용 */
-                .map-controls .btn-outline-primary,
-                .map-page-container .btn-outline-primary,
-                .map-controls button.btn-outline-primary {
-                    font-size: 2rem !important !important;
-                    padding: 26px 34px !important !important;
-                }
-                
-                /* 아이폰에서 카테고리 필터 버튼 크기 최대 증가 */
-                .map-category-btn {
-                    font-size: 2rem !important !important;
-                    padding: 26px 30px !important !important;
-                    min-width: 95px !important !important;
-                    height: 95px !important !important;
-                }
-            }
-        }
-        
-        /* 최종 강제 적용 - 모든 아이폰 크기 */
-        @media only screen and (max-width: 500px) {
-            /* 아이폰에서 화살표 버튼 크기 최대 증가 */
-            #rightPanelToggleBtn, #rightPanelCloseBtn {
-                width: 95px !important !important;
-                height: 115px !important !important;
-                font-size: 3.8rem !important !important;
-            }
-            
-            /* 아이폰에서 내 위치 버튼 크기 최대 증가 - 더 구체적인 선택자 사용 */
-            .map-controls .btn-outline-primary,
-            .map-page-container .btn-outline-primary,
-            .map-controls button.btn-outline-primary {
-                font-size: 2.2rem !important !important;
-                padding: 28px 36px !important !important;
-            }
-            
-            /* 아이폰에서 카테고리 필터 버튼 크기 최대 증가 */
-            .map-category-btn {
-                font-size: 2.2rem !important !important;
-                padding: 28px 32px !important !important;
-                min-width: 105px !important !important;
-                height: 105px !important !important;
+                font-size: 0.7rem !important;
+                padding: 5px 8px !important;
+                min-width: 30px !important;
+                height: 30px !important;
             }
         }
     </style>
 
 <div class="map-page-container">
-        <!-- 메인으로 버튼 -->
-        <div style="text-align: center; margin-bottom: 20px;">
-            <a href="<%=root%>/" class="btn btn-primary">
-                <i class="bi bi-house"></i> 메인으로
-            </a>
-        </div>
         
         <div class="map-container">
             <!-- 지도 -->
@@ -593,10 +654,13 @@
             
             <!-- 컨트롤 패널 -->
             <div class="map-controls">
-                <div>
+                <div style="display: flex; gap: 10px; align-items: center;">
                     <button class="btn btn-sm btn-outline-primary" onclick="getCurrentLocation()">
                         <i class="bi bi-geo-alt"></i> 내 위치
                     </button>
+                    <a href="<%=root%>/" class="btn btn-sm btn-primary">
+                        <i class="bi bi-house"></i> 메인
+                    </a>
                 </div>
                 
                 <!-- 카테고리 필터 -->
@@ -777,6 +841,19 @@
         window.showPlaceInfo = function(placeId) {
             var place = hotplaces.find(function(p) { return p.id === placeId; });
             if (!place) return;
+            
+            // 모바일에서 검색창이 열려있으면 닫기
+            if (window.innerWidth <= 768) {
+                var panel = document.getElementById('rightPanel');
+                if (panel && panel.style.transform !== 'translateX(100%)') {
+                    panel.style.transform = 'translateX(100%)';
+                    var closeBtn = document.getElementById('rightPanelCloseBtn');
+                    var openBtn = document.getElementById('rightPanelToggleBtn');
+                    if (closeBtn) closeBtn.style.display = 'none';
+                    if (openBtn) openBtn.style.display = 'flex';
+                }
+            }
+            
             // 단일 장소 표시 모드 활성화
             singlePlaceMode = true;
             singlePlaceId = placeId;
@@ -825,8 +902,8 @@
                 var infoContent = generateInfoWindowContent(place);
                 var infowindow = new kakao.maps.InfoWindow({ 
                     content: infoContent,
-                    maxWidth: 400,
-                    minWidth: 300
+                    maxWidth: 300,
+                    minWidth: 260
                 });
                 infowindow.open(map, targetMarker);
                 openInfoWindow = infowindow;
@@ -1220,34 +1297,34 @@
             const payload = getTokenPayload();
             const currentIsLoggedIn = payload && payload.exp * 1000 > Date.now();
             
-            var heartHtml = currentIsLoggedIn ? '<i class="bi bi-heart wish-heart" data-place-id="' + place.id + '" style="position:absolute;top:8px;right:8px;z-index:1000; color:#e74c3c; font-size:28px; cursor:pointer;"></i>' : '';
+            var heartHtml = currentIsLoggedIn ? '<i class="bi bi-heart wish-heart" data-place-id="' + place.id + '" style="position:absolute;top:6px;right:6px;z-index:1000; color:#e74c3c; font-size:24px; cursor:pointer;"></i>' : '';
             var categoryMap = {1:'클럽',2:'헌팅',3:'라운지',4:'포차',5:'게스트하우스'};
-            return '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(12px, 2vw, 16px); line-height:1.4; border-radius:0; overflow:visible; box-sizing:border-box; min-width:300px; max-width:400px;">'
+            return '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(11px, 1.8vw, 14px); line-height:1.3; border-radius:0; overflow:visible; box-sizing:border-box; min-width:240px; max-width:260px; background:rgba(255,255,255,0.98) !important; backdrop-filter:blur(10px) !important;">'
                 + heartHtml
-                + '<div class="place-images-container" style="position:relative; width:100%; background:#f8f9fa; display:flex; align-items:center; justify-content:center; color:#6c757d; font-size:clamp(11px, 1.5vw, 13px);" data-place-id="' + place.id + '">이미지 로딩 중...</div>'
-                + '<div style="padding:clamp(16px, 3vw, 20px);">'
-                + '<div class="place-name-wish-container" style="display:flex; align-items:center; margin-bottom:8px;">'
+                + '<div class="place-images-container" style="position:relative; width:100%; background:#f8f9fa; display:flex; align-items:center; justify-content:center; color:#6c757d; font-size:clamp(10px, 1.4vw, 12px);" data-place-id="' + place.id + '">이미지 로딩 중...</div>'
+                + '<div style="padding:clamp(12px, 2.5vw, 16px);">'
+                + '<div class="place-name-wish-container" style="display:flex; align-items:center; margin-bottom:6px;">'
                 + '<div style="flex:1; min-width:0;">'
-                + '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">'
-                + '<strong style="font-size:clamp(14px, 2.5vw, 18px); word-break:break-word; color:#1275E0; cursor:pointer; flex:1;">' + place.name + '</strong>'
+                + '<div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">'
+                + '<strong style="font-size:clamp(13px, 2.2vw, 16px); word-break:break-word; color:#1275E0; cursor:pointer; flex:1;">' + place.name + '</strong>'
                 + '</div>'
-                + '<div style="color:#888; font-size:clamp(10px, 1.6vw, 12px); margin-top:2px;">' + (categoryMap[place.categoryId]||'') + '</div>'
-                + '<div style="color:#e91e63; font-size:clamp(10px, 1.6vw, 12px); margin-top:2px;">💖<span class="wish-count-' + place.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명이 찜했어요</div>'
+                + '<div style="color:#888; font-size:clamp(9px, 1.4vw, 11px); margin-top:1px;">' + (categoryMap[place.categoryId]||'') + '</div>'
+                + '<div style="color:#e91e63; font-size:clamp(9px, 1.4vw, 11px); margin-top:1px;">💖<span class="wish-count-' + place.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명이 찜했어요</div>'
                 + '</div>'
                 + '</div>'
-                + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#ff6b35; font-size:clamp(12px, 2.2vw, 14px); font-weight:600;" id="todayHotRank-' + place.id + '">🔥 오늘핫: 로딩중...</div>'
-                + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#ff6b35; font-size:clamp(12px, 2.2vw, 14px); font-weight:600;" id="todayVoteStats-' + place.id + '">#성비 #혼잡도 #대기시간</div>'
-                + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#2196f3; font-size:clamp(12px, 2.2vw, 14px); font-weight:600; cursor:pointer;" id="courseCount-' + place.id + '" onclick="goToPlaceCourses(' + place.id + ')">📝 코스글: 로딩중...</div>'
-                + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; display:flex; align-items:center; gap:8px;">'
+                + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); color:#ff6b35; font-size:clamp(11px, 1.8vw, 13px); font-weight:600;" id="todayHotRank-' + place.id + '">🔥 오늘핫: 로딩중...</div>'
+                + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); color:#ff6b35; font-size:clamp(11px, 1.8vw, 13px); font-weight:600;" id="todayVoteStats-' + place.id + '">#성비 #혼잡도 #대기시간</div>'
+                + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); color:#2196f3; font-size:clamp(11px, 1.8vw, 13px); font-weight:600; cursor:pointer;" id="courseCount-' + place.id + '" onclick="goToPlaceCourses(' + place.id + ')">📝 코스글: 로딩중...</div>'
+                + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); color:#888; font-size:clamp(11px, 1.8vw, 13px); word-break:break-word; display:flex; align-items:center; gap:6px;">'
                 +   '<span id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</span>'
-                +   '<span onclick="toggleVoteDetails(' + place.id + ')" style="color:#1275E0; cursor:pointer; font-size:clamp(12px, 2.2vw, 14px);" id="voteDetailsToggle-' + place.id + '">더보기▾</span>'
+                +   '<span onclick="toggleVoteDetails(' + place.id + ')" style="color:#1275E0; cursor:pointer; font-size:clamp(11px, 1.8vw, 13px);" id="voteDetailsToggle-' + place.id + '">더보기▾</span>'
                 + '</div>'
-                + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; display:none;" id="voteDetails-' + place.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
-                + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; line-height:1.3; display:flex; align-items:center;">' + place.address + '<span onclick="copyAddress(\'' + place.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
-                + (place.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>' : '')
-                + '<div style="margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(12px, 2.2vw, 14px);" id="naverPlaceLink-' + place.id + '">🔗 네이버 플레이스: 로딩중...</div>'
-                + '<div class="action-buttons-container" style="padding-bottom: 24px !important;"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
-                + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
+                + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); color:#888; font-size:clamp(11px, 1.8vw, 13px); word-break:break-word; display:none;" id="voteDetails-' + place.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
+                + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); color:#666; font-size:clamp(11px, 1.8vw, 13px); word-break:break-word; line-height:1.2; display:flex; align-items:center;">' + place.address + '<span onclick="copyAddress(\'' + place.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center;" title="주소 복사"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
+                + (place.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(6px, 1.5vw, 10px); font-size:clamp(10px, 1.6vw, 12px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>' : '')
+                + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); font-size:clamp(11px, 1.8vw, 13px);" id="naverPlaceLink-' + place.id + '">🔗 네이버 플레이스: 로딩중...</div>'
+                + '<div class="action-buttons-container" style="padding-bottom: 16px !important;"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(11px, 1.8vw, 13px); white-space:nowrap; padding:8px 14px; background:#f0f8ff; border-radius:6px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
+                + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(9px, 1.6vw, 11px); white-space:nowrap; padding:6px 12px; background:#fff3e0; border-radius:5px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '') + '</div>'
                 + '</div>'
                 + '</div>';
         }
@@ -2536,6 +2613,18 @@
 
         // 특정 가게의 코스 목록으로 이동하는 함수
         function goToPlaceCourses(placeId) {
+            // 모바일에서 검색창이 열려있으면 닫기
+            if (window.innerWidth <= 768) {
+                var panel = document.getElementById('rightPanel');
+                if (panel && panel.style.transform !== 'translateX(100%)') {
+                    panel.style.transform = 'translateX(100%)';
+                    var closeBtn = document.getElementById('rightPanelCloseBtn');
+                    var openBtn = document.getElementById('rightPanelToggleBtn');
+                    if (closeBtn) closeBtn.style.display = 'none';
+                    if (openBtn) openBtn.style.display = 'flex';
+                }
+            }
+            
             window.location.href = root + '/course/place/' + placeId;
         }
 
@@ -2867,7 +2956,7 @@
         }
 
         // 이미지 모달 데이터
-        let modalData = {
+        let mapModalData = {
             placeId: 0,
             currentIndex: 0,
             totalImages: 0,
@@ -2881,7 +2970,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.images && data.images.length > 0) {
-                        modalData = {
+                        mapModalData = {
                             placeId: placeId,
                             currentIndex: currentIndex,
                             totalImages: data.images.length,
@@ -2923,7 +3012,7 @@
             img.alt = '이미지';
 
             // 이전 버튼 생성 (이미지가 2개 이상일 때만)
-            if (modalData.totalImages > 1) {
+            if (mapModalData.totalImages > 1) {
                 const prevBtn = document.createElement('button');
                 prevBtn.innerHTML = '‹';
                 prevBtn.style.cssText = 'position:absolute; left:-60px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.8); border:none; border-radius:50%; width:50px; height:50px; font-size:24px; cursor:pointer; z-index:10001;';
@@ -2932,7 +3021,7 @@
             }
 
             // 다음 버튼 생성 (이미지가 2개 이상일 때만)
-            if (modalData.totalImages > 1) {
+            if (mapModalData.totalImages > 1) {
                 const nextBtn = document.createElement('button');
                 nextBtn.innerHTML = '›';
                 nextBtn.style.cssText = 'position:absolute; right:-60px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.8); border:none; border-radius:50%; width:50px; height:50px; font-size:24px; cursor:pointer; z-index:10001;';
@@ -2948,9 +3037,9 @@
             imageContainer.appendChild(closeBtn);
 
             // 카운터 (이미지가 2개 이상일 때만)
-            if (modalData.totalImages > 1) {
+            if (mapModalData.totalImages > 1) {
                 const counter = document.createElement('div');
-                counter.textContent = (modalData.currentIndex + 1) + ' / ' + modalData.totalImages;
+                counter.textContent = (mapModalData.currentIndex + 1) + ' / ' + mapModalData.totalImages;
                 counter.style.cssText = 'position:absolute; bottom:-40px; left:50%; transform:translateX(-50%); color:white; font-size:16px; background:rgba(0,0,0,0.7); padding:8px 16px; border-radius:20px;';
                 imageContainer.appendChild(counter);
             }
@@ -2974,15 +3063,15 @@
 
         // 모달 이미지 변경
         function changeModalImage(direction) {
-            let newIndex = modalData.currentIndex + direction;
+            let newIndex = mapModalData.currentIndex + direction;
             
             if (newIndex < 0) {
-                newIndex = modalData.totalImages - 1;
-            } else if (newIndex >= modalData.totalImages) {
+                newIndex = mapModalData.totalImages - 1;
+            } else if (newIndex >= mapModalData.totalImages) {
                 newIndex = 0;
             }
             
-            const newImage = modalData.images[newIndex];
+            const newImage = mapModalData.images[newIndex];
             const modalImage = document.getElementById('modalImage');
             const timestamp = Date.now();
             
@@ -2992,10 +3081,10 @@
                 // 카운터 업데이트
                 const counter = document.querySelector('#imageModal div[style*="position: absolute; bottom: -40px"]');
                 if (counter) {
-                    counter.textContent = (newIndex + 1) + ' / ' + modalData.totalImages;
+                    counter.textContent = (newIndex + 1) + ' / ' + mapModalData.totalImages;
                 }
                 
-                modalData.currentIndex = newIndex;
+                mapModalData.currentIndex = newIndex;
             }
         }
 
@@ -3141,10 +3230,10 @@
             var popularStyle = window.currentSortType === 'popular' ? 'background:#1275E0; color:white;' : 'background:white; color:#666;';
             
             var dongTitle = '<div style="font-size:1.13rem; font-weight:600; color:#1275E0; margin:14px 0 8px 0; display:flex; align-items:center;">지역: ' + sido + ' 전체</div>' +
-                '<div style="display:flex; gap:8px; margin:8px 0 16px 0;">' +
-                '<button id="sortLatest" class="sort-btn ' + latestActive + '" onclick="sortHotplaces(\'latest\')" style="padding:6px 12px; border:1px solid #ddd; ' + latestStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">최신등록</button>' +
-                '<button id="sortPopular" class="sort-btn ' + popularActive + '" onclick="sortHotplaces(\'popular\')" style="padding:6px 12px; border:1px solid #ddd; ' + popularStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기순</button>' +
-                '<button id="sortCoursePopular" class="sort-btn ' + (window.currentSortType === 'coursePopular' ? 'active' : '') + '" onclick="sortHotplaces(\'coursePopular\')" style="padding:6px 12px; border:1px solid #ddd; ' + (window.currentSortType === 'coursePopular' ? 'background:#1275E0; color:white;' : 'background:white; color:#333;') + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기 코스</button>' +
+                '<div style="display:flex; gap:6px; margin:8px 0 16px 0; flex-wrap:wrap;">' +
+                '<button id="sortLatest" class="sort-btn ' + latestActive + '" onclick="sortHotplaces(\'latest\')" style="padding:8px 12px; border:1px solid #ddd; ' + latestStyle + ' border-radius:6px; font-size:0.85rem; cursor:pointer; flex:1; min-width:0;">최신등록</button>' +
+                '<button id="sortPopular" class="sort-btn ' + popularActive + '" onclick="sortHotplaces(\'popular\')" style="padding:8px 12px; border:1px solid #ddd; ' + popularStyle + ' border-radius:6px; font-size:0.85rem; cursor:pointer; flex:1; min-width:0;">인기순</button>' +
+                '<button id="sortCoursePopular" class="sort-btn ' + (window.currentSortType === 'coursePopular' ? 'active' : '') + '" onclick="sortHotplaces(\'coursePopular\')" style="padding:8px 12px; border:1px solid #ddd; ' + (window.currentSortType === 'coursePopular' ? 'background:#1275E0; color:white;' : 'background:white; color:#333;') + ' border-radius:6px; font-size:0.85rem; cursor:pointer; flex:1; min-width:0;">인기 코스</button>' +
                 '</div>';
             
             if (filtered.length === 0) {
@@ -3354,10 +3443,10 @@
             var popularStyle = window.currentSortType === 'popular' ? 'background:#1275E0; color:white;' : 'background:white; color:#666;';
             
             var dongTitle = '<div style="font-size:1.13rem; font-weight:600; color:#1275E0; margin:14px 0 8px 0; display:flex; align-items:center;">지역: ' + dong + '</div>' +
-                '<div style="display:flex; gap:8px; margin:8px 0 16px 0;">' +
-                '<button id="sortLatest" class="sort-btn ' + latestActive + '" onclick="sortHotplaces(\'latest\')" style="padding:6px 12px; border:1px solid #ddd; ' + latestStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">최신등록</button>' +
-                '<button id="sortPopular" class="sort-btn ' + popularActive + '" onclick="sortHotplaces(\'popular\')" style="padding:6px 12px; border:1px solid #ddd; ' + popularStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기순</button>' +
-                '<button id="sortCoursePopular" class="sort-btn ' + (window.currentSortType === 'coursePopular' ? 'active' : '') + '" onclick="sortHotplaces(\'coursePopular\')" style="padding:6px 12px; border:1px solid #ddd; ' + (window.currentSortType === 'coursePopular' ? 'background:#1275E0; color:white;' : 'background:white; color:#333;') + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기 코스</button>' +
+                '<div style="display:flex; gap:6px; margin:8px 0 16px 0; flex-wrap:wrap;">' +
+                '<button id="sortLatest" class="sort-btn ' + latestActive + '" onclick="sortHotplaces(\'latest\')" style="padding:8px 12px; border:1px solid #ddd; ' + latestStyle + ' border-radius:6px; font-size:0.85rem; cursor:pointer; flex:1; min-width:0;">최신등록</button>' +
+                '<button id="sortPopular" class="sort-btn ' + popularActive + '" onclick="sortHotplaces(\'popular\')" style="padding:8px 12px; border:1px solid #ddd; ' + popularStyle + ' border-radius:6px; font-size:0.85rem; cursor:pointer; flex:1; min-width:0;">인기순</button>' +
+                '<button id="sortCoursePopular" class="sort-btn ' + (window.currentSortType === 'coursePopular' ? 'active' : '') + '" onclick="sortHotplaces(\'coursePopular\')" style="padding:8px 12px; border:1px solid #ddd; ' + (window.currentSortType === 'coursePopular' ? 'background:#1275E0; color:white;' : 'background:white; color:#333;') + ' border-radius:6px; font-size:0.85rem; cursor:pointer; flex:1; min-width:0;">인기 코스</button>' +
                 '</div>';
             
             if (filtered.length === 0) {
@@ -3622,213 +3711,7 @@
         // 전역 함수로 노출
         window.formatGenderRatio = formatGenderRatio;
         
-        // 투표 모달 표시 함수
-        function showVoteModal(hotplaceId, name, address, categoryId) {
-            // 모달이 이미 있으면 제거
-            const existingModal = document.getElementById('voteModal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-            
-            // 모달 HTML 생성
-            const modalHtml = 
-                '<div id="voteModal" class="modal fade" tabindex="-1" style="display: block !important; background: rgba(0,0,0,0.8) !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; visibility: visible !important; opacity: 1 !important;">' +
-                    '<div class="modal-dialog modal-dialog-centered" style="z-index: 100000;">' +
-                        '<div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">' +
-                            '<div class="modal-header" style="border-bottom: none; padding: 25px 25px 10px 25px;">' +
-                                '<h5 class="modal-title fw-bold" style="color: #333; font-size: 1.4rem;">' +
-                                    '<i class="bi bi-fire" style="color: #ff6b35; margin-right: 8px;"></i>' +
-                                    '오늘 핫 투표' +
-                                '</h5>' +
-                                '<button type="button" class="btn-close" onclick="closeVoteModal()" style="font-size: 1.2rem;"></button>' +
-                            '</div>' +
-                            '<div class="modal-body" style="padding: 10px 25px 25px 25px;">' +
-                                '<!-- 가게 정보 -->' +
-                                '<div class="hotplace-info mb-4 p-3 rounded" style="background: #f8f9fa; border-radius: 12px;">' +
-                                    '<h6 class="fw-bold mb-1" style="color: #1275E0; font-size: 1.1rem;">' + name + '</h6>' +
-                                    '<p class="mb-2 small text-muted">' + address + '</p>' +
-                                    '<span class="badge bg-light text-dark">' + getCategoryName(categoryId) + '</span>' +
-                                '</div>' +
-                                '<!-- 투표 폼 -->' +
-                                '<form id="voteForm">' +
-                                    '<input type="hidden" id="voteHotplaceId" name="hotplaceId" value="' + hotplaceId + '">' +
-                                    '<!-- 1번 질문 -->' +
-                                    '<div class="mb-4">' +
-                                        '<label class="form-label fw-bold" style="font-size: 1.2rem;">1. 지금 사람 많음?</label>' +
-                                        '<div class="d-flex flex-column gap-2">' +
-                                            '<div class="form-check">' +
-                                                '<input class="form-check-input" type="radio" name="crowd" id="crowd1" value="1" style="transform: scale(1.3);">' +
-                                                '<label class="form-check-label" for="crowd1" style="font-size: 1.1rem;">한산함</label>' +
-                                            '</div>' +
-                                            '<div class="form-check">' +
-                                                '<input class="form-check-input" type="radio" name="crowd" id="crowd2" value="2" style="transform: scale(1.3);">' +
-                                                '<label class="form-check-label" for="crowd2" style="font-size: 1.1rem;">적당함</label>' +
-                                            '</div>' +
-                                            '<div class="form-check">' +
-                                                '<input class="form-check-input" type="radio" name="crowd" id="crowd3" value="3" style="transform: scale(1.3);">' +
-                                                '<label class="form-check-label" for="crowd3" style="font-size: 1.1rem;">붐빔</label>' +
-                                            '</div>' +
-                                        '</div>' +
-                                    '</div>' +
-                                    '<!-- 2번 질문 -->' +
-                                    '<div class="mb-4">' +
-                                        '<label class="form-label fw-bold" style="font-size: 1.2rem;">2. 줄 서야 함?</label>' +
-                                        '<div style="font-size: 1.2rem; color: #666; margin-bottom: 10px;">(대기 있음?)</div>' +
-                                        '<div class="d-flex flex-column gap-2">' +
-                                            '<div class="form-check">' +
-                                                '<input class="form-check-input" type="radio" name="wait" id="wait1" value="1" style="transform: scale(1.3);">' +
-                                                '<label class="form-check-label" for="wait1" style="font-size: 1.1rem;">바로입장</label>' +
-                                            '</div>' +
-                                            '<div class="form-check">' +
-                                                '<input class="form-check-input" type="radio" name="wait" id="wait2" value="2" style="transform: scale(1.3);">' +
-                                                '<label class="form-check-label" for="wait2" style="font-size: 1.1rem;">10분정도</label>' +
-                                            '</div>' +
-                                            '<div class="form-check">' +
-                                                '<input class="form-check-input" type="radio" name="wait" id="wait3" value="3" style="transform: scale(1.3);">' +
-                                                '<label class="form-check-label" for="wait3" style="font-size: 1.1rem;">30분</label>' +
-                                            '</div>' +
-                                            '<div class="form-check">' +
-                                                '<input class="form-check-input" type="radio" name="wait" id="wait4" value="4" style="transform: scale(1.3);">' +
-                                                '<label class="form-check-label" for="wait4" style="font-size: 1.1rem;">1시간 이상</label>' +
-                                            '</div>' +
-                                        '</div>' +
-                                    '</div>' +
-                                    '<!-- 3번 질문 -->' +
-                                    '<div class="mb-4">' +
-                                        '<label class="form-label fw-bold" style="font-size: 1.2rem;">3. 남녀 성비 어때?</label>' +
-                                        '<div class="d-flex flex-column gap-2">' +
-                                            '<div class="form-check">' +
-                                                '<input class="form-check-input" type="radio" name="gender" id="gender1" value="1" style="transform: scale(1.3);">' +
-                                                '<label class="form-check-label" for="gender1" style="font-size: 1.1rem;">여자↑</label>' +
-                                            '</div>' +
-                                            '<div class="form-check">' +
-                                                '<input class="form-check-input" type="radio" name="gender" id="gender2" value="2" style="transform: scale(1.3);">' +
-                                                '<label class="form-check-label" for="gender2" style="font-size: 1.1rem;">반반</label>' +
-                                            '</div>' +
-                                            '<div class="form-check">' +
-                                                '<input class="form-check-input" type="radio" name="gender" id="gender3" value="3" style="transform: scale(1.3);">' +
-                                                '<label class="form-check-label" for="gender3" style="font-size: 1.1rem;">남자↑</label>' +
-                                            '</div>' +
-                                        '</div>' +
-                                    '</div>' +
-                                    '<button type="submit" class="btn w-100" style="padding: 20px; font-size: 1.2rem; font-weight: 600; background: linear-gradient(135deg, rgba(255, 105, 180, 0.8) 0%, rgba(255, 20, 147, 0.7) 100%); border: 2px solid rgba(255,255,255,0.4); color: white; border-radius: 25px;">' +
-                                        '<i class="bi bi-fire" style="font-size: 1.3rem;"></i> 투표하기' +
-                                    '</button>' +
-                                '</form>' +
-                                '<!-- 상태 메시지 -->' +
-                                '<div id="voteStatusMessage" class="mt-3"></div>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>' +
-                '</div>';
-            
-            // 모달을 body에 추가
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            // 폼 이벤트 리스너 추가
-            setupVoteForm();
-        }
-        
-        // 카테고리 이름 가져오기 함수
-        function getCategoryName(categoryId) {
-            const categoryNames = {1: '클럽', 2: '헌팅포차', 3: '라운지', 4: '포차'};
-            return categoryNames[categoryId] || '기타';
-        }
-        
-        // 투표 모달 닫기 함수
-        function closeVoteModal() {
-            const modal = document.getElementById('voteModal');
-            if (modal) {
-                modal.remove();
-            }
-        }
-        
-        // 투표 폼 설정 함수
-        function setupVoteForm() {
-            const form = document.getElementById('voteForm');
-            const statusMessage = document.getElementById('voteStatusMessage');
-            
-            if (!form) return;
-            
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(form);
-                const hotplaceId = formData.get('hotplaceId');
-                const crowd = formData.get('crowd');
-                const wait = formData.get('wait');
-                const gender = formData.get('gender');
-                
-                // 검증
-                if (!hotplaceId) {
-                    showVoteMessage('먼저 지도에서 장소를 선택해주세요.', 'warning');
-                    return;
-                }
-                
-                if (!crowd || !wait || !gender) {
-                    showVoteMessage('모든 질문에 답변해주세요.', 'warning');
-                    return;
-                }
-                
-                // JWT 토큰 가져오기
-                const token = getToken();
-                
-                // Spring API 호출 (JWT 토큰 포함)
-                const data = new URLSearchParams();
-                data.append('hotplaceId', hotplaceId);
-                data.append('crowd', crowd);
-                data.append('gender', gender);
-                data.append('wait', wait);
-                
-                const headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                };
-                
-                // 토큰이 있으면 Authorization 헤더 추가
-                if (token) {
-                    headers['Authorization'] = 'Bearer ' + token;
-                }
-                
-                fetch(root + '/api/vote/now-hot', {
-                    method: 'POST',
-                    headers: headers,
-                    body: data
-                })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        showVoteMessage('투표가 완료되었습니다! 감사합니다.', 'success');
-                        // 투표 완료 후 모달 닫기
-                        setTimeout(() => {
-                            closeVoteModal();
-                            // 투표 정보 업데이트
-                            loadVoteTrends(hotplaceId);
-                        }, 1500);
-                    } else {
-                        showVoteMessage(result.message || '투표 처리 중 오류가 발생했습니다.', 'error');
-                    }
-                })
-                .catch(error => {
-                    showVoteMessage('네트워크 오류가 발생했습니다.', 'error');
-                });
-            });
-        }
-        
-        // 투표 상태 메시지 표시 함수
-        function showVoteMessage(message, type) {
-            const statusMessage = document.getElementById('voteStatusMessage');
-            if (!statusMessage) return;
-            
-            let alertClass = 'alert-info';
-            if (type === 'success') alertClass = 'alert-success';
-            else if (type === 'error') alertClass = 'alert-danger';
-            else if (type === 'warning') alertClass = 'alert-warning';
-            
-            statusMessage.innerHTML = 
-                '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
-                    message +
-                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
-                '</div>';
-        }
+        // 투표 관련 함수들은 voteModal.jsp에서 처리됨
         
         // 네이버 플레이스 링크 로드 함수
         function loadNaverPlaceLink(placeId, retryCount = 0) {
@@ -3874,4 +3757,7 @@
         }
     </script>
 </div>
+
+<!-- 투표 모달 관련 함수들 (map.jsp 전용) -->
+<jsp:include page="voteMapModal.jsp" />
 

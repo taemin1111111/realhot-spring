@@ -34,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtils jwtUtils;
     
-    @Autowired
+    @Autowired(required = false)
     private RedisTemplate<String, String> redisTemplate;
     
     @Autowired
@@ -173,6 +173,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * 토큰이 블랙리스트에 있는지 확인
      */
     private boolean isTokenBlacklisted(String token) {
+        if (redisTemplate == null) {
+            logger.info("Redis is not available, skipping blacklist check");
+            return false;
+        }
+        
         try {
             String blacklistKey = "blacklist_token:" + token;
             return redisTemplate.hasKey(blacklistKey);

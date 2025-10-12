@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletContext;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -35,6 +36,9 @@ public class HpostController {
     
     @Value("${app.upload.dir:}")
     private String uploadPath;
+    
+    @Autowired
+    private ServletContext servletContext;
     
     @Autowired
     private HpostService hpostService;
@@ -111,10 +115,12 @@ public class HpostController {
      * 핫플썰 메인 페이지
      */
     @GetMapping({"", "/"})
-    public String hpostMain(@RequestParam(defaultValue = "1") int page,
-                           @RequestParam(defaultValue = "latest") String sort,
-                           @RequestParam(value = "searchType", defaultValue = "all") String searchType,
-                           @RequestParam(value = "searchKeyword", defaultValue = "") String searchKeyword,
+    public String hpostMain(@RequestParam(name = "page", defaultValue = "1") int page,
+                           @RequestParam(name = "sort", defaultValue = "latest") String sort,
+                           @RequestParam(name = "searchType", defaultValue = "all") String searchType,
+                           @RequestParam(name = "searchKeyword", defaultValue = "") String searchKeyword,
+                           @RequestParam(name = "isMobile", required = false) Boolean isMobileParam,
+                           HttpServletRequest request,
                            Model model) {
         
         // 페이지 번호 검증
@@ -122,8 +128,21 @@ public class HpostController {
             page = 1;
         }
         
-        int pageSize = 20; // 10개에서 20개로 변경
+        // 모바일 여부 확인 (JavaScript 파라미터 우선, 없으면 User-Agent 사용)
+        boolean isMobile;
+        if (isMobileParam != null) {
+            isMobile = isMobileParam;
+        } else {
+            // JavaScript에서 isMobile 파라미터를 설정할 때까지 User-Agent로 감지
+            String userAgent = request.getHeader("User-Agent");
+            isMobile = userAgent != null && (userAgent.toLowerCase().contains("mobile") || 
+                                            userAgent.toLowerCase().contains("android") || 
+                                            userAgent.toLowerCase().contains("iphone"));
+        }
+        
+        int pageSize = isMobile ? 8 : 20; // 모바일: 8개, 데스크톱: 20개
         int offset = (page - 1) * pageSize;
+        
         
         List<Hpost> hpostList;
         int totalCount;
@@ -131,22 +150,23 @@ public class HpostController {
         // 검색어가 있는 경우 검색 로직 적용
         if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
             if ("popular".equals(sort)) {
-                hpostList = hpostService.searchPopularHpostList(searchType, searchKeyword.trim(), offset);
+                hpostList = hpostService.searchPopularHpostList(searchType, searchKeyword.trim(), offset, pageSize);
                 totalCount = hpostService.getSearchHpostCount(searchType, searchKeyword.trim());
             } else {
-                hpostList = hpostService.searchLatestHpostList(searchType, searchKeyword.trim(), offset);
+                hpostList = hpostService.searchLatestHpostList(searchType, searchKeyword.trim(), offset, pageSize);
                 totalCount = hpostService.getSearchHpostCount(searchType, searchKeyword.trim());
             }
         } else {
             // 검색어가 없는 경우 기존 로직
             if ("popular".equals(sort)) {
-                hpostList = hpostService.getPopularHpostList(offset);
+                hpostList = hpostService.getPopularHpostList(offset, pageSize);
                 totalCount = hpostService.getTotalHpostCount();
             } else {
-                hpostList = hpostService.getLatestHpostList(offset);
+                hpostList = hpostService.getLatestHpostList(offset, pageSize);
                 totalCount = hpostService.getTotalHpostCount();
             }
         }
+        
         
         // 페이징 계산
         int totalPages = (int) Math.ceil((double) totalCount / pageSize);
@@ -164,6 +184,8 @@ public class HpostController {
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("startPage", startPage);
         model.addAttribute("endPage", endPage);
+        model.addAttribute("pageSize", pageSize);
+        model.addAttribute("isMobile", isMobile);
         model.addAttribute("sort", sort);
         model.addAttribute("searchType", searchType);
         model.addAttribute("searchKeyword", searchKeyword);
@@ -176,7 +198,7 @@ public class HpostController {
      * 핫플썰 상세 페이지
      */
     @GetMapping("/{id}")
-    public String hpostDetail(@PathVariable int id, Model model) {
+    public String hpostDetail(@PathVariable(name = "id") int id, Model model) {
         Hpost hpost = hpostService.getHpostById(id);
         
         if (hpost != null) {
@@ -370,19 +392,27 @@ public class HpostController {
             // 고유한 파일명 생성
             String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString() + extension;
             
-            // 저장 경로 설정 - 절대 경로 사용
-            String absoluteUploadPath = System.getProperty("user.dir") + "/src/main/webapp/uploads/hpostsave";
-            File dir = new File(absoluteUploadPath);
+            // 저장 경로 설정 - ServletContext 사용
+            String realPath = servletContext.getRealPath("/uploads/hpostsave");
+            File dir = new File(realPath);
             if (!dir.exists()) {
                 boolean created = dir.mkdirs();
                 if (!created) {
-                    throw new RuntimeException("업로드 디렉토리를 생성할 수 없습니다: " + absoluteUploadPath);
+                    throw new RuntimeException("업로드 디렉토리를 생성할 수 없습니다: " + realPath);
                 }
+                // 디렉토리 권한 설정 (755)
+                dir.setReadable(true, false);
+                dir.setWritable(true, true);
+                dir.setExecutable(true, false);
             }
             
             // 파일 저장
-            File dest = new File(absoluteUploadPath + "/" + fileName);
+            File dest = new File(realPath + "/" + fileName);
             file.transferTo(dest);
+            
+            // 파일 권한 설정 (644)
+            dest.setReadable(true, false);
+            dest.setWritable(true, true);
             
             return fileName;
             
@@ -474,7 +504,7 @@ public class HpostController {
      */
     @GetMapping("/{postId}/vote-stats")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> getVoteStatistics(@PathVariable int postId) {
+    public ResponseEntity<Map<String, Object>> getVoteStatistics(@PathVariable(name = "postId") int postId) {
         try {
             Map<String, Object> statistics = hpostVoteService.getVoteStatistics(postId);
             statistics.put("success", true);
@@ -550,8 +580,8 @@ public class HpostController {
     @GetMapping("/{postId}/comments")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getComments(
-            @PathVariable int postId,
-            @RequestParam(value = "sort", defaultValue = "latest") String sort,
+            @PathVariable(name = "postId") int postId,
+            @RequestParam(name = "sort", defaultValue = "latest") String sort,
             Authentication authentication, // Authentication 객체를 직접 주입받음
             HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();

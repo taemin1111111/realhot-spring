@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%
-    String root = request.getContextPath();
+    String root = "";
 %>
 
 <div class="w-100">
@@ -83,7 +83,7 @@
         <!-- 약관동의 -->
         <div class="mb-3">
             <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" id="termsAgreement" required onclick="handleTermsCheckboxClick()">
+                <input class="form-check-input signup-terms-checkbox" type="checkbox" id="termsAgreement" required onclick="handleTermsCheckboxClick()">
                 <label class="form-check-label" for="termsAgreement">
                     <span class="text-danger">[필수]</span> 이용약관 동의
                 </label>
@@ -91,7 +91,7 @@
             </div>
             
             <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" id="privacyAgreement" required onclick="handlePrivacyCheckboxClick()">
+                <input class="form-check-input signup-privacy-checkbox" type="checkbox" id="privacyAgreement" required onclick="handlePrivacyCheckboxClick()">
                 <label class="form-check-label" for="privacyAgreement">
                     <span class="text-danger">[필수]</span> 개인정보 수집 및 이용 동의
                 </label>
@@ -203,7 +203,7 @@
             </div>
             <div class="modal-footer">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="termsModalAgreement">
+                    <input class="form-check-input signup-modal-terms-checkbox" type="checkbox" id="termsModalAgreement">
                     <label class="form-check-label" for="termsModalAgreement">
                         이용약관에 동의합니다
                     </label>
@@ -274,7 +274,7 @@
             </div>
             <div class="modal-footer">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="privacyModalAgreement">
+                    <input class="form-check-input signup-modal-privacy-checkbox" type="checkbox" id="privacyModalAgreement">
                     <label class="form-check-label" for="privacyModalAgreement">
                         개인정보 수집 및 이용에 동의합니다
                     </label>

@@ -41,6 +41,44 @@
 .hpost-item {
     position: relative;
 }
+
+/* ===== 모바일 반응형 스타일 ===== */
+
+/* 태블릿 스타일 (768px 이하) */
+@media (max-width: 768px) {
+    .hpost-admin-delete-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 18px !important;
+        top: 8px !important;
+        right: 8px !important;
+        line-height: 36px !important;
+    }
+}
+
+/* 모바일 스타일 (480px 이하) */
+@media (max-width: 480px) {
+    .hpost-admin-delete-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 16px !important;
+        top: 6px !important;
+        right: 6px !important;
+        line-height: 32px !important;
+    }
+}
+
+/* 소형 모바일 (360px 이하) */
+@media (max-width: 360px) {
+    .hpost-admin-delete-btn {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 14px !important;
+        top: 5px !important;
+        right: 5px !important;
+        line-height: 28px !important;
+    }
+}
 </style>
 
 <!-- 메인 컨텐츠 -->
@@ -128,43 +166,144 @@
                         <div class="hpost-admin-delete-btn" onclick="event.stopPropagation(); deleteHpost(${hpost.id}, '${fn:escapeXml(hpost.title)}')" style="display: none;">
                             ×
                         </div>
-                        <c:choose>
-                            <c:when test="${param.sort == 'popular' && currentPage == 1}">
-                                <div class="col-1">
-                                    <c:set var="rank" value="${status.index + 1}" />
-                                    <span class="rank-number ${rank <= 3 ? 'top-rank' : ''}" style="font-weight: bold; color: #ff6b6b; font-size: 16px;">${rank}위</span>
-                                </div>
-                                <div class="col-2">
-                                    <c:if test="${not empty hpost.userid and hpost.userid ne 'null'}">
-                                        <span style="display: inline-block; width: 24px; text-align: center;">
-                                            <i class="bi bi-person-fill" style="color: #ff69b4; font-size: 18px;"></i>
-                                        </span>
-                                    </c:if>
-                                    <span style="display: inline-block; vertical-align: middle;">${hpost.nickname}</span>
-                                </div>
-                                <div class="col-4">
-                                    <a href="<c:url value='/hpost/${hpost.id}'/>" class="hpost-title-link" title="${hpost.title}">${hpost.title}</a>
-                                </div>
-                            </c:when>
-                            <c:otherwise>
-                                <div class="col-3">
-                                    <c:if test="${not empty hpost.userid and hpost.userid ne 'null'}">
-                                        <span style="display: inline-block; width: 24px; text-align: center;">
-                                            <i class="bi bi-person-fill" style="color: #ff69b4; font-size: 18px;"></i>
-                                        </span>
-                                    </c:if>
-                                    <span style="display: inline-block; vertical-align: middle;">${hpost.nickname}</span>
-                                </div>
-                                <div class="col-4">
-                                    <a href="<c:url value='/hpost/${hpost.id}'/>" class="hpost-title-link" title="${hpost.title}">${hpost.title}</a>
-                                </div>
-                            </c:otherwise>
-                        </c:choose>
-                        <div class="col-1">${hpost.views}</div>
-                        <div class="col-1">${hpost.likes}</div>
-                        <div class="col-1">${hpost.dislikes}</div>
-                        <div class="col-1">${hpost.commentCount}</div>
-                        <div class="col-1 hpost-date">${hpost.formattedTime}</div>
+                        
+                        <!-- 모바일 카드 구조 -->
+                        <div class="hpost-mobile-card">
+                            <!-- 1. 닉네임 -->
+                            <div class="hpost-mobile-nickname">
+                                <c:if test="${not empty hpost.userid and hpost.userid ne 'null' and not empty hpost.level}">
+                                    <c:choose>
+                                        <c:when test="${hpost.level == 1}">
+                                            <span style="display: inline-block; background: #FFD700; color: #333; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-right: 6px; box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);">Lv.${hpost.level}</span>
+                                        </c:when>
+                                        <c:when test="${hpost.level == 2}">
+                                            <span style="display: inline-block; background: #C0C0C0; color: #333; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-right: 6px; box-shadow: 0 2px 4px rgba(192, 192, 192, 0.3);">Lv.${hpost.level}</span>
+                                        </c:when>
+                                        <c:when test="${hpost.level == 3}">
+                                            <span style="display: inline-block; background: #32CD32; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-right: 6px; box-shadow: 0 2px 4px rgba(50, 205, 50, 0.3);">Lv.${hpost.level}</span>
+                                        </c:when>
+                                        <c:when test="${hpost.level == 4}">
+                                            <span style="display: inline-block; background: #FF69B4; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-right: 6px; box-shadow: 0 2px 4px rgba(255, 105, 180, 0.3);">Lv.${hpost.level}</span>
+                                        </c:when>
+                                        <c:when test="${hpost.level == 5}">
+                                            <span style="display: inline-block; background: #FF0000; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-right: 6px; box-shadow: 0 2px 4px rgba(255, 0, 0, 0.3);">Lv.${hpost.level}</span>
+                                        </c:when>
+                                        <c:when test="${hpost.level == 6}">
+                                            <span style="display: inline-block; background: linear-gradient(135deg, #B9F2FF 0%, #00BFFF 100%); color: #333; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-right: 6px; box-shadow: 0 2px 4px rgba(0, 191, 255, 0.3);">Lv.${hpost.level}</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-right: 6px;">Lv.${hpost.level}</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:if>
+                                <span>${hpost.nickname}</span>
+                            </div>
+                            
+                            <!-- 2. 제목 -->
+                            <div class="hpost-mobile-title">
+                                <a href="<c:url value='/hpost/${hpost.id}'/>" class="hpost-title-link" title="${hpost.title}">${hpost.title}</a>
+                            </div>
+                            
+                            <!-- 3. 작성일 + 통계 정보 (한 줄에) -->
+                            <div class="hpost-mobile-stats">
+                                <span class="hpost-stat-item hpost-date-item">
+                                    ${hpost.formattedTime}
+                                </span>
+                                <span class="hpost-stat-item">
+                                    <i class="bi bi-eye"></i> ${hpost.views}
+                                </span>
+                                <span class="hpost-stat-item">
+                                    <i class="bi bi-hand-thumbs-up"></i> ${hpost.likes}
+                                </span>
+                                <span class="hpost-stat-item">
+                                    <i class="bi bi-hand-thumbs-down"></i> ${hpost.dislikes}
+                                </span>
+                                <span class="hpost-stat-item">
+                                    <i class="bi bi-chat-dots"></i> ${hpost.commentCount}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- 데스크톱용 기존 구조 (숨김) -->
+                        <div class="hpost-desktop-structure">
+                            <c:choose>
+                                <c:when test="${param.sort == 'popular' && currentPage == 1}">
+                                    <div class="col-1">
+                                        <c:set var="rank" value="${status.index + 1}" />
+                                        <span class="rank-number ${rank <= 3 ? 'top-rank' : ''}" style="font-weight: bold; color: #ff6b6b; font-size: 16px;">${rank}위</span>
+                                    </div>
+                                    <div class="col-2">
+                                        <c:if test="${not empty hpost.userid and hpost.userid ne 'null' and not empty hpost.level}">
+                                            <c:choose>
+                                                <c:when test="${hpost.level == 1}">
+                                                    <span style="display: inline-block; background: #FFD700; color: #333; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px; box-shadow: 0 1px 3px rgba(255, 215, 0, 0.3);">Lv.${hpost.level}</span>
+                                                </c:when>
+                                                <c:when test="${hpost.level == 2}">
+                                                    <span style="display: inline-block; background: #C0C0C0; color: #333; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px; box-shadow: 0 1px 3px rgba(192, 192, 192, 0.3);">Lv.${hpost.level}</span>
+                                                </c:when>
+                                                <c:when test="${hpost.level == 3}">
+                                                    <span style="display: inline-block; background: #32CD32; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px; box-shadow: 0 1px 3px rgba(50, 205, 50, 0.3);">Lv.${hpost.level}</span>
+                                                </c:when>
+                                                <c:when test="${hpost.level == 4}">
+                                                    <span style="display: inline-block; background: #FF69B4; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px; box-shadow: 0 1px 3px rgba(255, 105, 180, 0.3);">Lv.${hpost.level}</span>
+                                                </c:when>
+                                                <c:when test="${hpost.level == 5}">
+                                                    <span style="display: inline-block; background: #FF0000; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px; box-shadow: 0 1px 3px rgba(255, 0, 0, 0.3);">Lv.${hpost.level}</span>
+                                                </c:when>
+                                                <c:when test="${hpost.level == 6}">
+                                                    <span style="display: inline-block; background: linear-gradient(135deg, #B9F2FF 0%, #00BFFF 100%); color: #333; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px; box-shadow: 0 1px 3px rgba(0, 191, 255, 0.3);">Lv.${hpost.level}</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px;">Lv.${hpost.level}</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </c:if>
+                                        <span style="display: inline-block; vertical-align: middle;">${hpost.nickname}</span>
+                                    </div>
+                                    <div class="col-4">
+                                        <a href="<c:url value='/hpost/${hpost.id}'/>" class="hpost-title-link" title="${hpost.title}">${hpost.title}</a>
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="col-3">
+                                        <c:if test="${not empty hpost.userid and hpost.userid ne 'null' and not empty hpost.level}">
+                                            <c:choose>
+                                                <c:when test="${hpost.level == 1}">
+                                                    <span style="display: inline-block; background: #FFD700; color: #333; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px; box-shadow: 0 1px 3px rgba(255, 215, 0, 0.3);">Lv.${hpost.level}</span>
+                                                </c:when>
+                                                <c:when test="${hpost.level == 2}">
+                                                    <span style="display: inline-block; background: #C0C0C0; color: #333; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px; box-shadow: 0 1px 3px rgba(192, 192, 192, 0.3);">Lv.${hpost.level}</span>
+                                                </c:when>
+                                                <c:when test="${hpost.level == 3}">
+                                                    <span style="display: inline-block; background: #32CD32; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px; box-shadow: 0 1px 3px rgba(50, 205, 50, 0.3);">Lv.${hpost.level}</span>
+                                                </c:when>
+                                                <c:when test="${hpost.level == 4}">
+                                                    <span style="display: inline-block; background: #FF69B4; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px; box-shadow: 0 1px 3px rgba(255, 105, 180, 0.3);">Lv.${hpost.level}</span>
+                                                </c:when>
+                                                <c:when test="${hpost.level == 5}">
+                                                    <span style="display: inline-block; background: #FF0000; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px; box-shadow: 0 1px 3px rgba(255, 0, 0, 0.3);">Lv.${hpost.level}</span>
+                                                </c:when>
+                                                <c:when test="${hpost.level == 6}">
+                                                    <span style="display: inline-block; background: linear-gradient(135deg, #B9F2FF 0%, #00BFFF 100%); color: #333; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px; box-shadow: 0 1px 3px rgba(0, 191, 255, 0.3);">Lv.${hpost.level}</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-right: 4px;">Lv.${hpost.level}</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </c:if>
+                                        <span style="display: inline-block; vertical-align: middle;">${hpost.nickname}</span>
+                                    </div>
+                                    <div class="col-4">
+                                        <a href="<c:url value='/hpost/${hpost.id}'/>" class="hpost-title-link" title="${hpost.title}">${hpost.title}</a>
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
+                            <div class="col-1">${hpost.views}</div>
+                            <div class="col-1">${hpost.likes}</div>
+                            <div class="col-1">${hpost.dislikes}</div>
+                            <div class="col-1">${hpost.commentCount}</div>
+                            <div class="col-1 hpost-date">${hpost.formattedTime}</div>
+                        </div>
                     </div>
                     <hr class="hpost-item-divider">
                 </c:forEach>
@@ -178,6 +317,7 @@
         </c:choose>
     </div>
     
+    
     <!-- 페이징 -->
     <c:if test="${not empty hpostList and totalPages > 1}">
         <div class="hpost-pagination">
@@ -186,7 +326,7 @@
                                          <!-- 이전 페이지 -->
                      <c:if test="${currentPage > 1}">
                          <li class="page-item">
-                             <a class="page-link" href="<c:url value='/hpost?sort=${param.sort}&searchType=${param.searchType}&searchKeyword=${param.searchKeyword}&page=${currentPage - 1}'/>" aria-label="이전">
+                             <a class="page-link" href="<c:url value='/hpost?sort=${param.sort}&searchType=${param.searchType}&searchKeyword=${param.searchKeyword}&page=${currentPage - 1}&isMobile=${isMobile}'/>" aria-label="이전">
                                  <i class="bi bi-chevron-left"></i>
                              </a>
                          </li>
@@ -195,14 +335,14 @@
                      <!-- 페이지 번호들 -->
                      <c:forEach var="pageNum" begin="${startPage}" end="${endPage}">
                          <li class="page-item ${pageNum == currentPage ? 'active' : ''}">
-                             <a class="page-link" href="<c:url value='/hpost?sort=${param.sort}&searchType=${param.searchType}&searchKeyword=${param.searchKeyword}&page=${pageNum}'/>">${pageNum}</a>
+                             <a class="page-link" href="<c:url value='/hpost?sort=${param.sort}&searchType=${param.searchType}&searchKeyword=${param.searchKeyword}&page=${pageNum}&isMobile=${isMobile}'/>">${pageNum}</a>
                          </li>
                      </c:forEach>
                      
                      <!-- 다음 페이지 -->
                      <c:if test="${currentPage < totalPages}">
                          <li class="page-item">
-                             <a class="page-link" href="<c:url value='/hpost?sort=${param.sort}&searchType=${param.searchType}&searchKeyword=${param.searchKeyword}&page=${currentPage + 1}'/>" aria-label="다음">
+                             <a class="page-link" href="<c:url value='/hpost?sort=${param.sort}&searchType=${param.searchType}&searchKeyword=${param.searchKeyword}&page=${currentPage + 1}&isMobile=${isMobile}'/>" aria-label="다음">
                                  <i class="bi bi-chevron-right"></i>
                              </a>
                          </li>
@@ -375,67 +515,43 @@
 function changeSort(sortType) {
     const currentUrl = new URL(window.location);
     currentUrl.searchParams.set('sort', sortType);
+    currentUrl.searchParams.set('page', '1'); // 정렬 변경 시 첫 페이지로
+    // isMobile 파라미터 유지
+    if (${isMobile}) {
+        currentUrl.searchParams.set('isMobile', 'true');
+    }
     window.location.href = currentUrl.toString();
 }
 
-// 아이폰 Chrome 감지 및 스타일 강제 적용
-function detectAndApplyIPhoneStyles() {
-    const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent) || 
-                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
-                     (window.innerWidth <= 991 && navigator.maxTouchPoints > 0);
-    
-    if (isIPhone) {
-        // 아이폰 감지됨 - 스타일 강제 적용
-        
-        // 동적 스타일 태그 생성
-        const style = document.createElement('style');
-        style.textContent = `
-            .hpost-sort-btn {
-                padding: 14px 22px !important;
-                font-size: 18px !important;
-                min-height: 52px !important;
-                min-width: 90px !important;
-                border-width: 2px !important;
-                cursor: pointer !important;
-                -webkit-tap-highlight-color: rgba(0, 123, 255, 0.3) !important;
-            }
-            .hpost-sort-btn:hover {
-                background: #f8f9fa !important;
-                border-color: #adb5bd !important;
-            }
-            .hpost-sort-btn.active {
-                background: #007bff !important;
-                color: white !important;
-                border-color: #007bff !important;
-            }
-        `;
-        document.head.appendChild(style);
-        
-        // 직접 DOM 요소에 스타일 적용
-        setTimeout(() => {
-            const sortButtons = document.querySelectorAll('.hpost-sort-btn');
-            sortButtons.forEach(btn => {
-                btn.style.setProperty('padding', '14px 22px', 'important');
-                btn.style.setProperty('font-size', '18px', 'important');
-                btn.style.setProperty('min-height', '52px', 'important');
-                btn.style.setProperty('min-width', '90px', 'important');
-                btn.style.setProperty('border-width', '2px', 'important');
-                btn.style.setProperty('cursor', 'pointer', 'important');
-                btn.style.setProperty('-webkit-tap-highlight-color', 'rgba(0, 123, 255, 0.3)', 'important');
-            });
-        }, 100);
-    }
-}
-
-// 페이지 로드 시 아이폰 스타일 적용
+// 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
-    detectAndApplyIPhoneStyles();
+    // 관리자 권한 확인
     checkAdminPermission();
+    
+    // 체크리스트 초기화
+    initializeHpostChecklist();
+    updateHpostSubmitButton();
+    
+    // 모달 이벤트 설정
+    const writeModal = document.getElementById('writePostModal');
+    if (writeModal) {
+        writeModal.addEventListener('shown.bs.modal', function() {
+            initializeHpostChecklistOnModalOpen();
+        });
+        
+        writeModal.addEventListener('hidden.bs.modal', function() {
+            // 모달이 닫힐 때 체크리스트 초기화
+            setTimeout(() => {
+                initializeHpostChecklist();
+                updateHpostSubmitButton();
+            }, 100);
+        });
+    }
 });
 
-// 추가로 window load 이벤트에서도 실행 (이미지 등 모든 리소스 로드 후)
-window.addEventListener('load', function() {
-    detectAndApplyIPhoneStyles();
+// 화면 크기 변경 시 관리자 버튼 상태 재확인
+window.addEventListener('resize', function() {
+    checkAdminPermission();
 });
 
 // 모달이 열릴 때 로그인 상태 확인 및 필드 설정
@@ -503,28 +619,39 @@ async function submitPost() {
 // 관리자 권한 확인 함수
 function checkAdminPermission() {
     const token = localStorage.getItem('accessToken');
+    
     if (!token) {
-        document.querySelectorAll('.hpost-admin-delete-btn').forEach(btn => btn.style.display = 'none');
+        document.querySelectorAll('.hpost-admin-delete-btn').forEach(btn => {
+            btn.style.setProperty('display', 'none', 'important');
+        });
         return;
     }
     
     try {
         // JWT 토큰 파싱
         const payload = JSON.parse(atob(token.split('.')[1]));
-        
         // 관리자 권한 확인 (provider가 'admin'인 경우만)
         const isAdmin = payload.provider === 'admin';
         
         if (isAdmin) {
-            document.querySelectorAll('.hpost-admin-delete-btn').forEach(btn => btn.style.display = 'block');
+            // 관리자일 때만 버튼 표시 (모바일/데스크톱 구분 없이)
+            document.querySelectorAll('.hpost-admin-delete-btn').forEach(btn => {
+                btn.style.setProperty('display', 'block', 'important');
+            });
         } else {
             // 일반 사용자 - 관리자 버튼 숨김
-            document.querySelectorAll('.hpost-admin-delete-btn').forEach(btn => btn.style.display = 'none');
+            document.querySelectorAll('.hpost-admin-delete-btn').forEach(btn => {
+                btn.style.setProperty('display', 'none', 'important');
+            });
         }
     } catch (error) {
         // JWT 토큰 파싱 실패
-        document.querySelectorAll('.hpost-admin-delete-btn').forEach(btn => btn.style.display = 'none');
+        document.querySelectorAll('.hpost-admin-delete-btn').forEach(btn => {
+            btn.style.setProperty('display', 'none', 'important');
+        });
     }
+    
+    console.log('=== hpost 관리자 권한 확인 완료 ===');
 }
 
 // 게시글 삭제 함수
@@ -714,30 +841,42 @@ function initializeHpostChecklistOnModalOpen() {
     }, 100);
 }
 
-// 페이지 로드 시 체크리스트 초기화
-document.addEventListener('DOMContentLoaded', function() {
-    // 체크리스트 초기화
-    initializeHpostChecklist();
+// 화면 크기에 따른 페이징 조정
+function adjustPaginationForScreenSize() {
+    var isMobile = window.innerWidth <= 768;
+    var currentUrl = new URL(window.location);
+    var currentPageSize = ${pageSize};
+    var expectedPageSize = isMobile ? 8 : 20;
     
-    // 초기 상태에서는 제출 버튼 비활성화
-    updateHpostSubmitButton();
+    // 현재 페이지 크기와 예상 페이지 크기가 다르면 페이지 크기 조정
+    if (currentPageSize !== expectedPageSize) {
+        // 페이지 크기가 다르면 첫 페이지로 이동하고 isMobile 파라미터 추가
+        currentUrl.searchParams.set('page', '1');
+        currentUrl.searchParams.set('isMobile', isMobile);
+        window.location.href = currentUrl.toString();
+    }
+}
+
+// 페이지 로드 시 화면 크기 확인
+document.addEventListener('DOMContentLoaded', function() {
+    // URL에 isMobile 파라미터가 없으면 화면 크기에 따라 추가
+    var currentUrl = new URL(window.location);
+    if (!currentUrl.searchParams.has('isMobile')) {
+        var isMobile = window.innerWidth <= 768;
+        currentUrl.searchParams.set('isMobile', isMobile);
+        currentUrl.searchParams.set('page', '1'); // 첫 페이지로 이동
+        window.location.href = currentUrl.toString();
+        return;
+    }
+    
+    adjustPaginationForScreenSize();
 });
 
-// 모달이 열릴 때 체크리스트 초기화 (Bootstrap 모달 이벤트)
-document.addEventListener('DOMContentLoaded', function() {
-    const writeModal = document.getElementById('writePostModal');
-    if (writeModal) {
-        writeModal.addEventListener('shown.bs.modal', function() {
-            initializeHpostChecklistOnModalOpen();
-        });
-        
-        writeModal.addEventListener('hidden.bs.modal', function() {
-            // 모달이 닫힐 때 체크리스트 초기화
-            setTimeout(() => {
-                initializeHpostChecklist();
-                updateHpostSubmitButton();
-            }, 100);
-        });
-    }
+// 화면 크기 변경 시 페이징 조정
+window.addEventListener('resize', function() {
+    // 디바운싱을 위해 300ms 후에 실행
+    clearTimeout(window.resizeTimeout);
+    window.resizeTimeout = setTimeout(adjustPaginationForScreenSize, 300);
 });
+
 </script>

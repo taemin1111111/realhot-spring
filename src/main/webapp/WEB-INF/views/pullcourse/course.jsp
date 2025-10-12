@@ -4,7 +4,7 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-    String root = request.getContextPath();
+    String root = "";
 %>
 
 <!-- 코스 추천 전용 CSS -->
@@ -46,6 +46,44 @@
 .course-hunting-card {
     position: relative;
 }
+
+/* ===== 모바일 반응형 스타일 ===== */
+
+/* 태블릿 스타일 (768px 이하) */
+@media (max-width: 768px) {
+    .course-admin-delete-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 18px !important;
+        top: 8px !important;
+        right: 8px !important;
+        line-height: 36px !important;
+    }
+}
+
+/* 모바일 스타일 (480px 이하) */
+@media (max-width: 480px) {
+    .course-admin-delete-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 16px !important;
+        top: 6px !important;
+        right: 6px !important;
+        line-height: 32px !important;
+    }
+}
+
+/* 소형 모바일 (360px 이하) */
+@media (max-width: 360px) {
+    .course-admin-delete-btn {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 14px !important;
+        top: 5px !important;
+        right: 5px !important;
+        line-height: 28px !important;
+    }
+}
 </style>
 
 <!-- 코스 추천 메인 페이지 -->
@@ -74,28 +112,13 @@
                             </div>
                         </c:if>
                         
-                        <!-- 시군구를 5개씩 그룹으로 나누어 표시 -->
+                        <!-- 시군구별로 세로 연결 구조로 표시 - 4개씩 그룹화 -->
                         <c:set var="sigunguEntries" value="${regionsBySigungu[sido]}" />
                         <c:set var="sigunguList" value="${sigunguEntries.entrySet()}" />
-                        <c:forEach var="sigunguEntry" items="${sigunguList}" varStatus="status" step="5">
-                            <!-- 시군구 제목 행 -->
-                            <div class="course-hunting-sigungu-titles">
-                                <c:forEach var="i" begin="0" end="4">
-                                    <c:set var="currentIndex" value="${status.index + i}" />
-                                    <c:if test="${currentIndex < fn:length(sigunguList)}">
-                                        <c:forEach var="tempEntry" items="${sigunguList}" varStatus="tempStatus">
-                                            <c:if test="${tempStatus.index == currentIndex}">
-                                                <c:set var="sigungu" value="${tempEntry.key}" />
-                                                <div class="course-hunting-sigungu-name" onclick="filterByRegion('${sido}', '${tempEntry.key}', '')">${sigungu}</div>
-                                            </c:if>
-                                        </c:forEach>
-                                    </c:if>
-                                </c:forEach>
-                            </div>
-                            
-                            <!-- 동 목록 행 -->
-                            <div class="course-hunting-dong-list">
-                                <c:forEach var="i" begin="0" end="4">
+                        <c:forEach var="sigunguEntry" items="${sigunguList}" varStatus="status" step="4">
+                            <!-- 4개씩 그룹화된 시군구 행 -->
+                            <div class="course-hunting-region-row" style="display: flex !important; flex-wrap: wrap !important; gap: 15px !important; margin-bottom: 20px !important;">
+                                <c:forEach var="i" begin="0" end="3">
                                     <c:set var="currentIndex" value="${status.index + i}" />
                                     <c:if test="${currentIndex < fn:length(sigunguList)}">
                                         <c:forEach var="tempEntry" items="${sigunguList}" varStatus="tempStatus">
@@ -103,12 +126,19 @@
                                                 <c:set var="sigungu" value="${tempEntry.key}" />
                                                 <c:set var="dongList" value="${tempEntry.value}" />
                                                 
-                                                <div class="course-hunting-dong-grid">
-                                                    <c:forEach var="region" items="${dongList}">
-                                                        <div class="course-hunting-dong-item" onclick="filterByRegion('${sido}', '${tempEntry.key}', '${region.dong}')">
-                                                            ${region.dong}
-                                                        </div>
-                                                    </c:forEach>
+                                                <!-- 개별 시군구와 동을 세로로 연결하는 컨테이너 -->
+                                                <div class="course-hunting-region-group">
+                                                    <!-- 시군구 제목 -->
+                                                    <div class="course-hunting-sigungu-name" onclick="filterByRegion('${sido}', '${sigungu}', '')">${sigungu}</div>
+                                                    
+                                                    <!-- 동 목록 -->
+                                                    <div class="course-hunting-dong-grid">
+                                                        <c:forEach var="region" items="${dongList}">
+                                                            <div class="course-hunting-dong-item" onclick="filterByRegion('${sido}', '${sigungu}', '${region.dong}')">
+                                                                ${region.dong}
+                                                            </div>
+                                                        </c:forEach>
+                                                    </div>
                                                 </div>
                                             </c:if>
                                         </c:forEach>
@@ -252,8 +282,32 @@
                              
                              <!-- 닉네임 -->
                              <div class="course-hunting-card-author-section">
-                                 <span class="course-hunting-card-nickname" data-author-userid="${course.authorUserid}">
-                                     <i class="author-indicator bi bi-person-fill" style="display: none; color: #ff69b4; margin-right: 6px; font-size: 18px;"></i>${course.nickname}
+                                 <span class="course-hunting-card-nickname" data-author-userid="${course.userId}">
+                                     <c:if test="${not empty course.userId and course.userId ne 'null' and not empty course.level}">
+                                         <c:choose>
+                                             <c:when test="${course.level == 1}">
+                                                 <span style="display: inline-block; background: #FFD700; color: #333; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px; box-shadow: 0 1px 3px rgba(255, 215, 0, 0.3);">Lv.${course.level}</span>
+                                             </c:when>
+                                             <c:when test="${course.level == 2}">
+                                                 <span style="display: inline-block; background: #C0C0C0; color: #333; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px; box-shadow: 0 1px 3px rgba(192, 192, 192, 0.3);">Lv.${course.level}</span>
+                                             </c:when>
+                                             <c:when test="${course.level == 3}">
+                                                 <span style="display: inline-block; background: #32CD32; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px; box-shadow: 0 1px 3px rgba(50, 205, 50, 0.3);">Lv.${course.level}</span>
+                                             </c:when>
+                                             <c:when test="${course.level == 4}">
+                                                 <span style="display: inline-block; background: #FF69B4; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px; box-shadow: 0 1px 3px rgba(255, 105, 180, 0.3);">Lv.${course.level}</span>
+                                             </c:when>
+                                             <c:when test="${course.level == 5}">
+                                                 <span style="display: inline-block; background: #FF0000; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px; box-shadow: 0 1px 3px rgba(255, 0, 0, 0.3);">Lv.${course.level}</span>
+                                             </c:when>
+                                             <c:when test="${course.level == 6}">
+                                                 <span style="display: inline-block; background: linear-gradient(135deg, #B9F2FF 0%, #00BFFF 100%); color: #333; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px; box-shadow: 0 1px 3px rgba(0, 191, 255, 0.3);">Lv.${course.level}</span>
+                                             </c:when>
+                                             <c:otherwise>
+                                                 <span style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px;">Lv.${course.level}</span>
+                                             </c:otherwise>
+                                         </c:choose>
+                                     </c:if>${course.nickname}
                                  </span>
                              </div>
                              
@@ -384,10 +438,6 @@
                     <input type="text" id="courseTitle" name="title" required>
                 </div>
                 <div class="course-hunting-form-group">
-                    <label>코스 설명</label>
-                    <textarea id="courseSummary" name="summary" rows="3" required></textarea>
-                </div>
-                <div class="course-hunting-form-group">
                     <label>작성자</label>
                     <input type="text" id="courseNickname" name="nickname" required 
                            maxlength="5" placeholder="닉네임 (5자 이하)">
@@ -429,6 +479,11 @@
                     <button type="button" class="course-hunting-add-step-btn" onclick="addStep()">
                         <i class="fas fa-plus"></i> 스텝 추가
                     </button>
+                </div>
+                
+                <div class="course-hunting-form-group">
+                    <label>코스 설명</label>
+                    <textarea id="courseSummary" name="summary" rows="6" required></textarea>
                 </div>
                 
                 <!-- 코스 글 작성 체크리스트 -->
@@ -539,28 +594,9 @@ let stepCount = 1;
 
 // 페이지 로드 시 작성자 표시 로직 실행
 document.addEventListener('DOMContentLoaded', function() {
-    showAuthorIndicators();
     checkAdminPermission();
 });
 
-// 작성자 표시 함수
-function showAuthorIndicators() {
-    try {
-        // 모든 닉네임 요소에 대해 작성자 확인
-        const nicknameElements = document.querySelectorAll('.course-hunting-card-nickname');
-        nicknameElements.forEach(function(element) {
-            const authorUserid = element.getAttribute('data-author-userid');
-            const authorIndicator = element.querySelector('.author-indicator');
-            
-            // author_userid가 "user"인 경우에만 이모티콘 표시
-            if (authorUserid === 'user' && authorIndicator) {
-                authorIndicator.style.display = 'inline';
-            }
-        });
-    } catch (error) {
-        // 작성자 표시 로직 실행 중 오류 무시
-    }
-}
 
 // 관리자 권한 확인 함수
 function checkAdminPermission() {

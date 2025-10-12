@@ -1,0 +1,31 @@
+[Unit]
+Description=Apache Tomcat 10
+After=network.target
+
+[Service]
+Type=forking
+User=tomcat
+Group=tomcat
+
+Environment="JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64"
+Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"
+Environment="CATALINA_HOME=/opt/tomcat"
+Environment="CATALINA_BASE=/opt/tomcat"
+Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+Environment="JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
+Environment="SPRING_PROFILES_ACTIVE=prod"
+Environment="DB_URL=jdbc:mysql://localhost:3306/wherehot_db?serverTimezone=Asia/Seoul"
+Environment="DB_USERNAME=wherehot_user"
+Environment="DB_PASSWORD=S7r!k#9vQp2&bL4xZt^6mNw"
+Environment="JWT_SECRET=taeminSecureJwtSecretKey2024SuperLongSecureKeyForProductionEnvironment12345"
+Environment="NAVER_CLIENT_ID=gmDx78u1xxxx"
+Environment="NAVER_CLIENT_SECRET=qRi6Exxxxx"
+Environment="NAVER_REDIRECT_URI=https://wherehotnow.com/auth/naver/callback"
+Environment="UPLOAD_DIR=/opt/tomcat/webapps/taeminspring/uploads"
+Environment="ALLOWED_ORIGINS=https://wherehotnow.com"
+
+ExecStart=/opt/tomcat/bin/startup.sh
+ExecStop=/opt/tomcat/bin/shutdown.sh
+
+[Install]
+WantedBy=multi-user.target

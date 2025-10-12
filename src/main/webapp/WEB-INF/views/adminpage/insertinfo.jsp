@@ -2,7 +2,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%
-    String root = request.getContextPath();
+    String root = "";
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> regions = (List<Map<String, Object>>) request.getAttribute("regions");
 %>

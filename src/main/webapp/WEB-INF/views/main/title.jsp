@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%
-    String root = request.getContextPath();
+    String root = "";
     // JWT 기반 인증으로 변경 - 클라이언트 JavaScript에서 처리
 %>
 
@@ -227,7 +227,7 @@
     transition: height 0.3s ease;
 }
 
-/* 햄버거 메뉴 버튼 - 아이폰 호환성을 위해 기본적으로 표시 */
+/* 햄버거 메뉴 버튼 */
 .mobile-hamburger-btn {
     display: block !important;
     visibility: visible !important;
@@ -240,87 +240,501 @@
     min-height: 100px !important;
 }
 
-/* 아이폰이 아닌 모바일에서 헤더 레이아웃 완전히 수정 */
-@media (max-width: 991px) {
-    /* 헤더 높이와 패딩 조정 - 더 길게 */
+/* ===== 모바일 반응형 스타일 ===== */
+
+/* 태블릿 스타일 (768px 이하) */
+@media (max-width: 768px) {
+    /* 헤더 기본 설정 */
     #main-header {
-        padding: 45px 20px !important;
-        min-height: 130px !important;
+        padding: 15px 10px !important;
+        min-height: 70px !important;
     }
     
-    /* 헤더 전체 컨테이너 */
+    /* 헤더 컨테이너 */
     .container-fluid {
         padding-left: 0 !important;
         padding-right: 0 !important;
     }
     
-    /* 헤더 row를 relative로 설정 */
-    .row {
-        position: relative !important;
+    /* 알림 드롭다운 모바일 최적화 */
+    .notification-dropdown {
+        width: 90vw !important;
+        max-width: 320px !important;
+        max-height: 60vh !important;
+        position: absolute !important;
+        top: 100% !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        margin-top: 8px !important;
+        z-index: 10000 !important;
     }
     
-    /* 로고 컨테이너 - 왼쪽 끝에 강제 고정, 확실히 아래로 이동 */
+    /* 알림 헤더 모바일 최적화 */
+    .notification-header {
+        padding: 10px 12px !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        align-items: stretch !important;
+    }
+    
+    .notification-header span {
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        text-align: center !important;
+        margin-bottom: 4px !important;
+    }
+    
+    .notification-header div {
+        display: flex !important;
+        gap: 8px !important;
+        justify-content: center !important;
+    }
+    
+    .notification-header .btn {
+        font-size: 12px !important;
+        padding: 6px 12px !important;
+        min-height: 32px !important;
+        flex: 1 !important;
+    }
+    
+    /* 알림 아이템 모바일 최적화 */
+    .notification-item {
+        padding: 10px 12px !important;
+        padding-right: 40px !important;
+    }
+    
+    .notification-message {
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+        margin-bottom: 4px !important;
+    }
+    
+    .notification-time {
+        font-size: 11px !important;
+    }
+    
+    /* X 버튼 모바일 최적화 */
+    .notification-delete-btn {
+        top: 6px !important;
+        right: 6px !important;
+        font-size: 14px !important;
+        padding: 6px !important;
+        width: 24px !important;
+        height: 24px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    /* 로고 영역 */
     .col-6.col-md-3:first-child {
-        position: absolute !important;
-        left: 20px !important;
-        top: 80% !important;
-        transform: none !important;
-        margin-left: 0 !important;
-        padding-left: 0 !important;
-        width: auto !important;
-        max-width: none !important;
-        flex: none !important;
-        z-index: 10 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        padding-left: 10px !important;
     }
     
-    /* 로고 크기 대폭 확대 */
+    /* 로고 크기 */
     .logo-img {
-        height: 65px !important;
-    }
-    
-    /* 우측 요소들 컨테이너 - 오른쪽에 강제 고정, 확실히 아래로 이동 */
-    .col-6.col-md-3:last-child {
-        position: absolute !important;
-        right: 20px !important;
-        top: 80% !important;
-        transform: none !important;
+        height: 45px !important;
         width: auto !important;
-        max-width: none !important;
-        flex: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        z-index: 10 !important;
     }
     
-    /* 모바일에서 닉네임 드롭다운 숨기기 */
-    .dropdown-menu,
-    .dropdown-menu.dropdown-menu-end {
+    /* 우측 영역 */
+    .col-6.col-md-3:last-child {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        padding-right: 10px !important;
+    }
+    
+    /* 로그인/회원가입 링크 */
+    #auth-area a {
+        font-size: 0.9rem !important;
+        padding: 8px 12px !important;
+    }
+    
+    /* 사용자 아이콘 */
+    #user-icon {
+        font-size: 24px !important;
+        margin-right: 8px !important;
+    }
+    
+    /* 사용자 닉네임 - 모바일에서 표시 */
+    #user-nickname {
+        font-size: 0.9rem !important;
+        display: inline !important;
+    }
+    
+    /* 알림 벨 */
+    .notification-bell {
+        font-size: 20px !important;
+        padding: 6px !important;
+    }
+    
+    .notification-badge {
+        font-size: 10px !important;
+        min-width: 16px !important;
+        height: 16px !important;
+    }
+    
+    /* 햄버거 버튼 */
+    .mobile-hamburger-btn {
+        font-size: 28px !important;
+        padding: 8px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+    }
+    
+    /* 데스크톱 메뉴 숨기기 */
+    .d-none.d-md-block {
         display: none !important;
     }
     
-    /* 닉네임 클릭 비활성화 */
-    .dropdown-toggle {
-        pointer-events: none !important;
-        cursor: default !important;
+    /* 드롭다운 메뉴 숨기기 */
+    .dropdown-menu {
+        display: none !important;
     }
     
-    /* 드롭다운 화살표 숨기기 */
+    /* 모바일에서 드롭다운 버튼 숨기기 */
     .dropdown-toggle::after {
         display: none !important;
     }
     
-    /* 드롭다운 화살표 완전히 제거 */
-    .dropdown-toggle:after {
-        content: none !important;
+    /* 모바일 햄버거 메뉴 스타일 */
+    .mobile-menu-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        display: flex;
+        justify-content: flex-end;
+        align-items: stretch;
     }
     
-    /* 우측 요소들 내부 정렬 */
-    .col-6.col-md-3:last-child .d-flex {
-        position: relative !important;
-        right: 0 !important;
-        top: 0 !important;
-        transform: none !important;
-        width: auto !important;
+    .mobile-menu-content {
+        width: 280px;
+        max-width: 90vw;
+        height: 100%;
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        box-shadow: -2px 0 16px rgba(0, 0, 0, 0.1);
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .mobile-menu-overlay.show .mobile-menu-content {
+        transform: translateX(0);
+    }
+    
+    .mobile-menu-header {
+        background-color: #1a1a1a;
+        color: white;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #333;
+    }
+    
+    .mobile-menu-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+    }
+    
+    .mobile-menu-close:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .mobile-menu-body {
+        flex: 1;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+        padding: 0;
+    }
+    
+    .mobile-menu-section {
+        padding: 0.75rem 1rem 0.5rem 1rem;
+    }
+    
+    .mobile-menu-title {
+        color: #007bff;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .mobile-menu-item {
+        display: block;
+        padding: 1rem 1.25rem;
+        color: #495057;
+        text-decoration: none;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        font-size: 1.1rem;
+        font-weight: 500;
+        min-height: 56px;
+        display: flex;
+        align-items: center;
+        transition: background-color 0.2s ease, color 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .mobile-menu-item:hover {
+        background-color: #e9ecef;
+        color: #007bff;
+        text-decoration: none;
+    }
+    
+    .mobile-menu-item.text-danger:hover {
+        color: #dc3545 !important;
+    }
+    
+    .mobile-menu-divider {
+        margin: 0.5rem 0;
+        border: none;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .mobile-menu-user-info {
+        background-color: #f8f9fa;
+        padding: 1.25rem;
+        border-bottom: 1px solid #dee2e6;
+        margin-bottom: 0.5rem;
+        min-height: 80px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .mobile-menu-user-info .d-flex {
+        width: 100%;
+    }
+    
+    .mobile-menu-user-info .fw-bold {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .mobile-menu-user-info small {
+        font-size: 0.9rem;
+        color: #666;
+        margin-left: 4px;
+    }
+}
+
+/* 모바일 스타일 (480px 이하) */
+@media (max-width: 480px) {
+    /* 헤더 더 작게 */
+    #main-header {
+        padding: 12px 8px !important;
+        min-height: 60px !important;
+    }
+    
+    /* 로고 더 작게 */
+    .logo-img {
+        height: 40px !important;
+    }
+    
+    /* 알림 드롭다운 작은 모바일 최적화 */
+    .notification-dropdown {
+        width: 95vw !important;
+        max-width: 300px !important;
+        max-height: 70vh !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+    }
+    
+    /* 작은 모바일에서 알림 헤더 최적화 */
+    .notification-header {
+        padding: 8px 10px !important;
+    }
+    
+    .notification-header span {
+        font-size: 15px !important;
+    }
+    
+    .notification-header .btn {
+        font-size: 11px !important;
+        padding: 5px 10px !important;
+        min-height: 30px !important;
+    }
+    
+    /* 작은 모바일에서 알림 아이템 최적화 */
+    .notification-item {
+        padding: 8px 10px !important;
+        padding-right: 35px !important;
+    }
+    
+    .notification-message {
+        font-size: 12px !important;
+    }
+    
+    .notification-time {
+        font-size: 10px !important;
+    }
+    
+    /* 작은 모바일에서 X 버튼 최적화 */
+    .notification-delete-btn {
+        top: 5px !important;
+        right: 5px !important;
+        font-size: 13px !important;
+        width: 22px !important;
+        height: 22px !important;
+    }
+    
+    /* 로그인/회원가입 링크 더 작게 */
+    #auth-area a {
+        font-size: 0.85rem !important;
+        padding: 6px 10px !important;
+    }
+    
+    /* 사용자 아이콘 더 작게 */
+    #user-icon {
+        font-size: 22px !important;
+        margin-right: 6px !important;
+    }
+    
+    /* 사용자 닉네임 더 작게 - 모바일에서 표시 */
+    #user-nickname {
+        font-size: 0.85rem !important;
+        display: inline !important;
+    }
+    
+    /* 알림 벨 더 작게 */
+    .notification-bell {
+        font-size: 18px !important;
+        padding: 5px !important;
+    }
+    
+    .notification-badge {
+        font-size: 9px !important;
+        min-width: 14px !important;
+        height: 14px !important;
+    }
+    
+    /* 햄버거 버튼 더 작게 */
+    .mobile-hamburger-btn {
+        font-size: 24px !important;
+        padding: 6px !important;
+        min-width: 40px !important;
+        min-height: 40px !important;
+    }
+}
+
+/* 소형 모바일 (360px 이하) */
+@media (max-width: 360px) {
+    /* 헤더 최소 크기 */
+    #main-header {
+        padding: 10px 6px !important;
+        min-height: 55px !important;
+    }
+    
+    /* 로고 최소 크기 */
+    .logo-img {
+        height: 35px !important;
+    }
+    
+    /* 알림 드롭다운 소형 모바일 최적화 */
+    .notification-dropdown {
+        width: 98vw !important;
+        max-width: 280px !important;
+        max-height: 75vh !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+    }
+    
+    /* 소형 모바일에서 알림 헤더 최적화 */
+    .notification-header {
+        padding: 6px 8px !important;
+    }
+    
+    .notification-header span {
+        font-size: 14px !important;
+    }
+    
+    .notification-header .btn {
+        font-size: 10px !important;
+        padding: 4px 8px !important;
+        min-height: 28px !important;
+    }
+    
+    /* 소형 모바일에서 알림 아이템 최적화 */
+    .notification-item {
+        padding: 6px 8px !important;
+        padding-right: 30px !important;
+    }
+    
+    .notification-message {
+        font-size: 11px !important;
+    }
+    
+    .notification-time {
+        font-size: 9px !important;
+    }
+    
+    /* 소형 모바일에서 X 버튼 최적화 */
+    .notification-delete-btn {
+        top: 4px !important;
+        right: 4px !important;
+        font-size: 12px !important;
+        width: 20px !important;
+        height: 20px !important;
+    }
+    
+    /* 로그인/회원가입 링크 최소 크기 */
+    #auth-area a {
+        font-size: 0.8rem !important;
+        padding: 5px 8px !important;
+    }
+    
+    /* 사용자 아이콘 최소 크기 */
+    #user-icon {
+        font-size: 20px !important;
+        margin-right: 5px !important;
+    }
+    
+    /* 사용자 닉네임 최소 크기 - 모바일에서 표시 */
+    #user-nickname {
+        font-size: 0.8rem !important;
+        display: inline !important;
+    }
+    
+    /* 알림 벨 최소 크기 */
+    .notification-bell {
+        font-size: 16px !important;
+        padding: 4px !important;
+    }
+    
+    .notification-badge {
+        font-size: 8px !important;
+        min-width: 12px !important;
+        height: 12px !important;
+    }
+    
+    /* 햄버거 버튼 최소 크기 */
+    .mobile-hamburger-btn {
+        font-size: 22px !important;
+        padding: 5px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
     }
 }
 
@@ -331,191 +745,7 @@
     }
 }
 
-/* 아이폰이 아닌 태블릿 크기에서도 데스크톱 메뉴 숨기기 */
-@media (max-width: 991px) {
-    /* 데스크톱 메뉴 완전히 숨기기 */
-    .d-none.d-md-block {
-        display: none !important;
-    }
-    
-    /* 헤더 네비게이션 숨기기 */
-    .header-nav {
-        display: none !important;
-    }
-    
-    /* 햄버거 메뉴 버튼 확실히 표시 */
-    .mobile-hamburger-btn {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-    
-    /* 헤더 우측 영역을 오른쪽 끝으로 강제 이동 */
-    .col-6.col-md-3 {
-        display: flex !important;
-        justify-content: flex-end !important;
-        align-items: center !important;
-        width: 100% !important;
-    }
-    
-    /* 우측 컨테이너 강제 오른쪽 정렬 */
-    .col-6.col-md-3 .d-flex {
-        justify-content: flex-end !important;
-        width: 100% !important;
-        margin-left: auto !important;
-    }
-    
-    /* 햄버거 버튼을 맨 오른쪽으로 */
-    .mobile-hamburger-btn {
-        margin-left: auto !important;
-    }
-    
-    /* 태블릿에서도 우측 요소들 크기 조정 - 조금 줄임 */
-    .notification-bell {
-        font-size: 20px !important;
-        padding: 6px !important;
-    }
-    
-    .notification-badge {
-        font-size: 10px !important;
-        min-width: 18px !important;
-        height: 18px !important;
-        line-height: 18px !important;
-    }
-    
-    #user-icon {
-        font-size: 28px !important;
-        margin-right: 10px !important;
-    }
-    
-    #user-nickname {
-        font-size: 20px !important;
-        font-weight: 600 !important;
-    }
-    
-    /* 님 텍스트 크기 조정 */
-    .dropdown-toggle {
-        font-size: 20px !important;
-    }
-    
-    .mobile-hamburger-btn {
-        font-size: 36px !important;
-        padding: 16px !important;
-        min-width: 68px !important;
-        min-height: 68px !important;
-    }
-    
-    .mobile-hamburger-btn i {
-        font-size: 36px !important;
-    }
-}
 
-/* 아이폰이 아닌 모바일에서 로고 크기 조정 */
-@media (max-width: 768px) {
-    .logo-img {
-        height: 45px;
-    }
-    
-    /* 모바일에서 로그인/회원가입 버튼 크기 증가 */
-    #auth-area a {
-        font-size: 1.2rem !important;
-        padding: 8px 12px !important;
-    }
-    
-    /* 햄버거 메뉴 버튼 확실히 표시 및 크기 확대 */
-    .mobile-hamburger-btn {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        font-size: 32px !important;
-        padding: 12px !important;
-        min-width: 52px !important;
-        min-height: 52px !important;
-    }
-    
-    /* 우측 요소들 크기 조정 - 조금 줄임 */
-    .notification-bell {
-        font-size: 24px !important;
-        padding: 8px !important;
-    }
-    
-    .notification-badge {
-        font-size: 12px !important;
-        min-width: 20px !important;
-        height: 20px !important;
-        line-height: 20px !important;
-    }
-    
-    #user-icon {
-        font-size: 30px !important;
-        margin-right: 12px !important;
-    }
-    
-    #user-nickname {
-        font-size: 22px !important;
-        font-weight: 600 !important;
-    }
-    
-    /* 님 텍스트 크기 조정 */
-    .dropdown-toggle {
-        font-size: 22px !important;
-    }
-    
-    .mobile-hamburger-btn {
-        font-size: 40px !important;
-        padding: 18px !important;
-        min-width: 76px !important;
-        min-height: 76px !important;
-    }
-    
-    .mobile-hamburger-btn i {
-        font-size: 40px !important;
-    }
-    
-    /* 데스크톱 메뉴 완전히 숨기기 */
-    .d-none.d-md-block {
-        display: none !important;
-    }
-    
-    /* 헤더 네비게이션 숨기기 */
-    .header-nav {
-        display: none !important;
-    }
-    
-    /* 헤더 우측 영역을 오른쪽 끝으로 강제 이동 */
-    .col-6.col-md-3 {
-        display: flex !important;
-        justify-content: flex-end !important;
-        align-items: center !important;
-        width: 100% !important;
-    }
-    
-    /* 우측 컨테이너 강제 오른쪽 정렬 */
-    .col-6.col-md-3 .d-flex {
-        justify-content: flex-end !important;
-        width: 100% !important;
-        margin-left: auto !important;
-    }
-    
-    /* 우측 요소들 간격 조정 */
-    #auth-area {
-        margin-right: 8px !important;
-    }
-    
-    /* 햄버거 버튼을 맨 오른쪽으로 */
-    .mobile-hamburger-btn {
-        margin-left: auto !important;
-    }
-    
-    .notification-dropdown {
-        width: 300px;
-        right: -50px;
-    }
-    
-    /* 헤더 패딩 조정 */
-    header {
-        padding: 0.75rem 1rem !important;
-    }
     
     /* 햄버거 메뉴 스타일 */
     .offcanvas {
@@ -569,430 +799,9 @@
     }
 }
 
-/* 아이폰이 아닌 매우 작은 화면 (320px 이하) */
-@media (max-width: 480px) {
-    /* 헤더 높이 더 크게 */
-    #main-header {
-        padding: 50px 25px !important;
-        min-height: 140px !important;
-    }
-    
-    .logo-img {
-        height: 60px !important;
-    }
-    
-    /* 아이폰에서 로그인/회원가입 버튼 크기 더 증가 */
-    #auth-area a {
-        font-size: 1.4rem !important;
-        padding: 10px 14px !important;
-    }
-    
-    /* 햄버거 버튼 더 크게 */
-    .mobile-hamburger-btn {
-        font-size: 44px !important;
-        padding: 20px !important;
-        min-width: 84px !important;
-        min-height: 84px !important;
-    }
-    
-    .mobile-hamburger-btn i {
-        font-size: 44px !important;
-    }
-    
-    /* 매우 작은 화면에서 우측 요소들 크기 조정 - 조금 줄임 */
-    .notification-bell {
-        font-size: 26px !important;
-        padding: 10px !important;
-    }
-    
-    .notification-badge {
-        font-size: 14px !important;
-        min-width: 22px !important;
-        height: 22px !important;
-        line-height: 22px !important;
-    }
-    
-    #user-icon {
-        font-size: 32px !important;
-        margin-right: 14px !important;
-    }
-    
-    #user-nickname {
-        font-size: 24px !important;
-        font-weight: 600 !important;
-    }
-    
-    /* 님 텍스트 크기 조정 */
-    .dropdown-toggle {
-        font-size: 24px !important;
-    }
-    
-    /* 모바일 메뉴 아이템 더 크게 */
-    .mobile-menu-item {
-        padding: 1.25rem 1.5rem;
-        font-size: 1.2rem;
-        min-height: 64px;
-    }
-    
-    .mobile-menu-user-info {
-        padding: 1.5rem;
-        min-height: 90px;
-    }
-    
-    .mobile-menu-user-info .fw-bold {
-        font-size: 1.3rem;
-    }
-    
-    .offcanvas {
-        width: 100% !important;
-    }
-    
-    header {
-        padding: 0.5rem 0.75rem !important;
-    }
-}
 
-/* 태블릿 크기 (768px ~ 1024px) */
-@media (min-width: 768px) and (max-width: 1024px) {
-    .logo-img {
-        height: 55px;
-    }
-}
 
-/* 커스텀 모바일 메뉴 스타일 */
-.mobile-menu-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 9999;
-    display: flex;
-    justify-content: flex-end;
-    align-items: stretch;
-}
 
-.mobile-menu-content {
-    width: 280px;
-    max-width: 90vw;
-    height: 100%;
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-    box-shadow: -2px 0 16px rgba(0, 0, 0, 0.1);
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-}
-
-.mobile-menu-overlay.show .mobile-menu-content {
-    transform: translateX(0);
-}
-
-.mobile-menu-header {
-    background-color: #1a1a1a;
-    color: white;
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #333;
-}
-
-.mobile-menu-close {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
-}
-
-.mobile-menu-close:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.mobile-menu-body {
-    flex: 1;
-    overflow-y: auto;
-    background-color: #f8f9fa;
-    padding: 0;
-}
-
-.mobile-menu-section {
-    padding: 0.75rem 1rem 0.5rem 1rem;
-}
-
-.mobile-menu-title {
-    color: #007bff;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-}
-
-.mobile-menu-item {
-    display: block;
-    padding: 1rem 1.25rem;
-    color: #495057;
-    text-decoration: none;
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
-    font-size: 1.1rem;
-    font-weight: 500;
-    min-height: 56px;
-    display: flex;
-    align-items: center;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    cursor: pointer;
-}
-
-.mobile-menu-item:hover {
-    background-color: #e9ecef;
-    color: #007bff;
-    text-decoration: none;
-}
-
-.mobile-menu-item.text-danger:hover {
-    color: #dc3545 !important;
-}
-
-.mobile-menu-divider {
-    margin: 0.5rem 0;
-    border: none;
-    border-top: 1px solid #dee2e6;
-}
-
-.mobile-menu-user-info {
-    background-color: #f8f9fa;
-    padding: 1.25rem;
-    border-bottom: 1px solid #dee2e6;
-    margin-bottom: 0.5rem;
-    min-height: 80px;
-    display: flex;
-    align-items: center;
-}
-
-.mobile-menu-user-info .d-flex {
-    width: 100%;
-}
-
-.mobile-menu-user-info .fw-bold {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #333;
-}
-
-.mobile-menu-user-info small {
-    font-size: 0.9rem;
-    color: #666;
-    margin-left: 4px;
-}
-
-/* 아이폰 Safari 전용 스타일 - 표준적인 우선순위 방법 */
-@supports (-webkit-touch-callout: none) {
-    .mobile-menu-overlay {
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .mobile-menu-content {
-        -webkit-transform: translateX(100%);
-        -webkit-transition: -webkit-transform 0.3s ease;
-    }
-    
-    .mobile-menu-overlay.show .mobile-menu-content {
-        -webkit-transform: translateX(0);
-    }
-    
-    /* 아이폰에서 햄버거 버튼 확실히 표시 */
-    .mobile-hamburger-btn {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-}
-
-/* 아이폰에서 헤더 레이아웃 강제 수정 - 더 구체적인 선택자 사용 */
-@supports (-webkit-touch-callout: none) and (max-width: 991px) {
-    #main-header {
-        padding: 65px 20px !important;
-        min-height: 170px !important;
-    }
-    
-    .row {
-        position: relative !important;
-    }
-    
-    /* 아이폰 Safari에서 로그인/회원가입 버튼 크기 최대 증가 */
-    #auth-area a {
-        font-size: 1.6rem !important;
-        padding: 12px 16px !important;
-    }
-    
-    /* 더 구체적인 선택자로 우선순위 높임 */
-    .container-fluid .row .col-6.col-md-3:first-child {
-        position: absolute !important;
-        left: 20px !important;
-        top: 80% !important;
-        -webkit-transform: translateY(-35%) !important;
-        margin-left: 0 !important;
-        padding-left: 0 !important;
-        width: auto !important;
-        max-width: none !important;
-        flex: none !important;
-        z-index: 10 !important;
-    }
-    
-    .container-fluid .row .col-6.col-md-3:last-child {
-        position: absolute !important;
-        right: 20px !important;
-        top: 80% !important;
-        -webkit-transform: translateY(-35%) !important;
-        width: auto !important;
-        max-width: none !important;
-        flex: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        z-index: 10 !important;
-    }
-    
-    /* 아이폰에서도 드롭다운 숨기기 - 더 구체적인 선택자 */
-    .container-fluid .row .col-6.col-md-3:last-child .dropdown-menu,
-    .container-fluid .row .col-6.col-md-3:last-child .dropdown-menu.dropdown-menu-end {
-        display: none !important;
-    }
-    
-    .container-fluid .row .col-6.col-md-3:last-child .dropdown-toggle {
-        pointer-events: none !important;
-        cursor: default !important;
-    }
-    
-    .container-fluid .row .col-6.col-md-3:last-child .dropdown-toggle::after {
-        display: none !important;
-    }
-    
-    .container-fluid .row .col-6.col-md-3:last-child .dropdown-toggle:after {
-        content: none !important;
-    }
-    
-    /* 아이폰에서 우측 요소들 크기 대폭 확대 */
-    .container-fluid .row .col-6.col-md-3:last-child .notification-bell {
-        font-size: 36px !important;
-        padding: 16px !important;
-    }
-    
-    .container-fluid .row .col-6.col-md-3:last-child .notification-badge {
-        font-size: 20px !important;
-        min-width: 32px !important;
-        height: 32px !important;
-        line-height: 32px !important;
-    }
-    
-    .container-fluid .row .col-6.col-md-3:last-child #user-icon {
-        font-size: 48px !important;
-        margin-right: 20px !important;
-    }
-    
-    .container-fluid .row .col-6.col-md-3:last-child #user-nickname {
-        font-size: 32px !important;
-        font-weight: 600 !important;
-    }
-    
-    .container-fluid .row .col-6.col-md-3:last-child .dropdown-toggle {
-        font-size: 32px !important;
-    }
-    
-    .container-fluid .row .col-6.col-md-3:last-child .mobile-hamburger-btn {
-        font-size: 64px !important;
-        padding: 28px !important;
-        min-width: 100px !important;
-        min-height: 100px !important;
-    }
-    
-    .container-fluid .row .col-6.col-md-3:last-child .mobile-hamburger-btn i {
-        font-size: 64px !important;
-    }
-    
-    .container-fluid .row .col-6.col-md-3:first-child .logo-img {
-        height: 100px !important;
-    }
-    
-    /* 아이폰에서 햄버거 메뉴 안 요소들 크기 대폭 확대 */
-    .mobile-menu-item {
-        padding: 2rem 2.5rem !important;
-        font-size: 2rem !important;
-        min-height: 80px !important;
-    }
-    
-    .mobile-menu-title {
-        font-size: 1.4rem !important;
-        margin-bottom: 1rem !important;
-    }
-    
-    .mobile-menu-user-info {
-        padding: 2rem !important;
-        min-height: 120px !important;
-    }
-    
-    /* 사용자 정보 영역은 원래 크기로 */
-    .mobile-menu-user-info .fw-bold {
-        font-size: 1.2rem !important;
-    }
-    
-    .mobile-menu-user-info small {
-        font-size: 0.9rem !important;
-    }
-    
-    .mobile-menu-user-info i {
-        font-size: 24px !important;
-    }
-    
-    .mobile-menu-item i {
-        font-size: 28px !important;
-        margin-right: 12px !important;
-    }
-    
-    .mobile-menu-close i {
-        font-size: 36px !important;
-    }
-    
-    .mobile-menu-header img {
-        height: 60px !important;
-    }
-    
-    .mobile-menu-header {
-        padding: 1.5rem !important;
-    }
-    
-    /* 특정 메뉴 아이템들만 크기 조정 */
-    .mobile-menu-item[href*="/md"] {
-        font-size: 1.5rem !important;
-    }
-    
-    .mobile-menu-item[href*="/clubtable"] {
-        font-size: 1.5rem !important;
-    }
-    
-    .mobile-menu-item[href*="/course"] {
-        font-size: 1.5rem !important;
-    }
-    
-    .mobile-menu-item[href*="/notice"] {
-        font-size: 1.5rem !important;
-    }
-    
-    .mobile-menu-item[href*="/hpost"] {
-        font-size: 1.5rem !important;
-    }
-}
 
 </style>
 
@@ -1088,14 +897,16 @@
                         </div>
                     </div>
                     
-                                <!-- 사용자 정보 (모바일에서 닉네임 숨김) -->
+                                <!-- 사용자 정보 (핑크 아이콘 제거, 관리자 아이콘만 유지) -->
                     <div class="dropdown">
                         <a href="#" class="text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                                        <i id="user-icon" class="bi bi-person-fill" style="color: #ff69b4; margin-right: 6px; font-size: 18px;"></i> 
-                                        <span id="user-nickname" class="d-none d-sm-inline">사용자</span>님
+                                        <i id="user-icon" class="bi bi-gear-fill" style="color: #ffc107; margin-right: 6px; font-size: 18px; display: none;"></i> 
+                                        <span id="user-level-badge" class="badge bg-warning text-dark me-1" style="font-size: 0.7rem; display: none;">Lv.1</span>
+                                        <span id="user-nickname" class="d-inline">사용자</span>님
                         </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li id="mypage-menu"><a class="dropdown-item" href="<%=root%>/mypage">마이페이지</a></li>
+                        <li id="level-menu"><a class="dropdown-item" href="#" onclick="showLevelModal(); return false;"><i class="bi bi-trophy-fill me-2" style="color: #ffc107;"></i>레벨 확인</a></li>
                                         <li id="admin-menu1" style="display: none;"><a class="dropdown-item" href="#" onclick="goToAdminPage('/admin/hpost'); return false;">핫플썰 관리</a></li>
                 <li id="admin-menu2" style="display: none;"><a class="dropdown-item" href="#" onclick="goToAdminPage('/admin/course'); return false;">코스 관리</a></li>
                 <li id="admin-menu3" style="display: none;"><a class="dropdown-item" href="#" onclick="goToAdminPage('/admin/member'); return false;">회원 관리</a></li>
@@ -1179,10 +990,10 @@
 
             <!-- 로그인 후 메뉴 -->
             <div id="mobile-user-section" style="display: none;">
-                <!-- 사용자 정보 -->
+                <!-- 사용자 정보 (핑크 아이콘 제거) -->
                 <div class="mobile-menu-user-info">
                     <div class="d-flex align-items-center">
-                        <i id="mobile-user-icon" class="bi bi-person-fill me-3" style="color: #ff69b4; font-size: 24px;"></i>
+                        <i id="mobile-user-icon" class="bi bi-gear-fill me-3" style="color: #ffc107; font-size: 24px; display: none;"></i>
                         <div>
                             <div class="fw-bold" id="mobile-user-nickname">사용자님 환영합니다!</div>
                         </div>
@@ -1192,6 +1003,11 @@
                 <!-- 마이페이지 -->
                 <a href="<%=root%>/mypage" class="mobile-menu-item" id="mobile-mypage-menu" onclick="closeMobileMenu()">
                     <i class="bi bi-person-circle me-2"></i>마이페이지
+                </a>
+
+                <!-- 레벨 확인 -->
+                <a href="#" class="mobile-menu-item" onclick="showLevelModal(); closeMobileMenu(); return false;">
+                    <i class="bi bi-trophy-fill me-2" style="color: #ffc107;"></i>레벨 확인
                 </a>
 
                 <!-- 관리자 메뉴들 -->
@@ -1277,6 +1093,9 @@ function updateTitleUI(userInfo) {
             }
         }
         
+        // 레벨 배지 업데이트
+        loadUserLevelBadge();
+        
         // 모바일 UI 업데이트
         if (mobileLoginSection && mobileLoginSection.style) {
             try {
@@ -1300,30 +1119,30 @@ function updateTitleUI(userInfo) {
             }
         }
         
-        // 이모티콘 설정 (데스크톱)
+        // 이모티콘 설정 (데스크톱) - 관리자만 아이콘 표시
         if (userIcon) {
             try {
                 if (userInfo.provider === 'admin') {
                     userIcon.className = 'bi bi-gear-fill';
-                    userIcon.style.cssText = 'color: #ffc107; margin-right: 6px; font-size: 18px;';
+                    userIcon.style.cssText = 'color: #ffc107; margin-right: 6px; font-size: 18px; display: inline-block;';
                 } else {
-                    userIcon.className = 'bi bi-person-fill';
-                    userIcon.style.cssText = 'color: #ff69b4; margin-right: 6px; font-size: 18px;';
+                    // 일반 사용자는 아이콘 숨기기
+                    userIcon.style.cssText = 'display: none;';
                 }
             } catch (e) {
                 // 이모티콘 변경 실패 무시
             }
         }
         
-        // 이모티콘 설정 (모바일)
+        // 이모티콘 설정 (모바일) - 관리자만 아이콘 표시
         if (mobileUserIcon) {
             try {
                 if (userInfo.provider === 'admin') {
                     mobileUserIcon.className = 'bi bi-gear-fill me-2';
-                    mobileUserIcon.style.cssText = 'color: #ffc107; font-size: 20px;';
+                    mobileUserIcon.style.cssText = 'color: #ffc107; font-size: 20px; display: inline-block;';
                 } else {
-                    mobileUserIcon.className = 'bi bi-person-fill me-2';
-                    mobileUserIcon.style.cssText = 'color: #ff69b4; font-size: 20px;';
+                    // 일반 사용자는 아이콘 숨기기
+                    mobileUserIcon.style.cssText = 'display: none;';
                 }
             } catch (e) {
                 // 이모티콘 변경 실패 무시
@@ -1588,13 +1407,13 @@ function showLoggedOutUI() {
 
 // DOM 로드 시 초기 상태 확인 (coursedetail 방식)
 document.addEventListener('DOMContentLoaded', function() {
-    // 아이폰에서 햄버거 메뉴 강제 표시 및 데스크톱 메뉴 숨기기
+    // 모바일에서 햄버거 메뉴 강제 표시 및 데스크톱 메뉴 숨기기
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const desktopMenu = document.querySelector('.d-none.d-md-block');
     const headerNav = document.querySelector('.header-nav');
     
     if (hamburgerBtn) {
-        const isMobile = window.innerWidth <= 991 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const isMobile = window.innerWidth <= 991;
         
         if (isMobile) {
             // 햄버거 메뉴 표시
@@ -1641,7 +1460,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const headerNav = document.querySelector('.header-nav');
         
         if (hamburgerBtn) {
-            const isMobile = window.innerWidth <= 991 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const isMobile = window.innerWidth <= 991;
             
             if (isMobile) {
                 // 햄버거 메뉴 표시
@@ -1874,15 +1693,15 @@ function updateTitleUIFromSavedInfo(userInfo) {
             }
         }
         
-        // 이모티콘 설정
+        // 이모티콘 설정 - 관리자만 아이콘 표시
         if (userIcon) {
             try {
                 if (userInfo.provider === 'admin') {
                     userIcon.className = 'bi bi-gear-fill';
-                    userIcon.style.cssText = 'color: #ffc107; margin-right: 6px; font-size: 18px;';
+                    userIcon.style.cssText = 'color: #ffc107; margin-right: 6px; font-size: 18px; display: inline-block;';
                 } else {
-                    userIcon.className = 'bi bi-person-fill';
-                    userIcon.style.cssText = 'color: #ff69b4; margin-right: 6px; font-size: 18px;';
+                    // 일반 사용자는 아이콘 숨기기
+                    userIcon.style.cssText = 'display: none;';
                 }
             } catch (e) {
                 // 이모티콘 변경 실패 무시
@@ -2026,26 +1845,26 @@ async function updateAuthUI() {
                 if (mobileUserSection) mobileUserSection.style.display = 'block';
                 if (mobileUserNickname) mobileUserNickname.textContent = (payload.nickname || payload.sub) + '님 환영합니다!';
                 
-                // 이모티콘 설정
+                // 이모티콘 설정 - 관리자만 아이콘 표시
                 if (userIcon) {
                     if (payload.provider === 'admin') {
                         userIcon.className = 'bi bi-gear-fill';
-                        userIcon.style.cssText = 'color: #ffc107; margin-right: 6px; font-size: 18px;';
+                        userIcon.style.cssText = 'color: #ffc107; margin-right: 6px; font-size: 18px; display: inline-block;';
                     } else {
-                        userIcon.className = 'bi bi-person-fill';
-                        userIcon.style.cssText = 'color: #ff69b4; margin-right: 6px; font-size: 18px;';
+                        // 일반 사용자는 아이콘 숨기기
+                        userIcon.style.cssText = 'display: none;';
                     }
                 }
                 
-                // 📱 모바일 이모티콘 설정
+                // 📱 모바일 이모티콘 설정 - 관리자만 아이콘 표시
                 const mobileUserIcon = document.getElementById('mobile-user-icon');
                 if (mobileUserIcon) {
                     if (payload.provider === 'admin') {
                         mobileUserIcon.className = 'bi bi-gear-fill me-2';
-                        mobileUserIcon.style.cssText = 'color: #ffc107; font-size: 20px;';
+                        mobileUserIcon.style.cssText = 'color: #ffc107; font-size: 20px; display: inline-block;';
                     } else {
-                        mobileUserIcon.className = 'bi bi-person-fill me-2';
-                        mobileUserIcon.style.cssText = 'color: #ff69b4; font-size: 20px;';
+                        // 일반 사용자는 아이콘 숨기기
+                        mobileUserIcon.style.cssText = 'display: none;';
                     }
                 }
                 
@@ -2111,7 +1930,7 @@ async function updateAuthUI() {
                 
                 // 백그라운드에서 서버 검증 (권한 확인) - 선택적
                 // try {
-                //     const response = await fetchWithAuth('/hotplace/api/auth/check-admin');
+                //     const response = await fetchWithAuth('/api/auth/check-admin');
                 //     
                 //     if (response.ok) {
                 //         const data = await response.json();
@@ -2840,6 +2659,106 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
+// 레벨 배지 로드 함수
+function loadUserLevelBadge() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        return;
+    }
+
+    // admin 계정 확인을 위한 API 호출
+    fetch('<%=root%>/api/auth/check-admin', {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(adminData => {
+        // admin 계정이면 레벨 배지 숨기기
+        if (adminData.isAdmin) {
+            const levelBadge = document.getElementById('user-level-badge');
+            if (levelBadge) {
+                levelBadge.style.display = 'none';
+            }
+            return; // admin 계정이면 레벨 정보 로드하지 않음
+        }
+        
+        // 일반 사용자일 때만 레벨 정보 로드
+        return fetch('<%=root%>/api/level/info', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            }
+        });
+    })
+    .then(response => {
+        if (!response) return; // admin 계정이면 response가 없음
+        return response.json();
+    })
+    .then(data => {
+        if (!data || data.error) {
+            return;
+        }
+        
+        const levelBadge = document.getElementById('user-level-badge');
+        if (levelBadge && data.currentLevel) {
+            levelBadge.textContent = 'Lv.' + data.currentLevel.levelId;
+            levelBadge.style.display = 'inline-block';
+            
+            // 레벨별 색상 설정
+            const level = data.currentLevel.levelId;
+            levelBadge.className = 'badge me-1'; // 기본 클래스 초기화
+            levelBadge.style.fontSize = '0.7rem';
+            levelBadge.style.fontWeight = '600';
+            levelBadge.style.borderRadius = '8px';
+            levelBadge.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            
+            switch(level) {
+                case 1:
+                    levelBadge.style.backgroundColor = '#FFD700';
+                    levelBadge.style.color = '#333';
+                    levelBadge.style.boxShadow = '0 2px 4px rgba(255, 215, 0, 0.3)';
+                    break;
+                case 2:
+                    levelBadge.style.backgroundColor = '#C0C0C0';
+                    levelBadge.style.color = '#333';
+                    levelBadge.style.boxShadow = '0 2px 4px rgba(192, 192, 192, 0.3)';
+                    break;
+                case 3:
+                    levelBadge.style.backgroundColor = '#32CD32';
+                    levelBadge.style.color = 'white';
+                    levelBadge.style.boxShadow = '0 2px 4px rgba(50, 205, 50, 0.3)';
+                    break;
+                case 4:
+                    levelBadge.style.backgroundColor = '#FF69B4';
+                    levelBadge.style.color = 'white';
+                    levelBadge.style.boxShadow = '0 2px 4px rgba(255, 105, 180, 0.3)';
+                    break;
+                case 5:
+                    levelBadge.style.backgroundColor = '#FF0000';
+                    levelBadge.style.color = 'white';
+                    levelBadge.style.boxShadow = '0 2px 4px rgba(255, 0, 0, 0.3)';
+                    break;
+                case 6:
+                    levelBadge.style.background = 'linear-gradient(135deg, #B9F2FF 0%, #00BFFF 100%)';
+                    levelBadge.style.color = '#333';
+                    levelBadge.style.boxShadow = '0 2px 4px rgba(0, 191, 255, 0.3)';
+                    break;
+                default:
+                    levelBadge.style.backgroundColor = '#6c757d';
+                    levelBadge.style.color = 'white';
+                    break;
+            }
+        }
+    })
+    .catch(error => {
+        console.error('레벨 정보 로드 실패:', error);
+    });
+}
+
 // 전역 함수로 노출
 window.toggleMobileMenu = toggleMobileMenu;
 window.closeMobileMenu = closeMobileMenu;
@@ -2853,5 +2772,6 @@ window.deleteAllNotifications = deleteAllNotifications;
 window.openNotificationModal = openNotificationModal;
 window.closeNotificationModal = closeNotificationModal;
 window.deleteNotificationFromModal = deleteNotificationFromModal;
+window.loadUserLevelBadge = loadUserLevelBadge;
 
 </script>

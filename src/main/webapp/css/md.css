@@ -885,7 +885,7 @@ body.clubmd-page footer .container {
     }
 }
 
-@media (max-width: 576px) {
+@media (max-width: 480px) {
     /* MD 카드 그리드 - 더 작은 화면에서 1-2개씩 */
     #mdListContainer {
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));

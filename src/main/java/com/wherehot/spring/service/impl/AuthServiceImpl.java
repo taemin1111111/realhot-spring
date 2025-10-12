@@ -144,6 +144,8 @@ public class AuthServiceImpl implements AuthService {
         member.setGender(signupRequest.getGender());
         member.setProvider(signupRequest.getProvider());
         member.setStatus("A"); // Model1 호환성: 'A'(정상)
+        member.setLevelId(1);  // 기본 레벨 1
+        member.setExp(0);      // 기본 경험치 0
         member.setRegdate(LocalDateTime.now());
         member.setUpdateDate(LocalDateTime.now());
         
@@ -181,6 +183,8 @@ public class AuthServiceImpl implements AuthService {
         member.setGender(signupRequest.getGender());
         member.setProvider("naver");
         member.setStatus("A"); // Model1 호환성: 'A'(정상)
+        member.setLevelId(1);  // 기본 레벨 1
+        member.setExp(0);      // 기본 경험치 0
         member.setRegdate(LocalDateTime.now());
         member.setUpdateDate(LocalDateTime.now());
         

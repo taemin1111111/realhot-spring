@@ -1,7 +1,10 @@
 package com.wherehot.spring.service;
 
 import com.wherehot.spring.entity.CourseCommentReaction;
+import com.wherehot.spring.entity.CourseComment;
 import com.wherehot.spring.mapper.CourseCommentReactionMapper;
+import com.wherehot.spring.mapper.CourseCommentMapper;
+import com.wherehot.spring.service.ExpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +17,12 @@ public class CourseCommentReactionServiceImpl implements CourseCommentReactionSe
     
     @Autowired
     private CourseCommentReactionMapper reactionMapper;
+    
+    @Autowired
+    private CourseCommentMapper courseCommentMapper;
+    
+    @Autowired
+    private ExpService expService;
     
     @Override
     @Transactional
@@ -31,6 +40,27 @@ public class CourseCommentReactionServiceImpl implements CourseCommentReactionSe
                 newReaction.setCreatedAt(LocalDateTime.now());
                 
                 reactionMapper.insertReaction(newReaction);
+                
+                // 좋아요를 받은 경우 댓글 작성자에게 경험치 지급
+                if ("LIKE".equals(reactionType)) {
+                    try {
+                        // 댓글 작성자 정보 조회
+                        CourseComment comment = courseCommentMapper.getCourseCommentById(commentId);
+                        if (comment != null && comment.getAuthorUserid() != null && 
+                            !comment.getAuthorUserid().trim().isEmpty() && 
+                            !comment.getAuthorUserid().startsWith("anonymous|")) {
+                            boolean expAdded = expService.addLikeExp(comment.getAuthorUserid(), 1);
+                            if (expAdded) {
+                                System.out.println("Like exp added successfully for course comment author: " + comment.getAuthorUserid());
+                            } else {
+                                System.out.println("Like exp not added (daily limit reached) for course comment author: " + comment.getAuthorUserid());
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error adding like exp for course comment author: " + e.getMessage());
+                        // 경험치 지급 실패는 추천 자체를 실패시키지 않음
+                    }
+                }
                 
                 // 댓글의 좋아요/싫어요 수 업데이트
                 updateCommentReactionCounts(commentId);

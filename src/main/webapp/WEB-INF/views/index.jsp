@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%
-    String root = request.getContextPath();
+    String root = "";
     String mainPage = (String) request.getAttribute("mainPage");
     if (mainPage == null) {
         mainPage = "main.jsp";
@@ -14,6 +14,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>어디핫?</title>
 <link rel="icon" type="image/x-icon" href="<%=root%>/favicon.ico">
 

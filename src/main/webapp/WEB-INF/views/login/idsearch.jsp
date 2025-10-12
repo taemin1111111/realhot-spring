@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%
-    String root = request.getContextPath();
+    String root = "";
 %>
 
 <style>
@@ -198,7 +198,7 @@
             }
             
             try {
-                const response = await fetch('/hotplace/api/auth/send-id-search-code', {
+                const response = await fetch('/api/auth/send-id-search-code', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -247,7 +247,7 @@
             }
             
             try {
-                const response = await fetch('/hotplace/api/auth/verify-id-search-code', {
+                const response = await fetch('/api/auth/verify-id-search-code', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -287,7 +287,7 @@
             const email = document.getElementById('email').value.trim();
             
             try {
-                const response = await fetch('/hotplace/api/auth/resend-id-search-code', {
+                const response = await fetch('/api/auth/resend-id-search-code', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

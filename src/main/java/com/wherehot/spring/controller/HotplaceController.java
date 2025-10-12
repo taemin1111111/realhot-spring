@@ -34,7 +34,7 @@ public class HotplaceController {
      * ID로 핫플레이스 조회
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Hotplace> getHotplaceById(@PathVariable int id) {
+    public ResponseEntity<Hotplace> getHotplaceById(@PathVariable(name = "id") int id) {
         Optional<Hotplace> hotplace = hotplaceService.findHotplaceById(id);
         return hotplace.map(ResponseEntity::ok)
                       .orElse(ResponseEntity.notFound().build());
@@ -44,7 +44,7 @@ public class HotplaceController {
      * 카테고리별 핫플레이스 조회
      */
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<Hotplace>> getHotplacesByCategory(@PathVariable int categoryId) {
+    public ResponseEntity<List<Hotplace>> getHotplacesByCategory(@PathVariable(name = "categoryId") int categoryId) {
         List<Hotplace> hotplaces = hotplaceService.findHotplacesByCategory(categoryId);
         return ResponseEntity.ok(hotplaces);
     }
@@ -53,7 +53,7 @@ public class HotplaceController {
      * 지역별 핫플레이스 조회
      */
     @GetMapping("/region/{region}")
-    public ResponseEntity<List<Hotplace>> getHotplacesByRegion(@PathVariable String region) {
+    public ResponseEntity<List<Hotplace>> getHotplacesByRegion(@PathVariable(name = "region") String region) {
         List<Hotplace> hotplaces = hotplaceService.findHotplacesByRegion(region);
         return ResponseEntity.ok(hotplaces);
     }
@@ -62,7 +62,7 @@ public class HotplaceController {
      * 인기 핫플레이스 조회
      */
     @GetMapping("/popular")
-    public ResponseEntity<List<Hotplace>> getPopularHotplaces(@RequestParam(defaultValue = "10") int limit) {
+    public ResponseEntity<List<Hotplace>> getPopularHotplaces(@RequestParam(name = "limit", defaultValue = "10") int limit) {
         List<Hotplace> hotplaces = hotplaceService.findPopularHotplaces(limit);
         return ResponseEntity.ok(hotplaces);
     }
@@ -71,7 +71,7 @@ public class HotplaceController {
      * 최신 핫플레이스 조회
      */
     @GetMapping("/recent")
-    public ResponseEntity<List<Hotplace>> getRecentHotplaces(@RequestParam(defaultValue = "10") int limit) {
+    public ResponseEntity<List<Hotplace>> getRecentHotplaces(@RequestParam(name = "limit", defaultValue = "10") int limit) {
         List<Hotplace> hotplaces = hotplaceService.findRecentHotplaces(limit);
         return ResponseEntity.ok(hotplaces);
     }
@@ -81,9 +81,9 @@ public class HotplaceController {
      */
     @GetMapping("/search")
     public ResponseEntity<Map<String, Object>> searchHotplaces(
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(name = "keyword") String keyword,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
         
         List<Hotplace> hotplaces = hotplaceService.searchHotplaces(keyword, page, size);
         int totalCount = hotplaceService.getSearchResultCount(keyword);
@@ -102,10 +102,10 @@ public class HotplaceController {
      */
     @GetMapping("/coordinate-range")
     public ResponseEntity<List<Hotplace>> getHotplacesByCoordinateRange(
-            @RequestParam double minLat,
-            @RequestParam double maxLat,
-            @RequestParam double minLng,
-            @RequestParam double maxLng) {
+            @RequestParam(name = "minLat") double minLat,
+            @RequestParam(name = "maxLat") double maxLat,
+            @RequestParam(name = "minLng") double minLng,
+            @RequestParam(name = "maxLng") double maxLng) {
         
         List<Hotplace> hotplaces = hotplaceService.findHotplacesByCoordinateRange(minLat, maxLat, minLng, maxLng);
         return ResponseEntity.ok(hotplaces);

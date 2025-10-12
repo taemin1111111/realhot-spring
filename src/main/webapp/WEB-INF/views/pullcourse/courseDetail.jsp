@@ -1,9 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-    String root = request.getContextPath();
+    String root = "";
 %>
 
 <!-- 코스 상세 페이지 CSS -->
@@ -92,11 +93,11 @@ if (typeof window.fetchWithAuth === 'undefined') {
         <!-- 제목과 삭제 버튼 -->
         <div class="course-detail-title-container">
             <h1 class="course-detail-title">${course.title}</h1>
-            <div class="course-detail-menu" onclick="showDeleteMenu(${course.id}, '${course.authorUserid}', '${course.userId}')">
+            <div class="course-detail-menu" data-course-id="${course.id}" data-author-userid="${course.authorUserid}" data-user-id="${course.userId}" onclick="showDeleteMenu(this)">
                 <span class="course-detail-menu-dots">⋯</span>
                 <div class="course-detail-menu-dropdown" id="deleteMenu_${course.id}" style="display: none;">
-                    <div class="course-detail-menu-item" onclick="reportCourse(${course.id})">신고</div>
-                    <div class="course-detail-menu-item" onclick="deleteCourse(${course.id}, '${course.authorUserid}', '${course.userId}')">삭제</div>
+                    <div class="course-detail-menu-item" data-course-id="${course.id}" onclick="reportCourse(this)">신고</div>
+                    <div class="course-detail-menu-item" data-course-id="${course.id}" data-author-userid="${course.authorUserid}" data-user-id="${course.userId}" onclick="deleteCourse(this)">삭제</div>
                 </div>
             </div>
         </div>
@@ -171,10 +172,10 @@ if (typeof window.fetchWithAuth === 'undefined') {
         
         <!-- 좋아요/싫어요 버튼 -->
         <div class="course-detail-reactions">
-            <button class="course-detail-like-btn" id="likeBtn" onclick="toggleReaction(${course.id}, 'LIKE')">
+            <button class="course-detail-like-btn" id="likeBtn" data-course-id="${course.id}" data-reaction-type="LIKE" onclick="toggleReaction(this)">
                 👍 <span class="like-count">${likeCount}</span>
             </button>
-            <button class="course-detail-dislike-btn" id="dislikeBtn" onclick="toggleReaction(${course.id}, 'DISLIKE')">
+            <button class="course-detail-dislike-btn" id="dislikeBtn" data-course-id="${course.id}" data-reaction-type="DISLIKE" onclick="toggleReaction(this)">
                 👎 <span class="dislike-count">${dislikeCount}</span>
             </button>
         </div>
@@ -191,14 +192,40 @@ if (typeof window.fetchWithAuth === 'undefined') {
         
         <!-- 댓글 입력 -->
         <div class="course-detail-comment-form">
-            <div class="comment-input-row">
-                <div class="comment-left-column">
-                    <input type="text" class="comment-nickname" id="commentNickname" placeholder="닉네임" maxlength="5" />
-                    <input type="password" class="comment-password" id="commentPassword" placeholder="비밀번호 (숫자 4자리)" maxlength="4" pattern="[0-9]{4}" />
+            <div class="comment-form-container">
+                <div class="comment-form-header">
+                    <div class="comment-form-user-info">
+                        <span class="comment-form-nickname-display" id="commentNicknameDisplay">닉네임을 입력해주세요</span>
+                    </div>
                 </div>
-                <div class="comment-right-section">
-                    <textarea class="comment-content" id="commentContent" placeholder="댓글을 입력하세요..."></textarea>
-                    <button class="comment-submit-btn" onclick="submitComment()">댓글 작성</button>
+                
+                <!-- 비로그인 사용자용 입력 필드 -->
+                <div class="comment-form-login-fields" id="commentLoginFields" style="display: none;">
+                    <div class="comment-form-field-group">
+                        <span class="comment-form-field-label">닉네임</span>
+                        <input type="text" class="comment-form-nickname-input" id="commentNickname" placeholder="5자 이하" maxlength="5" />
+                    </div>
+                    <div class="comment-form-field-group">
+                        <span class="comment-form-field-label">비밀번호</span>
+                        <input type="password" class="comment-form-password-input" id="commentPassword" placeholder="4자리" maxlength="4" pattern="[0-9]{4}" />
+                    </div>
+                </div>
+                
+                <div class="comment-form-guideline">
+                    주제와 무관한 내용 및 악플은 삭제될 수 있습니다.
+                </div>
+                
+                <div class="comment-form-input-container">
+                    <textarea class="comment-form-textarea" id="commentContent" placeholder="댓글을 입력하세요..."></textarea>
+                    <div class="comment-form-footer">
+                        <span class="comment-form-counter" id="commentCounter">0/500</span>
+                        <button class="comment-form-submit-btn" onclick="submitComment()" title="댓글 작성">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -366,29 +393,45 @@ async function restoreReplyStates() {
                 // 답글 입력폼 추가
                 const loggedIn = isLoggedIn();
                 let formHtml = '<div class="reply-form-container">' +
-                    '<div class="reply-form-row">';
-                
-                if (loggedIn) {
-                    // 로그인한 사용자: 내용만 입력
-                    formHtml += '<div class="reply-form-right-section">' +
-                        '<textarea class="reply-form-content" id="replyContent-' + parentId + '" placeholder="답글을 입력하세요..."></textarea>' +
-                        '<button class="reply-form-submit-btn" onclick="submitReply(' + parentId + ')">답글 작성</button>' +
-                        '<button class="reply-form-cancel-btn" onclick="cancelReplyForm()">취소</button>' +
-                        '</div>';
-                } else {
-                    // 비로그인 사용자: 닉네임, 비밀번호, 내용 입력
-                    formHtml += '<div class="reply-form-left-column">' +
-                        '<input type="text" class="reply-form-nickname" id="replyNickname-' + parentId + '" placeholder="닉네임 (5자 이하)" maxlength="5">' +
-                        '<input type="password" class="reply-form-password" id="replyPassword-' + parentId + '" placeholder="비밀번호 (4자리)" maxlength="4">' +
+                    '<div class="reply-form-header">' +
+                        '<div class="reply-form-user-info">' +
+                            '<span class="reply-form-nickname-display" id="replyNicknameDisplay-' + parentId + '">' + 
+                            (loggedIn ? '사용자(taem****)' : '닉네임을 입력해주세요') + 
+                            '</span>' +
                         '</div>' +
-                        '<div class="reply-form-right-section">' +
-                        '<textarea class="reply-form-content" id="replyContent-' + parentId + '" placeholder="답글을 입력하세요..."></textarea>' +
-                        '<button class="reply-form-submit-btn" onclick="submitReply(' + parentId + ')">답글 작성</button>' +
-                        '<button class="reply-form-cancel-btn" onclick="cancelReplyForm()">취소</button>' +
+                    '</div>';
+                
+                if (!loggedIn) {
+                    // 비로그인 사용자: 닉네임, 비밀번호 입력 필드
+                    formHtml += '<div class="reply-form-login-fields">' +
+                        '<div class="reply-form-field-group">' +
+                            '<span class="reply-form-field-label">닉네임</span>' +
+                            '<input type="text" class="reply-form-nickname-input" id="replyNickname-' + parentId + '" placeholder="5자 이하" maxlength="5">' +
+                        '</div>' +
+                        '<div class="reply-form-field-group">' +
+                            '<span class="reply-form-field-label">비밀번호</span>' +
+                            '<input type="password" class="reply-form-password-input" id="replyPassword-' + parentId + '" placeholder="4자리" maxlength="4">' +
+                        '</div>' +
                         '</div>';
                 }
                 
-                formHtml += '</div></div>';
+                formHtml += '<div class="reply-form-guideline">주제와 무관한 내용 및 악플은 삭제될 수 있습니다.</div>' +
+                    '<div class="reply-form-input-container">' +
+                        '<textarea class="reply-form-textarea" id="replyContent-' + parentId + '" placeholder="답글을 입력하세요..."></textarea>' +
+                        '<div class="reply-form-footer">' +
+                            '<span class="reply-form-counter" id="replyCounter-' + parentId + '">0/500</span>' +
+                            '<div style="display: flex; gap: 8px;">' +
+                                '<button class="reply-form-cancel-btn" onclick="cancelReplyForm()">취소</button>' +
+                                '<button class="reply-form-submit-btn" onclick="submitReply(' + parentId + ')" title="답글 작성">' +
+                                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                                        '<line x1="22" y1="2" x2="11" y2="13"></line>' +
+                                        '<polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>' +
+                                    '</svg>' +
+                                '</button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
                 
                 repliesContainer.innerHTML = repliesHtml + formHtml;
                 repliesContainer.style.display = 'block';
@@ -557,29 +600,45 @@ async function toggleRepliesAndShowForm(parentId) {
             // 답글 입력폼 추가
             const loggedIn = isLoggedIn();
             let formHtml = '<div class="reply-form-container">' +
-                '<div class="reply-form-row">';
-            
-            if (loggedIn) {
-                // 로그인한 사용자: 내용만 입력
-                formHtml += '<div class="reply-form-right-section">' +
-                    '<textarea class="reply-form-content" id="replyContent-' + parentId + '" placeholder="답글을 입력하세요..."></textarea>' +
-                    '<button class="reply-form-submit-btn" onclick="submitReply(' + parentId + ')">답글 작성</button>' +
-                    '<button class="reply-form-cancel-btn" onclick="cancelReplyForm()">취소</button>' +
-                    '</div>';
-            } else {
-                // 비로그인 사용자: 닉네임, 비밀번호, 내용 입력
-                formHtml += '<div class="reply-form-left-column">' +
-                    '<input type="text" class="reply-form-nickname" id="replyNickname-' + parentId + '" placeholder="닉네임 (5자 이하)" maxlength="5">' +
-                    '<input type="password" class="reply-form-password" id="replyPassword-' + parentId + '" placeholder="비밀번호 (4자리)" maxlength="4">' +
+                '<div class="reply-form-header">' +
+                    '<div class="reply-form-user-info">' +
+                        '<span class="reply-form-nickname-display" id="replyNicknameDisplay-' + parentId + '">' + 
+                        (loggedIn ? '사용자(taem****)' : '닉네임을 입력해주세요') + 
+                        '</span>' +
                     '</div>' +
-                    '<div class="reply-form-right-section">' +
-                    '<textarea class="reply-form-content" id="replyContent-' + parentId + '" placeholder="답글을 입력하세요..."></textarea>' +
-                    '<button class="reply-form-submit-btn" onclick="submitReply(' + parentId + ')">답글 작성</button>' +
-                    '<button class="reply-form-cancel-btn" onclick="cancelReplyForm()">취소</button>' +
+                '</div>';
+            
+            if (!loggedIn) {
+                // 비로그인 사용자: 닉네임, 비밀번호 입력 필드
+                formHtml += '<div class="reply-form-login-fields">' +
+                    '<div class="reply-form-field-group">' +
+                        '<span class="reply-form-field-label">닉네임</span>' +
+                        '<input type="text" class="reply-form-nickname-input" id="replyNickname-' + parentId + '" placeholder="5자 이하" maxlength="5">' +
+                    '</div>' +
+                    '<div class="reply-form-field-group">' +
+                        '<span class="reply-form-field-label">비밀번호</span>' +
+                        '<input type="password" class="reply-form-password-input" id="replyPassword-' + parentId + '" placeholder="4자리" maxlength="4">' +
+                    '</div>' +
                     '</div>';
             }
             
-            formHtml += '</div></div>';
+            formHtml += '<div class="reply-form-guideline">주제와 무관한 내용 및 악플은 삭제될 수 있습니다.</div>' +
+                '<div class="reply-form-input-container">' +
+                    '<textarea class="reply-form-textarea" id="replyContent-' + parentId + '" placeholder="답글을 입력하세요..."></textarea>' +
+                    '<div class="reply-form-footer">' +
+                        '<span class="reply-form-counter" id="replyCounter-' + parentId + '">0/500</span>' +
+                        '<div style="display: flex; gap: 8px;">' +
+                            '<button class="reply-form-cancel-btn" onclick="cancelReplyForm()">취소</button>' +
+                            '<button class="reply-form-submit-btn" onclick="submitReply(' + parentId + ')" title="답글 작성">' +
+                                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                                    '<line x1="22" y1="2" x2="11" y2="13"></line>' +
+                                    '<polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>' +
+                                '</svg>' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
             
             repliesContainer.innerHTML = repliesHtml + formHtml;
             repliesContainer.style.display = 'block';
@@ -589,10 +648,28 @@ async function toggleRepliesAndShowForm(parentId) {
             // 답글 상태를 확장된 것으로 기록
             expandedReplies.add(parentId);
             
-            // 포커스 설정
+            // 포커스 설정 및 글자 수 카운터 이벤트 추가
             const contentTextarea = document.getElementById('replyContent-' + parentId);
+            const counter = document.getElementById('replyCounter-' + parentId);
+            
             if (contentTextarea) {
                 contentTextarea.focus();
+                
+                // 글자 수 카운터 이벤트 추가
+                if (counter) {
+                    contentTextarea.addEventListener('input', function() {
+                        const length = this.value.length;
+                        counter.textContent = length + '/500';
+                        
+                        if (length > 500) {
+                            counter.style.color = '#dc3545';
+                        } else if (length > 400) {
+                            counter.style.color = '#ffc107';
+                        } else {
+                            counter.style.color = '#6c757d';
+                        }
+                    });
+                }
             }
         } catch (error) {
             // 답글 로드 오류 무시
@@ -909,7 +986,10 @@ function showCourseMessage(message, type = 'info') {
 }
 
 // 좋아요/싫어요 토글
-async function toggleReaction(courseId, reactionType) {
+async function toggleReaction(element) {
+    const courseId = element.getAttribute('data-course-id');
+    const reactionType = element.getAttribute('data-reaction-type');
+    
     // 로그인 상태 확인
     const loggedIn = isLoggedIn();
     
@@ -1039,8 +1119,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // 댓글 폼 초기화
 function initializeCommentForm() {
     const loggedIn = isLoggedIn();
+    const nicknameDisplay = document.getElementById('commentNicknameDisplay');
+    const loginFields = document.getElementById('commentLoginFields');
     const nicknameInput = document.getElementById('commentNickname');
     const passwordInput = document.getElementById('commentPassword');
+    const contentTextarea = document.getElementById('commentContent');
+    const counter = document.getElementById('commentCounter');
     
     if (loggedIn) {
         // 로그인한 사용자: 닉네임 자동 설정
@@ -1054,26 +1138,41 @@ function initializeCommentForm() {
             
             const payload = JSON.parse(jsonPayload);
             if (payload.nickname) {
-                nicknameInput.value = payload.nickname;
-                nicknameInput.readOnly = true;
-                nicknameInput.style.backgroundColor = '#f8f9fa';
+                nicknameDisplay.textContent = payload.nickname + '(taem****)';
+                nicknameDisplay.style.color = '#333';
+            } else {
+                nicknameDisplay.textContent = '사용자';
+                nicknameDisplay.style.color = '#333';
             }
         } catch (error) {
-            // 토큰에서 닉네임 추출 실패 무시
+            nicknameDisplay.textContent = '사용자';
+            nicknameDisplay.style.color = '#333';
         }
         
-        // 비밀번호 필드 숨기기
-        passwordInput.style.display = 'none';
-        passwordInput.parentElement.style.display = 'none';
+        // 비로그인 필드 숨기기
+        loginFields.style.display = 'none';
         
     } else {
-        // 비로그인 사용자: 닉네임 입력 가능
-        nicknameInput.readOnly = false;
-        nicknameInput.style.backgroundColor = '';
-        
-        // 비밀번호 필드 표시
-        passwordInput.style.display = 'block';
-        passwordInput.parentElement.style.display = 'block';
+        // 비로그인 사용자: 입력 필드 표시
+        nicknameDisplay.textContent = '닉네임을 입력해주세요';
+        nicknameDisplay.style.color = '#6c757d';
+        loginFields.style.display = 'flex';
+    }
+    
+    // 글자 수 카운터 이벤트 추가
+    if (contentTextarea && counter) {
+        contentTextarea.addEventListener('input', function() {
+            const length = this.value.length;
+            counter.textContent = length + '/500';
+            
+            if (length > 500) {
+                counter.style.color = '#dc3545';
+            } else if (length > 400) {
+                counter.style.color = '#ffc107';
+            } else {
+                counter.style.color = '#6c757d';
+            }
+        });
     }
 }
 
@@ -1261,7 +1360,8 @@ function setupCommentForm() {
 }
 
 // 삭제 메뉴 표시/숨김
-function showDeleteMenu(courseId, authorUserid, userId) {
+function showDeleteMenu(element) {
+    const courseId = element.getAttribute('data-course-id');
     const menu = document.getElementById('deleteMenu_' + courseId);
     if (menu.style.display === 'none') {
         menu.style.display = 'block';
@@ -1271,7 +1371,11 @@ function showDeleteMenu(courseId, authorUserid, userId) {
 }
 
 // 삭제 처리
-function deleteCourse(courseId, authorUserid, userId) {
+function deleteCourse(element) {
+    const courseId = element.getAttribute('data-course-id');
+    const authorUserid = element.getAttribute('data-author-userid');
+    const userId = element.getAttribute('data-user-id');
+    
     const userInfo = getUserInfo();
     const currentUserId = userInfo && userInfo.userid ? userInfo.userid : null;
     
@@ -1520,7 +1624,9 @@ function confirmCommentDelete() {
 }
 
 // 코스 신고
-function reportCourse(courseId) {
+function reportCourse(element) {
+    const courseId = element.getAttribute('data-course-id');
+    
     // 로그인 상태 확인
     const loggedIn = isLoggedIn();
     

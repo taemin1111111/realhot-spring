@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%
-    String root = request.getContextPath();
+    String root = "";
 %>
 
 <style>
@@ -249,7 +249,7 @@
         }
         
         try {
-            const response = await fetch('/hotplace/api/auth/send-password-reset-code', {
+            const response = await fetch('/api/auth/send-password-reset-code', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -298,7 +298,7 @@
         }
         
         try {
-            const response = await fetch('/hotplace/api/auth/verify-password-reset-code', {
+            const response = await fetch('/api/auth/verify-password-reset-code', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -337,7 +337,7 @@
         const email = document.getElementById('email').value.trim();
         
         try {
-            const response = await fetch('/hotplace/api/auth/resend-password-reset-code', {
+            const response = await fetch('/api/auth/resend-password-reset-code', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -381,7 +381,7 @@
         }
         
         try {
-            const response = await fetch('/hotplace/api/auth/reset-password', {
+            const response = await fetch('/api/auth/reset-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

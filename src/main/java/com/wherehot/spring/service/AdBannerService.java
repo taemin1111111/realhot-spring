@@ -21,8 +21,8 @@ public class AdBannerService {
     @Autowired
     private AdBannerMapper adBannerMapper;
 
-    // 업로드 디렉토리 경로
-    private static final String UPLOAD_DIR = "uploads/adsave/";
+    // 업로드 디렉토리 경로 (절대 경로)
+    private static final String UPLOAD_DIR = "/opt/tomcat/webapps/taeminspring/uploads/adsave/";
 
     /**
      * 활성화된 광고 배너 목록 조회
@@ -146,7 +146,7 @@ public class AdBannerService {
         Path filePath = Paths.get(UPLOAD_DIR + filename);
         Files.copy(file.getInputStream(), filePath);
 
-        return "/" + UPLOAD_DIR + filename;
+        return "/uploads/adsave/" + filename;
     }
 
     /**
@@ -155,8 +155,9 @@ public class AdBannerService {
     private void deleteImageFile(String imagePath) {
         if (imagePath != null && !imagePath.isEmpty()) {
             try {
-                // 경로에서 앞의 "/" 제거
-                String filePath = imagePath.startsWith("/") ? imagePath.substring(1) : imagePath;
+                // 경로에서 앞의 "/" 제거하고 절대 경로로 변환
+                String relativePath = imagePath.startsWith("/") ? imagePath.substring(1) : imagePath;
+                String filePath = "/opt/tomcat/webapps/taeminspring/" + relativePath;
                 File file = new File(filePath);
                 if (file.exists()) {
                     file.delete();

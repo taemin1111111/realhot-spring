@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%
-    String root = request.getContextPath();
+    String root = "";
 %>
 
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel">
@@ -8,7 +8,7 @@
         <div class="modal-content p-4">
 
             <!-- 닫기 버튼 -->
-            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="btn-close login-modal-close-btn" data-bs-dismiss="modal" aria-label="Close"></button>
 
             <div class="row" id="modalRow">
 
@@ -28,7 +28,7 @@
                             </div>
 
                             <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="rememberId">
+                                <input type="checkbox" class="form-check-input login-modal-checkbox" id="rememberId">
                                 <label class="form-check-label" for="rememberId">아이디 저장</label>
                                 <span class="ms-3 small"> 
                                     <a href="<%=root%>/idsearch">아이디 찾기</a> | 
@@ -205,39 +205,7 @@
 </style>
 
 <script>
-// 로그인 이미지 슬라이드 기능
-let currentImageIndex = 0;
-const loginImages = [
-    '<%=root%>/logo/loginman.png',
-    '<%=root%>/logo/logingirl.png'
-];
-
-function startImageSlide() {
-    const imageElement = document.getElementById('loginImage');
-    if (!imageElement) return;
-    
-    // 초기 이미지를 loginman.png로 설정하고 캐시 우회
-    imageElement.src = loginImages[0] + '?v=' + Date.now();
-    
-    setInterval(() => {
-        // 페이드 아웃
-        imageElement.style.opacity = '0';
-        
-        setTimeout(() => {
-            // 다음 이미지로 변경 (캐시 우회를 위해 타임스탬프 추가)
-            currentImageIndex = (currentImageIndex + 1) % loginImages.length;
-            imageElement.src = loginImages[currentImageIndex] + '?v=' + Date.now();
-            
-            // 페이드 인
-            imageElement.style.opacity = '1';
-        }, 1000); // 1초 후 이미지 변경
-    }, 5000); // 5초마다 변경
-}
-
-// 페이지 로드 시 이미지 슬라이드 시작
-document.addEventListener('DOMContentLoaded', function() {
-    startImageSlide();
-});
+// 로그인 이미지 슬라이드 기능 (제거됨 - 광고 배너로 대체)
 
 // 회원가입 폼 표시 시 이미지 영역 숨기기
 function showNormalJoin() {
@@ -576,7 +544,7 @@ function renderLoginAdBanner(banners) {
                          'alt="' + (banner.title || '') + '" ' +
                          'style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" ' +
                          'onclick="window.open(\'' + (banner.linkUrl || '#') + '\', \'_blank\')" ' +
-                         'onerror="this.src=\'<%=root%>/logo/loginman.png\'">';
+                         'onerror="this.style.display=\'none\'; if(this.nextElementSibling) this.nextElementSibling.style.display=\'block\';">';
         container.innerHTML = imageHtml;
     } else {
         // 광고가 여러 개일 때 슬라이드쇼
@@ -592,7 +560,7 @@ function renderLoginAdBanner(banners) {
                              'alt="' + (banner.title || '') + '" ' +
                              'style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" ' +
                              'onclick="window.open(\'' + (banner.linkUrl || '#') + '\', \'_blank\')" ' +
-                             'onerror="this.src=\'<%=root%>/logo/loginman.png\'">' +
+                             'onerror="this.style.display=\'none\'; if(this.nextElementSibling) this.nextElementSibling.style.display=\'block\';">' +
                              '</div>';
             slidesHtml += slideHtml;
         });
@@ -663,9 +631,9 @@ function goToLoginAdSlide(index) {
     loginAdCurrentSlide = index;
 }
 
-// 로그인 모달용 기본 이미지 표시
+// 로그인 모달용 기본 이미지 표시 (광고가 없을 때)
 function showDefaultLoginImage() {
     const container = document.getElementById('loginAdBannerContent');
-    container.innerHTML = '<img src="<%=root%>/logo/loginman.png" alt="로그인 이미지" style="width: 100%; height: 100%; object-fit: cover;">';
+    container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; border-radius: 10px;"><div><i class="bi bi-megaphone" style="font-size: 3rem; margin-bottom: 10px;"></i><p style="margin: 0; font-size: 1.2rem; font-weight: 500;">광고 문의 주세요</p></div></div>';
 }
 </script>

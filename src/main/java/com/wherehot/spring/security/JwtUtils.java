@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.util.StringUtils;
 
 /**
  * JWT 토큰 유틸리티 클래스
@@ -33,7 +35,9 @@ public class JwtUtils {
      * JWT 서명 키 생성
      */
     private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+        logger.info("JWT Secret length: {} characters", jwtSecret.length());
+        byte[] keyBytes = jwtSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        logger.info("Key bytes length: {} bytes ({} bits)", keyBytes.length, keyBytes.length * 8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
     
@@ -163,5 +167,32 @@ public class JwtUtils {
         member.setStatus(claims.get("status", String.class));
         
         return member;
+    }
+    
+    /**
+     * HttpServletRequest에서 JWT 토큰 추출
+     */
+    public String getTokenFromRequest(HttpServletRequest request) {
+        return parseJwt(request);
+    }
+    
+    /**
+     * JWT 토큰 파싱 (Authorization 헤더에서 Bearer 토큰 추출)
+     */
+    private String parseJwt(HttpServletRequest request) {
+        String headerAuth = request.getHeader("Authorization");
+        
+        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+            return headerAuth.substring(7);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * JWT 토큰에서 사용자 ID 추출 (getUseridFromToken과 동일하지만 이름 통일)
+     */
+    public String getUserIdFromToken(String token) {
+        return getUseridFromToken(token);
     }
 }

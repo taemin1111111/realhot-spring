@@ -2,7 +2,7 @@
 
 <%
 request.setCharacterEncoding("UTF-8");   
-String root = request.getContextPath();
+String root = "";
 %>
 
 <!DOCTYPE html>

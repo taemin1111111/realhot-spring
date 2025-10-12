@@ -4,7 +4,7 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-    String root = request.getContextPath();
+    String root = "";
 %>
 
 <!-- 코스 추천 전용 CSS -->
@@ -38,6 +38,38 @@
 
 .course-hunting-all-courses-btn i {
     margin-right: 6px;
+}
+
+/* ===== 모바일 반응형 스타일 ===== */
+
+/* 태블릿 스타일 (768px 이하) */
+@media (max-width: 768px) {
+    .course-hunting-all-courses-btn {
+        padding: 10px 16px !important;
+        font-size: 0.9rem !important;
+        border-radius: 6px !important;
+        min-height: 44px !important;
+    }
+}
+
+/* 모바일 스타일 (480px 이하) */
+@media (max-width: 480px) {
+    .course-hunting-all-courses-btn {
+        padding: 8px 12px !important;
+        font-size: 0.85rem !important;
+        border-radius: 5px !important;
+        min-height: 40px !important;
+    }
+}
+
+/* 소형 모바일 (360px 이하) */
+@media (max-width: 360px) {
+    .course-hunting-all-courses-btn {
+        padding: 6px 10px !important;
+        font-size: 0.8rem !important;
+        border-radius: 4px !important;
+        min-height: 36px !important;
+    }
 }
 </style>
 

@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
-    String root = request.getContextPath();
+    String root = "";
 %>
 <!-- 관리자 페이지 전용 CSS -->
 <link rel="stylesheet" href="<%=root%>/css/admin.css">
@@ -172,20 +172,20 @@ function formatTimeAgo(date) {
     const diffInSeconds = Math.floor((now - date) / 1000);
     
     if (diffInSeconds < 60) {
-        return '방금전';
+        return '방금??;
     } else if (diffInSeconds < 3600) {
         const minutes = Math.floor(diffInSeconds / 60);
         return minutes + '분전';
     } else if (diffInSeconds < 86400) {
         const hours = Math.floor(diffInSeconds / 3600);
-        return hours + '시간전';
+        return hours + '?�간??;
     } else {
         const days = Math.floor(diffInSeconds / 86400);
-        return days + '일전';
+        return days + '?�전';
     }
 }
 
-// HTML 이스케이프 함수 (사용하지 않음 - JSP에서 직접 처리)
+// HTML ?�스케?�프 ?�수 (?�용?��? ?�음 - JSP?�서 직접 처리)
 // function escapeHtml(text) {
 //     if (!text) return '';
 //     const div = document.createElement('div');
@@ -193,25 +193,25 @@ function formatTimeAgo(date) {
 //     return div.innerHTML;
 // }
 
-// 코스 상세보기 (새 탭에서 열기)
+// 코스 ?�세보기 (????��???�기)
 function viewCourseDetails(courseId) {
     window.open('<%=root%>/course/' + courseId, '_blank');
 }
 
-// 코스 신고 상세 모달 표시
+// 코스 ?�고 ?�세 모달 ?�시
 function showCourseReportModal(courseId, reportDetails) {
-    // 모달 HTML 생성
+    // 모달 HTML ?�성
     let modalHtml = `
         <div class="admin-modal-overlay" onclick="closeCourseReportModal()">
             <div class="admin-modal-content" onclick="event.stopPropagation()">
                 <div class="admin-modal-header">
-                    <h3>코스 신고 상세 정보</h3>
+                    <h3>코스 ?�고 ?�세 ?�보</h3>
                     <button class="admin-modal-close" onclick="closeCourseReportModal()">&times;</button>
                 </div>
                 <div class="admin-modal-body">
                     <div class="admin-report-detail-info">
                         <h4>코스 ID: ${courseId}</h4>
-                        <p>총 신고 건수: ${reportDetails.length}건</p>
+                        <p>�??�고 건수: ${reportDetails.length}�?/p>
                     </div>
                     <div class="admin-report-list">
     `;
@@ -222,14 +222,14 @@ function showCourseReportModal(courseId, reportDetails) {
         
         modalHtml += '<div class="admin-report-detail-item">' +
             '<div class="admin-report-detail-header">' +
-                '<span class="admin-report-detail-reporter">신고자: ' + (report.reporter ? report.reporter : '신고자 없음') + '</span>' +
+                '<span class="admin-report-detail-reporter">?�고?? ' + (report.reporter ? report.reporter : '?�고???�음') + '</span>' +
                 '<span class="admin-report-detail-time">' + formattedTime + '</span>' +
             '</div>' +
             '<div class="admin-report-detail-reason">' +
-                '<strong>신고 사유:</strong> ' + (report.reason ? report.reason : '사유 없음') +
+                '<strong>?�고 ?�유:</strong> ' + (report.reason ? report.reason : '?�유 ?�음') +
             '</div>' +
             '<div class="admin-report-detail-content">' +
-                '<strong>신고 내용:</strong> ' + (report.report_content ? report.report_content : '내용 없음') +
+                '<strong>?�고 ?�용:</strong> ' + (report.report_content ? report.report_content : '?�용 ?�음') +
             '</div>' +
         '</div>';
     });
@@ -238,20 +238,20 @@ function showCourseReportModal(courseId, reportDetails) {
             '</div>' +
             '<div class="admin-modal-footer">' +
                 '<button class="admin-btn admin-btn-danger" onclick="deleteCourse(' + courseId + '); closeCourseReportModal();">' +
-                    '<i class="bi bi-trash"></i> 코스 삭제' +
+                    '<i class="bi bi-trash"></i> 코스 ??��' +
                 '</button>' +
                 '<button class="admin-btn admin-btn-secondary" onclick="closeCourseReportModal()">' +
-                    '닫기' +
+                    '?�기' +
                 '</button>' +
             '</div>' +
         '</div>' +
     '</div>';
     
-    // 모달을 body에 추가
+    // 모달??body??추�?
     document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
 
-// 코스 신고 모달 닫기
+// 코스 ?�고 모달 ?�기
 function closeCourseReportModal() {
     const modal = document.querySelector('.admin-modal-overlay');
     if (modal) {
@@ -259,16 +259,15 @@ function closeCourseReportModal() {
     }
 }
 
-// 관리자용 코스 삭제 함수
+// 관리자??코스 ??�� ?�수
 async function deleteCourse(courseId) {
     if (!courseId || courseId === 'undefined' || courseId === 'null') {
         console.error('courseId is missing or invalid:', courseId);
-        alert('코스 ID가 올바르지 않습니다.');
+        alert('코스 ID가 ?�바르�? ?�습?�다.');
         return;
     }
     
-    // 확인 대화상자
-    if (!confirm('정말로 이 코스를 삭제하시겠습니까?\n\n삭제 시 다음 데이터가 함께 삭제됩니다:\n- 코스 내용\n- 코스 스텝\n- 댓글\n- 좋아요/싫어요\n- 업로드된 이미지 파일\n- 신고 내역\n\n이 작업은 되돌릴 수 없습니다.')) {
+    // ?�인 ?�?�상??    if (!confirm('?�말�???코스�???��?�시겠습?�까?\n\n??�� ???�음 ?�이?��? ?�께 ??��?�니??\n- 코스 ?�용\n- 코스 ?�텝\n- ?��?\n- 좋아???�어??n- ?�로?�된 ?��?지 ?�일\n- ?�고 ?�역\n\n???�업?� ?�돌�????�습?�다.')) {
         return;
     }
     
@@ -276,7 +275,7 @@ async function deleteCourse(courseId) {
         const baseUrl = '<%=root%>';
         const url = baseUrl + '/admin/course/' + courseId + '/delete';
         
-        console.log('관리자 코스 삭제 요청 URL:', url);
+        console.log('관리자 코스 ??�� ?�청 URL:', url);
         console.log('courseId:', courseId);
         
         const response = await fetchWithAuth(url, {
@@ -286,31 +285,31 @@ async function deleteCourse(courseId) {
             }
         });
         
-        console.log('서버 응답 상태:', response.status, response.statusText);
+        console.log('?�버 ?�답 ?�태:', response.status, response.statusText);
         
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('서버 응답 오류:', errorText);
+            console.error('?�버 ?�답 ?�류:', errorText);
             throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
         }
         
         const data = await response.json();
-        console.log('서버 응답 데이터:', data);
+        console.log('?�버 ?�답 ?�이??', data);
         
         if (data.success) {
-            alert('코스가 성공적으로 삭제되었습니다.');
-            // 목록 새로고침
+            alert('코스가 ?�공?�으�???��?�었?�니??');
+            // 목록 ?�로고침
             loadReportsByCount();
         } else {
-            alert(data.message || '코스 삭제에 실패했습니다.');
+            alert(data.message || '코스 ??��???�패?�습?�다.');
         }
     } catch (error) {
-        console.error('코스 삭제 오류:', error);
-        alert('코스 삭제 중 오류가 발생했습니다: ' + error.message);
+        console.error('코스 ??�� ?�류:', error);
+        alert('코스 ??�� �??�류가 발생?�습?�다: ' + error.message);
     }
 }
 
-// ESC 키로 모달 닫기
+// ESC ?�로 모달 ?�기
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeCourseReportModal();

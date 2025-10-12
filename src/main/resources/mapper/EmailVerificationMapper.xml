@@ -87,4 +87,14 @@
         AND DATE(created_at) = CURDATE()
     </select>
 
+    <!-- 최근 N분 이내에 인증된 비밀번호 리셋 레코드 조회 -->
+    <select id="findRecentVerifiedByEmail" resultMap="EmailVerificationResultMap">
+        SELECT * FROM email_verification 
+        WHERE email = #{email} 
+        AND is_verified = 1
+        AND created_at > DATE_SUB(NOW(), INTERVAL #{minutesWindow} MINUTE)
+        ORDER BY created_at DESC 
+        LIMIT 1
+    </select>
+
 </mapper>

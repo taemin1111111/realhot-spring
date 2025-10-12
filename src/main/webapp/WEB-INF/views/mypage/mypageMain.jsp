@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
-    String root = request.getContextPath();
+    String root = "/taeminspring";
 %>
 <!-- 마이페이지 전용 CSS -->
 <link rel="stylesheet" href="<%=root%>/css/mypage.css">
@@ -18,9 +18,9 @@
                      <div class="card-body p-4" id="profileInfo">
                          <div class="text-center">
                              <div class="spinner-border text-primary" role="status">
-                                 <span class="visually-hidden">로딩중...</span>
+                                 <span class="visually-hidden">로딩 중..</span>
                              </div>
-                             <p class="mt-2 text-muted">프로필 로딩중...</p>
+                             <p class="mt-2 text-muted">프로필 로딩 중..</p>
                          </div>
                      </div>
                  </div>
@@ -36,7 +36,7 @@
                              </div>
                              <div class="col-6">
                                  <h3 class="fw-bold text-success mb-1" id="myWishCount">-</h3>
-                                 <small class="text-muted">나의 장소</small>
+                                 <small class="text-muted">찜의 장소</small>
                              </div>
                          </div>
                      </div>
@@ -51,15 +51,15 @@
                          <small class="text-primary fw-semibold">개인정보 관리</small>
                      </div>
                  </div>
-                
-                                 <!-- 프로필 수정 -->
+               
+                                 <!-- 프로필 설정 -->
                  <div class="card border-0 shadow-sm mb-4">
                      <div class="card-header bg-transparent border-0 pb-0">
-                         <h5 class="mb-0 text-dark fw-semibold"><i class="bi bi-person-gear text-primary me-2"></i>프로필 수정</h5>
+                         <h5 class="mb-0 text-dark fw-semibold"><i class="bi bi-person-gear text-primary me-2"></i>프로필 설정</h5>
                      </div>
                      <div class="card-body pt-3">
-                         <p class="text-muted mb-3">닉네임을 수정할 수 있습니다.</p>
-                         <button type="button" class="btn btn-primary px-4" onclick="showProfileEditModal()">프로필 수정</button>
+                         <p class="text-muted mb-3">닉네임을 설정할 수 있습니다.</p>
+                         <button type="button" class="btn btn-primary px-4" onclick="showProfileEditModal()">프로필 설정</button>
                      </div>
                  </div>
 
@@ -80,7 +80,7 @@
                          <div class="card border-0 shadow-sm h-100">
                              <div class="card-body text-center p-4">
                                  <i class="bi bi-geo-alt fs-1 text-primary mb-3"></i>
-                                 <h5 class="fw-semibold text-dark mb-2">나의 장소</h5>
+                                 <h5 class="fw-semibold text-dark mb-2">찜의 장소</h5>
                                  <p class="text-muted mb-3">지도에서 찜한 장소 관리</p>
                                  <button class="btn btn-outline-primary px-4" onclick="showWishList()">보기</button>
                              </div>
@@ -99,13 +99,13 @@
                      </div>
                  </div>
                  
-                 <!-- 나의 MD 찜 -->
+                 <!-- 찜의 MD 목록 -->
                  <div class="row mt-4">
                      <div class="col-12">
                          <div class="card border-0 shadow-sm">
                              <div class="card-body text-center p-4">
                                  <i class="bi bi-heart fs-1 text-danger mb-3"></i>
-                                 <h5 class="fw-semibold text-dark mb-2">나의 MD 찜</h5>
+                                 <h5 class="fw-semibold text-dark mb-2">찜의 MD 목록</h5>
                                  <p class="text-muted mb-3">찜한 MD 목록 관리</p>
                                  <button class="btn btn-outline-danger px-4" onclick="showMdWish()">보기</button>
                              </div>
@@ -121,7 +121,7 @@
                      <div class="card-body pt-3">
                          <div class="withdraw-warning">
                              <span class="text-danger fw-bold">주의!</span>
-                             <span class="text-dark ms-2">회원 탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.</span>
+                             <span class="text-dark ms-2">회원 탈퇴 시 모든 데이터는 삭제되며 복구할 수 없습니다.</span>
                          </div>
                          <button class="btn btn-outline-danger px-4" onclick="showWithdraw()">회원 탈퇴</button>
                      </div>
@@ -130,12 +130,12 @@
         </div>
     </div>
 
-    <!-- 프로필 수정 모달 -->
+    <!-- 프로필 설정 모달 -->
     <div class="modal fade" id="profileEditModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">프로필 수정</h5>
+                    <h5 class="modal-title">프로필 설정</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                                  <div class="modal-body">
@@ -229,7 +229,7 @@
                         <div id="naverWithdrawMessage" class="alert alert-warning" style="display: none;">
                             <i class="bi bi-exclamation-triangle"></i>
                             <strong>네이버 로그인 사용자</strong><br>
-                            탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.
+                            탈퇴 시 모든 데이터는 삭제되며 복구할 수 없습니다.
                         </div>
                         
                         <!-- 일반 로그인 사용자용 비밀번호 입력 -->
@@ -241,7 +241,7 @@
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="withdrawConfirm" required>
                             <label class="form-check-label" for="withdrawConfirm">
-                                위 내용을 확인했으며 회원 탈퇴에 동의합니다.
+                                내 용어를 확인하였으며 회원 탈퇴에 동의합니다
                             </label>
                         </div>
                     </form>
@@ -261,7 +261,7 @@
             const token = getJwtToken();
             
             if (!token) {
-                alert('로그인이 필요합니다.');
+                alert('로그인이 필요합니다');
                 window.location.href = '<%=root%>/';
                 return;
             }
@@ -290,7 +290,7 @@
                 method: 'GET',
                 headers: getRequestHeaders(),
                 success: function(response) {
-                    // 깔끔한 HTML 생성 (흰색 배경에 맞춰 검정색 글자)
+                    // 깔끔한 HTML 구성 (흰색 배경에 맞춰 검은색 글씨)
                     const htmlContent = 
                         '<div class="text-center">' +
                             '<i class="bi bi-person-circle fs-1 text-primary mb-3"></i>' +
@@ -309,19 +309,19 @@
                         document.title = document.title.replace(/^.*님/, response.nickname + '님');
                     }
                      
-                    // OAuth2 사용자일 때 비밀번호 변경 섹션 숨기기
+                    // OAuth2 사용자일 경우 비밀번호 변경 섹션 숨기기
                     if (response.provider && response.provider !== 'site') {
                         $('#passwordChangeSection').hide();
                     } else {
                         $('#passwordChangeSection').show();
                     }
                     
-                    // 통계 정보도 함께 로드
+                    // 통계 정보를 함께 로드
                     loadStats();
                 },
                 error: function(xhr, status, error) {
                     if (xhr.status === 401) {
-                        alert('인증이 만료되었습니다. 다시 로그인해주세요.');
+                        alert('인증이 만료되었습니다. 다시 로그인해주세요');
                         localStorage.removeItem('accessToken');
                         window.location.href = '<%=root%>/';
                     } else {
@@ -360,7 +360,7 @@
         function checkNickname() {
             const nickname = $('#editNickname').val().trim();
             if (!nickname) {
-                $('#nicknameCheckResult').text('닉네임을 입력하세요.').removeClass('text-success').addClass('text-danger');
+                $('#nicknameCheckResult').text('닉네임을 입력하세요').removeClass('text-success').addClass('text-danger');
                 return;
             }
 
@@ -383,7 +383,7 @@
             });
         }
 
-                 // 프로필 수정 모달 표시
+                 // 프로필 설정 모달 표시
          function showProfileEditModal() {
              // 현재 프로필 정보로 폼 초기화 (닉네임만)
              const currentNickname = $('#profileInfo h5').text();
@@ -400,7 +400,7 @@
             const nickname = $('#editNickname').val().trim();
             
             if (!nickname) {
-                alert('닉네임을 입력하세요.');
+                alert('닉네임을 입력하세요');
                 return;
             }
 
@@ -444,7 +444,7 @@
                         document.title = document.title.replace(/^.*님/, newNickname + '님');
                     }
                     
-                    // 로컬 스토리지의 사용자 정보 업데이트
+                    // 로컬 스토리지에 사용자 정보 업데이트
                     const userInfo = localStorage.getItem('userInfo');
                     if (userInfo) {
                         try {
@@ -456,7 +456,7 @@
                         }
                     }
                     
-                    // 페이지 새로고침으로 모든 곳의 닉네임 동기화
+                    // 페이지 리로드로 모든 곳의 닉네임 갱신
                     setTimeout(function() {
                         location.reload();
                     }, 500);
@@ -469,7 +469,7 @@
                     if (xhr.responseJSON && xhr.responseJSON.error) {
                         alert('오류: ' + xhr.responseJSON.error);
                     } else {
-                        alert('프로필 수정 중 오류가 발생했습니다.');
+                        alert('프로필 설정 중 오류가 발생했습니다.');
                     }
                 }
             });
@@ -490,7 +490,7 @@
         function verifyCurrentPassword() {
             const currentPassword = $('#currentPassword').val();
             if (!currentPassword) {
-                $('#currentPasswordResult').text('현재 비밀번호를 입력하세요.').removeClass('text-success').addClass('text-danger');
+                $('#currentPasswordResult').text('현재 비밀번호를 입력하세요').removeClass('text-success').addClass('text-danger');
                 return;
             }
 
@@ -503,7 +503,7 @@
                 }),
                 success: function(response) {
                     if (response.verified) {
-                        // 비밀번호 확인 성공 시 비밀번호 변경 모달 표시
+                        // 비밀번호 확인 성공 후 비밀번호 변경 모달 표시
                         $('#passwordVerifyModal').modal('hide');
                         
                         // 현재 비밀번호를 전역 변수에 저장 (두 번째 모달에서 사용)
@@ -530,7 +530,7 @@
             const confirmPassword = $('#confirmPassword').val();
 
             if (!newPassword || !confirmPassword) {
-                alert('모든 필드를 입력하세요.');
+                alert('모든 필드를 입력하세요');
                 return;
             }
 
@@ -542,7 +542,7 @@
             // 비밀번호 규칙 검증 (회원가입과 동일)
             const regex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\[\]{};':"\\|,.<>\/?]).{10,}$/;
             if (!regex.test(newPassword)) {
-                alert('비밀번호는 10자 이상, 영문+숫자+특수문자를 포함해야 합니다.');
+                alert('비밀번호는 10자 이상, 영문+숫자+특수문자를 포함해야 합니다');
                 return;
             }
 
@@ -562,7 +562,7 @@
                     newPassword: newPassword
                 }),
                 success: function(response) {
-                    alert(response.message + '\n보안을 위해 자동으로 로그아웃됩니다.');
+                    alert(response.message + '\n보안을 위해 자동으로 로그아웃됩니다');
                     $('#passwordChangeModal').modal('hide');
                     
                     // 모든 모달 폼 초기화
@@ -575,7 +575,7 @@
                     // 비밀번호 변경 완료 후 자동 로그아웃
                     setTimeout(function() {
                         localStorage.removeItem('accessToken');
-                        alert('로그아웃되었습니다. 새로운 비밀번호로 다시 로그인해주세요.');
+                        alert('로그아웃되었습니다. 새로운 비밀번호로 다시 로그인해주세요');
                         window.location.href = '<%=root%>/';
                     }, 1000);
                 },
@@ -589,7 +589,7 @@
             });
         }
 
-        // 찜 목록 보기 (나의 장소)
+        // 찜 목록 보기 (찜의 장소)
         function showWishList() {
             window.location.href = '<%=root%>/mypage/wishlist';
         }
@@ -660,21 +660,21 @@
             const confirmed = $('#withdrawConfirm').is(':checked');
 
             if (!confirmed) {
-                alert('탈퇴 동의에 체크해주세요.');
+                alert('탈퇴 동의를 체크해주세요.');
                 return;
             }
 
             // 일반 로그인 사용자는 비밀번호 확인
             if (currentUserInfo && currentUserInfo.provider !== 'naver') {
                 if (!password || password.trim() === '') {
-                    alert('비밀번호를 입력하세요.');
+                    alert('비밀번호를 입력하세요');
                     return;
                 }
             }
 
             // 최종 확인
             const confirmMessage = currentUserInfo && currentUserInfo.provider === 'naver' 
-                ? '정말로 탈퇴하시겠습니까?\n모든 데이터가 삭제되며 복구할 수 없습니다.'
+                ? '정말로 탈퇴하시겠습니까?\n모든 데이터는 삭제되며 복구할 수 없습니다.'
                 : '정말로 탈퇴하시겠습니까?\n이 작업은 되돌릴 수 없습니다.';
 
             if (!confirm(confirmMessage)) {
@@ -717,7 +717,7 @@
             if (password === '') {
                 $('#newPasswordResult').text('').removeClass('text-success text-danger');
             } else if (regex.test(password)) {
-                $('#newPasswordResult').text('사용가능한 비밀번호입니다.').removeClass('text-danger').addClass('text-success');
+                $('#newPasswordResult').text('사용가능한 비밀번호입니다').removeClass('text-danger').addClass('text-success');
             } else {
                 $('#newPasswordResult').text('10자 이상, 영문+숫자+특수문자 포함 필수').removeClass('text-success').addClass('text-danger');
             }
@@ -734,7 +734,7 @@
             }
             
             if (newPassword === confirmPassword) {
-                $('#confirmPasswordResult').text('비밀번호가 일치합니다.').removeClass('text-danger').addClass('text-success');
+                $('#confirmPasswordResult').text('비밀번호가 일치합니다').removeClass('text-danger').addClass('text-success');
             } else {
                 $('#confirmPasswordResult').text('비밀번호가 일치하지 않습니다.').removeClass('text-success').addClass('text-danger');
             }

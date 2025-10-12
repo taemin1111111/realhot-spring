@@ -44,4 +44,9 @@ public interface EmailService {
      * 비밀번호 찾기 인증코드 확인
      */
     boolean verifyPasswordResetCode(String email, String code);
+    
+    /**
+     * 비밀번호 리셋 인증 완료 여부 확인 (최근 N분 이내)
+     */
+    boolean isPasswordResetVerified(String email, int minutesWindow);
 }

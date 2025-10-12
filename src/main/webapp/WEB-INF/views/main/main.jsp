@@ -1,8 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.*" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%
-    String root = request.getContextPath();
+    String root = "";
     
     // Controller에서 전달받은 데이터 사용
     @SuppressWarnings("unchecked")
@@ -47,9 +48,15 @@
     // 로그인 상태는 클라이언트 JavaScript에서 JWT 토큰으로 확인
 %>
 
+<!-- Favicon -->
+<link rel="icon" type="image/x-icon" href="<%=request.getContextPath()%>/favicon.ico">
+
 <!-- Kakao Map SDK -->
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9c8d14f1fa7135d1f77778321b1e25fa&libraries=services"></script>
 <link rel="stylesheet" href="<%=request.getContextPath()%>/css/main.css">
+
+<!-- Auth Utils JavaScript -->
+<script src="<%=request.getContextPath()%>/js/auth-utils.js"></script>
 
 <div class="main-container">
   <!-- 오늘 핫 순위 섹션 -->
@@ -59,18 +66,15 @@
     </div>
   </div>
   
-  <div class="row gx-4 gy-4 align-items-stretch">
-    <div class="col-md-9">
-      <div class="card-box h-100" style="min-height:800px; display:flex; flex-direction:column; position:relative;">
-        <div style="text-align: center;">
-          <img src="<%=root%>/logo/hotmap.png" alt="핫플 지도" style="max-width: 70px; height: auto; object-fit: contain; margin-bottom: 0; margin-top: -16px; display: block; margin-left: auto; margin-right: auto;">
-          <p class="text-muted-small mb-3" style="display: inline-block; margin-top: -8px;">지금 가장 핫한 장소들을 지도로 한눈에 확인해보세요.</p>
-        </div>
+  <!-- 핫플 지도 섹션 (한 칸 전체) -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card-box h-100" style="min-height:500px; display:flex; flex-direction:column; position:relative;">
         <button onclick="moveToCurrentLocation()" class="btn btn-sm btn-outline-primary mb-3 d-flex align-items-center gap-1 map-location-btn" style="width:110px; min-width:unset; padding: 4px 10px; font-size: 0.85rem; border-radius: 18px; display: block; margin-left: 0; float: left;">
           <i class="bi bi-crosshair"></i>
           내 위치
         </button>
-        <div id="map" style="width:100%; height:800px; border-radius:12px; position:relative;">
+        <div id="map" style="width:100%; height:600px; border-radius:12px; position:relative;">
           <div id="categoryFilterBar" style="position:absolute; top:16px; left:16px; z-index:10; display:flex; gap:8px;">
             <button class="category-filter-btn active" data-category="all">전체</button>
             <button class="category-filter-btn marker-club" data-category="1">C</button>
@@ -82,85 +86,79 @@
               <i class="bi bi-heart-fill"></i>
             </button>
           </div>
-          <!-- 오른쪽 패널 토글 버튼 및 패널 -->
-          <div class="toggle-button-area">
-            <button id="rightPanelToggleBtn" style="position:absolute; top:50%; right:0; transform:translateY(-50%); z-index:1000; background:#fff; border-radius:8px 0 0 8px; border:1.5px solid #ddd; border-right:none; width:36px; height:56px; box-shadow:0 2px 8px rgba(0,0,0,0.10); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; transition:background 0.15s; pointer-events:auto;">&lt;</button>
-          </div>
-          <div id="rightPanel" style="position:absolute; top:0; right:0; height:100%; width:360px; max-width:90vw; background:#fff; box-shadow:-2px 0 16px rgba(0,0,0,0.10); z-index:30; border-radius:16px 0 0 16px; transform:translateX(100%); transition:transform 0.35s cubic-bezier(.77,0,.18,1); display:flex; flex-direction:column;">
-            <button id="rightPanelCloseBtn" style="position:absolute; left:-36px; top:50%; transform:translateY(-50%); width:36px; height:56px; background:#fff; border-radius:8px 0 0 8px; border:1.5px solid #ddd; border-left:none; box-shadow:0 2px 8px rgba(0,0,0,0.10); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; display:none; z-index:1001; pointer-events:auto;">&gt;</button>
-            <!-- 검색창 -->
-            <div id="searchBar" style="position:sticky; top:0; background:#fff; z-index:10; padding:24px 20px 12px 20px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
-              <!-- 검색 타입 드롭다운 -->
-              <style>
-                .search-type-dropdown { position:relative; }
-                .search-type-btn { display:flex; align-items:center; gap:4px; background:#f5f6fa; border:1.5px solid #e0e0e0; border-radius:16px; font-size:0.93rem; font-weight:500; color:#222; padding:0 10px; height:32px; min-width:54px; max-width:70px; cursor:pointer; transition:border 0.18s, background 0.18s; outline:none; white-space:nowrap; }
-                .search-type-btn:focus, .search-type-btn.active { border:1.5px solid #1275E0; background:#fff; }
-                .search-type-arrow { font-size:1em; color:#888; margin-left:2px; }
-                .search-type-list { position:absolute; top:110%; left:0; min-width:54px; background:#fff; border:1.5px solid #e0e0e0; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,0.08); z-index:10; display:none; flex-direction:column; padding:2px 0; }
-                .search-type-list.show { display:flex; }
-                .search-type-item { padding:6px 14px; font-size:0.93rem; color:#222; background:none; border:none; text-align:left; cursor:pointer; transition:background 0.13s; white-space:nowrap; }
-                .search-type-item:hover, .search-type-item.selected { background:#f0f4fa; color:#1275E0; }
-                .toggle-button-area {
-                    position: absolute;
-                    top: 50%;
-                    right: 0;
-                    transform: translateY(-50%);
-                    width: 50px;
-                    height: 60px;
-                    z-index: 1000;
-                    pointer-events: auto;
-                }
-              </style>
-              <form style="display:flex; align-items:center; gap:8px; position:relative; min-width:0;" onsubmit="return false;">
-                  <div class="search-type-dropdown" id="searchTypeDropdown" style="flex:0 0 60px; min-width:54px; max-width:70px;">
-                    <button type="button" class="search-type-btn" id="searchTypeBtn" style="width:100%; min-width:54px; max-width:70px; justify-content:center;">
-                      <span id="searchTypeText">지역</span>
-                      <span class="search-type-arrow">&#9660;</span>
-                    </button>
-                    <div class="search-type-list" id="searchTypeList">
-                      <button type="button" class="search-type-item selected" data-type="지역">지역</button>
-                      <button type="button" class="search-type-item" data-type="가게">가게</button>
-                    </div>
-                  </div>
-                  <div style="position:relative; flex:1; min-width:0;">
-                    <input type="text" id="searchInput" placeholder="지역, 장소 검색 가능" style="width:100%; height:44px; border-radius:24px; border:1.5px solid #e0e0e0; background:#fafbfc; font-size:1.08rem; padding:0 44px 0 18px; box-shadow:0 2px 8px rgba(0,0,0,0.03); outline:none; transition:border 0.18s; min-width:0;" autocomplete="off" />
-                    <button id="searchBtn" type="submit" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; outline:none; cursor:pointer; font-size:1.35rem; color:#1275E0; display:flex; align-items:center; justify-content:center; padding:0; width:28px; height:28px;">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
-                    </button>
-                    <div id="autocompleteList" style="position:absolute; left:0; top:46px; width:100%; background:rgba(255,255,255,0.97); border-radius:14px; box-shadow:0 4px 16px rgba(0,0,0,0.10); z-index:30; display:none; flex-direction:column; overflow:hidden; border:1.5px solid #e0e0e0;"></div>
-                  </div>
-                </form>
-            </div>
-            <div id="categoryCountsBar" style="display:none;"></div>
-            <div style="padding:24px 20px 20px 20px; flex:1; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-              <div id="searchResultBox" style="width:100%; flex:1; min-height:0; height:100%; background:#f5f5f5; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; color:#888; font-size:1.2rem; padding:0; overflow-y:auto;"></div>
-            </div>
-          </div>
         </div>
+        
         <div class="text-end mt-2">
-          <a href="<%=root%>/map" class="text-info">지도 전체 보기 →</a>
+          <button onclick="location.href='<%=root%>/map'" class="btn btn-primary">지도 전체 보기 →</button>
         </div>
       </div>
     </div>
     
-    <!-- 투표 섹션 -->
-    <div class="col-md-3">
-      <div class="card-box h-100" style="min-height:800px;">
-        <jsp:include page="nowhot.jsp" />
+    <!-- 지도와 완전히 분리된 검색 공간 -->
+    <div class="col-12 mt-4">
+      <div class="card-box" style="background: #fff; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); overflow: hidden;">
+        <style>
+          /* 검색 공간 스타일 */
+          .search-type-dropdown { position:relative; }
+          .search-type-btn { display:flex; align-items:center; gap:4px; background:#f5f6fa; border:1.5px solid #e0e0e0; border-radius:16px; font-size:0.93rem; font-weight:500; color:#222; padding:0 10px; height:32px; min-width:54px; max-width:70px; cursor:pointer; transition:border 0.18s, background 0.18s; outline:none; white-space:nowrap; }
+          .search-type-btn:focus, .search-type-btn.active { border:1.5px solid #1275E0; background:#fff; }
+          .search-type-arrow { font-size:1em; color:#888; margin-left:2px; }
+          .search-type-list { position:absolute; top:110%; left:0; min-width:54px; background:#fff; border:1.5px solid #e0e0e0; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,0.08); z-index:10; display:none; flex-direction:column; padding:2px 0; }
+          .search-type-list.show { display:flex; }
+          .search-type-item { padding:6px 14px; font-size:0.93rem; color:#222; background:none; border:none; text-align:left; cursor:pointer; transition:background 0.13s; white-space:nowrap; }
+          .search-type-item:hover, .search-type-item.selected { background:#f0f4fa; color:#1275E0; }
+          .autocomplete-item:hover { background: #f0f4fa !important; color: #1275E0 !important; }
+        </style>
+        <!-- 검색창 -->
+        <div id="searchBarBelow" style="background:#fff; z-index:10; padding:24px 20px 12px 20px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+          <!-- 검색 타입 드롭다운 -->
+          <form style="display:flex; align-items:center; gap:8px; position:relative; min-width:0;" onsubmit="return false;">
+              <div class="search-type-dropdown" id="searchTypeDropdownBelow" style="flex:0 0 60px; min-width:54px; max-width:70px;">
+                <button type="button" class="search-type-btn" id="searchTypeBtnBelow" style="width:100%; min-width:54px; max-width:70px; justify-content:center;">
+                  <span id="searchTypeTextBelow">지역</span>
+                  <span class="search-type-arrow">&#9660;</span>
+                </button>
+                <div class="search-type-list" id="searchTypeListBelow">
+                  <button type="button" class="search-type-item selected" data-type="지역">지역</button>
+                  <button type="button" class="search-type-item" data-type="가게">가게</button>
+                </div>
+              </div>
+              <div style="position:relative; flex:1; min-width:0;">
+                <input type="text" id="searchInputBelow" placeholder="지역, 장소 검색 가능" style="width:100%; height:44px; border-radius:24px; border:1.5px solid #e0e0e0; background:#fafbfc; font-size:1.08rem; padding:0 44px 0 18px; box-shadow:0 2px 8px rgba(0,0,0,0.03); outline:none; transition:border 0.18s; min-width:0;" autocomplete="off" />
+                <button id="searchBtnBelow" type="submit" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; outline:none; cursor:pointer; font-size:1.35rem; color:#1275E0; display:flex; align-items:center; justify-content:center; padding:0; width:28px; height:28px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
+                </button>
+                <div id="autocompleteListBelow" style="position:absolute; left:0; top:46px; width:100%; background:rgba(255,255,255,0.97); border-radius:14px; box-shadow:0 4px 16px rgba(0,0,0,0.10); z-index:30; display:none; flex-direction:column; overflow:hidden; border:1.5px solid #e0e0e0;"></div>
+              </div>
+            </form>
+        </div>
+        
+        
+        <div id="categoryCountsBarBelow" style="display:none;"></div>
+        
+        <!-- 지역 정보 및 정렬 버튼 영역 -->
+        <div id="searchResultHeaderBelow" style="padding:0 20px 10px 20px; display:none;">
+          <div id="regionTitleBelow" style="font-size:1.13rem; font-weight:600; color:#1275E0; margin:14px 0 8px 0; display:flex; align-items:center; justify-content:center;"></div>
+          <div id="sortButtonsBelow" style="display:flex; gap:6px; margin:8px 0 16px 0; flex-wrap:wrap; justify-content:center;"></div>
+        </div>
+        
+        <div style="padding:0 20px 20px 20px; flex:1; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+          <div id="searchResultBoxBelow" style="width:100%; flex:1; min-height:400px; background:#f5f5f5; border-radius:12px; display:flex; flex-direction:row; flex-wrap:wrap; align-items:flex-start; justify-content:flex-start; color:#888; font-size:1.2rem; padding:20px; overflow-y:auto; gap:0;"></div>
+        </div>
       </div>
     </div>
   </div>
   
   <!-- 핫플썰 인기글 및 광고 배너 섹션 -->
   <div class="row mt-5">
-    <!-- 핫플썰 인기글 -->
-    <div class="col-6">
-      <jsp:include page="hotplace_popular.jsp" />
+    <!-- 광고 배너 -->
+    <div class="col-lg-6 col-md-12 col-12">
+      <jsp:include page="ad_banner.jsp" />
     </div>
     
-    <!-- 광고 배너 -->
-    <div class="col-6">
-      <jsp:include page="ad_banner.jsp" />
+    <!-- 핫플썰 인기글 -->
+    <div class="col-lg-6 col-md-12 col-12">
+      <jsp:include page="hotplace_popular.jsp" />
     </div>
   </div>
   
@@ -277,10 +275,32 @@
             } else {
               // 일반 사용자
               isAdmin = false;
+              // 일반 사용자일 때 레벨 확인 메뉴 표시
+              const levelMenu = document.getElementById('level-menu');
+              if (levelMenu) {
+                levelMenu.style.display = 'block';
+              }
+              
+              // 일반 사용자일 때 레벨 배지 표시
+              const levelBadge = document.getElementById('user-level-badge');
+              if (levelBadge) {
+                levelBadge.style.display = 'inline-block';
+              }
             }
           })
           .catch(error => {
             isAdmin = false;
+            // 에러 시에도 일반 사용자로 처리하여 레벨 확인 메뉴 표시
+            const levelMenu = document.getElementById('level-menu');
+            if (levelMenu) {
+              levelMenu.style.display = 'block';
+            }
+            
+            // 에러 시에도 일반 사용자로 처리하여 레벨 배지 표시
+            const levelBadge = document.getElementById('user-level-badge');
+            if (levelBadge) {
+              levelBadge.style.display = 'inline-block';
+            }
           });
         } else {
           // 토큰 만료 시 정리
@@ -288,6 +308,17 @@
           isLoggedIn = false;
           loginUserId = '';
           isAdmin = false;
+          // 토큰 만료 시에도 레벨 확인 메뉴 표시
+          const levelMenu = document.getElementById('level-menu');
+          if (levelMenu) {
+            levelMenu.style.display = 'block';
+          }
+          
+          // 토큰 만료 시에도 레벨 배지 표시
+          const levelBadge = document.getElementById('user-level-badge');
+          if (levelBadge) {
+            levelBadge.style.display = 'inline-block';
+          }
         }
       } catch (error) {
         // JWT 토큰 파싱 오류
@@ -295,6 +326,17 @@
         isLoggedIn = false;
         loginUserId = '';
         isAdmin = false;
+        // JWT 토큰 파싱 오류 시에도 레벨 확인 메뉴 표시
+        const levelMenu = document.getElementById('level-menu');
+        if (levelMenu) {
+          levelMenu.style.display = 'block';
+        }
+        
+        // JWT 토큰 파싱 오류 시에도 레벨 배지 표시
+        const levelBadge = document.getElementById('user-level-badge');
+        if (levelBadge) {
+          levelBadge.style.display = 'inline-block';
+        }
       }
     }
   }
@@ -315,13 +357,25 @@
   
   // 관리자 UI 업데이트 함수
   function updateAdminUI() {
+    // 관리자 계정일 때 레벨 확인 메뉴 숨기기
+    const levelMenu = document.getElementById('level-menu');
+    if (levelMenu) {
+      levelMenu.style.display = 'none';
+    }
+    
+    // 관리자 계정일 때 레벨 배지 숨기기
+    const levelBadge = document.getElementById('user-level-badge');
+    if (levelBadge) {
+      levelBadge.style.display = 'none';
+    }
+    
     // InfoWindow에서 관리자 버튼들이 제대로 표시되도록 설정
     // 관리자 UI 활성화
     
     // 기존 InfoWindow들을 재설정하여 관리자 버튼이 나타나도록 함
     hotplaceMarkers.forEach(function(marker, idx) {
       // 모든 카테고리에서 관리자 버튼 표시
-      const place = hotplaces[idx];
+      const place = (window.hotplaces || [])[idx];
       if (place) {
           // InfoWindow 내용 업데이트
           const newInfoContent = generateInfoWindowContent(place);
@@ -363,10 +417,11 @@
   
   // InfoWindow 내용 생성 함수 (관리자 권한 반영)
   function generateInfoWindowContent(place) {
-    const heartHtml = isLoggedIn ? `<i class="bi bi-heart wish-heart" data-place-id="${place.id}" style="position:absolute;top:12px;right:12px;z-index:10;"></i>` : '';
+    const heartHtml = isLoggedIn ? `<i class="bi bi-heart wish-heart" data-place-id="${place.id}" style="position:absolute;top:12px;right:12px;z-index:1000; color:#e74c3c; font-size:24px; cursor:pointer;"></i>` : '';
     
     return ''
-      + '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(12px, 2vw, 16px); line-height:1.4; border-radius:0; overflow:visible; box-sizing:border-box;">'
+      + '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(12px, 2vw, 16px); line-height:1.4; border-radius:0; overflow:visible; box-sizing:border-box; min-width:260px; max-width:280px;">'
+      + heartHtml
       + '<div class="place-images-container" style="position:relative; width:100%; background:#f8f9fa; display:flex; align-items:center; justify-content:center; color:#6c757d; font-size:clamp(11px, 1.5vw, 13px);" data-place-id="' + place.id + '">이미지 로딩 중...</div>'
       + '<div style="padding:clamp(16px, 3vw, 20px);">'
       + '<div class="place-name-wish-container">'
@@ -391,7 +446,7 @@
       + '</div>';
   }
   
-  var regionNameList = ['서울', <% for(int i=0;i<regionNameList.size();i++){ %>'<%=regionNameList.get(i).replace("'", "\\'")%>'<% if(i<regionNameList.size()-1){%>,<%}}%>];
+  var regionNameList = ['서울'<% for(int i=0;i<regionNameList.size();i++){ %>, '<%=regionNameList.get(i).replace("'", "\\'")%>'<% } %>];
   var hotplaceNameList = [<% for(int i=0;i<hotplaceNameList.size();i++){ %>'<%=hotplaceNameList.get(i).replace("'", "\\'")%>'<% if(i<hotplaceNameList.size()-1){%>,<%}}%>];
   
   // URL 파라미터에서 lat, lng 가져오기
@@ -408,24 +463,26 @@
   var regionRatings = {};
   
   var dongToRegionId = {
-    <% for(java.util.Map.Entry<String, Integer> entry : dongToRegionIdMapping.entrySet()) { %>
-      '<%=entry.getKey()%>': <%=entry.getValue()%>,
-    <% } %>
+    <% int index = 0; for(java.util.Map.Entry<String, Integer> entry : dongToRegionIdMapping.entrySet()) { %>
+      '<%=entry.getKey()%>': <%=entry.getValue()%><% if(index < dongToRegionIdMapping.size() - 1) { %>,<% } %>
+    <% index++; } %>
   };
   
   // window에 전역 변수들 추가
   window.dongToRegionId = dongToRegionId;
   window.regionCategoryCounts = regionCategoryCounts;
-  window.hotplaces = hotplaces;
   // 평점 관련 데이터 제거
 
   // JSP 변수들을 JavaScript로 전달
-  var hotplaces = [<% for (int i = 0; i < hotplaceList.size(); i++) { 
+  var hotplaces = [<% if (hotplaceList != null && !hotplaceList.isEmpty()) { for (int i = 0; i < hotplaceList.size(); i++) { 
     Object obj = hotplaceList.get(i);
     if (obj instanceof com.wherehot.spring.entity.Hotplace) {
       com.wherehot.spring.entity.Hotplace hotplace = (com.wherehot.spring.entity.Hotplace) obj;
 	  // 장르 정보는 별도로 조회하도록 변경 (Hotplace Entity에서 제거됨)
-	   %>{id:<%=hotplace.getId()%>, name:'<%=hotplace.getName().replace("'", "\\'")%>', categoryId:<%=hotplace.getCategoryId()%>, address:'<%=hotplace.getAddress().replace("'", "\\'")%>', lat:<%=hotplace.getLat()%>, lng:<%=hotplace.getLng()%>, regionId:<%=hotplace.getRegionId()%>}<% if (i < hotplaceList.size() - 1) { %>,<% } } }%>];
+	   %>{id:<%=hotplace.getId()%>, name:'<%=hotplace.getName().replace("'", "\\'")%>', categoryId:<%=hotplace.getCategoryId()%>, address:'<%=hotplace.getAddress().replace("'", "\\'")%>', lat:<%=hotplace.getLat()%>, lng:<%=hotplace.getLng()%>, regionId:<%=hotplace.getRegionId()%>}<% if (i < hotplaceList.size() - 1) { %>,<% } } } } %>];
+	   
+	   // window에 hotplaces 할당
+	   window.hotplaces = hotplaces;
 	   
 	   var rootPath = '<%=root%>';
 	   var sigunguCenters = [<% for (int i = 0; i < sigunguCenterList.size(); i++) { Map<String, Object> row = sigunguCenterList.get(i); %>{sido:'<%=row.get("sido")%>', sigungu:'<%=row.get("sigungu")%>', lat:<%=row.get("lat")%>, lng:<%=row.get("lng")%>}<% if (i < sigunguCenterList.size() - 1) { %>,<% } %><% } %>];
@@ -433,19 +490,102 @@
 	   var regionCenters = [<% for (int i = 0; i < regionCenters.size(); i++) { Map<String, Object> row = regionCenters.get(i); %>{id:<%=row.get("id")%>, sido:'<%=row.get("sido")%>', sigungu:'<%=row.get("sigungu")%>', dong:'<%=row.get("dong")%>', lat:<%=row.get("lat")%>, lng:<%=row.get("lng")%>}<% if (i < regionCenters.size() - 1) { %>,<% } %><% } %>];
 	   var regionCategoryCounts = [<% for (int i = 0; i < regionCategoryCounts.size(); i++) { Map<String, Object> row = regionCategoryCounts.get(i); %>{region_id:<%=row.get("region_id")%>, clubCount:<%=row.get("clubCount")%>, huntingCount:<%=row.get("huntingCount")%>, loungeCount:<%=row.get("loungeCount")%>, pochaCount:<%=row.get("pochaCount")%>, guesthouseCount:<%=row.get("guesthouseCount")%>}<% if (i < regionCategoryCounts.size() - 1) { %>,<% } %><% } %>];
 
-	   var mapContainer = document.getElementById('map');
-	   var mapOptions = {
-	     center: new kakao.maps.LatLng(37.5665, 126.9780),
-	     level: 7
-	   };
-	   var map = new kakao.maps.Map(mapContainer, mapOptions);
-  // URL 파라미터가 있으면 해당 위치로 이동
-  if (targetLat && targetLng) {
-    // URL 파라미터 감지
-    var targetPosition = new kakao.maps.LatLng(parseFloat(targetLat), parseFloat(targetLng));
-    map.setCenter(targetPosition);
-    map.setLevel(5); // 줌 레벨 조정
-  }
+
+     // 지도 초기화를 DOMContentLoaded 이벤트로 이동
+	   document.addEventListener('DOMContentLoaded', function() {
+	     // 카카오 지도 API 로드 확인
+	     if (typeof kakao === 'undefined' || !kakao.maps) {
+	       console.error('카카오 지도 API가 로드되지 않았습니다.');
+	       return;
+	     }
+	     
+	     var mapContainer = document.getElementById('map');
+	     if (!mapContainer) {
+	       console.error('Map container not found');
+	       return;
+	     }
+	     
+	     // 지도 컨테이너 확인
+	     
+	     var mapOptions = {
+	       center: new kakao.maps.LatLng(37.5665, 126.9780),
+	       level: 7
+	     };
+	     var map = new kakao.maps.Map(mapContainer, mapOptions);
+	     
+	     // 지도 초기화 완료
+	     
+     // URL 파라미터가 있으면 해당 위치로 이동
+     if (targetLat && targetLng) {
+       // URL 파라미터 감지
+       var targetPosition = new kakao.maps.LatLng(parseFloat(targetLat), parseFloat(targetLng));
+       map.setCenter(targetPosition);
+       map.setLevel(5); // 줌 레벨 조정
+     }
+	     
+	     // 지도 초기화 후 마커 표시
+	     initializeMapMarkers(map);
+	     
+	     // 마커 초기화 완료 후 이벤트 리스너 등록
+	     kakao.maps.event.addListener(map, 'zoom_changed', updateMapOverlays);
+	     updateMapOverlays();
+	     
+	     // placeId 파라미터가 있으면 해당 장소로 이동하고 마커 클릭
+	     handlePlaceIdParameter();
+	     
+	     // 구 오버레이 클릭 이벤트 등록
+	     guOverlays.forEach(function(overlay, idx) {
+	       kakao.maps.event.addListener(overlay, 'click', function() {
+	         if (openRegionCountOverlay) openRegionCountOverlay.setMap(null);
+	         guCountOverlays[idx].setMap(map);
+	         openRegionCountOverlay = guCountOverlays[idx];
+	       });
+	     });
+
+	     // 지도 빈 공간 클릭 시 인포윈도우/카테고리 오버레이 닫기
+	     kakao.maps.event.addListener(map, 'click', function() {
+	       if (openInfoWindow) {
+	         openInfoWindow.close();
+	         openInfoWindow = null;
+	       }
+	       if (openRegionCountOverlay) {
+	         openRegionCountOverlay.setMap(null);
+	         openRegionCountOverlay = null;
+	       }
+	     });
+	     
+	     // 오른쪽 패널 초기화 제거 (더 이상 사용하지 않음)
+	     
+	     // 검색 기능 초기화
+	     initializeSearchBelow();
+	     initializeSearch();
+	     
+	     // 초기 로드 시 전체 지역 목록 표시
+	     setTimeout(function() {
+	       if (window.renderAllRegions) {
+	         window.renderAllRegions(1);
+	       }
+	     }, 500);
+	     
+	     // 화면 크기 변경 시 페이징 재계산
+	     window.addEventListener('resize', function() {
+	       if (window.renderAllRegions && window.regionTotalItems > 0) {
+	         // 현재 페이지 유지하면서 페이징 재계산
+	         var currentPage = window.regionCurrentPage;
+	         window.renderAllRegions(currentPage);
+	       }
+	       
+	       // 지역별 가게 목록도 페이징 재계산
+	       if (window.selectedDong && window.currentFilteredData && window.currentFilteredData.length > 0) {
+	         var currentPage = window.currentPage;
+	         if (window.selectedDong === '서울') {
+	           window.renderHotplaceListBySido('서울', window.selectedCategory, currentPage);
+	         } else {
+	           window.renderHotplaceListByDong(window.selectedDong, window.selectedCategory, currentPage);
+	         }
+	       }
+	     });
+	   });
   
 
 
@@ -456,6 +596,26 @@
   var dongOverlays = [], dongCountOverlays = [];
   var openInfoWindow = null;
   var openRegionCountOverlay = null;
+  var map = null; // 지도 객체를 전역으로 선언
+
+  // 지도 마커 초기화 함수
+  function initializeMapMarkers(mapInstance) {
+    map = mapInstance; // 전역 map 변수에 할당
+    
+    // 마커 초기화 시작
+    
+    // 기존 마커들 제거
+    hideAllMarkers();
+    
+    // 핫플레이스 마커 생성
+    createHotplaceMarkers();
+    
+    // 지역 오버레이 생성
+    createRegionOverlays();
+    
+    // 카테고리 필터 초기화
+    initializeCategoryFilters();
+  }
 
   // 마커 클러스터링 함수
   function clusterMarkers(places, clusterDistance) {
@@ -537,6 +697,12 @@
       image: markerImage
     });
     
+    // 마커 생성 확인
+    if (!marker) {
+      console.error('클러스터 마커 생성 실패:', cluster);
+      return null;
+    }
+    
     return marker;
   }
   
@@ -568,7 +734,7 @@
   
   // 개별 장소 정보 표시 함수
   window.showPlaceInfo = function(placeId) {
-    var place = hotplaces.find(function(p) { return p.id === placeId; });
+    var place = (window.hotplaces || []).find(function(p) { return p.id === placeId; });
     if (!place) return;
     
     // 단일 장소 표시 모드 활성화
@@ -586,8 +752,8 @@
     
     // 해당 장소의 마커만 표시
     var targetMarker = null;
-    for (var i = 0; i < hotplaces.length; i++) {
-      if (hotplaces[i].id === placeId) {
+    for (var i = 0; i < (window.hotplaces || []).length; i++) {
+      if (window.hotplaces[i].id === placeId) {
         targetMarker = hotplaceMarkers[i];
         if (targetMarker) {
           targetMarker.setMap(map);
@@ -619,28 +785,35 @@
   
   // InfoWindow 내용 생성 함수
   function generateInfoWindowContent(place) {
-    var heartHtml = isLoggedIn ? `<i class="bi bi-heart wish-heart" data-place-id="${place.id}" style="position:absolute;top:12px;right:12px;z-index:10;"></i>` : '';
-    return '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(12px, 2vw, 16px); line-height:1.4; border-radius:0; overflow:visible; box-sizing:border-box;">'
-      + '<div class="place-images-container" style="position:relative; width:100%; background:#f8f9fa; display:flex; align-items:center; justify-content:center; color:#6c757d; font-size:clamp(11px, 1.5vw, 13px);" data-place-id="' + place.id + '">이미지 로딩 중...</div>'
-      + '<div style="padding:clamp(16px, 3vw, 20px);">'
-      + '<div class="place-name-wish-container">'
-      + '<strong style="font-size:clamp(14px, 2.5vw, 18px); word-break:break-word;">' + place.name + '</strong>'
-      + '<span style="color:#e91e63; font-size:clamp(12px, 2vw, 14px); white-space:nowrap;">💖<span class="wish-count-' + place.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명</span>'
+    var heartHtml = isLoggedIn ? `<i class="bi bi-heart wish-heart" data-place-id="${place.id}" style="position:absolute;top:6px;right:6px;z-index:1000; color:#e74c3c; font-size:24px; cursor:pointer;"></i>` : '';
+    var categoryMap = {1:'클럽',2:'헌팅',3:'라운지',4:'포차',5:'게스트하우스'};
+    return '<div class="infoWindow" style="position:relative; padding:0; font-size:clamp(11px, 1.8vw, 14px); line-height:1.3; border-radius:0; overflow:visible; box-sizing:border-box; min-width:240px; max-width:260px; background:rgba(255,255,255,0.98) !important; backdrop-filter:blur(10px) !important;">'
+      + heartHtml
+      + '<div class="place-images-container" style="position:relative; width:100%; background:#f8f9fa; display:flex; align-items:center; justify-content:center; color:#6c757d; font-size:clamp(10px, 1.4vw, 12px);" data-place-id="' + place.id + '">이미지 로딩 중...</div>'
+      + '<div style="padding:clamp(12px, 2.5vw, 16px);">'
+      + '<div class="place-name-wish-container" style="display:flex; align-items:center; margin-bottom:6px;">'
+      + '<div style="flex:1; min-width:0;">'
+      + '<div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">'
+      + '<strong style="font-size:clamp(13px, 2.2vw, 16px); word-break:break-word; color:#1275E0; cursor:pointer; flex:1;">' + place.name + '</strong>'
       + '</div>'
-        + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#ff6b35; font-size:clamp(12px, 2.2vw, 14px); font-weight:600;" id="todayHotRank-' + place.id + '">🔥 오늘핫: 로딩중...</div>'
-        + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#ff6b35; font-size:clamp(12px, 2.2vw, 14px); font-weight:600;" id="todayVoteStats-' + place.id + '">#성비 #혼잡도 #대기시간</div>'
-        + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#2196f3; font-size:clamp(12px, 2.2vw, 14px); font-weight:600; cursor:pointer;" id="courseCount-' + place.id + '" onclick="goToPlaceCourses(' + place.id + ')">📝 코스글: 로딩중...</div>'
-      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; display:flex; align-items:center; gap:8px;">'
+      + '<div style="color:#888; font-size:clamp(9px, 1.4vw, 11px); margin-top:1px;">' + (categoryMap[place.categoryId]||'') + '</div>'
+      + '<div style="color:#e91e63; font-size:clamp(9px, 1.4vw, 11px); margin-top:1px;">💖<span class="wish-count-' + place.id + '" style="color:#e91e63; font-weight:600;">로딩중...</span>명이 찜했어요</div>'
+      + '</div>'
+      + '</div>'
+        + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); color:#ff6b35; font-size:clamp(11px, 1.8vw, 13px); font-weight:600;" id="todayHotRank-' + place.id + '">🔥 오늘핫: 로딩중...</div>'
+        + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); color:#ff6b35; font-size:clamp(11px, 1.8vw, 13px); font-weight:600;" id="todayVoteStats-' + place.id + '">#성비 #혼잡도 #대기시간</div>'
+        + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); color:#2196f3; font-size:clamp(11px, 1.8vw, 13px); font-weight:600; cursor:pointer;" id="courseCount-' + place.id + '" onclick="goToPlaceCourses(' + place.id + ')">📝 코스글: 로딩중...</div>'
+      + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); color:#888; font-size:clamp(11px, 1.8vw, 13px); word-break:break-word; display:flex; align-items:center; gap:6px;">'
       +   '<span id="voteTrends-' + place.id + '">📊 역대 투표: 로딩중...</span>'
-      +   '<span onclick="toggleVoteDetails(' + place.id + ')" style="color:#1275E0; cursor:pointer; font-size:clamp(12px, 2.2vw, 14px);" id="voteDetailsToggle-' + place.id + '">더보기▾</span>'
+      +   '<span onclick="toggleVoteDetails(' + place.id + ')" style="color:#1275E0; cursor:pointer; font-size:clamp(11px, 1.8vw, 13px);" id="voteDetailsToggle-' + place.id + '">더보기▾</span>'
       + '</div>'
-      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#888; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; display:none;" id="voteDetails-' + place.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
-      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); color:#666; font-size:clamp(12px, 2.2vw, 14px); word-break:break-word; line-height:1.3; display:flex; align-items:center;">' + place.address + '<span onclick="copyAddress(\'' + place.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center;" title="주소 복사"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
-      + (place.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(11px, 2vw, 13px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>' : '')
-      + '<div style="margin-bottom:clamp(10px, 2vw, 14px); font-size:clamp(12px, 2.2vw, 14px);" id="naverPlaceLink-' + place.id + '">🔗 네이버 플레이스: 로딩중...</div>'
-      + '<div class="action-buttons-container"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(12px, 2vw, 14px); white-space:nowrap; padding:10px 16px; background:#f0f8ff; border-radius:8px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
-      + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#fff3e0; border-radius:6px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '')
-      + (isAdmin ? '<a href="#" onclick="openNaverPlaceLinkModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#00c73c; text-decoration:none; font-size:clamp(10px, 1.8vw, 12px); white-space:nowrap; padding:8px 14px; background:#e8f5e8; border-radius:6px; border:1px solid #c8e6c9;">🔗 링크 편집</a>' : '') + '</div>'
+      + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); color:#888; font-size:clamp(11px, 1.8vw, 13px); word-break:break-word; display:none;" id="voteDetails-' + place.id + '">#성비<br>#혼잡도<br>#대기시간</div>'
+      + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); color:#666; font-size:clamp(11px, 1.8vw, 13px); word-break:break-word; line-height:1.2; display:flex; align-items:center;">' + place.address + '<span onclick="copyAddress(\'' + place.address + '\')" style="cursor:pointer; color:#1275E0; margin-left:2px; display:inline-flex; align-items:center;" title="주소 복사"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></span></div>'
+      + (place.categoryId === 1 ? '<div style="color:#9c27b0; font-weight:600; margin-bottom:clamp(6px, 1.5vw, 10px); font-size:clamp(10px, 1.6vw, 12px); word-break:break-word;" id="genres-' + place.id + '">🎵 장르: 로딩중...</div>' : '')
+      + '<div style="margin-bottom:clamp(6px, 1.5vw, 10px); font-size:clamp(11px, 1.8vw, 13px);" id="naverPlaceLink-' + place.id + '">🔗 네이버 플레이스: 로딩중...</div>'
+      + '<div class="action-buttons-container" style="padding-bottom: 16px !important;"><a href="#" onclick="showVoteSection(' + place.id + ', \'' + place.name + '\', \'' + place.address + '\', ' + place.categoryId + '); return false;" style="color:#1275E0; text-decoration:none; font-weight:500; font-size:clamp(11px, 1.8vw, 13px); white-space:nowrap; padding:8px 14px; background:#f0f8ff; border-radius:6px; border:1px solid #e3f2fd;">🔥 투표하기</a>'
+      + (isAdmin && place.categoryId === 1 ? '<a href="#" onclick="openGenreEditModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#ff6b35; text-decoration:none; font-size:clamp(9px, 1.6vw, 11px); white-space:nowrap; padding:6px 12px; background:#fff3e0; border-radius:5px; border:1px solid #ffe0b2;">✏️ 장르 편집</a>' : '')
+      + (isAdmin ? '<a href="#" onclick="openNaverPlaceLinkModal(' + place.id + ', \'' + place.name + '\'); return false;" style="color:#00c73c; text-decoration:none; font-size:clamp(9px, 1.6vw, 11px); white-space:nowrap; padding:6px 12px; background:#e8f5e8; border-radius:5px; border:1px solid #c8e6c9;">🔗 링크 편집</a>' : '') + '</div>'
       + '</div>'
       + '</div>';
   }
@@ -663,6 +836,9 @@
       // 하트 태그 설정
       var heart = iw.querySelector('.wish-heart');
       if (heart) {
+        heart.setAttribute('data-place-id', place.id);
+        console.log('Setting up heart for place:', place.id);
+        
         if (!isLoggedIn) {
           heart.onclick = function() {
             showToast('위시리스트는 로그인 후 사용할 수 있어요. 간편하게 로그인하고 저장해보세요!', 'error');
@@ -670,6 +846,8 @@
         } else {
           setupWishHeartByClass(place.id);
         }
+      } else {
+        console.log('Heart element not found for place:', place.id);
       }
       
       // 이미지 로드
@@ -738,12 +916,23 @@
   var CLUSTER_DISTANCE = 0.0001; // 약 10-15미터 정도
   
   // 핫플레이스 클러스터링 및 마커 생성
-  var clusters = clusterMarkers(hotplaces, CLUSTER_DISTANCE);
+  var clusters = clusterMarkers(window.hotplaces || [], CLUSTER_DISTANCE);
   var clusterMarkers = [];
   var clusterInfoWindows = [];
   
-  // 모든 핫플레이스에 대해 개별 마커 생성 (필터링 시 사용)
-  hotplaces.forEach(function(place) {
+  // 핫플레이스 마커 생성 함수
+  function createHotplaceMarkers() {
+    // 마커 생성 시작
+    
+    // hotplaces 배열이 없으면 빈 배열로 초기화
+    if (!window.hotplaces) {
+      window.hotplaces = [];
+      console.log('hotplaces 배열이 없어서 빈 배열로 초기화');
+      return;
+    }
+    
+    // 모든 핫플레이스에 대해 개별 마커 생성 (필터링 시 사용)
+    window.hotplaces.forEach(function(place, index) {
     var markerClass = '', markerText = '';
     switch(place.categoryId) {
       case 1: markerClass = 'marker-club'; markerText = 'C'; break;
@@ -772,25 +961,36 @@
     
     var markerImage = new kakao.maps.MarkerImage(canvas.toDataURL(), new kakao.maps.Size(32, 32));
     var marker = new kakao.maps.Marker({ map: null, position: new kakao.maps.LatLng(place.lat, place.lng), image: markerImage });
+    
+    // 마커 생성 상태 확인
+    if (!marker) {
+      console.error('마커 생성 실패 - place:', place.name, 'lat:', place.lat, 'lng:', place.lng);
+    }
     var labelOverlay = new kakao.maps.CustomOverlay({ content: '<div class="marker-label">' + place.name + '</div>', position: new kakao.maps.LatLng(place.lat, place.lng), xAnchor: 0.5, yAnchor: 0, map: null });
     
     var infowindow = new kakao.maps.InfoWindow({ content: generateInfoWindowContent(place) });
     
-    kakao.maps.event.addListener(marker, 'click', function() {
-      if (openInfoWindow) openInfoWindow.close();
-      infowindow.open(map, marker);
-      openInfoWindow = infowindow;
-      setTimeout(function() {
-        loadInfoWindowContent(place);
-      }, 100);
+    // 마커가 정상적으로 생성되었는지 확인
+    if (marker) {
+      kakao.maps.event.addListener(marker, 'click', function() {
+        if (openInfoWindow) openInfoWindow.close();
+        infowindow.open(map, marker);
+        openInfoWindow = infowindow;
+        setTimeout(function() {
+          loadInfoWindowContent(place);
+        }, 100);
+      });
+      
+      marker.categoryId = place.categoryId;
+      hotplaceMarkers.push(marker);
+      hotplaceLabels.push(labelOverlay);
+      hotplaceInfoWindows.push(infowindow);
+      hotplaceCategoryIds.push(place.categoryId);
+    }
     });
     
-    marker.categoryId = place.categoryId;
-    hotplaceMarkers.push(marker);
-    hotplaceLabels.push(labelOverlay);
-    hotplaceInfoWindows.push(infowindow);
-    hotplaceCategoryIds.push(place.categoryId);
-  });
+    // 마커 생성 완료
+  }
   
   // placeId 파라미터 처리 함수 (마커 생성 완료 후 실행)
   function handlePlaceIdParameter() {
@@ -800,7 +1000,7 @@
       // 선택된 장소 ID
       
       // 선택된 장소를 핫플레이스 목록에서 찾기
-      var selectedPlace = hotplaces.find(function(place) {
+      var selectedPlace = (window.hotplaces || []).find(function(place) {
         return place.id === selectedPlaceId;
       });
       
@@ -817,8 +1017,8 @@
         
         // 해당 장소의 마커만 표시
         var targetMarker = null;
-        for (var i = 0; i < hotplaces.length; i++) {
-          if (hotplaces[i].id === selectedPlaceId) {
+        for (var i = 0; i < (window.hotplaces || []).length; i++) {
+          if (window.hotplaces[i].id === selectedPlaceId) {
             targetMarker = hotplaceMarkers[i];
             if (targetMarker) {
               targetMarker.setMap(map);
@@ -870,6 +1070,14 @@
     })
     .then(response => {
       if (!response.ok) {
+        if (response.status === 401) {
+          // 토큰이 유효하지 않음 - 로그아웃 처리
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          isLoggedIn = false;
+          userWishlist = [];
+          return;
+        }
         throw new Error('HTTP ' + response.status);
       }
       return response.json();
@@ -916,8 +1124,8 @@
     });
   }
   
-  // 카테고리 필터 버튼 클릭 이벤트
-  document.addEventListener('DOMContentLoaded', function() {
+  // 카테고리 필터 초기화 함수
+  function initializeCategoryFilters() {
     var filterBtns = document.querySelectorAll('.category-filter-btn');
     filterBtns.forEach(function(btn) {
       btn.onclick = function() {
@@ -1005,10 +1213,12 @@
         }
       };
     });
-  });
+  }
 
-  // 구 오버레이 생성
-  sigunguCenters.forEach(function(center) {
+  // 지역 오버레이 생성 함수
+  function createRegionOverlays() {
+    // 구 오버레이 생성
+    sigunguCenters.forEach(function(center) {
     var overlay = new kakao.maps.CustomOverlay({
       content: '<div class="region-label">' + center.sigungu + '</div>',
       position: new kakao.maps.LatLng(center.lat, center.lng),
@@ -1034,12 +1244,13 @@
   // 동 오버레이 생성
   regionCenters.forEach(function(center) {
     var overlay = new kakao.maps.CustomOverlay({
-      content: '<div class="region-label" style="cursor:pointer;" onclick="openRightPanelAndShowDongList(\'' + center.dong + '\')">' + center.dong + '</div>',
+      content: '<div class="region-label" style="cursor:pointer;" onclick="focusOnRegion(\'' + center.dong + '\')">' + center.dong + '</div>',
       position: new kakao.maps.LatLng(center.lat, center.lng),
       xAnchor: 0.5, yAnchor: 0.5, map: null
     });
     dongOverlays.push(overlay);
-  });
+    });
+  }
 
   // 지도 레벨별 표시/숨김 토글
   function updateMapOverlays() {
@@ -1076,8 +1287,8 @@
       // 지도 레벨이 낮을 때 마커 표시 (필터 상태 고려)
       if (singlePlaceMode) {
         // 단일 장소 모드일 때는 해당 장소만 표시
-        for (var i = 0; i < hotplaces.length; i++) {
-          if (hotplaces[i].id === singlePlaceId) {
+        for (var i = 0; i < (window.hotplaces || []).length; i++) {
+          if (window.hotplaces[i].id === singlePlaceId) {
             if (hotplaceMarkers[i]) {
               hotplaceMarkers[i].setMap(map);
               if (hotplaceLabels[i]) {
@@ -1088,7 +1299,14 @@
           }
         }
       } else {
-        showFilteredMarkers();
+        // 모든 마커 표시 (임시로 단순화)
+        hotplaceMarkers.forEach(function(marker) {
+          if (marker) marker.setMap(map);
+        });
+        hotplaceLabels.forEach(function(label) {
+          if (label) label.setMap(map);
+        });
+        // 모든 마커 표시 완료
       }
     }
   }
@@ -1104,12 +1322,12 @@
     
     // 클러스터 마커들 다시 생성하여 필터링 적용
     var filteredClusters = [];
-    var processed = new Array(hotplaces.length).fill(false);
+    var processed = new Array((window.hotplaces || []).length).fill(false);
     
-    for (var i = 0; i < hotplaces.length; i++) {
+    for (var i = 0; i < (window.hotplaces || []).length; i++) {
       if (processed[i]) continue;
       
-      var place = hotplaces[i];
+      var place = window.hotplaces[i];
       var shouldShow = true;
       
       // 찜 필터가 활성화된 경우
@@ -1139,10 +1357,10 @@
       };
       
       // 같은 위치 근처의 다른 장소들 찾기
-      for (var j = i + 1; j < hotplaces.length; j++) {
+      for (var j = i + 1; j < (window.hotplaces || []).length; j++) {
         if (processed[j]) continue;
         
-        var otherPlace = hotplaces[j];
+        var otherPlace = window.hotplaces[j];
         var otherShouldShow = true;
         
         // 찜 필터가 활성화된 경우
@@ -1184,7 +1402,7 @@
       if (cluster.places.length === 1) {
         // 단일 장소인 경우
         var place = cluster.places[0];
-        var markerIndex = hotplaces.findIndex(function(p) { return p.id === place.id; });
+        var markerIndex = (window.hotplaces || []).findIndex(function(p) { return p.id === place.id; });
         if (markerIndex !== -1 && hotplaceMarkers[markerIndex]) {
           hotplaceMarkers[markerIndex].setMap(map);
           if (hotplaceLabels[markerIndex]) {
@@ -1197,45 +1415,24 @@
         var clusterPopup = createClusterPopup(cluster);
         var clusterInfoWindow = new kakao.maps.InfoWindow({ content: clusterPopup });
         
-        kakao.maps.event.addListener(clusterMarker, 'click', function() {
-          if (openInfoWindow) openInfoWindow.close();
-          clusterInfoWindow.open(map, clusterMarker);
-          openInfoWindow = clusterInfoWindow;
-        });
-        
-        clusterMarker.setMap(map);
-        clusterMarkers.push(clusterMarker);
-        clusterInfoWindows.push(clusterInfoWindow);
+        if (clusterMarker) {
+          kakao.maps.event.addListener(clusterMarker, 'click', function() {
+            if (openInfoWindow) openInfoWindow.close();
+            clusterInfoWindow.open(map, clusterMarker);
+            openInfoWindow = clusterInfoWindow;
+          });
+          
+          clusterMarker.setMap(map);
+          clusterMarkers.push(clusterMarker);
+          clusterInfoWindows.push(clusterInfoWindow);
+        } else {
+          console.error('클러스터 마커 생성 실패:', cluster);
+        }
       }
     });
   }
 
-  kakao.maps.event.addListener(map, 'zoom_changed', updateMapOverlays);
-  updateMapOverlays();
-  
-  // placeId 파라미터가 있으면 해당 장소로 이동하고 마커 클릭
-  handlePlaceIdParameter();
-
-  // 구 오버레이 클릭 이벤트
-  guOverlays.forEach(function(overlay, idx) {
-    kakao.maps.event.addListener(overlay, 'click', function() {
-      if (openRegionCountOverlay) openRegionCountOverlay.setMap(null);
-      guCountOverlays[idx].setMap(map);
-      openRegionCountOverlay = guCountOverlays[idx];
-    });
-  });
-
-  // 지도 빈 공간 클릭 시 인포윈도우/카테고리 오버레이 닫기
-  kakao.maps.event.addListener(map, 'click', function() {
-    if (openInfoWindow) {
-      openInfoWindow.close();
-      openInfoWindow = null;
-    }
-    if (openRegionCountOverlay) {
-      openRegionCountOverlay.setMap(null);
-      openRegionCountOverlay = null;
-    }
-  });
+  // 이벤트 리스너들은 initializeMapMarkers 후에 등록됨
 
   function moveToCurrentLocation() {
     if (navigator.geolocation) {
@@ -1252,12 +1449,7 @@
     }
   }
 
-  // 투표 섹션 표시 함수
-  function showVoteSection(hotplaceId, name, address, categoryId) {
-    if (typeof showVoteForm === 'function') {
-      showVoteForm(hotplaceId, name, address, categoryId);
-    }
-  }
+// 투표 섹션 표시 함수 (제거됨 - voteModal.jsp에서 처리)
 
   // 하트 상태 동기화 및 클릭 이벤트 (class 기반)
   function setupWishHeartByClass(placeId, retryCount = 0) {
@@ -1274,6 +1466,12 @@
     hearts.forEach(heart => {
       // 기존 이벤트 리스너 제거
       heart.onclick = null;
+      
+      // 초기 스타일 설정
+      heart.classList.add('bi-heart');
+      heart.classList.remove('bi-heart-fill', 'on');
+      heart.style.color = '#e74c3c';
+      heart.style.cursor = 'pointer';
       
       // JWT 토큰 가져오기
       var token = localStorage.getItem('accessToken');
@@ -1306,9 +1504,16 @@
         });
         
       // 찜/찜 해제 이벤트
-      heart.onclick = function() {
+      heart.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('Heart clicked for place:', placeId);
+        
         var isWished = heart.classList.contains('on');
         var action = isWished ? 'remove' : 'add';
+        
+        console.log('Current wish status:', isWished, 'Action:', action);
         fetch(rootPath + '/api/main/wish', {
           method: 'POST',
           headers: {
@@ -1370,156 +1575,103 @@
     });
   }
 
-  // 오른쪽 패널 토글 기능 (버튼 위치 동적 변경)
-  document.addEventListener('DOMContentLoaded', function() {
-    var openBtn = document.getElementById('rightPanelToggleBtn');
-    var closeBtn = document.getElementById('rightPanelCloseBtn');
-    var panel = document.getElementById('rightPanel');
-    // 초기 상태: 패널 닫힘, < 버튼만 지도 오른쪽 끝에 보임
-    panel.style.transform = 'translateX(100%)';
-    openBtn.style.display = 'flex';
-    closeBtn.style.display = 'none';
-    openBtn.innerHTML = '&lt;';
-    // 토글 버튼 영역 클릭 차단
-    var toggleArea = document.querySelector('.toggle-button-area');
-    if (toggleArea) {
-        toggleArea.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            return false;
-        });
+  // 검색 기능 초기화 (지도 아래 검색 공간)
+  function initializeSearchBelow() {
+    // 검색 타입 드롭다운 동작
+    var searchTypeBtnBelow = document.getElementById('searchTypeBtnBelow');
+    var searchTypeListBelow = document.getElementById('searchTypeListBelow');
+    var searchTypeTextBelow = document.getElementById('searchTypeTextBelow');
+    var searchTypeItemsBelow = searchTypeListBelow.querySelectorAll('.search-type-item');
+    var dropdownOpenBelow = false;
+    
+    if (searchTypeBtnBelow) {
+      searchTypeBtnBelow.onclick = function(e) {
+        e.stopPropagation();
+        dropdownOpenBelow = !dropdownOpenBelow;
+        searchTypeListBelow.classList.toggle('show', dropdownOpenBelow);
+        searchTypeBtnBelow.classList.toggle('active', dropdownOpenBelow);
+      };
     }
     
-    // 더 강력한 이벤트 처리
-    openBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        panel.style.transform = 'translateX(0)';
-        openBtn.style.display = 'none';
-        closeBtn.style.display = 'flex';
-        // 서울 전체 표시
-        window.renderHotplaceListBySido('서울', null);
-        return false;
-    });
-    
-    closeBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        panel.style.transform = 'translateX(100%)';
-        closeBtn.style.display = 'none';
-        setTimeout(function() { openBtn.style.display = 'flex'; }, 350);
-        return false;
-    });
-    
-    // 검색 타입 드롭다운 동작
-    var searchTypeBtn = document.getElementById('searchTypeBtn');
-    var searchTypeList = document.getElementById('searchTypeList');
-    var searchTypeText = document.getElementById('searchTypeText');
-    var searchTypeItems = searchTypeList.querySelectorAll('.search-type-item');
-    var dropdownOpen = false;
-    searchTypeBtn.onclick = function(e) {
-      e.stopPropagation();
-      dropdownOpen = !dropdownOpen;
-      searchTypeList.classList.toggle('show', dropdownOpen);
-      searchTypeBtn.classList.toggle('active', dropdownOpen);
-    };
-    searchTypeItems.forEach(function(item) {
+    searchTypeItemsBelow.forEach(function(item) {
       item.onclick = function(e) {
         e.stopPropagation();
-        searchTypeItems.forEach(i => i.classList.remove('selected'));
+        searchTypeItemsBelow.forEach(i => i.classList.remove('selected'));
         item.classList.add('selected');
-        searchTypeText.textContent = item.getAttribute('data-type');
-        dropdownOpen = false;
-        searchTypeList.classList.remove('show');
-        searchTypeBtn.classList.remove('active');
+        searchTypeTextBelow.textContent = item.getAttribute('data-type');
+        dropdownOpenBelow = false;
+        searchTypeListBelow.classList.remove('show');
+        searchTypeBtnBelow.classList.remove('active');
       };
     });
+    
     document.addEventListener('click', function() {
-      dropdownOpen = false;
-      searchTypeList.classList.remove('show');
-      searchTypeBtn.classList.remove('active');
+      dropdownOpenBelow = false;
+      if (searchTypeListBelow) searchTypeListBelow.classList.remove('show');
+      if (searchTypeBtnBelow) searchTypeBtnBelow.classList.remove('active');
     });
     
     // 자동완성(오토컴플릿) UI/로직
-    var searchInput = document.getElementById('searchInput');
-    var autocompleteList = document.getElementById('autocompleteList');
-    var searchTypeText = document.getElementById('searchTypeText');
-    function showAutocompleteList() {
-      var keyword = searchInput.value.trim();
-      if (!keyword) { autocompleteList.style.display = 'none'; return; }
-      var type = searchTypeText.textContent;
-      var list = (type === '지역') ? regionNameList : hotplaceNameList;
-      var filtered = list.filter(function(item) {
-        return item && item.toLowerCase().indexOf(keyword.toLowerCase()) !== -1;
-      }).slice(0, 8); // 최대 8개
-      if (filtered.length === 0) { autocompleteList.style.display = 'none'; return; }
-      autocompleteList.innerHTML = filtered.map(function(item) {
-        return '<div class="autocomplete-item" style="padding:10px 18px; font-size:1.04rem; color:#222 !important; cursor:pointer; transition:background 0.13s; border-bottom:1px solid #f3f3f3; background:transparent;">' + (item && item.length > 0 ? item : '(빈값)') + '</div>';
-      }).join('');
-      autocompleteList.style.display = 'flex';
-      // 항목 클릭 시 입력창에 반영
-      Array.from(autocompleteList.children).forEach(function(child) {
-        child.onclick = function() {
-          searchInput.value = child.textContent;
-          autocompleteList.style.display = 'none';
-        };
+    var searchInputBelow = document.getElementById('searchInputBelow');
+    var autocompleteListBelow = document.getElementById('autocompleteListBelow');
+    
+    if (searchInputBelow && autocompleteListBelow) {
+      function showAutocompleteListBelow() {
+        var keyword = searchInputBelow.value.trim();
+        if (!keyword) { autocompleteListBelow.style.display = 'none'; return; }
+        var type = searchTypeTextBelow.textContent;
+        var list = (type === '지역') ? regionNameList : hotplaceNameList;
+        var filtered = list.filter(function(item) {
+          return item && item.toLowerCase().indexOf(keyword.toLowerCase()) !== -1;
+        }).slice(0, 8); // 최대 8개
+        if (filtered.length === 0) { autocompleteListBelow.style.display = 'none'; return; }
+        autocompleteListBelow.innerHTML = filtered.map(function(item) {
+          return '<div class="autocomplete-item" style="padding:10px 18px; font-size:1.04rem; color:#222 !important; cursor:pointer; transition:background 0.13s; border-bottom:1px solid #f3f3f3; background:transparent;">' + (item && item.length > 0 ? item : '(빈값)') + '</div>';
+        }).join('');
+        autocompleteListBelow.style.display = 'flex';
+        // 항목 클릭 시 입력창에 반영
+        Array.from(autocompleteListBelow.children).forEach(function(child) {
+          child.onclick = function() {
+            searchInputBelow.value = child.textContent;
+            autocompleteListBelow.style.display = 'none';
+          };
+        });
+      }
+      
+      searchInputBelow.addEventListener('input', showAutocompleteListBelow);
+      searchInputBelow.addEventListener('focus', showAutocompleteListBelow);
+      searchInputBelow.addEventListener('blur', function() {
+        setTimeout(function() { autocompleteListBelow.style.display = 'none'; }, 120);
       });
     }
-    searchInput.addEventListener('input', showAutocompleteList);
-    searchInput.addEventListener('focus', showAutocompleteList);
-    searchInput.addEventListener('blur', function() {
-      setTimeout(function() { autocompleteList.style.display = 'none'; }, 120);
-    });
-    // 스타일: hover 효과
-    var style = document.createElement('style');
-    style.innerHTML = `.autocomplete-item:hover { background: #f0f4fa !important; color: #1275E0 !important; }`;
-    document.head.appendChild(style);
-  });
+  }
 
   // 전역 함수들
-  window.openRightPanelAndShowDongList = function(dong) {
-    var panel = document.getElementById('rightPanel');
-    var openBtn = document.getElementById('rightPanelToggleBtn');
-    var closeBtn = document.getElementById('rightPanelCloseBtn');
-    panel.style.transform = 'translateX(0)';
-    if (openBtn) openBtn.style.display = 'none';
-    if (closeBtn) closeBtn.style.display = 'flex';
-    
-    // dong이 없거나 빈 값이면 서울 전체 표시
-    if (!dong || dong.trim() === '') {
-      window.renderHotplaceListBySido('서울', null);
-    } else {
-      window.renderHotplaceListByDong(dong, null);
-    }
-  }
 
   window.selectedDong = null;
   window.selectedCategory = null;
   window.currentSortType = 'latest'; // 정렬 타입 저장
 
-  // 검색 결과 렌더링 함수 추가
-  document.addEventListener('DOMContentLoaded', function() {
-    var searchResultBox = document.getElementById('searchResultBox');
-    var searchInput = document.getElementById('searchInput');
+  // 검색 기능 초기화 (지도 아래 검색 공간)
+  function initializeSearch() {
+    var searchResultBoxBelow = document.getElementById('searchResultBoxBelow');
+    var searchInputBelow = document.getElementById('searchInputBelow');
     
     // window에 searchResultBox 추가
-    window.searchResultBox = searchResultBox;
+    window.searchResultBox = searchResultBoxBelow;
     
     function renderSearchResult() {
-      var keyword = searchInput.value.trim();
-      var type = document.getElementById('searchTypeText').textContent;
+      var keyword = searchInputBelow.value.trim();
+      var type = document.getElementById('searchTypeTextBelow').textContent;
       var list = (type === '지역') ? regionNameList : hotplaceNameList;
       var filtered = list.filter(function(item) {
         return item && item.toLowerCase().indexOf(keyword.toLowerCase()) !== -1;
       });
       
-      // 카테고리 바 표시/숨김
-      var catBar = document.getElementById('categoryCountsBar');
+      // 카테고리 바 표시/숨김 (지도 아래 검색 공간)
+      var catBarBelow = document.getElementById('categoryCountsBarBelow');
       if (type === '가게') {
-        catBar.style.display = 'none';
+        catBarBelow.style.display = 'none';
       }
       if (!keyword) {
         searchResultBox.innerHTML = '<div style="color:#bbb; text-align:center; padding:40px 0;">검색어를 입력해 주세요.</div>';
@@ -1704,17 +1856,19 @@
       }
     }
     
-    // 검색 버튼/엔터 이벤트
-    var searchForm = searchInput.closest('form');
-    searchForm.onsubmit = function(e) {
+    // 검색 버튼/엔터 이벤트 (지도 아래 검색 공간)
+    var searchFormBelow = searchInputBelow.closest('form');
+    searchFormBelow.onsubmit = function(e) {
       e.preventDefault();
       renderSearchResult();
     };
-    document.getElementById('searchBtn').onclick = function(e) {
+    document.getElementById('searchBtnBelow').onclick = function(e) {
       e.preventDefault();
       renderSearchResult();
     };
-  });
+    
+    // 정렬 버튼 이벤트 (지도 아래 검색 공간)
+  }
 
   // 페이징 관련 전역 변수
   window.currentPage = 1;
@@ -1722,20 +1876,156 @@
   window.totalItems = 0;
   window.totalPages = 0;
   window.currentFilteredData = [];
+  
+  // 지역 목록 페이징 변수
+  window.regionCurrentPage = 1;
+  window.regionItemsPerPage = 4; // 모바일 기본값
+  window.regionTotalItems = 0;
+  window.regionTotalPages = 0;
+
+  // 전체 지역 목록 표시 함수 (화면 크기에 따라 페이징)
+  window.renderAllRegions = function(page) {
+    window.regionCurrentPage = page || 1;
+    
+    // 화면 크기에 따라 페이징 개수 조정
+    if (window.innerWidth > 768) {
+      window.regionItemsPerPage = 8; // 데스크톱: 2x4 = 8개
+    } else {
+      window.regionItemsPerPage = 4; // 모바일: 1x4 = 4개
+    }
+    
+    // 모든 지역 데이터 가져오기
+    var allRegions = [];
+    regionCategoryCounts.forEach(function(region) {
+      var regionInfo = regionCenters.find(function(center) {
+        return center.id === region.region_id;
+      });
+      if (regionInfo) {
+        allRegions.push({
+          id: region.region_id,
+          name: regionInfo.dong,
+          sido: regionInfo.sido,
+          sigungu: regionInfo.sigungu,
+          clubCount: region.clubCount || 0,
+          huntingCount: region.huntingCount || 0,
+          loungeCount: region.loungeCount || 0,
+          pochaCount: region.pochaCount || 0,
+          guesthouseCount: region.guesthouseCount || 0
+        });
+      }
+    });
+    
+    // 가게 많은 순으로 정렬
+    allRegions.sort(function(a, b) {
+      var aTotal = a.clubCount + a.huntingCount + a.loungeCount + a.pochaCount + a.guesthouseCount;
+      var bTotal = b.clubCount + b.huntingCount + b.loungeCount + b.pochaCount + b.guesthouseCount;
+      return bTotal - aTotal; // 내림차순 정렬
+    });
+    
+    window.regionTotalItems = allRegions.length;
+    window.regionTotalPages = Math.ceil(allRegions.length / window.regionItemsPerPage);
+    
+    // 현재 페이지 데이터
+    var startIndex = (window.regionCurrentPage - 1) * window.regionItemsPerPage;
+    var endIndex = startIndex + window.regionItemsPerPage;
+    var currentPageRegions = allRegions.slice(startIndex, endIndex);
+    
+    // 지역 목록 HTML 생성
+    var regionListHtml = currentPageRegions.map(function(region) {
+      var totalCount = region.clubCount + region.huntingCount + region.loungeCount + region.pochaCount + region.guesthouseCount;
+      
+      return '<div class="region-list-card" style="background:white; border-radius:12px; padding:16px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.1); border:1px solid #e0e0e0; cursor:pointer; transition:all 0.3s ease;" onclick="focusOnRegion(\'' + region.name + '\')">' +
+        '<div style="display:flex; align-items:center; justify-content:space-between; width:100%;">' +
+          '<h3 style="font-size:1rem; font-weight:600; color:#1275E0; margin:0; margin-left:8px;">' + region.name + '</h3>' +
+          '<div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin-right:8px;">' +
+            (region.clubCount > 0 ? '<span style="background:#9c27b0; color:white; padding:4px 8px; border-radius:0px; font-size:0.8rem;">C:' + region.clubCount + '</span>' : '') +
+            (region.huntingCount > 0 ? '<span style="background:#f44336; color:white; padding:4px 8px; border-radius:0px; font-size:0.8rem;">H:' + region.huntingCount + '</span>' : '') +
+            (region.loungeCount > 0 ? '<span style="background:#4caf50; color:white; padding:4px 8px; border-radius:0px; font-size:0.8rem;">L:' + region.loungeCount + '</span>' : '') +
+            (region.pochaCount > 0 ? '<span style="background:#ff9800; color:white; padding:4px 8px; border-radius:0px; font-size:0.8rem;">P:' + region.pochaCount + '</span>' : '') +
+            (region.guesthouseCount > 0 ? '<span style="background:#2196f3; color:white; padding:4px 8px; border-radius:0px; font-size:0.8rem;">G:' + region.guesthouseCount + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    
+    // 페이징 HTML 생성
+    var paginationHtml = generateRegionPaginationHtml();
+    
+    // 헤더 영역 숨기기
+    var searchResultHeaderBelow = document.getElementById('searchResultHeaderBelow');
+    if (searchResultHeaderBelow) {
+      searchResultHeaderBelow.style.display = 'none';
+    }
+    
+    // 검색 결과 박스에 표시
+    window.searchResultBox.innerHTML = 
+      '<div style="width:100%; display:flex; flex-direction:column; align-items:center; padding:20px;">' +
+        '<h2 style="font-size:1.5rem; font-weight:600; color:#333; margin-bottom:20px; text-align:center;">전체 지역 목록</h2>' +
+        '<div class="region-list-container" style="width:100%; display:flex; flex-wrap:wrap; justify-content:flex-start; align-items:flex-start; gap:16px; max-width:800px; margin:0 auto;">' +
+          regionListHtml +
+        '</div>' +
+        paginationHtml +
+      '</div>';
+  };
+  
+  // 지역 목록 페이징 HTML 생성
+  function generateRegionPaginationHtml() {
+    if (window.regionTotalPages <= 1) {
+      return '';
+    }
+    
+    var paginationHtml = '<div class="pagination-container" style="margin-top:20px; padding:16px 0; border-top:1px solid #eee; display:flex; justify-content:center; align-items:center; gap:8px;">';
+    
+    // 이전 버튼
+    if (window.regionCurrentPage > 1) {
+      paginationHtml += '<button class="pagination-btn prev-btn" onclick="renderAllRegions(' + (window.regionCurrentPage - 1) + ')" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;">‹</button>';
+    } else {
+      paginationHtml += '<button class="pagination-btn prev-btn" disabled style="background:#ccc; color:#666; border:none; border-radius:6px; padding:8px 12px; cursor:not-allowed; font-size:14px; display:flex; align-items:center; justify-content:center;">‹</button>';
+    }
+    
+    // 페이지 번호들
+    var startPage = Math.max(1, window.regionCurrentPage - 2);
+    var endPage = Math.min(window.regionTotalPages, window.regionCurrentPage + 2);
+    
+    for (var i = startPage; i <= endPage; i++) {
+      if (i === window.regionCurrentPage) {
+        paginationHtml += '<button class="pagination-btn active" onclick="renderAllRegions(' + i + ')" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;">' + i + '</button>';
+      } else {
+        paginationHtml += '<button class="pagination-btn" onclick="renderAllRegions(' + i + ')" style="background:white; color:#1275E0; border:1px solid #ddd; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;">' + i + '</button>';
+      }
+    }
+    
+    // 다음 버튼
+    if (window.regionCurrentPage < window.regionTotalPages) {
+      paginationHtml += '<button class="pagination-btn next-btn" onclick="renderAllRegions(' + (window.regionCurrentPage + 1) + ')" style="background:#1275E0; color:white; border:none; border-radius:6px; padding:8px 12px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;">›</button>';
+    } else {
+      paginationHtml += '<button class="pagination-btn next-btn" disabled style="background:#ccc; color:#666; border:none; border-radius:6px; padding:8px 12px; cursor:not-allowed; font-size:14px; display:flex; align-items:center; justify-content:center;">›</button>';
+    }
+    
+    paginationHtml += '</div>';
+    return paginationHtml;
+  }
 
   // 전역에 선언: 시도별 핫플 리스트 네이버 스타일로 출력 (페이징 처리 포함)
   window.renderHotplaceListBySido = function(sido, categoryId, page) {
     window.selectedDong = sido;
     window.selectedCategory = categoryId || null;
     
-    var catBar = document.getElementById('categoryCountsBar');
+    // 화면 크기에 따라 페이징 개수 조정
+    if (window.innerWidth > 768) {
+      window.itemsPerPage = 12; // 데스크톱: 12개 (기존 유지)
+    } else {
+      window.itemsPerPage = 4; // 모바일: 4개
+    }
     
-    // catBar가 없으면 생성
-    if (!catBar) {
-      catBar = document.createElement('div');
-      catBar.id = 'categoryCountsBar';
-      catBar.style.cssText = 'position:sticky; top:72px; z-index:1; background:#fff; padding:12px 20px 4px 20px; min-height:36px; display:flex; align-items:center; gap:18px; border-radius:0 0 16px 16px; box-shadow:0 2px 8px rgba(0,0,0,0.04);';
-      document.body.insertBefore(catBar, document.getElementById('searchResultBox'));
+    var catBarBelow = document.getElementById('categoryCountsBarBelow');
+    
+    // catBarBelow가 없으면 생성
+    if (!catBarBelow) {
+      catBarBelow = document.createElement('div');
+      catBarBelow.id = 'categoryCountsBarBelow';
+      catBarBelow.style.cssText = 'position:sticky; top:72px; z-index:1; background:#fff; padding:12px 20px 4px 20px; min-height:36px; display:flex; align-items:center; gap:18px; border-radius:0 0 16px 16px; box-shadow:0 2px 8px rgba(0,0,0,0.04);';
+      document.body.insertBefore(catBarBelow, document.getElementById('searchResultBoxBelow'));
     }
     
     // 서울에 속하는 모든 regionId 찾기
@@ -1776,7 +2066,7 @@
   
   // 실제 렌더링을 수행하는 함수
   function renderHotplaceListBySidoWithData(sido, categoryId, page, filtered) {
-    var catBar = document.getElementById('categoryCountsBar');
+    var catBarBelow = document.getElementById('categoryCountsBarBelow');
     
     // 페이징 처리
     window.currentFilteredData = filtered;
@@ -1815,11 +2105,11 @@
       + '<span class="search-category-ball marker-guesthouse' + (categoryId==5?' active':'') + '" data-category="5">G</span> <span class="search-cat-count-num" style="color:#2196f3;">' + guesthouseCount + '</span>'
       + '</div>'
       + '</div>';
-    catBar.innerHTML = catHtml;
-    catBar.style.display = 'flex';
+    catBarBelow.innerHTML = catHtml;
+    catBarBelow.style.display = 'flex';
     
     // 카테고리 원 클릭 이벤트 바인딩
-    Array.from(catBar.getElementsByClassName('search-category-ball')).forEach(function(ball) {
+    Array.from(catBarBelow.getElementsByClassName('search-category-ball')).forEach(function(ball) {
       ball.onclick = function() {
         var cat = ball.getAttribute('data-category');
         if (window.selectedCategory && String(window.selectedCategory) === String(cat)) {
@@ -1835,15 +2125,28 @@
     var latestStyle = window.currentSortType === 'latest' ? 'background:#1275E0; color:white;' : 'background:white; color:#666;';
     var popularStyle = window.currentSortType === 'popular' ? 'background:#1275E0; color:white;' : 'background:white; color:#666;';
     
-    var dongTitle = '<div style="font-size:1.13rem; font-weight:600; color:#1275E0; margin:14px 0 8px 0; display:flex; align-items:center;">지역: ' + sido + ' 전체</div>' +
-      '<div style="display:flex; gap:8px; margin:8px 0 16px 0;">' +
-        '<button id="sortLatest" class="sort-btn ' + latestActive + '" onclick="sortHotplaces(\'latest\')" style="padding:6px 12px; border:1px solid #ddd; ' + latestStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">최신등록</button>' +
-        '<button id="sortPopular" class="sort-btn ' + popularActive + '" onclick="sortHotplaces(\'popular\')" style="padding:6px 12px; border:1px solid #ddd; ' + popularStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기순</button>' +
-        '<button id="sortCoursePopular" class="sort-btn ' + (window.currentSortType === 'coursePopular' ? 'active' : '') + '" onclick="sortHotplaces(\'coursePopular\')" style="padding:6px 12px; border:1px solid #ddd; ' + (window.currentSortType === 'coursePopular' ? 'background:#1275E0; color:white;' : 'background:white; color:#333;') + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기 코스</button>' +
-      '</div>';
+     // 지역 정보와 정렬 버튼을 별도 영역에 표시
+     var regionTitleBelow = document.getElementById('regionTitleBelow');
+     var sortButtonsBelow = document.getElementById('sortButtonsBelow');
+     var searchResultHeaderBelow = document.getElementById('searchResultHeaderBelow');
+     
+     if (regionTitleBelow) {
+       regionTitleBelow.innerHTML = '지역: ' + sido + ' 전체';
+     }
+     
+     if (sortButtonsBelow) {
+       sortButtonsBelow.innerHTML = 
+         '<button id="sortLatest" class="sort-btn ' + latestActive + '" onclick="sortHotplaces(\'latest\')" style="padding:8px 12px; border:1px solid #ddd; ' + latestStyle + ' border-radius:6px; font-size:0.85rem; cursor:pointer; flex:1; min-width:0;">최신등록</button>' +
+         '<button id="sortPopular" class="sort-btn ' + popularActive + '" onclick="sortHotplaces(\'popular\')" style="padding:8px 12px; border:1px solid #ddd; ' + popularStyle + ' border-radius:6px; font-size:0.85rem; cursor:pointer; flex:1; min-width:0;">인기순</button>' +
+         '<button id="sortCoursePopular" class="sort-btn ' + (window.currentSortType === 'coursePopular' ? 'active' : '') + '" onclick="sortHotplaces(\'coursePopular\')" style="padding:8px 12px; border:1px solid #ddd; ' + (window.currentSortType === 'coursePopular' ? 'background:#1275E0; color:white;' : 'background:white; color:#333;') + ' border-radius:6px; font-size:0.85rem; cursor:pointer; flex:1; min-width:0;">인기 코스</button>';
+     }
+     
+     if (searchResultHeaderBelow) {
+       searchResultHeaderBelow.style.display = 'block';
+     }
     
     if (filtered.length === 0) {
-      window.searchResultBox.innerHTML = dongTitle + '<div style="color:#bbb; text-align:center; padding:40px 0;">해당 지역의 핫플레이스가 없습니다.</div>';
+      window.searchResultBox.innerHTML = '<div style="color:#bbb; text-align:center; padding:40px 0;">해당 지역의 핫플레이스가 없습니다.</div>';
       return;
     }
     
@@ -1891,7 +2194,7 @@
     var paginationHtml = generatePaginationHtml(sido, categoryId);
     
     // 전체 HTML 조합
-    window.searchResultBox.innerHTML = dongTitle + hotplaceListHtml + paginationHtml;
+    window.searchResultBox.innerHTML = hotplaceListHtml + paginationHtml;
     
     // 이벤트 바인딩 (기존과 동일)
     setTimeout(function() {
@@ -1957,6 +2260,8 @@
                   var heart = iw.querySelector('.wish-heart');
                   if (heart) {
                     heart.setAttribute('data-place-id', place.id);
+                    console.log('Setting up heart for place:', place.id);
+                    
                     if (!isLoggedIn) {
                       heart.onclick = function() {
                         showToast('위시리스트는 로그인 후 사용할 수 있어요. 간편하게 로그인하고 저장해보세요!', 'error');
@@ -1964,6 +2269,8 @@
                     } else {
                       setupWishHeartByClass(place.id);
                     }
+                  } else {
+                    console.log('Heart element not found for place:', place.id);
                   }
                   
                   // 이미지 로드
@@ -2163,15 +2470,128 @@
     }, 500);
   };
 
+  // 특정 가게로 지도 포커스 및 상세 정보 표시 함수
+  window.focusOnPlace = function(placeId) {
+    // 1. 해당 가게 정보 찾기
+    var place = window.hotplaces.find(function(h) { return h.id === placeId; });
+    if (!place) {
+      showToast('해당 가게를 찾을 수 없습니다.', 'error');
+      return;
+    }
+    
+    // 2. 지도를 해당 가게 위치로 이동
+    if (map) {
+      var moveLatLon = new kakao.maps.LatLng(place.lat, place.lng);
+      map.setCenter(moveLatLon);
+      map.setLevel(3); // 가게 상세 보기 레벨
+    }
+    
+    // 3. 모든 마커 숨기고 해당 가게 마커만 표시
+    hideAllMarkers();
+    
+    var markerIndex = window.hotplaces.findIndex(function(h) { return h.id === placeId; });
+    if (markerIndex !== -1 && hotplaceMarkers[markerIndex]) {
+      hotplaceMarkers[markerIndex].setMap(map);
+      if (hotplaceLabels[markerIndex]) {
+        hotplaceLabels[markerIndex].setMap(map);
+      }
+    }
+    
+    // 4. 해당 가게의 상세 정보 자동으로 열기
+    if (markerIndex !== -1 && hotplaceMarkers[markerIndex] && hotplaceInfoWindows[markerIndex]) {
+      // 기존 열린 InfoWindow 닫기
+      if (openInfoWindow) {
+        openInfoWindow.close();
+      }
+      
+      // 해당 가게의 InfoWindow 열기
+      setTimeout(function() {
+        hotplaceInfoWindows[markerIndex].open(map, hotplaceMarkers[markerIndex]);
+        openInfoWindow = hotplaceInfoWindows[markerIndex];
+        
+        // InfoWindow 내용 로드
+        setTimeout(function() {
+          loadInfoWindowContent(place);
+        }, 100);
+      }, 500); // 지도 이동 후 약간의 지연
+    }
+    
+    // 5. 지도로 스크롤 이동
+    var mapElement = document.getElementById('map');
+    if (mapElement) {
+      mapElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // 지역 클릭 시 지도 포커스 및 가게 목록 표시 함수
+  window.focusOnRegion = function(regionName) {
+    // 1. 해당 지역의 좌표 찾기
+    var region = regionCenters.find(function(rc) { return rc.dong === regionName; });
+    if (!region) {
+      showToast('해당 지역을 찾을 수 없습니다.', 'error');
+      return;
+    }
+    
+    // 2. 지도를 해당 지역으로 이동
+    if (map) {
+      var moveLatLon = new kakao.maps.LatLng(region.lat, region.lng);
+      map.setCenter(moveLatLon);
+      map.setLevel(6); // 클로즈업 레벨
+    }
+    
+    // 3. 해당 지역의 가게들 필터링
+    var regionHotplaces = window.hotplaces.filter(function(h) {
+      return h.regionId === region.id;
+    });
+    
+    if (regionHotplaces.length === 0) {
+      showToast('해당 지역에 가게가 없습니다.', 'error');
+      return;
+    }
+    
+    // 4. 모든 마커 숨기고 해당 지역 마커만 표시
+    hideAllMarkers();
+    
+    // 해당 지역의 마커들만 표시
+    regionHotplaces.forEach(function(place) {
+      var markerIndex = window.hotplaces.findIndex(function(h) { return h.id === place.id; });
+      if (markerIndex !== -1 && hotplaceMarkers[markerIndex]) {
+        hotplaceMarkers[markerIndex].setMap(map);
+        if (hotplaceLabels[markerIndex]) {
+          hotplaceLabels[markerIndex].setMap(map);
+        }
+      }
+    });
+    
+    // 5. 해당 지역의 가게 목록 표시
+    
+    // 6. 가게 목록 표시
+    window.renderHotplaceListByDong(regionName, null, 1);
+    
+    // 7. 지도로 스크롤 이동
+    var mapElement = document.getElementById('map');
+    if (mapElement) {
+      mapElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   // 전역에 선언: 동(지역)별 핫플 리스트 네이버 스타일로 출력 (페이징 처리 포함)
   window.renderHotplaceListByDong = function(dong, categoryId, page) {
     window.selectedDong = dong;
     window.selectedCategory = categoryId || null;
+    
+    // 화면 크기에 따라 페이징 개수 조정
+    if (window.innerWidth > 768) {
+      window.itemsPerPage = 12; // 데스크톱: 12개 (기존 유지)
+    } else {
+      window.itemsPerPage = 4; // 모바일: 4개
+    }
+    
     var regionId = window.dongToRegionId[dong];
     
-    var catBar = document.getElementById('categoryCountsBar');
+    var catBarBelow = document.getElementById('categoryCountsBarBelow');
     if (!regionId) {
-      catBar.style.display = 'none';
+      catBarBelow.style.display = 'none';
       window.searchResultBox.innerHTML = '<div style="color:#bbb; text-align:center; padding:40px 0;">해당 지역의 핫플레이스가 없습니다.</div>';
       return;
     }
@@ -2199,7 +2619,7 @@
   
   // 실제 렌더링을 수행하는 함수
   function renderHotplaceListByDongWithData(dong, categoryId, page, filtered, regionId) {
-    var catBar = document.getElementById('categoryCountsBar');
+    var catBarBelow = document.getElementById('categoryCountsBarBelow');
     
     // 페이징 처리
     window.currentFilteredData = filtered;
@@ -2238,11 +2658,11 @@
       + '<span class="search-category-ball marker-guesthouse' + (categoryId==5?' active':'') + '" data-category="5">G</span> <span class="search-cat-count-num" style="color:#2196f3;">' + guesthouseCount + '</span>'
       + '</div>'
       + '</div>';
-    catBar.innerHTML = catHtml;
-    catBar.style.display = 'flex';
+    catBarBelow.innerHTML = catHtml;
+    catBarBelow.style.display = 'flex';
     
     // 카테고리 원 클릭 이벤트 바인딩
-    Array.from(catBar.getElementsByClassName('search-category-ball')).forEach(function(ball) {
+    Array.from(catBarBelow.getElementsByClassName('search-category-ball')).forEach(function(ball) {
       ball.onclick = function() {
         var cat = ball.getAttribute('data-category');
         if (window.selectedCategory && String(window.selectedCategory) === String(cat)) {
@@ -2258,15 +2678,28 @@
     var latestStyle = window.currentSortType === 'latest' ? 'background:#1275E0; color:white;' : 'background:white; color:#666;';
     var popularStyle = window.currentSortType === 'popular' ? 'background:#1275E0; color:white;' : 'background:white; color:#666;';
     
-    var dongTitle = '<div style="font-size:1.13rem; font-weight:600; color:#1275E0; margin:14px 0 8px 0; display:flex; align-items:center;">지역: ' + dong + '</div>' +
-      '<div style="display:flex; gap:8px; margin:8px 0 16px 0;">' +
-        '<button id="sortLatest" class="sort-btn ' + latestActive + '" onclick="sortHotplaces(\'latest\')" style="padding:6px 12px; border:1px solid #ddd; ' + latestStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">최신등록</button>' +
-        '<button id="sortPopular" class="sort-btn ' + popularActive + '" onclick="sortHotplaces(\'popular\')" style="padding:6px 12px; border:1px solid #ddd; ' + popularStyle + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기순</button>' +
-        '<button id="sortCoursePopular" class="sort-btn ' + (window.currentSortType === 'coursePopular' ? 'active' : '') + '" onclick="sortHotplaces(\'coursePopular\')" style="padding:6px 12px; border:1px solid #ddd; ' + (window.currentSortType === 'coursePopular' ? 'background:#1275E0; color:white;' : 'background:white; color:#333;') + ' border-radius:4px; font-size:0.9rem; cursor:pointer;">인기 코스</button>' +
-      '</div>';
+     // 지역 정보와 정렬 버튼을 별도 영역에 표시
+     var regionTitleBelow = document.getElementById('regionTitleBelow');
+     var sortButtonsBelow = document.getElementById('sortButtonsBelow');
+     var searchResultHeaderBelow = document.getElementById('searchResultHeaderBelow');
+     
+     if (regionTitleBelow) {
+       regionTitleBelow.innerHTML = '지역: ' + dong;
+     }
+     
+     if (sortButtonsBelow) {
+       sortButtonsBelow.innerHTML = 
+         '<button id="sortLatest" class="sort-btn ' + latestActive + '" onclick="sortHotplaces(\'latest\')" style="padding:8px 12px; border:1px solid #ddd; ' + latestStyle + ' border-radius:6px; font-size:0.85rem; cursor:pointer; flex:1; min-width:0;">최신등록</button>' +
+         '<button id="sortPopular" class="sort-btn ' + popularActive + '" onclick="sortHotplaces(\'popular\')" style="padding:8px 12px; border:1px solid #ddd; ' + popularStyle + ' border-radius:6px; font-size:0.85rem; cursor:pointer; flex:1; min-width:0;">인기순</button>' +
+         '<button id="sortCoursePopular" class="sort-btn ' + (window.currentSortType === 'coursePopular' ? 'active' : '') + '" onclick="sortHotplaces(\'coursePopular\')" style="padding:8px 12px; border:1px solid #ddd; ' + (window.currentSortType === 'coursePopular' ? 'background:#1275E0; color:white;' : 'background:white; color:#333;') + ' border-radius:6px; font-size:0.85rem; cursor:pointer; flex:1; min-width:0;">인기 코스</button>';
+     }
+     
+     if (searchResultHeaderBelow) {
+       searchResultHeaderBelow.style.display = 'block';
+     }
     
     if (filtered.length === 0) {
-      window.searchResultBox.innerHTML = dongTitle + '<div style="color:#bbb; text-align:center; padding:40px 0;">해당 지역의 핫플레이스가 없습니다.</div>';
+      window.searchResultBox.innerHTML = '<div style="color:#bbb; text-align:center; padding:40px 0;">해당 지역의 핫플레이스가 없습니다.</div>';
       return;
     }
     
@@ -2314,7 +2747,7 @@
     var paginationHtml = generatePaginationHtml(dong, categoryId);
     
     // 전체 HTML 조합
-    window.searchResultBox.innerHTML = dongTitle + hotplaceListHtml + paginationHtml;
+    window.searchResultBox.innerHTML = hotplaceListHtml + paginationHtml;
     
     // 이벤트 바인딩
     setTimeout(function() {
@@ -2380,6 +2813,8 @@
                   var heart = iw.querySelector('.wish-heart');
                   if (heart) {
                     heart.setAttribute('data-place-id', place.id);
+                    console.log('Setting up heart for place:', place.id);
+                    
                     if (!isLoggedIn) {
                       heart.onclick = function() {
                         showToast('위시리스트는 로그인 후 사용할 수 있어요. 간편하게 로그인하고 저장해보세요!', 'error');
@@ -2387,6 +2822,8 @@
                     } else {
                       setupWishHeartByClass(place.id);
                     }
+                  } else {
+                    console.log('Heart element not found for place:', place.id);
                   }
                   
                   // 이미지 로드
@@ -2766,16 +3203,6 @@
   `;
   document.head.appendChild(style);
 
-  /* 추가 스타일 */
-  var panelStyle = document.createElement('style');
-  panelStyle.innerHTML = `
-    #rightPanel::-webkit-scrollbar { width: 8px; background: #f5f5f5; }
-    #rightPanel::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
-    #searchBar input:focus { border:1.5px solid #1275E0; background:#fff; }
-    #searchBar input::placeholder { color:#bbb; font-weight:400; }
-    #searchBar { box-shadow:0 2px 8px rgba(0,0,0,0.04); border-radius:16px 16px 0 0; }
-  `;
-  document.head.appendChild(panelStyle);
 
   // ================================
   // 플레이스홀더 함수들 (필요한 JSP 파일들이 구현되면 완전히 작동)
@@ -3727,8 +4154,8 @@
     });
   }
 
-  // 이미지 모달 전역 변수
-  let modalData = {
+  // 이미지 모달 전역 변수 (main 네임스페이스)
+  let mainModalData = {
     placeId: null,
     currentIndex: 0,
     totalImages: 0,
@@ -3742,7 +4169,7 @@
       .then(response => response.json())
       .then(data => {
         if (data.success && data.images && data.images.length > 0) {
-          modalData = {
+          mainModalData = {
             placeId: placeId,
             currentIndex: currentIndex,
             totalImages: data.images.length,
@@ -3786,7 +4213,7 @@
     img.alt = '이미지';
 
     // 이전 버튼 생성 (이미지가 2개 이상일 때만)
-    if (modalData.totalImages > 1) {
+    if (mainModalData.totalImages > 1) {
       const prevBtn = document.createElement('button');
       prevBtn.innerHTML = '‹';
       prevBtn.style.cssText = 'position: absolute; left: -60px; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; cursor: pointer; z-index: 10001; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;';
@@ -3795,7 +4222,7 @@
     }
 
     // 다음 버튼 생성 (이미지가 2개 이상일 때만)
-    if (modalData.totalImages > 1) {
+    if (mainModalData.totalImages > 1) {
       const nextBtn = document.createElement('button');
       nextBtn.innerHTML = '›';
       nextBtn.style.cssText = 'position: absolute; right: -60px; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; cursor: pointer; z-index: 10001; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;';
@@ -3811,9 +4238,9 @@
     imageContainer.appendChild(closeBtn);
 
     // 이미지 카운터 생성 (이미지가 2개 이상일 때만)
-    if (modalData.totalImages > 1) {
+    if (mainModalData.totalImages > 1) {
       const counter = document.createElement('div');
-      counter.innerHTML = (modalData.currentIndex + 1) + ' / ' + modalData.totalImages;
+      counter.innerHTML = (mainModalData.currentIndex + 1) + ' / ' + mainModalData.totalImages;
       counter.style.cssText = 'position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px;';
       imageContainer.appendChild(counter);
     }
@@ -3829,21 +4256,21 @@
 
   // 모달에서 이미지 네비게이션
   function navigateModalImage(direction) {
-    if (modalData.totalImages <= 1) return;
+    if (mainModalData.totalImages <= 1) return;
     
-    let newIndex = modalData.currentIndex + direction;
+    let newIndex = mainModalData.currentIndex + direction;
     
     // 순환 처리
     if (newIndex < 0) {
-      newIndex = modalData.totalImages - 1;
-    } else if (newIndex >= modalData.totalImages) {
+      newIndex = mainModalData.totalImages - 1;
+    } else if (newIndex >= mainModalData.totalImages) {
       newIndex = 0;
     }
     
-    modalData.currentIndex = newIndex;
+    mainModalData.currentIndex = newIndex;
     
     // 이미지 업데이트
-    const newImage = modalData.images[newIndex];
+    const newImage = mainModalData.images[newIndex];
     const modalImage = document.getElementById('modalImage');
     const timestamp = Date.now();
     
@@ -3853,7 +4280,7 @@
       // 카운터 업데이트
       const counter = document.querySelector('#imageModal div[style*="position: absolute; bottom: -40px"]');
       if (counter) {
-        counter.textContent = (newIndex + 1) + ' / ' + modalData.totalImages;
+        counter.textContent = (newIndex + 1) + ' / ' + mainModalData.totalImages;
       }
     }
   }
@@ -3865,7 +4292,7 @@
       modal.remove();
     }
     document.removeEventListener('keydown', handleModalKeydown);
-    modalData = { placeId: null, currentIndex: 0, totalImages: 0, images: [] };
+    mainModalData = { placeId: null, currentIndex: 0, totalImages: 0, images: [] };
   }
 
   // 키보드 이벤트 처리
@@ -4203,10 +4630,7 @@
 </script>
 
 <style>
-  #rightPanel { display: flex; flex-direction: column; height: 100%; }
-  #searchBar { flex-shrink: 0; z-index: 10 !important; }
   #autocompleteList { z-index: 30 !important; }
-  #searchResultBox { flex: 1; min-height:0; height:100%; }
   .hotplace-list-card {
     width: 94%;
     margin: 18px auto 0 auto;
@@ -4335,14 +4759,10 @@
 </style>
 
 <script>
-// 정렬 함수
+// 정렬 함수 (지도 아래 검색 공간)
 function sortHotplaces(sortType) {
   window.currentSortType = sortType;
   
-  // 버튼 활성화 상태 변경
-  document.getElementById('sortLatest').classList.remove('active');
-  document.getElementById('sortPopular').classList.remove('active');
-  document.getElementById('sort' + (sortType === 'latest' ? 'Latest' : 'Popular')).classList.add('active');
   
   // 현재 선택된 지역과 카테고리로 다시 렌더링
   if (window.selectedDong) {
@@ -4387,16 +4807,16 @@ function sortHotplaceData(hotplaces, sortType) {
 }
 
 // 전체 데이터의 찜 수와 투표 수를 로드하는 함수
-function loadAllStatsForSorting(hotplaces, callback) {
+function loadAllStatsForSorting(filtered, callback) {
   var loadedCount = 0;
-  var totalCount = hotplaces.length;
+  var totalCount = filtered.length;
   
   if (totalCount === 0) {
-    callback(hotplaces);
+    callback(filtered);
     return;
   }
   
-  hotplaces.forEach(function(hotplace) {
+  filtered.forEach(function(hotplace) {
     // 찜 수 가져오기
     fetch(root + '/api/main/wish-count', {
       method: 'POST',
@@ -4450,7 +4870,7 @@ function loadAllStatsForSorting(hotplaces, callback) {
       loadedCount++;
       if (loadedCount === totalCount) {
         // 모든 데이터 로드 완료 후 정렬
-        var sortedHotplaces = sortHotplaceData(hotplaces, window.currentSortType);
+        var sortedHotplaces = sortHotplaceData(filtered, window.currentSortType);
         callback(sortedHotplaces);
       }
     })
@@ -4713,4 +5133,256 @@ function saveNaverPlaceLink(placeId) {
 
 // 전역 함수로 노출
 window.formatGenderRatio = formatGenderRatio;
+
+// 레벨 확인 모달 관련 함수들
+function showLevelModal() {
+  const modal = document.getElementById('levelModal');
+  if (modal) {
+    modal.style.display = 'block';
+    loadUserLevelInfo();
+  }
+}
+
+function closeLevelModal() {
+  const modal = document.getElementById('levelModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+function loadUserLevelInfo() {
+  const token = localStorage.getItem('accessToken');
+  if (!token) {
+    showToast('로그인이 필요합니다.', 'error');
+    return;
+  }
+
+  fetch('<%=root%>/api/level/info', {
+    method: 'GET',
+    headers: {
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      if (response.status === 401) {
+        // 토큰이 유효하지 않음 - 로그아웃 처리
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        showToast('로그인이 만료되었습니다. 다시 로그인해주세요.', 'error');
+        return;
+      }
+      throw new Error('HTTP ' + response.status);
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data && data.error) {
+      showToast(data.error, 'error');
+      return;
+    }
+    
+    if (data) {
+      updateLevelModalContent(data);
+    }
+  })
+  .catch(error => {
+    console.error('레벨 정보 로드 실패:', error);
+    showToast('레벨 정보를 불러오는데 실패했습니다.', 'error');
+  });
+}
+
+function updateLevelModalContent(data) {
+  const currentLevel = data.currentLevel;
+  const nextLevel = data.nextLevel;
+  const currentExp = data.currentExp;
+  const expToNext = data.expToNext;
+  const progressPercentage = data.progressPercentage;
+  const todayLog = data.todayExpLog;
+
+  // 레벨 정보 업데이트
+  document.getElementById('currentLevelName').textContent = currentLevel ? currentLevel.name : '손님';
+  document.getElementById('currentLevelId').textContent = currentLevel ? currentLevel.levelId : '1';
+  document.getElementById('currentExp').textContent = currentExp || 0;
+  
+  // 다음 레벨 정보
+  if (nextLevel) {
+    document.getElementById('nextLevelName').textContent = nextLevel.name;
+    document.getElementById('expToNext').textContent = expToNext;
+    document.getElementById('progressBar').style.width = progressPercentage + '%';
+    document.getElementById('progressPercentage').textContent = Math.round(progressPercentage) + '%';
+  } else {
+    document.getElementById('nextLevelName').textContent = '최고 레벨';
+    document.getElementById('expToNext').textContent = '0';
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('progressPercentage').textContent = '100%';
+  }
+
+  // 오늘 경험치 로그 업데이트
+  if (todayLog) {
+    document.getElementById('todayVoteExp').textContent = todayLog.voteExp || 0;
+    document.getElementById('todayCourseExp').textContent = todayLog.courseExp || 0;
+    document.getElementById('todayHpostExp').textContent = todayLog.hpostExp || 0;
+    document.getElementById('todayCommentExp').textContent = todayLog.commentExp || 0;
+    document.getElementById('todayLikeExp').textContent = todayLog.likeExp || 0;
+    document.getElementById('todayWishExp').textContent = todayLog.wishExp || 0;
+    document.getElementById('todayTotalExp').textContent = todayLog.totalExp || 0;
+  } else {
+    document.getElementById('todayVoteExp').textContent = '0';
+    document.getElementById('todayCourseExp').textContent = '0';
+    document.getElementById('todayHpostExp').textContent = '0';
+    document.getElementById('todayCommentExp').textContent = '0';
+    document.getElementById('todayLikeExp').textContent = '0';
+    document.getElementById('todayWishExp').textContent = '0';
+    document.getElementById('todayTotalExp').textContent = '0';
+  }
+}
+
+// 모달 외부 클릭 시 닫기
+window.onclick = function(event) {
+  const modal = document.getElementById('levelModal');
+  if (event.target === modal) {
+    closeLevelModal();
+  }
+}
 </script>
+
+<!-- 레벨 확인 모달 -->
+<div id="levelModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+  <div class="modal-content" style="background-color: #fefefe; margin: 5% auto; padding: 0; border: none; border-radius: 16px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+    
+    <!-- 모달 헤더 -->
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 16px 16px 0 0; text-align: center;">
+      <h3 style="margin: 0; font-size: 1.5rem; font-weight: 600;">
+        <i class="bi bi-trophy-fill" style="margin-right: 8px;"></i>
+        레벨 & 경험치 현황
+      </h3>
+      <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 0.9rem;">나의 핫플러 레벨과 경험치를 확인해보세요!</p>
+    </div>
+
+    <!-- 모달 바디 -->
+    <div style="padding: 24px;">
+      
+      <!-- 현재 레벨 정보 -->
+      <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center;">
+        <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+          <div style="background: linear-gradient(135deg, #ff6b6b, #ffa500); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; margin-right: 16px;">
+            <span id="currentLevelId">1</span>
+          </div>
+          <div style="text-align: left;">
+            <h4 style="margin: 0; color: #333; font-size: 1.3rem;" id="currentLevelName">손님</h4>
+            <p style="margin: 4px 0 0 0; color: #666; font-size: 0.9rem;">현재 경험치: <span id="currentExp">0</span> EXP</p>
+          </div>
+        </div>
+        
+        <!-- 진행률 바 -->
+        <div style="margin-top: 16px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 0.9rem; color: #666;">다음 레벨: <span id="nextLevelName">단골</span></span>
+            <span style="font-size: 0.9rem; color: #666;" id="progressPercentage">0%</span>
+          </div>
+          <div style="background: #e9ecef; height: 8px; border-radius: 4px; overflow: hidden;">
+            <div id="progressBar" style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+          </div>
+          <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: #888; text-align: center;">
+            다음 레벨까지 <span id="expToNext">200</span> EXP 필요
+          </p>
+        </div>
+      </div>
+
+      <!-- 오늘 경험치 현황 -->
+      <div style="margin-bottom: 20px;">
+        <h5 style="color: #333; margin-bottom: 16px; font-size: 1.1rem;">
+          <i class="bi bi-calendar-day" style="margin-right: 6px; color: #667eea;"></i>
+          오늘 경험치 현황
+        </h5>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+          <div style="background: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; text-align: center;">
+            <div style="color: #667eea; font-weight: bold; font-size: 1.1rem;" id="todayVoteExp">0</div>
+            <div style="color: #666; font-size: 0.8rem;">투표</div>
+          </div>
+          <div style="background: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; text-align: center;">
+            <div style="color: #28a745; font-weight: bold; font-size: 1.1rem;" id="todayCourseExp">0</div>
+            <div style="color: #666; font-size: 0.8rem;">코스 작성</div>
+          </div>
+          <div style="background: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; text-align: center;">
+            <div style="color: #ff6b6b; font-weight: bold; font-size: 1.1rem;" id="todayHpostExp">0</div>
+            <div style="color: #666; font-size: 0.8rem;">핫플썰</div>
+          </div>
+          <div style="background: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; text-align: center;">
+            <div style="color: #17a2b8; font-weight: bold; font-size: 1.1rem;" id="todayCommentExp">0</div>
+            <div style="color: #666; font-size: 0.8rem;">댓글</div>
+          </div>
+          <div style="background: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; text-align: center;">
+            <div style="color: #ffc107; font-weight: bold; font-size: 1.1rem;" id="todayLikeExp">0</div>
+            <div style="color: #666; font-size: 0.8rem;">추천받음</div>
+          </div>
+          <div style="background: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; text-align: center;">
+            <div style="color: #e83e8c; font-weight: bold; font-size: 1.1rem;" id="todayWishExp">0</div>
+            <div style="color: #666; font-size: 0.8rem;">찜하기</div>
+          </div>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 8px; padding: 16px; text-align: center;">
+          <div style="font-size: 1.3rem; font-weight: bold;" id="todayTotalExp">0</div>
+          <div style="font-size: 0.9rem; opacity: 0.9;">오늘 총 경험치 / 50 EXP</div>
+        </div>
+      </div>
+
+      <!-- 경험치 획득 방법 -->
+      <div style="background: #f8f9fa; border-radius: 12px; padding: 20px;">
+        <h6 style="color: #333; margin-bottom: 16px; font-size: 1rem;">
+          <i class="bi bi-info-circle" style="margin-right: 6px; color: #667eea;"></i>
+          경험치 획득 방법
+        </h6>
+        <div style="font-size: 0.9rem; color: #666; line-height: 1.6;">
+          <div style="margin-bottom: 8px;">🗳️ <strong>투표:</strong> 1회당 1 EXP (하루 최대 4 EXP)</div>
+          <div style="margin-bottom: 8px;">📍 <strong>코스 작성:</strong> 1개당 25 EXP (하루 최대 25 EXP)</div>
+          <div style="margin-bottom: 8px;">🔥 <strong>핫플썰:</strong> 1개당 10 EXP (하루 최대 10 EXP)</div>
+          <div style="margin-bottom: 8px;">💬 <strong>댓글:</strong> 1개당 3 EXP (하루 최대 9 EXP)</div>
+          <div style="margin-bottom: 8px;">👍 <strong>추천받음:</strong> 1회당 2 EXP</div>
+          <div style="margin-bottom: 8px;">💬+👍 <strong>댓글+추천 합산:</strong> 하루 최대 10 EXP</div>
+          <div style="margin-bottom: 8px;">❤️ <strong>찜하기:</strong> 1개당 1 EXP (하루 최대 3 EXP)</div>
+          <div style="margin-top: 12px; padding: 8px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
+            <strong>⚠️ 하루 총 경험치 제한: 50 EXP</strong><br>
+            <small style="color: #856404;">50 EXP에 도달하면 더 받을 수 없습니다. </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 모달 푸터 -->
+    <div style="padding: 16px 24px; border-top: 1px solid #e9ecef; text-align: center;">
+      <button onclick="closeLevelModal()" style="background: #6c757d; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;">
+        닫기
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+
+
+// ESC 키로 투표 모달 닫기
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeVoteModal();
+    }
+});
+
+// 투표 섹션 표시 함수 - voteModal.jsp의 showVoteModal 함수를 직접 호출
+function showVoteSection(placeId, placeName, placeAddress, categoryId) {
+    // voteModal.jsp에서 정의된 showVoteModal 함수 호출
+    if (typeof showVoteModal === 'function') {
+        showVoteModal(placeId, placeName, placeAddress, categoryId);
+    } else {
+        console.error('showVoteModal 함수를 찾을 수 없습니다. voteModal.jsp가 제대로 로드되었는지 확인하세요.');
+    }
+}
+</script>
+
+<!-- 투표 모달 관련 함수들 -->
+<jsp:include page="voteModal.jsp" />

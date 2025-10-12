@@ -18,6 +18,8 @@ public class Member {
     private String gender;
     private String provider;  // site, naver, admin
     private String status;    // 정상, C(정지)
+    private int levelId;      // 레벨 ID (기본값: 1)
+    private int exp;          // 경험치 (기본값: 0)
     private LocalDateTime regdate;
     private LocalDateTime updateDate;
     // 해당 컬럼들이 데이터베이스에 없으므로 제거
@@ -37,6 +39,8 @@ public class Member {
         this.email = email;
         this.provider = "site";
         this.status = "A"; // Model1 호환성: 'A'(정상)
+        this.levelId = 1;  // 기본 레벨
+        this.exp = 0;      // 기본 경험치
         this.regdate = LocalDateTime.now();
         this.updateDate = LocalDateTime.now();
     }
@@ -129,6 +133,22 @@ public class Member {
     
     public void setStatus(String status) {
         this.status = status;
+    }
+    
+    public int getLevelId() {
+        return levelId;
+    }
+    
+    public void setLevelId(int levelId) {
+        this.levelId = levelId;
+    }
+    
+    public int getExp() {
+        return exp;
+    }
+    
+    public void setExp(int exp) {
+        this.exp = exp;
     }
     
     public LocalDateTime getRegdate() {
@@ -227,6 +247,8 @@ public class Member {
                 ", email='" + email + '\'' +
                 ", provider='" + provider + '\'' +
                 ", status='" + status + '\'' +
+                ", levelId=" + levelId +
+                ", exp=" + exp +
                 ", regdate=" + regdate +
                 ", updateDate=" + updateDate +
                 '}';

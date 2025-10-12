@@ -484,7 +484,7 @@ a.text-decoration-none:hover {
 }
 
 /* 반응형 모달 */
-@media (max-width: 576px) {
+@media (max-width: 480px) {
     #profileEditModal .modal-body {
         padding: 1.5rem;
     }
@@ -934,7 +934,7 @@ a.text-decoration-none:hover {
     }
 }
 
-@media (max-width: 576px) {
+@media (max-width: 480px) {
     .wishlist-container .container {
         padding: 0 15px;
     }
@@ -1700,7 +1700,7 @@ a.text-decoration-none:hover {
     }
 }
 
-@media (max-width: 576px) {
+@media (max-width: 480px) {
     .posts-container .container {
         padding: 0 15px;
     }

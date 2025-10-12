@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%
-    String root = request.getContextPath();
+    String root = "";
 %>
 
 <!-- 부트스트랩 아이콘용 링크 (index.jsp <head>에 이미 있을 수도 있음) -->
@@ -21,7 +21,7 @@
         </div>
         <div class="mt-3">
             <!-- ✅ 인스타그램 아이콘 링크 (네 계정으로 바꿔) -->
-            <a href="https://www.instagram.com/where.hot/" target="_blank" class="text-decoration-none" style="color: #E4405F;">
+            <a href="https://www.instagram.com/wherehotnow/" target="_blank" class="text-decoration-none" style="color: #E4405F;">
                 <i class="bi bi-instagram" style="font-size: 1.5rem; color: #E4405F;"></i>
                 <span class="ms-1" style="color: #E4405F;">Instagram</span>
             </a>

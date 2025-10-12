@@ -359,53 +359,7 @@ hr.divider {
     box-sizing: border-box !important;
 }
 
-/* 작은 화면에서의 InfoWindow 최적화 */
-@media (max-width: 480px) {
-    .infoWindow {
-        min-width: 260px !important;
-        max-width: 90vw !important;
-        width: 90vw !important;
-    }
-    
-    .infoWindow .place-images-container {
-        height: 140px !important;
-    }
-    
-    .infoWindow strong {
-        font-size: 14px !important;
-    }
-    
-    .infoWindow span,
-    .infoWindow div {
-        font-size: 11px !important;
-    }
-}
-
-/* 중간 화면에서의 InfoWindow 최적화 */
-@media (min-width: 481px) and (max-width: 768px) {
-    .infoWindow {
-        min-width: 280px !important;
-        max-width: 70vw !important;
-        width: clamp(280px, 320px, 70vw) !important;
-    }
-    
-    .infoWindow .place-images-container {
-        height: 160px !important;
-    }
-}
-
-/* 큰 화면에서의 InfoWindow 최적화 */
-@media (min-width: 769px) {
-    .infoWindow {
-        min-width: 280px !important;
-        max-width: 320px !important;
-        width: 320px !important;
-    }
-    
-    .infoWindow .place-images-container {
-        height: 180px !important;
-    }
-}
+/* InfoWindow 스타일은 main.css에서 관리 */
 
 /* InfoWindow 내부 요소들의 텍스트 오버플로우 방지 */
 .infoWindow strong,

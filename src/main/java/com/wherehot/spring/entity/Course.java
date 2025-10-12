@@ -25,6 +25,7 @@ public class Course {
     private Integer dislikeCount = 0;
     private Integer commentCount = 0;
     private Boolean isDeleted = false;
+    private Integer level;  // 사용자 레벨 (member 테이블에서 조회)
     
     // 연관관계 (MyBatis에서 별도 조회)
     private List<CourseStep> courseSteps = new ArrayList<>();
@@ -148,6 +149,14 @@ public class Course {
     
     public void setIsDeleted(Boolean isDeleted) {
         this.isDeleted = isDeleted;
+    }
+    
+    public Integer getLevel() {
+        return level;
+    }
+    
+    public void setLevel(Integer level) {
+        this.level = level;
     }
     
     public List<CourseStep> getCourseSteps() {

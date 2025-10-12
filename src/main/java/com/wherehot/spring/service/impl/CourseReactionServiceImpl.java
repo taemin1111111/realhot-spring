@@ -2,7 +2,9 @@ package com.wherehot.spring.service.impl;
 
 import com.wherehot.spring.entity.CourseReaction;
 import com.wherehot.spring.mapper.CourseReactionMapper;
+import com.wherehot.spring.mapper.CourseMapper;
 import com.wherehot.spring.service.CourseReactionService;
+import com.wherehot.spring.service.ExpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,12 @@ public class CourseReactionServiceImpl implements CourseReactionService {
     
     @Autowired
     private CourseReactionMapper courseReactionMapper;
+    
+    @Autowired
+    private CourseMapper courseMapper;
+    
+    @Autowired
+    private ExpService expService;
     
     @Override
     public Map<String, Object> toggleReaction(int courseId, String userKey, String reactionType) {
@@ -60,6 +68,25 @@ public class CourseReactionServiceImpl implements CourseReactionService {
             courseReactionMapper.insertOrUpdateReaction(newReaction);
             result.put("currentReaction", reactionType);
             result.put("action", "added");
+            
+            // 좋아요를 받은 경우 코스 작성자에게 경험치 지급
+            if ("LIKE".equals(reactionType)) {
+                try {
+                    // 코스 작성자 정보 조회
+                    String courseAuthor = courseMapper.getCourseAuthorById(courseId);
+                    if (courseAuthor != null && !courseAuthor.trim().isEmpty() && !courseAuthor.startsWith("anonymous|")) {
+                        boolean expAdded = expService.addLikeExp(courseAuthor, 1);
+                        if (expAdded) {
+                            System.out.println("Like exp added successfully for course author: " + courseAuthor);
+                        } else {
+                            System.out.println("Like exp not added (daily limit reached) for course author: " + courseAuthor);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error adding like exp for course author: " + e.getMessage());
+                    // 경험치 지급 실패는 추천 자체를 실패시키지 않음
+                }
+            }
         }
         
         // 업데이트된 개수 조회

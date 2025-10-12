@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wherehot.spring.mapper.LevelLogMapper">
+
+    <!-- 레벨 로그 삽입 -->
+    <insert id="insertLevelLog" parameterType="com.wherehot.spring.entity.LevelLog" useGeneratedKeys="true" keyProperty="logId">
+        INSERT INTO level_log (user_id, old_level, new_level, gained_exp, created_at)
+        VALUES (#{userId}, #{oldLevel}, #{newLevel}, #{gainedExp}, #{createdAt})
+    </insert>
+
+    <!-- 사용자의 레벨 로그 조회 -->
+    <select id="selectByUserId" parameterType="string" resultType="com.wherehot.spring.entity.LevelLog">
+        SELECT log_id as logId, user_id as userId, old_level as oldLevel, new_level as newLevel, gained_exp as gainedExp, created_at as createdAt
+        FROM level_log
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 사용자의 최근 레벨 로그 조회 -->
+    <select id="selectRecentByUserId" resultType="com.wherehot.spring.entity.LevelLog">
+        SELECT log_id as logId, user_id as userId, old_level as oldLevel, new_level as newLevel, gained_exp as gainedExp, created_at as createdAt
+        FROM level_log
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 특정 레벨 변경 로그 조회 -->
+    <select id="selectByLogId" parameterType="int" resultType="com.wherehot.spring.entity.LevelLog">
+        SELECT log_id as logId, user_id as userId, old_level as oldLevel, new_level as newLevel, gained_exp as gainedExp, created_at as createdAt
+        FROM level_log
+        WHERE log_id = #{logId}
+    </select>
+
+    <!-- 사용자의 레벨 변경 횟수 조회 -->
+    <select id="countLevelChangesByUserId" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM level_log
+        WHERE user_id = #{userId}
+    </select>
+
+</mapper>

@@ -56,4 +56,9 @@ public interface EmailVerificationMapper {
      * 오늘 비밀번호 찾기를 이미 했는지 확인
      */
     boolean hasPasswordResetToday(@Param("email") String email);
+    
+    /**
+     * 최근 N분 이내에 인증된 비밀번호 리셋 레코드 조회
+     */
+    Optional<EmailVerification> findRecentVerifiedByEmail(@Param("email") String email, @Param("minutesWindow") int minutesWindow);
 }

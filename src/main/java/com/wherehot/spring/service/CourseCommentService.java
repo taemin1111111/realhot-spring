@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.util.List;
 
 @Service
@@ -14,6 +13,9 @@ public class CourseCommentService {
     
     @Autowired
     private CourseCommentMapper courseCommentMapper;
+    
+    @Autowired
+    private ExpService expService;
     
     /**
      * 코스의 모든 댓글 조회 (계층 구조)
@@ -42,7 +44,26 @@ public class CourseCommentService {
     @Transactional
     public int createComment(CourseComment courseComment) {
         // 컨트롤러에서 이미 해시화된 비밀번호를 받으므로 추가 해시화하지 않음
-        return courseCommentMapper.insertCourseComment(courseComment);
+        int result = courseCommentMapper.insertCourseComment(courseComment);
+        
+        // 댓글 작성 경험치 지급 (1개 = +3 Exp)
+        if (result > 0 && courseComment.getAuthorUserid() != null && 
+            !courseComment.getAuthorUserid().trim().isEmpty() && 
+            !"anonymous".equals(courseComment.getAuthorUserid())) {
+            try {
+                boolean expAdded = expService.addCommentExp(courseComment.getAuthorUserid(), 1);
+                if (expAdded) {
+                    System.out.println("Course comment exp added successfully for user: " + courseComment.getAuthorUserid());
+                } else {
+                    System.out.println("Course comment exp not added (daily limit reached) for user: " + courseComment.getAuthorUserid());
+                }
+            } catch (Exception e) {
+                System.err.println("Error adding course comment exp for user: " + courseComment.getAuthorUserid() + ", " + e.getMessage());
+                // 경험치 지급 실패는 댓글 작성 자체를 실패시키지 않음
+            }
+        }
+        
+        return result;
     }
     
     /**

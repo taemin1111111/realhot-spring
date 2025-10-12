@@ -95,4 +95,7 @@ public interface CourseMapper {
     List<Course> getLatestCourseListByPlaceId(@Param("placeId") int placeId, 
                                              @Param("offset") int offset, 
                                              @Param("limit") int limit);
+    
+    // 코스 작성자 ID 조회
+    String getCourseAuthorById(@Param("id") int id);
 }

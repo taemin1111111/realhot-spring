@@ -33,6 +33,9 @@ public class CourseService {
     @Autowired
     private CourseReactionMapper courseReactionMapper;
     
+    @Autowired
+    private ExpService expService;
+    
     @Value("${file.upload.path:uploads/course}")
     private String uploadPath;
     
@@ -116,6 +119,21 @@ public class CourseService {
             for (CourseStep step : courseSteps) {
                 step.setCourseId(course.getId());
                 courseStepMapper.insertCourseStep(step);
+            }
+            
+            // 코스 작성 경험치 지급 (1개 = +25 Exp, 하루 최대 25 Exp)
+            if (course.getUserId() != null && !course.getUserId().trim().isEmpty()) {
+                try {
+                    boolean expAdded = expService.addCourseExp(course.getUserId(), 1);
+                    if (expAdded) {
+                        System.out.println("Course exp added successfully for user: " + course.getUserId());
+                    } else {
+                        System.out.println("Course exp not added (daily limit reached) for user: " + course.getUserId());
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error adding course exp for user: " + course.getUserId() + ", " + e.getMessage());
+                    // 경험치 지급 실패는 코스 작성 자체를 실패시키지 않음
+                }
             }
         }
         

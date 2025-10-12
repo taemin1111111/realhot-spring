@@ -3,7 +3,7 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%
-    String root = request.getContextPath();
+    String root = "";
 %>
 
 <div class="course-popular-section">
@@ -26,8 +26,30 @@
                         <div class="course-header">
                             <h4 class="course-title">${course.title}</h4>
                             <div class="course-author">
-                                <c:if test="${not empty course.authorUserid and course.authorUserid ne 'null'}">
-                                    <i class="bi bi-person-fill author-icon"></i>
+                                <c:if test="${not empty course.userId and course.userId ne 'null' and not empty course.level}">
+                                    <c:choose>
+                                        <c:when test="${course.level == 1}">
+                                            <span style="display: inline-block; background: #FFD700; color: #333; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px; box-shadow: 0 1px 3px rgba(255, 215, 0, 0.3);">Lv.${course.level}</span>
+                                        </c:when>
+                                        <c:when test="${course.level == 2}">
+                                            <span style="display: inline-block; background: #C0C0C0; color: #333; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px; box-shadow: 0 1px 3px rgba(192, 192, 192, 0.3);">Lv.${course.level}</span>
+                                        </c:when>
+                                        <c:when test="${course.level == 3}">
+                                            <span style="display: inline-block; background: #32CD32; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px; box-shadow: 0 1px 3px rgba(50, 205, 50, 0.3);">Lv.${course.level}</span>
+                                        </c:when>
+                                        <c:when test="${course.level == 4}">
+                                            <span style="display: inline-block; background: #FF69B4; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px; box-shadow: 0 1px 3px rgba(255, 105, 180, 0.3);">Lv.${course.level}</span>
+                                        </c:when>
+                                        <c:when test="${course.level == 5}">
+                                            <span style="display: inline-block; background: #FF0000; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px; box-shadow: 0 1px 3px rgba(255, 0, 0, 0.3);">Lv.${course.level}</span>
+                                        </c:when>
+                                        <c:when test="${course.level == 6}">
+                                            <span style="display: inline-block; background: linear-gradient(135deg, #B9F2FF 0%, #00BFFF 100%); color: #333; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px; box-shadow: 0 1px 3px rgba(0, 191, 255, 0.3);">Lv.${course.level}</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; margin-right: 6px;">Lv.${course.level}</span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </c:if>
                                 <span class="author-nickname">${course.nickname}</span>
                             </div>
@@ -251,10 +273,6 @@
     color: #666;
 }
 
-.author-icon {
-    color: #ff69b4;
-    font-size: 16px;
-}
 
 .author-nickname {
     font-weight: 500;

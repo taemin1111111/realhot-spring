@@ -351,16 +351,17 @@ public class AuthController {
                     response.put("userid", member.getUserid());
                     response.put("regdate", member.getRegdate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
                     response.put("message", "아이디 찾기가 완료되었습니다.");
+                    return ResponseEntity.ok(response);
                 } else {
                     response.put("success", false);
                     response.put("error", "회원 정보를 찾을 수 없습니다.");
+                    return ResponseEntity.badRequest().body(response);
                 }
             } else {
                 response.put("success", false);
                 response.put("error", "INVALID_CODE");
+                return ResponseEntity.badRequest().body(response);
             }
-            
-            return ResponseEntity.ok(response);
             
         } catch (Exception e) {
          
@@ -499,17 +500,12 @@ public class AuthController {
             if (verified) {
                 response.put("success", true);
                 response.put("message", "인증이 완료되었습니다.");
+                return ResponseEntity.ok(response);
             } else {
-                if (code.length() != 6) {
-                    response.put("success", false);
-                    response.put("error", "INVALID_CODE");
-                } else {
-                    response.put("success", false);
-                    response.put("error", "INVALID_CODE");
-                }
+                response.put("success", false);
+                response.put("error", "INVALID_CODE");
+                return ResponseEntity.badRequest().body(response);
             }
-            
-            return ResponseEntity.ok(response);
             
         } catch (Exception e) {
             System.err.println("verify-password-reset-code error: " + e.getMessage());
@@ -574,6 +570,15 @@ public class AuthController {
             if (email == null || email.trim().isEmpty() || newPassword == null || newPassword.trim().isEmpty()) {
                 response.put("success", false);
                 response.put("error", "이메일과 새 비밀번호를 입력해주세요.");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // ✅ 이메일 인증 확인 (최근 10분 이내에 인증되었는지 확인)
+            boolean isVerified = emailService.isPasswordResetVerified(email, 10);
+            
+            if (!isVerified) {
+                response.put("success", false);
+                response.put("error", "이메일 인증을 먼저 완료해주세요. 인증 시간이 만료된 경우 다시 인증해주세요.");
                 return ResponseEntity.badRequest().body(response);
             }
             

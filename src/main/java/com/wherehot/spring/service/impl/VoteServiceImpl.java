@@ -4,6 +4,7 @@ import com.wherehot.spring.entity.VoteNowHot;
 import com.wherehot.spring.mapper.VoteMapper;
 import com.wherehot.spring.service.VoteService;
 import com.wherehot.spring.service.SecurityUtils;
+import com.wherehot.spring.service.ExpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,9 @@ public class VoteServiceImpl implements VoteService {
     
     @Autowired
     private SecurityUtils securityUtils;
+    
+    @Autowired
+    private ExpService expService;
     
     // VoteNowHot 관련
     @Override
@@ -224,6 +228,20 @@ public class VoteServiceImpl implements VoteService {
             if (success) {
                 logger.info("Vote added successfully: placeId={}, voterId={}, riskScore={}, isVpn={}", 
                            hotplaceId, voterId, riskScore, isVpnProxy);
+                
+                // 투표 경험치 지급 (1회 = +1 Exp, 하루 최대 4 Exp)
+                try {
+                    boolean expAdded = expService.addVoteExp(voterId, 1);
+                    if (expAdded) {
+                        logger.info("Vote exp added successfully for user: {}", voterId);
+                    } else {
+                        logger.info("Vote exp not added (daily limit reached) for user: {}", voterId);
+                    }
+                } catch (Exception e) {
+                    logger.error("Error adding vote exp for user: {}", voterId, e);
+                    // 경험치 지급 실패는 투표 자체를 실패시키지 않음
+                }
+                
                 return true;
             } else {
                 logger.error("Failed to insert vote: placeId={}, voterId={}, result1={}, result2={}", 
@@ -286,6 +304,20 @@ public class VoteServiceImpl implements VoteService {
             } else {
                 voteMapper.insertWishlist(userid, hotplaceId);
                 logger.info("Wish added: hotplaceId={}, userid={}", hotplaceId, userid);
+                
+                // 찜하기 경험치 지급 (1개 = +1 Exp, 하루 최대 3 Exp)
+                try {
+                    boolean expAdded = expService.addWishExp(userid, 1);
+                    if (expAdded) {
+                        logger.info("Wish exp added successfully for user: {}", userid);
+                    } else {
+                        logger.info("Wish exp not added (daily limit reached) for user: {}", userid);
+                    }
+                } catch (Exception e) {
+                    logger.error("Error adding wish exp for user: {}", userid, e);
+                    // 경험치 지급 실패는 찜하기 자체를 실패시키지 않음
+                }
+                
                 return true;
             }
         } catch (Exception e) {

@@ -55,19 +55,20 @@ public class CacheConfig {
     }
     
     /**
-     * Redis 캐시 매니저 (운영환경용)
+     * Redis 캐시 매니저 (운영환경용 - 현재 비활성화)
+     * Redis 사용하려면 application.properties에서 spring.autoconfigure.exclude 제거 필요
      */
-    @Bean
-    @ConditionalOnProperty(name = "spring.cache.type", havingValue = "redis")
-    public CacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
-        RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofMinutes(30))  // 30분 TTL
-            .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
-
-        return RedisCacheManager.builder(redisConnectionFactory)
-            .cacheDefaults(cacheConfig)
-            .build();
-    }
+    // @Bean
+    // @ConditionalOnProperty(name = "spring.cache.type", havingValue = "redis")
+    // public CacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
+    //     RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+    //         .entryTtl(Duration.ofMinutes(30))  // 30분 TTL
+    //         .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+    //         .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+    //
+    //     return RedisCacheManager.builder(redisConnectionFactory)
+    //         .cacheDefaults(cacheConfig)
+    //         .build();
+    // }
 }
 

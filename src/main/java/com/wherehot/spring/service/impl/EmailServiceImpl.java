@@ -309,6 +309,27 @@ public class EmailServiceImpl implements EmailService {
                "어디핫? 팀";
     }
     
+    @Override
+    public boolean isPasswordResetVerified(String email, int minutesWindow) {
+        try {
+            // 최근 N분 이내에 인증된 레코드 조회
+            Optional<EmailVerification> verificationOpt = 
+                emailVerificationMapper.findRecentVerifiedByEmail(email, minutesWindow);
+            
+            if (verificationOpt.isPresent()) {
+                logger.info("Password reset verification confirmed for email: {} within {} minutes", email, minutesWindow);
+                return true;
+            } else {
+                logger.warn("No recent password reset verification found for email: {} within {} minutes", email, minutesWindow);
+                return false;
+            }
+            
+        } catch (Exception e) {
+            logger.error("Failed to check password reset verification for: {}", email, e);
+            return false;
+        }
+    }
+    
     /**
      * 이메일 내용 생성 (model1과 동일한 형식)
      */

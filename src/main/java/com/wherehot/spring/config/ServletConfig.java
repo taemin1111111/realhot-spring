@@ -38,18 +38,4 @@ public class ServletConfig {
         return registrationBean;
     }
 
-    /**
-     * JSP 서블릿 등록 (명시적 설정으로 안정성 확보)
-     */
-    @Bean
-    public ServletRegistrationBean<org.apache.jasper.servlet.JspServlet> jspServlet() {
-        ServletRegistrationBean<org.apache.jasper.servlet.JspServlet> registrationBean = 
-            new ServletRegistrationBean<>(new org.apache.jasper.servlet.JspServlet(), "*.jsp");
-        registrationBean.addInitParameter("development", "false");
-        registrationBean.addInitParameter("compilerTargetVM", "17");
-        registrationBean.addInitParameter("compilerSourceVM", "17");
-        registrationBean.addInitParameter("keepgenerated", "false");
-        registrationBean.setLoadOnStartup(3);
-        return registrationBean;
-    }
 }

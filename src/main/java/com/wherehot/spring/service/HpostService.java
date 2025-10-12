@@ -13,18 +13,21 @@ public class HpostService {
     @Autowired
     private HpostMapper hpostMapper;
     
+    @Autowired
+    private ExpService expService;
+    
     /**
      * 핫플썰 게시글 목록 조회 (최신순)
      */
-    public List<Hpost> getLatestHpostList(int offset) {
-        return hpostMapper.selectLatestHpostList(offset);
+    public List<Hpost> getLatestHpostList(int offset, int limit) {
+        return hpostMapper.selectLatestHpostList(offset, limit);
     }
     
     /**
      * 핫플썰 게시글 목록 조회 (인기순)
      */
-    public List<Hpost> getPopularHpostList(int offset) {
-        return hpostMapper.selectPopularHpostList(offset);
+    public List<Hpost> getPopularHpostList(int offset, int limit) {
+        return hpostMapper.selectPopularHpostList(offset, limit);
     }
     
     /**
@@ -37,15 +40,15 @@ public class HpostService {
     /**
      * 검색 게시글 목록 조회 (최신순)
      */
-    public List<Hpost> searchLatestHpostList(String searchType, String searchKeyword, int offset) {
-        return hpostMapper.searchLatestHpostList(searchType, searchKeyword, offset);
+    public List<Hpost> searchLatestHpostList(String searchType, String searchKeyword, int offset, int limit) {
+        return hpostMapper.searchLatestHpostList(searchType, searchKeyword, offset, limit);
     }
     
     /**
      * 검색 게시글 목록 조회 (인기순)
      */
-    public List<Hpost> searchPopularHpostList(String searchType, String searchKeyword, int offset) {
-        return hpostMapper.searchPopularHpostList(searchType, searchKeyword, offset);
+    public List<Hpost> searchPopularHpostList(String searchType, String searchKeyword, int offset, int limit) {
+        return hpostMapper.searchPopularHpostList(searchType, searchKeyword, offset, limit);
     }
     
     /**
@@ -75,6 +78,21 @@ public class HpostService {
      */
     public void saveHpost(Hpost hpost) {
         hpostMapper.insertHpost(hpost);
+        
+        // 핫플썰 작성 경험치 지급 (1개 = +10 Exp, 하루 최대 10 Exp)
+        if (hpost.getUserid() != null && !hpost.getUserid().trim().isEmpty()) {
+            try {
+                boolean expAdded = expService.addHpostExp(hpost.getUserid(), 1);
+                if (expAdded) {
+                    System.out.println("Hpost exp added successfully for user: " + hpost.getUserid());
+                } else {
+                    System.out.println("Hpost exp not added (daily limit reached) for user: " + hpost.getUserid());
+                }
+            } catch (Exception e) {
+                System.err.println("Error adding hpost exp for user: " + hpost.getUserid() + ", " + e.getMessage());
+                // 경험치 지급 실패는 게시글 작성 자체를 실패시키지 않음
+            }
+        }
     }
     
     /**

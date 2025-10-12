@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wherehot.spring.mapper.DailyExpLogMapper">
+
+    <!-- 사용자의 특정 날짜 경험치 로그 조회 -->
+    <select id="selectByUserIdAndDate" resultType="com.wherehot.spring.entity.DailyExpLog">
+        SELECT id, user_id as userId, log_date as logDate, vote_exp as voteExp, course_exp as courseExp, hpost_exp as hpostExp, 
+               comment_exp as commentExp, like_exp as likeExp, wish_exp as wishExp, total_exp as totalExp, created_at as createdAt, updated_at as updatedAt
+        FROM daily_exp_log
+        WHERE user_id = #{userId} AND log_date = #{logDate}
+    </select>
+
+    <!-- 사용자의 오늘 경험치 로그 조회 -->
+    <select id="selectTodayByUserId" parameterType="string" resultType="com.wherehot.spring.entity.DailyExpLog">
+        SELECT id, user_id as userId, log_date as logDate, vote_exp as voteExp, course_exp as courseExp, hpost_exp as hpostExp, 
+               comment_exp as commentExp, like_exp as likeExp, wish_exp as wishExp, total_exp as totalExp, created_at as createdAt, updated_at as updatedAt
+        FROM daily_exp_log
+        WHERE user_id = #{userId} AND log_date = CURDATE()
+    </select>
+
+    <!-- 사용자의 최근 경험치 로그들 조회 -->
+    <select id="selectRecentByUserId" resultType="com.wherehot.spring.entity.DailyExpLog">
+        SELECT id, user_id as userId, log_date as logDate, vote_exp as voteExp, course_exp as courseExp, hpost_exp as hpostExp, 
+               comment_exp as commentExp, like_exp as likeExp, wish_exp as wishExp, total_exp as totalExp, created_at as createdAt, updated_at as updatedAt
+        FROM daily_exp_log
+        WHERE user_id = #{userId}
+        ORDER BY log_date DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 경험치 로그 삽입 -->
+    <insert id="insertDailyExpLog" parameterType="com.wherehot.spring.entity.DailyExpLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO daily_exp_log (user_id, log_date, vote_exp, course_exp, hpost_exp, 
+                                  comment_exp, like_exp, wish_exp, total_exp, created_at, updated_at)
+        VALUES (#{userId}, #{logDate}, #{voteExp}, #{courseExp}, #{hpostExp}, 
+                #{commentExp}, #{likeExp}, #{wishExp}, #{totalExp}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <!-- 경험치 로그 업데이트 -->
+    <update id="updateDailyExpLog" parameterType="com.wherehot.spring.entity.DailyExpLog">
+        UPDATE daily_exp_log
+        SET vote_exp = #{voteExp},
+            course_exp = #{courseExp},
+            hpost_exp = #{hpostExp},
+            comment_exp = #{commentExp},
+            like_exp = #{likeExp},
+            wish_exp = #{wishExp},
+            total_exp = #{totalExp},
+            updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 특정 타입의 경험치 추가 -->
+    <update id="addExpByType">
+        UPDATE daily_exp_log
+        SET 
+            <choose>
+                <when test="expType == 'vote'">vote_exp = vote_exp + #{amount}</when>
+                <when test="expType == 'course'">course_exp = course_exp + #{amount}</when>
+                <when test="expType == 'hpost'">hpost_exp = hpost_exp + #{amount}</when>
+                <when test="expType == 'comment'">comment_exp = comment_exp + #{amount}</when>
+                <when test="expType == 'like'">like_exp = like_exp + #{amount}</when>
+                <when test="expType == 'wish'">wish_exp = wish_exp + #{amount}</when>
+            </choose>,
+            total_exp = vote_exp + course_exp + hpost_exp + comment_exp + like_exp + wish_exp,
+            updated_at = NOW()
+        WHERE user_id = #{userId} AND log_date = #{logDate}
+    </update>
+
+    <!-- 사용자의 오늘 총 경험치 조회 -->
+    <select id="selectTodayTotalExp" parameterType="string" resultType="int">
+        SELECT COALESCE(total_exp, 0)
+        FROM daily_exp_log
+        WHERE user_id = #{userId} AND log_date = CURDATE()
+    </select>
+
+    <!-- 사용자의 특정 타입 오늘 경험치 조회 -->
+    <select id="selectTodayExpByType" resultType="int">
+        SELECT COALESCE(
+            <choose>
+                <when test="expType == 'vote'">vote_exp</when>
+                <when test="expType == 'course'">course_exp</when>
+                <when test="expType == 'hpost'">hpost_exp</when>
+                <when test="expType == 'comment'">comment_exp</when>
+                <when test="expType == 'like'">like_exp</when>
+                <when test="expType == 'wish'">wish_exp</when>
+            </choose>, 0)
+        FROM daily_exp_log
+        WHERE user_id = #{userId} AND log_date = CURDATE()
+    </select>
+
+</mapper>

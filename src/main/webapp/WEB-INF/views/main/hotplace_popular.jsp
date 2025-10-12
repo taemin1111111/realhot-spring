@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
-    String root = request.getContextPath();
+    String root = "";
 %>
 <div class="hotplace-popular-section">
     <div class="section-header">
@@ -12,7 +12,6 @@
         <div class="col-rank">순위</div>
         <div class="col-nickname">닉네임</div>
         <div class="col-title">제목</div>
-        <div class="col-likes">좋아요</div>
         <div class="col-views">조회수</div>
     </div>
     <div class="posts-list">
@@ -22,17 +21,11 @@
                     <div class="posts-table-row" onclick="location.href='<%=root%>/hpost/${post.id}'">
                         <div class="col-rank" style="color: #ff6b6b; font-weight: bold;">${status.index + 1}위</div>
                         <div class="col-nickname">
-                            <span style="display: inline-block; width: 24px; text-align: center;">
-                                <c:if test="${not empty post.userid and post.userid ne 'null'}">
-                                    <i class="bi bi-person-fill" style="color: #ff69b4; font-size: 18px;"></i>
-                                </c:if>
-                            </span>
                             <c:out value="${post.nickname}" />
                         </div>
                         <div class="col-title">
                             <a href="<%=root%>/hpost/${post.id}"><c:out value="${post.title}" /></a>
                         </div>
-                        <div class="col-likes">👍 ${post.likes}</div>
                         <div class="col-views">👁️ ${post.views}</div>
                     </div>
                 </c:forEach>
@@ -131,6 +124,7 @@
     flex: 1;
     padding: 0 15px;
     color: #333;
+    text-align: center;
 }
 
 .col-title a {
@@ -141,13 +135,16 @@
     line-height: 1.4;
     display: block;
     transition: color 0.3s ease;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .col-title a:hover {
     color: #555;
 }
 
-.col-likes, .col-views {
+.col-views {
     flex-basis: 60px;
     text-align: center;
     font-size: 0.9rem;
@@ -163,35 +160,175 @@
     padding: 20px;
 }
 
-@media (max-width: 900px) {
-    .col-rank { flex-basis: 40px; font-size: 0.85rem; }
-    .col-nickname { flex-basis: 60px; font-size: 0.93rem; }
-    .col-title { font-size: 0.99rem; }
-    .col-likes, .col-views { flex-basis: 45px; font-size: 0.95rem; }
-}
+/* ===== 모바일 반응형 스타일 ===== */
 
-@media (max-width: 600px) {
-    .posts-table-header, .posts-table-row {
-        font-size: 0.93rem;
-    }
-    .col-rank { flex-basis: 35px; font-size: 0.8rem; }
-    .col-nickname, .col-likes, .col-views {
-        flex-basis: 38px;
-        padding: 0 2px;
-    }
-    .col-title {
-        padding: 0 4px;
-    }
-}
-
+/* 태블릿 스타일 (768px 이하) */
 @media (max-width: 768px) {
     .hotplace-popular-section {
         margin-top: 15px;
         padding: 15px;
+        max-width: 100%;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+    }
+    
+    .posts-table-header {
+        font-size: 0.9rem;
+        padding: 8px 0;
+    }
+    
+    .posts-table-row {
+        padding: 12px 0;
+        font-size: 0.9rem;
+    }
+    
+    .col-rank { 
+        flex-basis: 45px; 
+        font-size: 0.85rem; 
+    }
+    
+    .col-nickname { 
+        flex-basis: 70px; 
+        font-size: 0.85rem; 
+    }
+    
+    .col-title { 
+        font-size: 0.9rem; 
+        padding: 0 8px;
+        line-height: 1.3;
+    }
+    
+    .col-views { 
+        flex-basis: 50px; 
+        font-size: 0.8rem; 
+    }
+}
+
+/* 모바일 스타일 (480px 이하) */
+@media (max-width: 480px) {
+    .hotplace-popular-section {
+        padding: 15px;
+        margin-top: 10px;
+        border-radius: 12px;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+    }
+    
+    .view-all-link {
+        font-size: 0.85rem;
+    }
+    
+    .posts-table {
+        font-size: 0.75rem !important;
+    }
+    
+    .posts-table th {
+        padding: 4px 2px !important;
+        font-size: 0.65rem !important;
+        text-align: center !important;
+    }
+    
+    .posts-table td {
+        padding: 4px 2px !important;
+        font-size: 0.7rem !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+    
+    .col-rank {
+        font-size: 0.6rem !important;
+        padding: 1px 3px !important;
+    }
+    
+    .col-title {
+        font-size: 0.65rem !important;
+        max-width: 70px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+    
+    .col-title a {
+        font-size: 0.65rem !important;
+    }
+    
+    .col-nickname {
+        font-size: 0.6rem !important;
+        max-width: 40px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+    
+    .col-views {
+        font-size: 0.6rem !important;
+    }
+}
+
+/* 소형 모바일 (360px 이하) */
+@media (max-width: 360px) {
+    .hotplace-popular-section {
+        padding: 12px;
+        margin-top: 8px;
+        border-radius: 10px;
     }
     
     .section-title {
         font-size: 1.1rem;
+    }
+    
+    .view-all-link {
+        font-size: 0.8rem;
+    }
+    
+    .posts-table {
+        font-size: 0.7rem !important;
+    }
+    
+    .posts-table th {
+        padding: 3px 1px !important;
+        font-size: 0.6rem !important;
+        text-align: center !important;
+    }
+    
+    .posts-table td {
+        padding: 3px 1px !important;
+        font-size: 0.65rem !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+    
+    .col-rank {
+        font-size: 0.55rem !important;
+        padding: 1px 2px !important;
+    }
+    
+    .col-title {
+        font-size: 0.6rem !important;
+        max-width: 60px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+    
+    .col-title a {
+        font-size: 0.6rem !important;
+    }
+    
+    .col-nickname {
+        font-size: 0.55rem !important;
+        max-width: 35px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+    
+    .col-views {
+        font-size: 0.55rem !important;
     }
 }
 </style>

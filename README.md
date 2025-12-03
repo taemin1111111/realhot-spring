@@ -1,8 +1,8 @@
-# 🔥 어디핫? (WhereHot) - Spring Boot 프로젝트
+ 어디핫? (WhereHot) - Spring Boot 프로젝트
 
 > 핫플레이스 정보 공유 플랫폼
 
-## 📌 프로젝트 정보
+ 프로젝트 정보
 
 - **프레임워크**: Spring Boot 3.5.4
 - **자바 버전**: Java 17
@@ -16,12 +16,12 @@
 
 ---
 
-## 🚀 빠른 시작
+ 빠른 시작
 
 ### 1. 자동 배포 (추천)
 
 ```bash
-# 1. 서버 초기 설정 (한번만)
+# 1. 서버 초기 설정 
 ssh ubuntu@59.18.34.179
 chmod +x server-setup.sh
 ./server-setup.sh
@@ -53,9 +53,9 @@ http://59.18.34.179:8080/taeminspring/
 
 ---
 
-## 📚 주요 문서
+주요 문서
 
-- **[배포방법_최종정리.md](배포방법_최종정리.md)** - 한글 배포 가이드 (가장 쉬움) ⭐
+- **[배포방법_최종정리.md](배포방법_최종정리.md)** - 한글 배포 가이드 
 - **[FINAL_DEPLOYMENT_GUIDE.md](FINAL_DEPLOYMENT_GUIDE.md)** - 상세 배포 가이드
 - **[COMPLETE_WAR_DEPLOYMENT_FIX.md](COMPLETE_WAR_DEPLOYMENT_FIX.md)** - 문제 원인 및 해결 방안
 - **[WAR_DEPLOYMENT_GUIDE.md](WAR_DEPLOYMENT_GUIDE.md)** - WAR 배포 가이드
@@ -150,7 +150,7 @@ spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.R
 
 ---
 
-## 🌟 주요 기능
+주요 기능 설명입니다
 
 ### 1. 사용자 관리
 - 회원가입 / 로그인
@@ -183,16 +183,16 @@ spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.R
 
 ---
 
-## 🚨 문제 해결
+ 문제 해결 방법입니다.
 
-### 배포 실패시
+배포 실패시
 
-1. **Tomcat 로그 확인**
+1. Tomcat 로그 확인
    ```bash
    sudo tail -f /var/log/tomcat9/catalina.out
    ```
 
-2. **데이터베이스 연결 확인**
+2. 데이터베이스 연결 확인
    ```bash
    mysql -u wherehot_user -p'S7r!k#9vQp2&bL4xZt^6mNw' hothot
    ```
@@ -218,7 +218,7 @@ spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.R
 
 ---
 
-## 📊 성능 최적화
+## 성능 최적화
 
 ### HikariCP 설정
 - Maximum Pool Size: 200
@@ -236,7 +236,7 @@ spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.R
 
 ---
 
-## 🔐 보안 설정
+## 보안 설정
 
 ### Spring Security
 - JWT 기반 무상태 인증
@@ -252,7 +252,7 @@ spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.R
 
 ---
 
-## 📝 개발자 가이드
+## 개발자 가이드
 
 ### 새 기능 추가
 
@@ -277,20 +277,20 @@ mvn spring-boot:run
 
 ---
 
-## 📄 라이선스
+## 라이선스
 
 이 프로젝트는 개인 프로젝트이며, 상업적 사용 금지입니다.
 
 ---
 
-## 👥 개발팀
+## 개발팀
 
 - **개발자**: WhereHot Team
-- **배포일**: 2024
+- **배포일**: 2025
 
 ---
 
-## 🎯 배포 체크리스트
+## 배포 체크리스트
 
 ### 서버 준비
 - [ ] MySQL 설치 및 데이터베이스 생성

@@ -108,7 +108,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 // request.getSession().invalidate();
                 
                 // 프론트엔드로 토큰과 함께 리다이렉트 (URL 인코딩 적용)
-                String redirectUrl = String.format("https://wherehotnow.com/?token=%s&userid=%s&nickname=%s&provider=%s&email=%s", 
+                String redirectUrl = String.format("/?token=%s&userid=%s&nickname=%s&provider=%s&email=%s", 
                                                   accessToken, member.getUserid(), 
                                                   java.net.URLEncoder.encode(member.getNickname(), "UTF-8"),
                                                   member.getProvider(), 
@@ -125,7 +125,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 request.getSession().setAttribute("oAuth2_gender", gender);
                 request.getSession().setAttribute("oAuth2_profileImage", profileImage);
                 
-                response.sendRedirect("https://wherehotnow.com/oauth2/signup/naver");
+                response.sendRedirect("/oauth2/signup/naver");
                 
                 logger.info("OAuth2 new user redirected to signup: {}", naverId);
             }

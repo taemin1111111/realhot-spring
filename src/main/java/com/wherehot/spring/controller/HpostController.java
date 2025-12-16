@@ -771,6 +771,37 @@ public class HpostController {
         
         Map<String, Object> response = new HashMap<>();
         try {
+            // 관리자 권한 확인 (JWT 토큰에서)
+            boolean isAdmin = false;
+            try {
+                String authHeader = request.getHeader("Authorization");
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    String token = authHeader.substring(7);
+                    if (jwtUtils.validateToken(token)) {
+                        String provider = jwtUtils.getProviderFromToken(token);
+                        isAdmin = "admin".equals(provider);
+                    }
+                }
+            } catch (Exception e) {
+                isAdmin = false;
+            }
+
+            // 관리자인 경우 권한 체크 없이 바로 삭제
+            if (isAdmin) {
+                System.out.println("댓글 삭제 - 관리자 권한으로 삭제");
+                boolean deleteResult = hcommentService.deleteCommentByAdmin(commentId);
+                if (deleteResult) {
+                    response.put("success", true);
+                    response.put("message", "댓글이 삭제되었습니다.");
+                    return ResponseEntity.ok(response);
+                } else {
+                    response.put("success", false);
+                    response.put("message", "댓글 삭제에 실패했습니다.");
+                    return ResponseEntity.internalServerError().body(response);
+                }
+            }
+
+            // 일반 사용자 처리
             String userId = getUserId(authentication, request);
 
             boolean deleteResult;
@@ -818,23 +849,32 @@ public class HpostController {
         
         Map<String, Object> response = new HashMap<>();
         try {
-            String hpostIdStr = (String) requestData.get("hpostId");
+            // hpostId는 JSON에서 Integer 또는 String으로 올 수 있음
+            Object hpostIdObj = requestData.get("hpostId");
             String password = (String) requestData.get("password");
             String authorUserid = (String) requestData.get("authorUserid");
             String userId = (String) requestData.get("userId");
 
-            int hpostId;
-            try {
-                hpostId = Integer.parseInt(hpostIdStr);
-            } catch (NumberFormatException e) {
+            // null 체크를 먼저 수행
+            if (hpostIdObj == null) {
                 response.put("success", false);
-                response.put("message", "유효하지 않은 게시글 ID입니다.");
+                response.put("message", "필수 정보가 누락되었습니다.");
                 return ResponseEntity.badRequest().body(response);
             }
 
-            if (hpostIdStr == null) {
+            // hpostId 파싱 (Integer 또는 String 처리)
+            int hpostId;
+            try {
+                if (hpostIdObj instanceof Integer) {
+                    hpostId = (Integer) hpostIdObj;
+                } else if (hpostIdObj instanceof String) {
+                    hpostId = Integer.parseInt((String) hpostIdObj);
+                } else {
+                    throw new NumberFormatException("Invalid type for hpostId");
+                }
+            } catch (NumberFormatException e) {
                 response.put("success", false);
-                response.put("message", "필수 정보가 누락되었습니다.");
+                response.put("message", "유효하지 않은 게시글 ID입니다.");
                 return ResponseEntity.badRequest().body(response);
             }
 
@@ -883,7 +923,8 @@ public class HpostController {
                     response.put("message", "로그인된 사용자만 삭제할 수 있습니다.");
                     return ResponseEntity.badRequest().body(response);
                 }
-                if (!userId.equals(currentUserId)) {
+                // userId null 체크 추가
+                if (userId == null || !userId.equals(currentUserId)) {
                     response.put("success", false);
                     response.put("message", "글쓴이와 ID가 일치해야 삭제 가능합니다.");
                     return ResponseEntity.badRequest().body(response);

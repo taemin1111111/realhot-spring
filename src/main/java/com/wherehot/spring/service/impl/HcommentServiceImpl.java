@@ -253,4 +253,15 @@ public class HcommentServiceImpl implements HcommentService {
             return false;
         }
     }
+    
+    @Override
+    public boolean deleteCommentByAdmin(int commentId) {
+        try {
+            // 관리자는 권한 체크 없이 바로 삭제
+            hcommentMapper.deleteComment(commentId);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

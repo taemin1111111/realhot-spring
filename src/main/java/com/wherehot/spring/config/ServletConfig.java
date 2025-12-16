@@ -2,11 +2,18 @@ package com.wherehot.spring.config;
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.boot.web.servlet.server.Session;
+import org.springframework.boot.web.servlet.server.CookieSameSiteSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 import org.springframework.web.multipart.support.MultipartFilter;
+
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+
+import jakarta.servlet.SessionCookieConfig;
 
 
 
@@ -36,6 +43,17 @@ public class ServletConfig {
         registrationBean.addUrlPatterns("/*");
         registrationBean.setOrder(3);
         return registrationBean;
+    }
+
+    /**
+     * 세션 쿠키 경로 설정 - nginx 프록시를 위해 / 로 설정
+     */
+    @Bean
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> cookieProcessorCustomizer() {
+        return factory -> factory.addContextCustomizers(context -> {
+            SessionCookieConfig cookieConfig = context.getServletContext().getSessionCookieConfig();
+            cookieConfig.setPath("/");
+        });
     }
 
 }

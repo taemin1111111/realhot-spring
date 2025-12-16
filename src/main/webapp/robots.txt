@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# 검색엔진이 크롤링하지 않을 경로
+Disallow: /WEB-INF/
+Disallow: /META-INF/
+Disallow: /admin/
+Disallow: /mypage/
+
+# Sitemap 위치
+Sitemap: https://wherehotnow.com/sitemap.xml
+

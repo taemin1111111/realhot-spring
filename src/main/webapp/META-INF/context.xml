@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context sessionCookiePath="/">
+    <!-- nginx 프록시 환경을 위한 세션 쿠키 경로 설정 -->
+</Context>
+

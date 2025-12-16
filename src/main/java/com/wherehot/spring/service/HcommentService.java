@@ -21,4 +21,6 @@ public interface HcommentService {
     boolean deleteComment(int commentId, String nickname, String password);
     
     boolean deleteCommentByUser(int commentId, String userId);
+    
+    boolean deleteCommentByAdmin(int commentId);
 }

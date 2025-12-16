@@ -15,7 +15,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-<title>어디핫?</title>
+<title>어디핫? - 서울 클럽, 강남 클럽, 홍대 클럽, 핫플레이스 추천</title>
+<meta name="description" content="실시간 핫플 추천! 강남 클럽, 홍대 클럽, 이태원 라운지, 헌팅포차까지. 클럽 순위, 클럽 후기, 라운지 후기를 한눈에! 서울 밤문화와 주말 데이트 코스 추천.">
+<meta name="keywords" content="어디핫, WhereHotNow, 오늘 핫플, 오늘 핫한 곳, 홍대 클럽, 강남 라운지, 헌팅포차, 서울 핫플, 강남 클럽, 홍대 술집, 이태원 라운지, 서울 클럽 추천, 강남 핫플, 홍대 라운지, 헌팅 잘되는 곳, 홍대 헌팅포차, 서울 라운지 추천, 서울 나이트, 20대 놀거리, 클럽 후기, 라운지 후기, 강남 술집, 서울 주말 데이트, 서울 밤문화, 실시간 핫플, 클럽순위, 서울클럽순위, 한국클럽순위">
+<meta name="author" content="어디핫?">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://wherehotnow.com/">
+
+<!-- Naver Site Verification -->
+<meta name="naver-site-verification" content="bee38fe45fc9daf8221030c34a1474c04d962d34" />
+
+<!-- Open Graph (Facebook, KakaoTalk) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="어디핫? - 서울 클럽, 강남 클럽, 홍대 클럽 추천">
+<meta property="og:description" content="실시간 핫플 추천! 강남 클럽, 홍대 클럽, 이태원 라운지, 헌팅포차까지. 클럽 순위, 클럽 후기를 한눈에!">
+<meta property="og:url" content="https://wherehotnow.com/">
+<meta property="og:site_name" content="어디핫?">
+<meta property="og:image" content="https://wherehotnow.com/logo/mainlogo.png">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="어디핫? - 서울 클럽, 강남 클럽, 홍대 클럽 추천">
+<meta name="twitter:description" content="실시간 핫플 추천! 강남 클럽, 홍대 클럽, 이태원 라운지, 헌팅포차까지. 클럽 순위, 클럽 후기를 한눈에!">
+<meta name="twitter:image" content="https://wherehotnow.com/logo/mainlogo.png">
+
 <link rel="icon" type="image/x-icon" href="<%=root%>/favicon.ico">
 
 

@@ -19,13 +19,6 @@
             <a href="<%=root %>/terms" class="text-decoration-none text-light">이용약관</a> &nbsp;|&nbsp;
             <a href="<%=root %>/notice" class="text-decoration-none text-light">공지사항</a>
         </div>
-        <div class="mt-3">
-            <!-- ✅ 인스타그램 아이콘 링크 (네 계정으로 바꿔) -->
-            <a href="https://www.instagram.com/wherehotnow/" target="_blank" class="text-decoration-none" style="color: #E4405F;">
-                <i class="bi bi-instagram" style="font-size: 1.5rem; color: #E4405F;"></i>
-                <span class="ms-1" style="color: #E4405F;">Instagram</span>
-            </a>
-        </div>
         <div class="text-light mt-2">
             ⓒ 2025 어디핫? All rights reserved.
         </div>

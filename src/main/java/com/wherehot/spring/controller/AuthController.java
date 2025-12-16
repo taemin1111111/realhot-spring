@@ -77,13 +77,6 @@ public class AuthController {
         return "index";
     }
     
-    // 네이버 회원가입 페이지 (기존 JSP Include 방식 유지)
-    @GetMapping("/signup/naver")
-    public String naverSignupForm(Model model) {
-        // 기존 JSP Include 방식 유지
-        model.addAttribute("mainPage", "login/naverJoin.jsp");
-        return "index";
-    }
     
     // 로그인 API 엔드포인트
     @PostMapping("/api/auth/login")

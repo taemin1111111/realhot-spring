@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <!-- 메인 페이지 -->
+    <url>
+        <loc>https://wherehotnow.com/</loc>
+        <lastmod>2025-10-13</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+    
+    <!-- 핫플레이스 -->
+    <url>
+        <loc>https://wherehotnow.com/hotplace/list</loc>
+        <lastmod>2025-10-13</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+    
+    <!-- 인기 핫플레이스 -->
+    <url>
+        <loc>https://wherehotnow.com/hotplace/popular</loc>
+        <lastmod>2025-10-13</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+    
+    <!-- 코스킹 -->
+    <url>
+        <loc>https://wherehotnow.com/course/list</loc>
+        <lastmod>2025-10-13</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.8</priority>
+    </url>
+    
+    <!-- 톡핫핫 -->
+    <url>
+        <loc>https://wherehotnow.com/hpost/list</loc>
+        <lastmod>2025-10-13</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.8</priority>
+    </url>
+    
+    <!-- 클럽테이블 (클럽 예약) -->
+    <url>
+        <loc>https://wherehotnow.com/md/list</loc>
+        <lastmod>2025-10-13</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+    
+    <!-- 공지사항 -->
+    <url>
+        <loc>https://wherehotnow.com/notice/list</loc>
+        <lastmod>2025-10-13</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+    </url>
+</urlset>
+

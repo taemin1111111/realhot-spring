@@ -874,21 +874,66 @@ public class CourseController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            String commentIdStr = (String) requestData.get("commentId");
+            // commentId는 JSON에서 Integer 또는 String으로 올 수 있음
+            Object commentIdObj = requestData.get("commentId");
             String nickname = (String) requestData.get("nickname");
             String password = (String) requestData.get("password");
             String authorUserid = (String) requestData.get("authorUserid");
             
+            // null 체크를 먼저 수행
+            if (commentIdObj == null) {
+                response.put("success", false);
+                response.put("message", "필수 정보가 누락되었습니다.");
+                return response;
+            }
+            
+            // commentId 파싱 (Integer 또는 String 처리)
             int commentId;
             try {
-                commentId = Integer.parseInt(commentIdStr);
+                if (commentIdObj instanceof Integer) {
+                    commentId = (Integer) commentIdObj;
+                } else if (commentIdObj instanceof String) {
+                    commentId = Integer.parseInt((String) commentIdObj);
+                } else {
+                    throw new NumberFormatException("Invalid type for commentId");
+                }
             } catch (NumberFormatException e) {
                 response.put("success", false);
                 response.put("message", "유효하지 않은 댓글 ID입니다.");
                 return response;
             }
             
-            if (commentIdStr == null || nickname == null) {
+            // 관리자 권한 확인 (JWT 토큰에서)
+            boolean isAdmin = false;
+            try {
+                String authHeader = request.getHeader("Authorization");
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    String token = authHeader.substring(7);
+                    if (jwtUtils.validateToken(token)) {
+                        String provider = jwtUtils.getProviderFromToken(token);
+                        isAdmin = "admin".equals(provider);
+                    }
+                }
+            } catch (Exception e) {
+                isAdmin = false;
+            }
+            
+            // 관리자인 경우 권한 체크 없이 바로 삭제
+            if (isAdmin) {
+                System.out.println("코스 댓글 삭제 - 관리자 권한으로 삭제");
+                boolean deleteResult = courseCommentService.deleteCommentWithAllData(commentId);
+                if (deleteResult) {
+                    response.put("success", true);
+                    response.put("message", "댓글이 삭제되었습니다.");
+                } else {
+                    response.put("success", false);
+                    response.put("message", "댓글 삭제에 실패했습니다.");
+                }
+                return response;
+            }
+            
+            // 일반 사용자 처리
+            if (nickname == null) {
                 response.put("success", false);
                 response.put("message", "필수 정보가 누락되었습니다.");
                 return response;
@@ -902,7 +947,7 @@ public class CourseController {
                 return response;
             }
             
-                         // 닉네임 확인
+             // 닉네임 확인
              if (!nickname.equals(comment.getNickname())) {
                  response.put("success", false);
                  response.put("message", "댓글 작성자와 일치하지 않습니다.");
@@ -912,8 +957,6 @@ public class CourseController {
              // 로그인 상태 확인
              boolean isLoggedIn = isUserLoggedIn(request);
              String currentUserId = determineUserId(request);
-             
-             
              
              // 권한 확인
              boolean hasPermission = false;
@@ -927,13 +970,13 @@ public class CourseController {
                      return response;
                  }
                  
-                                                     // 비밀번호 확인 (서버 해시화 방식만 사용)
-                   String hashedPassword = hashPassword(password);
-                   boolean passwordMatch = comment.getPasswdHash() != null && hashedPassword.equals(comment.getPasswdHash());
-                   
-                   if (passwordMatch) {
-                       hasPermission = true;
-                   }
+                 // 비밀번호 확인 (서버 해시화 방식만 사용)
+                 String hashedPassword = hashPassword(password);
+                 boolean passwordMatch = comment.getPasswdHash() != null && hashedPassword.equals(comment.getPasswdHash());
+                 
+                 if (passwordMatch) {
+                     hasPermission = true;
+                 }
              } else {
                  // 로그인한 사용자가 작성한 댓글인 경우: 작성자 본인인지 확인
                  if (isLoggedIn && currentUserId.equals(comment.getAuthorUserid())) {

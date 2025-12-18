@@ -1,13 +1,10 @@
- 어디핫? (WhereHot) - Spring Boot 프로젝트
+ 어디핫? (WhereHot) MODEL1-> Spring Boot 개인(1인) 프로젝트
+ 프로젝트 기간 2025.05~2025.11
 
-> 핫플레이스 정보 공유 플랫폼
+핫플레이스 정보 공유 플랫폼
 
-<<<<<<< HEAD
 ##  프로젝트 정보
-=======
  프로젝트 정보
->>>>>>> f0287106b24d733205276ba0b3b500c48eaf7d9b
-
 - **프레임워크**: Spring Boot 3.5.4
 - **자바 버전**: Java 17
 - **빌드 도구**: Maven
@@ -18,82 +15,6 @@
 - **인증**: JWT + OAuth2 (네이버)
 - **보안**: Spring Security
 
----
-
-<<<<<<< HEAD
-##  빠른 시작
-=======
- 빠른 시작
->>>>>>> f0287106b24d733205276ba0b3b500c48eaf7d9b
-
-
-<<<<<<< HEAD
-=======
-```bash
-# 1. 서버 초기 설정 
-ssh ubuntu@59.18.34.179
-chmod +x server-setup.sh
-./server-setup.sh
->>>>>>> f0287106b24d733205276ba0b3b500c48eaf7d9b
-
-
-
-
-
-<<<<<<< HEAD
-=======
-# 3. 서버에서 배포
-ssh ubuntu@59.18.34.179
-sudo cp /tmp/taeminspring.war /var/lib/tomcat9/webapps/
-sudo systemctl restart tomcat9
-```
-
-### 3. 접속 확인
-
-```
-http://59.18.34.179:8080/taeminspring/
-```
-
----
-
-주요 문서
-
-- **[배포방법_최종정리.md](배포방법_최종정리.md)** - 한글 배포 가이드 
-- **[FINAL_DEPLOYMENT_GUIDE.md](FINAL_DEPLOYMENT_GUIDE.md)** - 상세 배포 가이드
-- **[COMPLETE_WAR_DEPLOYMENT_FIX.md](COMPLETE_WAR_DEPLOYMENT_FIX.md)** - 문제 원인 및 해결 방안
-- **[WAR_DEPLOYMENT_GUIDE.md](WAR_DEPLOYMENT_GUIDE.md)** - WAR 배포 가이드
-- **[LEVEL_SYSTEM_README.md](LEVEL_SYSTEM_README.md)** - 레벨 시스템 설명
-
----
-
-## 개발 환경 설정
-
-### 필수 요구사항
-
-- **Java 17+**
-- **Maven 3.6+**
-- **MySQL 8.0+**
-- **Tomcat 9.0+** (WAR 배포시)
-
-### 로컬 개발 환경
-
-```bash
-# 1. MySQL 데이터베이스 생성
-mysql -u root -p
-CREATE DATABASE hothot CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-# 2. application-dev.properties 설정 확인
-# src/main/resources/application-dev.properties
-
-# 3. 스프링 부트 실행
-mvn spring-boot:run
-```
-
-**로컬 접속:** `http://localhost:8083/`
-
----
-
->>>>>>> f0287106b24d733205276ba0b3b500c48eaf7d9b
 ## 프로젝트 구조
 
 ```
@@ -124,41 +45,6 @@ realhot-spring/
 └── README.md
 ```
 
----
-
-## 주요 설정
-
-### 데이터베이스 설정
-
-```properties
-# application-prod.properties
-spring.datasource.url=jdbc:mysql://localhost:3306/hothot?serverTimezone=Asia/Seoul
-spring.datasource.username=wherehot_user
-spring.datasource.password=S7r!k#9vQp2&bL4xZt^6mNw
-```
-
-### JWT 설정
-
-```properties
-app.jwt.secret=${JWT_SECRET:...}
-app.jwt.expiration=86400
-app.jwt.refresh-expiration=2592000
-```
-
-### Redis 설정 (현재 비활성화)
-
-```properties
-# Redis 사용 안함
-spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-```
-
----
-
-<<<<<<< HEAD
-## 주요 기능
-=======
-주요 기능 설명입니다
->>>>>>> f0287106b24d733205276ba0b3b500c48eaf7d9b
 
 ### 1. 사용자 관리
 - 회원가입 / 로그인
@@ -191,35 +77,7 @@ spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.R
 
 ---
 
-<<<<<<< HEAD
-## 문제 해결
-=======
- 문제 해결 방법입니다.
->>>>>>> f0287106b24d733205276ba0b3b500c48eaf7d9b
 
-배포 실패시
-
-1. Tomcat 로그 확인
-   ```bash
-   sudo tail -f /var/log/tomcat9/catalina.out
-   ```
-
-2. 데이터베이스 연결 확인
-   ```bash
-   mysql -u wherehot_user -p'S7r!k#9vQp2&bL4xZt^6mNw' hothot
-   ```
-
-3. **환경변수 확인**
-   ```bash
-   sudo systemctl show tomcat9 | grep Environment
-   ```
-
-4. **포트 확인**
-   ```bash
-   sudo netstat -tlnp | grep :8080
-   ```
-
-### 자주 발생하는 오류
 
 - **JSP 404 에러**: WebConfig 리소스 경로 확인
 - **Redis 연결 실패**: `spring.autoconfigure.exclude` 설정 확인
@@ -246,7 +104,7 @@ spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.R
 - 메모리 기반 캐시 (ConcurrentHashMap)
 - Redis 캐시
 
----
+
 
 ## 보안 설정
 
@@ -262,69 +120,7 @@ spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.R
 - X-XSS-Protection: 1; mode=block
 - Content-Security-Policy
 
----
 
-<<<<<<< HEAD
-## 
-=======
-## 개발자 가이드
-
-### 새 기능 추가
-
-1. **Entity 생성**: `entity/` 패키지
-2. **Mapper 작성**: `mapper/` 인터페이스 + XML
-3. **Service 작성**: `service/` 인터페이스 + Impl
-4. **Controller 작성**: `controller/` 패키지
-5. **JSP 작성**: `webapp/WEB-INF/views/`
-
-### 빌드 및 테스트
-
-```bash
-# 빌드
-mvn clean package
-
-# 테스트
-mvn test
-
-# 스프링 부트 실행
-mvn spring-boot:run
-```
-
----
-
-## 라이선스
-
-이 프로젝트는 개인 프로젝트이며, 상업적 사용 금지입니다.
-
----
-
-## 개발팀
-
-- **개발자**: WhereHot Team
-- **배포일**: 2025
-
----
-
-## 배포 체크리스트
-
-### 서버 준비
-- [ ] MySQL 설치 및 데이터베이스 생성
-- [ ] Tomcat 설치 및 환경변수 설정
-- [ ] 업로드 디렉토리 생성
-- [ ] 방화벽 8080 포트 오픈
-
-### WAR 배포
-- [ ] WAR 파일 빌드 (`mvn clean package`)
-- [ ] WAR 파일 서버로 전송
-- [ ] Tomcat webapps에 배포
-- [ ] Tomcat 재시작
-
-### 배포 확인
-- [ ] 메인 페이지 접속
-- [ ] 정적 리소스 로딩 확인
-- [ ] 데이터베이스 연결 확인
-- [ ] 로그인 기능 테스트
-- [ ] 게시글 작성 테스트
 
 ---
 
